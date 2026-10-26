@@ -5,7 +5,7 @@ Drafts only; not published. Each implementation issue depends on architecture/on
 | ID / title | Proposed owner | Dependencies | Acceptance criteria |
 |---|---|---|---|
 | P0 Approve architecture and onboarding | Both | planning docs | record decisions and resolve blocking questions |
-| P1 Verify official hackathon and Meta access | Both | official event link/account dashboard | rules, dates, team, exact models, pricing/credits evidenced |
+| P1 Verify official hackathon and Meta access | Both | official event link/account dashboard | Startup eligibility/representative confirmed; official judging criteria reviewed; exact models, prices, shared credit expiry/coverage evidenced |
 | P2 Freeze v1 contracts and starter migration | Architecture & Core | P0 | reviewed schema/fixtures and migration preserving history |
 | P3 Create Xcode app and manual dashboard | Developer A | P2 | buildable project, confirmed mL entry, manual fallback |
 | P4 Persist owned beverage logs | Developer B | P2 | validated CRUD, timezone/idempotency, authorization tests |

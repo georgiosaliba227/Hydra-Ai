@@ -1,6 +1,6 @@
 # Developer onboarding
 
-Status: local starter setup verified on Developer A's current Mac only. Developer B's environment, remote collaboration and Meta onboarding remain unverified. Architecture and feature work require both developers' approval.
+Status: local starter setup verified on Developer A's current Mac only. Developer B's environment, remote collaboration and Meta onboarding remain unverified. Milestone 1 requires review and approval of planning PR #1 by both developers.
 
 ## Clone and branch
 ```sh
@@ -39,8 +39,8 @@ Three existing tests passed, and in-process API smoke checks covered health, for
 Inspect `xcode-select -p`, `xcodebuild -version`, and `swift --version`. Source files live in `Hydra-Ai-Starter/ios/HydraAI/`; no `.xcodeproj` exists, so there is no current build/run command. After architecture approval, create a SwiftUI iOS App target, add these sources, choose the team's bundle ID/signing, and run on an available simulator. Camera/HealthKit capabilities, purpose strings and physical-device testing belong to later implementation. Do not claim Apple Watch or HealthKit is connected.
 
 ## Secure Meta onboarding checklist
-1. Both developers confirm account and accepted hackathon access; resolve two-person Indie eligibility using accepted rules.
-2. Inspect actual credits, expiry, historical charges, billing method/overages and team membership. Never share credential screenshots.
+1. Startup track: both developers verify acceptance, age/majority and personal eligibility. Appoint an authorized active-employee startup representative; see HACKATHON_COMPLIANCE.md. Team participation is supported by the rules, but personal eligibility is not established by GitHub usernames.
+2. User-confirmed dashboard snapshot: $150.00 shared project credits, $0.00 pay-as-you-go balance, attached payment method (2026-10-26). Verify exact expiry/coverage, historical gross usage, overage terms and team membership; do not infer zero usage from zero balance. Preserve the $120 cumulative-usage cutoff/$30 reserve. Never enable automatic top-ups or share credentials/card details.
 3. Verify `muse-spark-1.3` availability, image support and prices against META_MODEL_STRATEGY.md. Choose Standard pending privacy review.
 4. Copy `.env.example` to `.env` only when configuring the later backend. Keep keys server-side. Proposed variables: `META_MODEL_API_KEY`, `META_BASE_URL`, `META_MODEL_ID`, `META_BILLABLE_REQUESTS_ENABLED`, `HYDRA_AI_MODE`, `HYDRA_BUDGET_GATEWAY_URL`, optional `WEATHER_API_KEY`. No current code reads or enforces these variables.
 5. Implement and test the single authoritative budget gateway with mocks after architecture approval. Meta alerts are not hard caps. Both local clients must share its ledger.

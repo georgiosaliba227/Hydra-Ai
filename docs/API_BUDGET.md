@@ -1,8 +1,12 @@
 # Shared Meta API budget design
 
-Status: design only; no gateway, ledger, or enforcement implemented. Paid calls disabled. This run made no Meta inference calls; historical account spending and credits remain unknown.
+Status: design only; no gateway, ledger, or enforcement implemented. Paid calls disabled. No Meta inference calls are authorized or made by this workflow. Historical cumulative usage still requires reconciliation; a zero payable balance does not establish zero usage.
 
-One $150 ceiling covers both developers and all agents. Track gross estimated charges conservatively until credit accounting and expiry are verified. Codex/tool subscriptions are separate.
+## Confirmed billing snapshot
+
+Source: user confirmation from the Meta billing dashboard, 2026-10-26 (not independently inspected by the agent). Free credits: **$150.00** for the entire project; current pay-as-you-go balance: **$0.00**; payment method: **attached**. This allocation is shared by both developers and all agents, never $150 each. Do not record card details. Credit expiry, coverage and historical gross usage still need verification.
+
+The operational cutoff remains **$120 of cumulative gross Meta usage**, preserving a **$30 reserve** under the $150 absolute ceiling. Settled gross usage plus unresolved reservations determines admission; credit offsets and a $0 payable balance never reset the counter. A payment method can be charged for overages; free credits do not prevent billing. Never enable automatic top-ups or uncontrolled calls. Codex/tool subscriptions are separate. Maintain one centralized, persistent, fail-closed API budget controller; this remains a design, not implemented enforcement.
 
 | Exposure (settled + unresolved reservations + proposed request) | Policy |
 |---|---|
@@ -10,13 +14,13 @@ One $150 ceiling covers both developers and all agents. Track gross estimated ch
 | Reaches $75 | Notify both developers; persist one threshold event |
 | Reaches $100 | Block pending explicit further-spend approval; record approver and scope |
 | Reaches $120 | Reject every new billable request, even with $100 approval |
-| $120–150 | Safety margin for unresolved charges; no automatic use |
+| $120–150 | Explicit $30 safety reserve for unresolved charges; no automatic use |
 | $150 | Absolute maximum; never intentionally exceed |
 
 Meta explicitly provides alerts, not a hard cap. Verified 2026-10-26: [billing help](https://dev.meta.ai/help/billing/spend-limit-alert). This makes application enforcement and bypass prevention mandatory; paid access remains blocked.
 
 ## Required protocol before any billable call
-1. Confirm project/account identity, historical usage, credits, expiry, all billable modalities, exact price versions, taxes/fees if applicable, and provider-enforced caps. Audit other keys/tools spending against the same account.
+1. Confirm project/account identity, historical gross usage, the user-confirmed shared credit allocation, expiry, all billable modalities, exact price versions, taxes/fees if applicable, and provider-enforced caps. Audit other keys/tools spending against the same account.
 2. Keep the only production credential in a single gateway. Developer clients/agents use gateway credentials, never provider keys; revoke or account for alternate spend paths. Local configuration flags cannot prevent bypass by a separate key.
 3. Bound image sizes/counts and preprocessing costs, input tokens, output tokens, and every billed category. Compute a conservative maximum request cost. Unknown or unbounded charge means reject. Proposed initial per-attempt ceiling: $0.25, subject to approval once prices are known.
 4. In one SQLite `BEGIN IMMEDIATE` transaction, check policy/approval, unique idempotency key, settled usage and open reservations; reserve the full maximum cost before dispatch. A second request sees this reservation. Block if the proposed exposure reaches a gated threshold without its required approval, or reaches $120 at all.

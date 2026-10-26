@@ -1,6 +1,6 @@
 # Proposed architecture
 
-Status: awaiting developer approval. No feature migration or implementation in this phase.
+Status: Startup track proposal; planning PR #1 review and approval required before Milestone 1. No feature migration or implementation in this phase.
 
 ## Decision proposal
 Use one SwiftUI iPhone client, one modular FastAPI backend, a deterministic Python calculation module, and SQLite on one backend host. Keep the existing nested starter intact until a separately reviewed migration. Prefer an HTTP adapter for Meta once the actual API contract is verified; do not install a guessed SDK.
@@ -31,6 +31,6 @@ Persist confirmed logs with user ownership, consumed volume, timestamps, timezon
 Network/model errors leave manual logging usable. Invalid model JSON, unknown pricing, unavailable ledger or consent denial blocks AI calls. No remote deployment until authentication, transport security, retention/deletion and hosting costs have been reviewed. Local development binds to loopback; device testing needs a separately configured private development connection.
 
 ## Tradeoffs and open decisions
-SwiftUI suits HealthKit and camera but needs Xcode project/signing setup. SQLite minimizes operations but requires one authoritative host. The starter's heuristic forecast cannot become the production algorithm by renaming it. A verified vision-capable Meta endpoint is a dependency, not an assumption. Weather/product provider, hosting, identity mechanism, baseline method, model ID and rules are unresolved.
+SwiftUI suits HealthKit and camera but needs Xcode project/signing setup. SQLite minimizes operations but requires one authoritative host. The starter's heuristic forecast cannot become the production algorithm by renaming it. A verified vision-capable Meta endpoint is a dependency, not an assumption. Weather/product provider, hosting, identity mechanism, baseline method, model ID and remaining participant/submission checks are unresolved.
 
 Shared interfaces: [contracts](architecture/CONTRACTS.md). Budget protocol: [API budget](API_BUDGET.md). Approval gates: [roadmap](ROADMAP.md).
