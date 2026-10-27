@@ -1,4 +1,6 @@
 import Foundation
+import CoreTransferable
+import UniformTypeIdentifiers
 import UIKit
 
 struct RecognitionRequest: Encodable {
@@ -107,6 +109,26 @@ struct RecognitionResult: Decodable, Sendable {
                   candidate.uncertaintyReasons.allSatisfy({ !$0.isEmpty && $0.count <= 300 }),
                   candidate.containerMl.map({ (1...5000).contains($0) }) ?? true else { throw ServiceError.invalidResponse }
         }
+    }
+}
+
+/// The selected image is prepared once; export and analysis consume identical bytes.
+struct PreparedRecognitionPhoto {
+    let image: UIImage
+    let export: PreparedPhotoExport
+
+    @MainActor init(image: UIImage) throws {
+        self.image = image
+        self.export = PreparedPhotoExport(jpeg: try PhotoPreparation.jpeg(image))
+    }
+}
+
+struct PreparedPhotoExport: Transferable {
+    let jpeg: Data
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(exportedContentType: .jpeg) { photo in photo.jpeg }
+            .suggestedFileName("hydra-prepared-beverage.jpg")
     }
 }
 

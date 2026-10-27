@@ -39,3 +39,5 @@ Local maintained suites: 244 passed plus 32 subtests, one existing Starlette/htt
 Post-implementation review: [PR #10 review and remaining human/provider actions](PR10_REVIEW_2026-10-27.md). Follow-up validation: 247 maintained tests plus 32 subtests passed after rejecting impossible physical-water totals; the 244-test result above is historical.
 
 Georgio-first follow-up: [ledger discovery and controlled activation reconciliation](META_LEDGER_DISCOVERY_2026-10-27.md).
+
+Latest preparation: [camera activation, empty permanent ledger, exact-image export and remaining gates](META_CAMERA_ACTIVATION_2026-10-27.md). This later report supersedes the earlier discovery report's ledger-not-initialized status; it grants no spending or disclosure approval.

@@ -3,13 +3,14 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Explicitly consented recognition; images are transient, never saved by Hydra.
+/// Explicitly consented recognition; images stay transient unless the user exports them.
 struct CameraCaptureView: View {
     @EnvironmentObject private var store: BeverageStore
     let onLogManually: () -> Void
 
     @State private var photoItem: PhotosPickerItem?
-    @State private var capturedImage: UIImage?
+    @State private var preparedPhoto: PreparedRecognitionPhoto?
+    private var capturedImage: UIImage? { preparedPhoto?.image }
     @State private var showingCamera = false
     @State private var alertTitle = ""
     @State private var alertMessage: String?
@@ -20,6 +21,7 @@ struct CameraCaptureView: View {
     @State private var consent = false
     @State private var metaConsent = false
     @State private var recognitionMode: String?
+    @State private var isLoadingCapabilities = false
     private var presentation: RecognitionPresentation { RecognitionPresentation(mode: recognitionMode) }
     private var isLive: Bool { recognitionMode == "meta_live" }
     @State private var scenario = "ambiguous"
@@ -44,6 +46,15 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
+                    if let preparedPhoto {
+                        ShareLink(item: preparedPhoto.export, preview: SharePreview("Prepared beverage photo", image: Image(uiImage: capturedImage))) {
+                            Label("Export prepared photo for approval", systemImage: "square.and.arrow.up")
+                        }
+                        .accessibilityIdentifier("exportPreparedPhoto")
+                        .disabled(isAnalyzing)
+                        Text("Share this exact resized JPEG with your developer for image approval. Analysis uses the same copy. Exporting does not approve analysis or automatically send it to Meta.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                     Text(presentation.photoDescription)
                         .font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("recognitionSource")
@@ -58,10 +69,10 @@ struct CameraCaptureView: View {
                     .disabled(isAnalyzing) }
                     Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $consent)
                         .accessibilityIdentifier("photoConsent")
-                        .disabled(isAnalyzing)
+                        .disabled(isAnalyzing || isLoadingCapabilities)
                     if isLive {
                         Toggle("I consent to sending this beverage photo to Meta for AI analysis", isOn: $metaConsent)
-                            .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing)
+                            .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing || isLoadingCapabilities)
                         Text("Meta may retain content for service, safety and legal purposes. Zero retention is not promised. No location metadata or HealthKit records are sent.").font(.footnote)
                     }
                     Button(isAnalyzing ? "Analyzing…" : presentation.analyzeTitle) {
@@ -103,7 +114,7 @@ struct CameraCaptureView: View {
                     captureOptions
                 }
 
-                Text("Photos stay on device until you consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Images are not saved by Hydra. Confirmed logs contain details you approve.")
+                Text("Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Only an export you choose saves or shares a separate copy. Confirmed logs contain details you approve.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -112,7 +123,7 @@ struct CameraCaptureView: View {
         }
         .navigationTitle("Capture beverage")
         .sheet(isPresented: $showingCamera) {
-            SystemCameraPicker(image: $capturedImage, isPresented: $showingCamera)
+            SystemCameraPicker(image: Binding(get: { capturedImage }, set: { selectPhoto($0) }), isPresented: $showingCamera)
                 .ignoresSafeArea()
         }
         .sheet(item: $selectedCandidate) { candidate in
@@ -137,18 +148,31 @@ struct CameraCaptureView: View {
     }
 
     private func clearPhoto() {
-        capturedImage = nil; photoItem = nil; result = nil; consent = false; metaConsent = false
+        preparedPhoto = nil; photoItem = nil; result = nil; selectedCandidate = nil; consent = false; metaConsent = false
+    }
+
+    @MainActor private func selectPhoto(_ image: UIImage?) {
+        // A camera selection must invalidate any older in-flight library load.
+        photoItem = nil
+        preparedPhoto = nil; result = nil; selectedCandidate = nil; consent = false; metaConsent = false
+        guard let image else { return }
+        do {
+            preparedPhoto = try PreparedRecognitionPhoto(image: image)
+        } catch {
+            alertTitle = "Photo unavailable"
+            alertMessage = "This photo could not be prepared for analysis. Choose another photo."
+            photoItem = nil
+        }
     }
 
     @MainActor private func analyze() async {
-        guard consent, !isAnalyzing, let mode = recognitionMode, (!isLive || metaConsent), let capturedImage else { return }
+        guard consent, !isAnalyzing, !isLoadingCapabilities, let mode = recognitionMode, (!isLive || metaConsent), let preparedPhoto else { return }
         isAnalyzing = true; result = nil
         defer { isAnalyzing = false }
         do {
             guard !store.isOffline else { throw ServiceError.configuration }
-            let jpeg = try PhotoPreparation.jpeg(capturedImage)
             let service = try HTTPBeverageService(configuration: store.configuration)
-            result = try await service.analyzePhoto(jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
+            result = try await service.analyzePhoto(preparedPhoto.export.jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
         } catch {
             alertTitle = "Analysis unavailable"
             alertMessage = isLive ? "\(error.localizedDescription) Do not retry this Meta attempt. Ask a developer to review the budget ledger and reconcile any uncertain charges. You can log manually; analysis created no beverage." : "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
@@ -156,14 +180,17 @@ struct CameraCaptureView: View {
     }
 
     @MainActor private func loadCapabilities() async {
-        recognitionMode = nil; consent = false; metaConsent = false; result = nil
+        guard !isAnalyzing, !isLoadingCapabilities else { return }
+        isLoadingCapabilities = true
+        defer { isLoadingCapabilities = false }
+        recognitionMode = nil; consent = false; metaConsent = false; result = nil; selectedCandidate = nil
         do {
             guard !store.isOffline else { throw ServiceError.configuration }
             let service = try HTTPBeverageService(configuration: store.configuration)
             recognitionMode = try await service.recognitionCapabilities().mode
         } catch {
             alertTitle = "Recognition unavailable"
-            alertMessage = "Could not verify the backend recognition mode. \(error.localizedDescription) Reopen Camera after checking Settings."
+            alertMessage = "Could not verify the backend recognition mode. \(error.localizedDescription) Check Settings, then tap Refresh analysis mode."
         }
     }
 
@@ -178,6 +205,11 @@ struct CameraCaptureView: View {
             Text(presentation.header)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("recognitionHeader")
+            Button(isLoadingCapabilities ? "Refreshing analysis mode…" : "Refresh analysis mode") {
+                Task { await loadCapabilities() }
+            }
+            .accessibilityIdentifier("refreshRecognitionMode")
+            .disabled(isAnalyzing || isLoadingCapabilities)
         }
     }
 
@@ -195,9 +227,9 @@ struct CameraCaptureView: View {
             }
             if ProcessInfo.processInfo.environment["HYDRA_TEST_PHOTO_FIXTURE"] == "1" {
                 Button("Use synthetic test photo") {
-                    capturedImage = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
+                    selectPhoto(UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
                         UIColor.blue.setFill(); context.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
-                    }
+                    })
                 }.accessibilityIdentifier("syntheticPhoto")
             }
             #endif
@@ -252,8 +284,9 @@ struct CameraCaptureView: View {
     @MainActor
     private func loadSelectedPhoto(_ item: PhotosPickerItem) async {
         do {
-            guard let data = try await item.loadTransferable(type: Data.self),
-                  data.count <= maximumImageBytes,
+            let loadedData = try await item.loadTransferable(type: Data.self)
+            guard photoItem == item else { return }
+            guard let data = loadedData, data.count <= maximumImageBytes,
                   let image = UIImage(data: data)
             else {
                 alertTitle = "Photo unavailable"
@@ -261,8 +294,9 @@ struct CameraCaptureView: View {
                 photoItem = nil
                 return
             }
-            capturedImage = image
+            selectPhoto(image)
         } catch {
+            guard photoItem == item else { return }
             alertTitle = "Photo unavailable"
             alertMessage = "The selected photo could not be opened. Try another photo."
             photoItem = nil
