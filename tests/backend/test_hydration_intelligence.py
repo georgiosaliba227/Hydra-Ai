@@ -233,3 +233,33 @@ def test_injected_output_cannot_mutate_context_or_prose(tmp_path):
     with TestClient(app) as client:
         response = client.post("/v1/hydration-explanations", headers=AUTH, json=request())
         assert response.status_code == 503 and "2000" not in response.text
+
+
+def test_combined_configuration_retains_account_keys_and_single_ledger(tmp_path, monkeypatch):
+    ledger = configured_ledger(tmp_path)
+    georgio_key = "synthetic-georgio-camera-key"
+    monkeypatch.setenv("HYDRA_AI_MODE", "guarded_meta")
+    monkeypatch.setenv("HYDRA_META_ACCOUNT", ACCOUNTS[0])
+    monkeypatch.setenv("HYDRA_META_GEORGIO_API_KEY", georgio_key)
+    monkeypatch.setenv("HYDRA_META_AMINE_API_KEY", KEY)
+    monkeypatch.setenv("HYDRA_META_HYDRATION_ENABLED", "true")
+    monkeypatch.setenv("META_BILLABLE_REQUESTS_ENABLED", "true")
+    monkeypatch.setenv("HYDRA_GITHUB_NOTIFICATION_TOKEN", "synthetic-github")
+    app = create_app(ledger.path, TOKEN)
+    camera = app.state.recognizer
+    hydration = app.state.hydration_service
+    assert camera.ledger is hydration.ledger is app.state.meta_ledger
+    assert app.state.meta_ledger.path == ledger.path
+    assert camera.account == ACCOUNTS[0] and hydration.account == ACCOUNTS[1]
+    assert camera.transport.credential_fingerprint == hashlib.sha256(georgio_key.encode()).hexdigest()
+    assert hydration.transport.credential_fingerprint == hashlib.sha256(KEY.encode()).hexdigest()
+    assert camera.transport.credential_fingerprint != hydration.transport.credential_fingerprint
+    with TestClient(app) as client:
+        assert client.get("/v1/recognition-capabilities", headers=AUTH).json()["mode"] == "meta_live"
+        assert client.get("/v1/hydration-capabilities", headers=AUTH).json()["mode"] == "meta_live"
+        # Configuration alone cannot approve a different synthetic input.
+        response = client.post("/v1/hydration-explanations", headers=AUTH,
+                               json=request("meta_live", workout_minutes=45))
+        assert response.status_code == 503 and response.json()["retryable"] is False
+    with sqlite3.connect(ledger.path) as db:
+        assert db.execute("SELECT COUNT(*) FROM live_attempts").fetchone()[0] == 0
