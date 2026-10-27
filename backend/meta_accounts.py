@@ -111,6 +111,36 @@ class ControlledPermit(FirstPermit):
     maximum_micro_usd: StrictInt = Field(ge=1, le=PROPOSED_CAP)
 
 
+class InvoiceFinality(BaseModel):
+    """Private reviewed attestation; never an authenticated billing fetch."""
+    model_config = ConfigDict(extra="forbid", strict=True)
+    attempt_id: str = Field(pattern=r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
+    account_id: Literal["georgiosaliba227", "aminealichaouche"]
+    provider_id: str = Field(pattern=r"^resp_[A-Za-z0-9_-]{1,180}$")
+    final_gross_micro_usd: StrictInt = Field(ge=0, le=9_000_000_000_000_000)
+    finalized_at: datetime
+    provider_evidence_reference: str = Field(min_length=1, max_length=500)
+    georgio_review_reference: str = Field(min_length=1, max_length=500)
+    amine_review_reference: str = Field(min_length=1, max_length=500)
+    provider_finality_verified: Literal[True]
+
+    _explicit_true = field_validator("provider_finality_verified", mode="before")(Evidence.explicit_true.__func__)
+
+    @field_validator("finalized_at")
+    @classmethod
+    def past_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value > now():
+            raise ValueError("Past timezone-aware provider finalization time required")
+        return value.astimezone(timezone.utc)
+
+    @field_validator("provider_evidence_reference", "georgio_review_reference", "amine_review_reference")
+    @classmethod
+    def meaningful_reference(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Explicit provider evidence and both developer reviews required")
+        return value
+
+
 def parse_permit(raw: str) -> FirstPermit:
     kind = json.loads(raw).get("policy_version")
     return ControlledPermit.model_validate_json(raw) if kind else FirstPermit.model_validate_json(raw)
@@ -145,6 +175,7 @@ class AccountLedger(MetaBudget):
 
         with self.transaction() as db:
             db.execute("CREATE TABLE IF NOT EXISTS controlled_permits(account_id TEXT PRIMARY KEY, permit TEXT NOT NULL, spent INTEGER NOT NULL DEFAULT 0)")
+            db.execute("CREATE TABLE IF NOT EXISTS live_finalities(attempt_id TEXT PRIMARY KEY, evidence TEXT NOT NULL, recorded_at TEXT NOT NULL)")
         os.chmod(self.path, 0o600)
 
     @staticmethod
@@ -191,6 +222,55 @@ class AccountLedger(MetaBudget):
             db.execute("INSERT INTO live_permit(id,permit) VALUES(1,?)", (permit.model_dump_json(),))
             self.event(db, permit.account_id, "first_test_approved", permit.spending_authority_reference)
 
+    @staticmethod
+    def verify_project_unfrozen(db: sqlite3.Connection) -> None:
+        # A second account's existing permit must not bypass a provider breach
+        # or reconciliation hold. Check in each transaction up to network claim.
+        if db.execute("SELECT 1 FROM live_accounts WHERE frozen=1").fetchone():
+            raise BudgetDenied("Frozen account blocks all project dispatch")
+
+    @staticmethod
+    def verify_prior_finalities(db: sqlite3.Connection, excluding_attempt: str = "") -> None:
+        # Query the table even with no prior attempts: an old schema fails closed.
+        rows = db.execute(
+            "SELECT a.id,a.account_id,a.provider_id,a.actual,a.state,a.dispatched_at,f.evidence "
+            "FROM live_attempts a LEFT JOIN live_finalities f ON f.attempt_id=a.id "
+            "WHERE a.id != ?", (excluding_attempt,)
+        )
+        for attempt, account, provider, actual, state, dispatched, raw in rows:
+            try:
+                finality = InvoiceFinality.model_validate_json(raw)
+                if (attempt != finality.attempt_id or account != finality.account_id
+                        or provider != finality.provider_id or actual != finality.final_gross_micro_usd
+                        or state != "settled" or dispatched is None
+                        or finality.finalized_at < datetime.fromisoformat(dispatched)):
+                    raise ValueError
+            except (ValueError, TypeError):
+                raise BudgetDenied("Prior provider invoice finality is unverified") from None
+
+    def record_invoice_finality(self, finality: InvoiceFinality) -> None:
+        finality = InvoiceFinality.model_validate(finality.model_dump())
+        with self.transaction() as db:
+            self.verify_project_unfrozen(db)
+            row = db.execute(
+                "SELECT account_id,provider_id,actual,state,dispatched_at FROM live_attempts WHERE id=?",
+                (finality.attempt_id,),
+            ).fetchone()
+            if (not row or row[:4] != (finality.account_id, finality.provider_id,
+                                      finality.final_gross_micro_usd, "settled")
+                    or row[4] is None or finality.finalized_at < datetime.fromisoformat(row[4])):
+                raise BudgetDenied("Finality must match settled provider usage and follow dispatch")
+            raw = finality.model_dump_json()
+            existing = db.execute("SELECT evidence FROM live_finalities WHERE attempt_id=?",
+                                  (finality.attempt_id,)).fetchone()
+            if existing:
+                if existing[0] == raw:
+                    return  # Identical import retry never changes evidence or costs.
+                raise BudgetDenied("Provider finality evidence is immutable")
+            db.execute("INSERT INTO live_finalities(attempt_id,evidence,recorded_at) VALUES(?,?,?)",
+                       (finality.attempt_id, raw, stamp()))
+            self.event(db, finality.account_id, "invoice_finality_attested", finality.attempt_id)
+
     def approve_controlled_test(self, permit: ControlledPermit) -> None:
         permit = ControlledPermit.model_validate(permit.model_dump())
         expected = "camera" if permit.account_id == ACCOUNTS[0] else "hydration"
@@ -204,10 +284,10 @@ class AccountLedger(MetaBudget):
                 raise BudgetDenied("Legacy approval or prior attempt requires separate policy review")
             # Owners may approve independently, including the second owner later.
             # Never treat a reservation, ambiguous bill or frozen account as settled.
-            if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone() or db.execute(
-                "SELECT 1 FROM live_accounts WHERE frozen=1"
-            ).fetchone():
-                raise BudgetDenied("Unresolved billing or frozen account blocks another approval")
+            self.verify_project_unfrozen(db)
+            self.verify_prior_finalities(db)
+            if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
+                raise BudgetDenied("Unresolved billing blocks another approval")
             db.execute("INSERT INTO controlled_permits(account_id,permit) VALUES(?,?)", (permit.account_id, permit.model_dump_json()))
             self.event(db, permit.account_id, "controlled_test_approved", permit.spending_authority_reference)
 
@@ -274,6 +354,8 @@ class AccountLedger(MetaBudget):
         self.verify_storage()
         attempt = str(uuid4())
         with self.transaction() as db:
+            self.verify_project_unfrozen(db)
+            self.verify_prior_finalities(db)
             evidence, price, permit = self._policy(db, account)
             if image_hash != permit.image_sha256:
                 raise BudgetDenied("Image does not match owner-approved permit")
@@ -306,6 +388,8 @@ class AccountLedger(MetaBudget):
             raise BudgetDenied("Exact payload fingerprint required")
         nonce = str(uuid4())
         with self.transaction() as db:
+            self.verify_project_unfrozen(db)
+            self.verify_prior_finalities(db, excluding_attempt=attempt)
             row = db.execute("SELECT account_id,price,state FROM live_attempts WHERE id=?", (attempt,)).fetchone()
             if not row or row[2] != "reserved":
                 raise BudgetDenied("Attempt cannot dispatch twice")
@@ -325,6 +409,8 @@ class AccountLedger(MetaBudget):
     def claim_send(self, attempt: str, nonce: str, payload_sha256: str, input_bound: int, credential_fingerprint: str) -> None:
         self.verify_storage()
         with self.transaction() as db:
+            self.verify_project_unfrozen(db)
+            self.verify_prior_finalities(db, excluding_attempt=attempt)
             row = db.execute("SELECT account_id,state,ticket_nonce,payload_sha256,price,input_bound FROM live_attempts WHERE id=?", (attempt,)).fetchone()
             if not row or row[1:4] != ("dispatched", nonce, payload_sha256):
                 raise BudgetDenied("No matching one-use network dispatch ticket")
