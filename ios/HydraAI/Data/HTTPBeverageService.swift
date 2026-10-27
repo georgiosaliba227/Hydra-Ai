@@ -87,6 +87,22 @@ actor HTTPBeverageService: BeverageService {
         return try Self.decoder().decode(T.self, from: data)
     }
 
+    func analyzePhoto(_ jpeg: Data, scenario: String) async throws -> RecognitionResult {
+        guard jpeg.count <= 1_048_576 else { throw ServiceError.invalidResponse }
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/recognitions"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        request.httpBody = try encoder.encode(RecognitionRequest(imageBase64: jpeg.base64EncodedString(), photoConsent: true, mockScenario: scenario))
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        let result = try JSONDecoder().decode(RecognitionResult.self, from: data)
+        try result.validate()
+        return result
+    }
+
     func listBeverages() async throws -> [BeverageLog] {
         struct Page: Decodable { let items: [BeverageLog]; let next_cursor: String? }
         var logs: [BeverageLog] = []; var cursor: String?; var seen = Set<String>(); var ids = Set<UUID>()

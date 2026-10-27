@@ -3,8 +3,9 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// An offline capture flow. Images stay in memory and are never sent or saved here.
+/// Explicitly consented mock analysis; images are transient, never saved by Hydra.
 struct CameraCaptureView: View {
+    @EnvironmentObject private var store: BeverageStore
     let onLogManually: () -> Void
 
     @State private var photoItem: PhotosPickerItem?
@@ -12,6 +13,12 @@ struct CameraCaptureView: View {
     @State private var showingCamera = false
     @State private var alertTitle = ""
     @State private var alertMessage: String?
+
+    @State private var consent = false
+    @State private var scenario = "ambiguous"
+    @State private var isAnalyzing = false
+    @State private var result: RecognitionResult?
+    @State private var selectedCandidate: RecognitionCandidate?
 
     private let maximumImageBytes = 12 * 1_024 * 1_024
 
@@ -30,28 +37,58 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
-                    Label("Recognition is unavailable in this mock build. Confirm the beverage and amount in the manual log.", systemImage: "info.circle")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text("Mock analysis: selected demo responses do not interpret this photo.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    Picker("Demo response", selection: $scenario) {
+                        Text("Ambiguous / no match").tag("ambiguous")
+                        Text("Branded US cola").tag("branded")
+                        Text("Generic coffee").tag("generic")
+                        Text("Missing nutrition").tag("missing_nutrition")
+                        Text("API failure").tag("failure")
+                    }
+                    .accessibilityIdentifier("mockScenario")
+                    .disabled(isAnalyzing)
+                    Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $consent)
+                        .accessibilityIdentifier("photoConsent")
+                        .disabled(isAnalyzing)
+                    Button(isAnalyzing ? "Analyzing…" : "Analyze with mock Meta response") {
+                        Task { await analyze() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("analyzePhoto")
+                    .disabled(!consent || isAnalyzing)
+                    if let result {
+                        Text("Mock result — confirmation required").font(.headline)
+                        ForEach(result.candidates) { candidate in
+                            Button("Review \(candidate.identity) (\(candidate.confidence) confidence)") { selectedCandidate = candidate }
+                                .buttonStyle(.bordered)
+                        }
+                        if result.candidates.isEmpty {
+                            Text("No confident match. Retake the photo or enter the identity and capacity yourself.")
+                        }
+                        Button("Enter or correct beverage details") {
+                            selectedCandidate = RecognitionCandidate(identity: "", productId: nil, containerMl: nil, confidence: "low", uncertaintyReasons: ["Identity, capacity and nutrients are unknown"])
+                        }
+                    }
 
                     Button("Log beverage manually") {
                         // Manual logging receives no image or inferred beverage details.
-                        self.capturedImage = nil
-                        photoItem = nil
+                        clearPhoto()
                         onLogManually()
                     }
                     .buttonStyle(.borderedProminent)
+                    .disabled(isAnalyzing)
 
                     Button("Discard photo", role: .destructive) {
-                        self.capturedImage = nil
-                        photoItem = nil
+                        clearPhoto()
                     }
                     .buttonStyle(.bordered)
+                    .disabled(isAnalyzing)
                 } else {
                     captureOptions
                 }
 
-                Text("Photos remain on this device in this mock flow. They are not uploaded, saved by Hydra AI, or used to create a beverage log.")
+                Text("Photos stay on device until you consent and tap Analyze. A resized copy without original metadata goes only to your configured backend, which uses mock responses and does not save images. No Meta upload occurs. Confirmed logs contain details you approve.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -63,6 +100,10 @@ struct CameraCaptureView: View {
             SystemCameraPicker(image: $capturedImage, isPresented: $showingCamera)
                 .ignoresSafeArea()
         }
+        .sheet(item: $selectedCandidate) { candidate in
+            NavigationStack { RecognitionConfirmationView(candidate: candidate, onSaved: clearPhoto) }
+        }
+        .onChange(of: scenario) { _, _ in result = nil }
         .alert(alertTitle, isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -79,6 +120,25 @@ struct CameraCaptureView: View {
         }
     }
 
+    private func clearPhoto() {
+        capturedImage = nil; photoItem = nil; result = nil; consent = false
+    }
+
+    @MainActor private func analyze() async {
+        guard consent, !isAnalyzing, let capturedImage else { return }
+        isAnalyzing = true; result = nil
+        defer { isAnalyzing = false }
+        do {
+            guard !store.isOffline else { throw ServiceError.configuration }
+            let jpeg = try PhotoPreparation.jpeg(capturedImage)
+            let service = try HTTPBeverageService(configuration: store.configuration)
+            result = try await service.analyzePhoto(jpeg, scenario: scenario)
+        } catch {
+            alertTitle = "Analysis unavailable"
+            alertMessage = "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
+        }
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Image(systemName: "camera.viewfinder")
@@ -87,13 +147,22 @@ struct CameraCaptureView: View {
                 .accessibilityHidden(true)
             Text("Add a beverage photo")
                 .font(.title2.bold())
-            Text("Take or choose a photo. Recognition will be added after the approved AI service is ready.")
+            Text("Take or choose a photo, try mock analysis, then confirm what you drank.")
                 .foregroundStyle(.secondary)
         }
     }
 
     private var captureOptions: some View {
         VStack(alignment: .leading, spacing: 14) {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["HYDRA_TEST_PHOTO_FIXTURE"] == "1" {
+                Button("Use synthetic test photo") {
+                    capturedImage = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
+                        UIColor.blue.setFill(); context.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
+                    }
+                }.accessibilityIdentifier("syntheticPhoto")
+            }
+            #endif
             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                 Button {
                     Task { await openCamera() }

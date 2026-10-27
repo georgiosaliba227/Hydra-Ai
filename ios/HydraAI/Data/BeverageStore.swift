@@ -73,9 +73,9 @@ final class BeverageStore: ObservableObject {
         }
     }
 
-    func add(category: String, consumedMl: Int, at: Date) async throws {
+    func add(category: String, consumedMl: Int, at: Date, source: String = "manual", productId: String? = nil, containerMl: Int? = nil) async throws {
         guard canLog else { throw ServiceError.pending }
-        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: "manual")
+        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, productId: productId, containerMl: containerMl)
         try request.validate()
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
         do {

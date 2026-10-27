@@ -24,9 +24,12 @@ struct CreateBeverageRequest: Codable, Sendable {
     let consumedAt: Date
     let timezone: String
     let source: String
+    var productId: String? = nil
+    var containerMl: Int? = nil
 
     enum CodingKeys: String, CodingKey {
         case category, timezone, source
+        case productId = "product_id", containerMl = "container_ml"
         case consumedMl = "consumed_ml"
         case consumedAt = "consumed_at"
     }
@@ -55,6 +58,10 @@ extension CreateBeverageRequest {
         guard !category.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               category.count <= 80 else { throw BeverageValidationError.invalidCategory }
         guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume }
+        guard ["manual", "confirmed_recognition"].contains(source) else { throw BeverageValidationError.invalidCategory }
+        if source == "confirmed_recognition" {
+            guard let containerMl, (1...5000).contains(containerMl), consumedMl <= containerMl else { throw BeverageValidationError.invalidVolume }
+        } else if productId != nil || containerMl != nil { throw BeverageValidationError.invalidCategory }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
         guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
         guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }

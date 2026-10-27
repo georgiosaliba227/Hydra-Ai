@@ -16,11 +16,14 @@ from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ai.hydration import BeverageLog, calculate_contribution, summarize_day
-from ai.hydration.models import METHOD_VERSION
+from ai.hydration.models import Composition, METHOD_VERSION
 from database.repository import BeverageRepository, IdempotencyConflict, StorageUnavailable
+from .recognition import AnalysisRequest, AnalysisResult, MockMetaRecognizer, RecognitionUnavailable
+from .nutrition import lookup
 from .schemas import CreateBeverageRequest, utc_string
 
 MAX_BODY_BYTES = 16 * 1024
@@ -36,6 +39,7 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "not_found": "The requested resource does not exist.",
         "method_not_allowed": "This method is not supported.",
         "request_too_large": "The request exceeds the size limit.",
+        "recognition_unavailable": "Photo analysis is unavailable. Retry or log manually.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -64,6 +68,7 @@ class RequestGuard:
             if not hmac.compare_digest(provided, expected):
                 await error_response("unauthorized", 401, request_id)(scope, receive, send)
                 return
+        body_limit = 1_400_000 if scope["path"] == "/v1/recognitions" else MAX_BODY_BYTES
         length = headers.get(b"content-length")
         if length is not None:
             try:
@@ -73,7 +78,7 @@ class RequestGuard:
             if size < 0:
                 await error_response("invalid_request", 422, request_id)(scope, receive, send)
                 return
-            if size > MAX_BODY_BYTES:
+            if size > body_limit:
                 await error_response("request_too_large", 413, request_id)(scope, receive, send)
                 return
         chunks = []
@@ -84,7 +89,7 @@ class RequestGuard:
                 return
             data = message.get("body", b"")
             size += len(data)
-            if size > MAX_BODY_BYTES:
+            if size > body_limit:
                 await error_response("request_too_large", 413, request_id)(scope, receive, send)
                 return
             chunks.append(data)
@@ -128,6 +133,7 @@ def to_engine(record: dict) -> BeverageLog:
         id=UUID(record["id"]), revision=record["revision"], category=record["category"],
         consumed_ml=record["consumed_ml"], consumed_at=datetime.fromisoformat(record["consumed_at"]),
         timezone=record["timezone"], source=record["source"], provenance=tuple(record["provenance"]),
+        nutrition=Composition(**{**record["nutrition"], "provenance": tuple(record["nutrition"]["provenance"])}) if record.get("nutrition") else None,
     )
 
 
@@ -162,6 +168,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         raise ValueError("HYDRA_API_TOKEN must be at least 32 non-whitespace ASCII characters")
     app = FastAPI(title="Hydra AI Local Prototype", version="1.0.0")
     app.state.repository = BeverageRepository(db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
+    app.state.recognizer = MockMetaRecognizer()
     app.add_middleware(RequestGuard, token=token)
 
     @app.exception_handler(RequestValidationError)
@@ -185,6 +192,21 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     async def internal_error(request: Request, exc):
         return error_response("internal_error", 500, getattr(request.state, "request_id", str(uuid4())))
 
+    @app.exception_handler(RecognitionUnavailable)
+    async def recognition_error(request: Request, exc):
+        return error_response("recognition_unavailable", 503, request.state.request_id, retryable=True)
+
+    @app.post("/v1/recognitions")
+    def analyze_beverage(payload: AnalysisRequest, request: Request):
+        # Validate even injected adapter output, then enrich only from the catalogue.
+        try:
+            result = AnalysisResult.model_validate(request.app.state.recognizer.analyze(payload)).model_dump()
+            for candidate in result["candidates"]:
+                candidate["nutrition"] = lookup(candidate["product_id"], candidate["identity"])
+            return result
+        except (ValidationError, ValueError):
+            raise RecognitionUnavailable() from None
+
     @app.get("/health")
     def health():
         return {"status": "ok", "ai_mode": "mock", "billable_requests_enabled": False}
@@ -192,11 +214,12 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     @app.post("/v1/beverages", status_code=201)
     def create_beverage(payload: CreateBeverageRequest, request: Request,
                         idempotency_key: Annotated[UUID, Header(alias="Idempotency-Key")]):
-        canonical = payload.model_dump(mode="json")
+        canonical = payload.model_dump(mode="json", exclude_none=True)
         canonical["consumed_at"] = utc_string(payload.consumed_at)
         fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         record = {**canonical, "id": str(uuid4()), "revision": 1,
-                  "provenance": ["user_confirmed_manual"], "nutrition": None}
+                  "provenance": ["user_confirmed_photo", "recognition-v1:mock"] if payload.source == "confirmed_recognition" else ["user_confirmed_manual"],
+                  "nutrition": lookup(payload.product_id, payload.category)}
         record["contribution"] = jsonable_encoder(asdict(calculate_contribution(to_engine(record))))
         stored, created = request.app.state.repository.create("local-demo", str(idempotency_key), fingerprint, record)
         return JSONResponse(stored, status_code=201 if created else 200)

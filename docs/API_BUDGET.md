@@ -1,12 +1,12 @@
 # Shared Meta API budget design
 
-Status: design only; no gateway, ledger, or enforcement implemented. Paid calls disabled. No Meta inference calls are authorized or made by this workflow. Historical cumulative usage still requires reconciliation; a zero payable balance does not establish zero usage.
+Status: Milestone 2 implements a tested persistent ledger (`backend/meta_budget.py`); no live gateway/dispatch exists. See [Milestone 2](MILESTONE_2.md) for implementation and activation limits. The protocol below remains the requirement for live activation. Paid calls disabled. No Meta inference calls are authorized or made by this workflow. Historical cumulative usage still requires reconciliation; a zero payable balance does not establish zero usage.
 
 ## Confirmed billing snapshot
 
 Source: user confirmation from the Meta billing dashboard, 2026-10-26 (not independently inspected by the agent). Free credits: **$150.00** for the entire project; current pay-as-you-go balance: **$0.00**; payment method: **attached**. This allocation is shared by both developers and all agents, never $150 each. Do not record card details. Credit expiry, coverage and historical gross usage still need verification.
 
-The operational cutoff remains **$120 of cumulative gross Meta usage**, preserving a **$30 reserve** under the $150 absolute ceiling. Settled gross usage plus unresolved reservations determines admission; credit offsets and a $0 payable balance never reset the counter. A payment method can be charged for overages; free credits do not prevent billing. Never enable automatic top-ups or uncontrolled calls. Codex/tool subscriptions are separate. Maintain one centralized, persistent, fail-closed API budget controller; this remains a design, not implemented enforcement.
+The operational cutoff remains **$120 of cumulative gross Meta usage**, preserving a **$30 reserve** under the $150 absolute ceiling. Settled gross usage plus unresolved reservations determines admission; credit offsets and a $0 payable balance never reset the counter. A payment method can be charged for overages; free credits do not prevent billing. Never enable automatic top-ups or uncontrolled calls. Codex/tool subscriptions are separate. Maintain one centralized, persistent, fail-closed API budget controller; the ledger is implemented but exclusive account-wide gateway enforcement remains unverified.
 
 | Exposure (settled + unresolved reservations + proposed request) | Policy |
 |---|---|
@@ -32,5 +32,5 @@ Meta explicitly provides alerts, not a hard cap. Verified 2026-10-26: [billing h
 ## Required approval evidence
 Publish price/source timestamp, credits/dashboard evidence without secrets, provider-cap result, a threat model for bypass/concurrent keys, maximum charge bound, race/crash/retry test results, reconciliation results, and explicit initial approval. If strict cutoff cannot be guaranteed, remain mock-only and request risk review. Never enable automatic top-ups.
 
-## Planned tests
+## Required tests (mock ledger coverage implemented in tests/recognition/test_meta_budget.py)
 Simultaneous requests cannot oversubscribe; duplicate idempotency keys cannot dispatch twice; restart restores outstanding reservations; unavailable/locked/corrupt ledger fails closed; stale/unknown price blocks; ambiguous timeout retains full reservation; thresholds $75/$100/$120 including crossing requests behave correctly; retries obey combined cap; unauthorized callers and alternate paths cannot invoke provider; reconciliation discrepancies trip kill switch. Mock provider only until approval.

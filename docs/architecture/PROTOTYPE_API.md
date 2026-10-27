@@ -1,6 +1,6 @@
 # End-to-end prototype API (integration contract)
 
-Authorized local prototype, version 1. Refines CONTRACTS.md; only the endpoints below are implemented this milestone. Existing ai/hydration engine stays unchanged. No Meta client or paid requests. Local/private development only; no public deployment.
+Authorized local prototype, version 1. Milestone 2 extensions are specified in [RECOGNITION_API.md](RECOGNITION_API.md); its consented mock-image upload and confirmed-recognition fields supersede the original no-image/manual-only limitations below. Refines CONTRACTS.md; only the endpoints below are implemented this milestone. Existing ai/hydration engine stays unchanged. No Meta client or paid requests. Local/private development only; no public deployment.
 
 ## Authentication and transport
 Backend requires `HYDRA_API_TOKEN` (random, at least 32 characters) and `HYDRA_DATABASE_PATH` (default ./database/hydra.sqlite3). Every /v1 request uses Authorization: Bearer <local development token>; server maps it to a fixed `local-demo` owner. No user-id request field. This single-user development credential is NOT a Meta key. Client configures backend URL and credential at runtime, stores credential in Keychain, and never embeds it in source. Local HTTP allowed only for loopback/private LAN development; use HTTPS otherwise. No health records or images are transmitted. GET /health is public and returns status plus ai_mode=mock and billable_requests_enabled=false. Startup rejects non-mock AI mode or true billable flags.

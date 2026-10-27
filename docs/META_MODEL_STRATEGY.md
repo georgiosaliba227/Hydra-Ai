@@ -1,6 +1,6 @@
 # Meta model strategy
 
-Public documentation checked 2026-10-26; Startup track selected. User confirms $150.00 shared project credits, $0.00 pay-as-you-go balance and an attached payment method; model-specific account access is unverified. Credits do not authorize inference or prevent overages. The $120 cumulative-usage cutoff and $30 reserve remain unchanged. No inference implemented or called.
+Public documentation rechecked 2026-10-27; Startup track selected. User confirms $150.00 shared project credits, $0.00 pay-as-you-go balance and an attached payment method; model-specific account access is unverified. Credits do not authorize inference or prevent overages. The $120 cumulative-usage cutoff and $30 reserve remain unchanged. Mock recognition and an offline payload builder are implemented; no live inference transport or calls. See [Milestone 2](MILESTONE_2.md).
 
 | Feature | Proposed model | Status |
 |---|---|---|
