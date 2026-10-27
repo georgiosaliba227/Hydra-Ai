@@ -92,6 +92,30 @@ def test_started_workout_needs_actual_measurement():
     assert result(exercise=exercise(starts_at=NOW.replace(hour=10)))['exercise_loss']['status'] == 'insufficient_data'
 
 
+def test_actual_duration_must_fit_elapsed_time():
+    actual = sample(9, observed_at=NOW.replace(hour=10, minute=1))
+    with pytest.raises(CalculationError, match='invalid_actual_duration'):
+        result(exercise=exercise(starts_at=NOW.replace(hour=10), actual=actual))
+
+
+def test_actual_duration_allows_independently_supplied_error_bound():
+    actual = sample(9, observed_at=NOW.replace(hour=10, minute=59),
+                    errors=MeasurementErrors(.05, .05, 10, 0, 1, ('duration-bound',)))
+    value = result(exercise=exercise(starts_at=NOW.replace(hour=10), actual=actual))['exercise_loss']
+    assert value['status'] == 'estimated'
+    assert (value['lower_ml'], value['upper_ml']) == (1290, 1510)
+
+
+def test_actual_elapsed_duration_uses_absolute_time_across_dst_fold():
+    from zoneinfo import ZoneInfo
+    zone = ZoneInfo('America/New_York')
+    start = datetime(2026, 11, 1, 1, 15, tzinfo=zone, fold=0)
+    end = datetime(2026, 11, 1, 1, 15, tzinfo=zone, fold=1)
+    actual = sample(9, observed_at=end)
+    value = exercise_loss(exercise(starts_at=start, actual=actual), (), generated_at=end)
+    assert value['status'] == 'estimated'
+
+
 @pytest.mark.parametrize('samples',[ (sample(),sample()), (sample(observed_at=NOW.replace(day=28)),), (sample(9),) ])
 def test_duplicate_and_future_events_rejected(samples):
     with pytest.raises(CalculationError): result(samples=samples)

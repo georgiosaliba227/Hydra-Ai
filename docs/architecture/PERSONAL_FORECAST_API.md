@@ -12,4 +12,12 @@ Temperature/humidity/intensity/activity must match exactly; no arbitrary weather
 
 The daily requirement remains `insufficient_data` with null bounds, even when exercise loss can be estimated. No subtraction of intake from exercise losses is labeled a deficit/remaining requirement. Meta remains an optional, separately approved explanation consumer; this endpoint never changes PR #10's exact synthetic input or permit hashes. Only reviewed public method descriptions may be shared externally without new disclosure review.
 
-Wire safeguards: extra-field rejection, finite bounded input sizes/numbers, strict booleans and explicit offsets; no raw-value errors. Domain upper limits are software request limits, not biological safety limits. Generated results carry `Cache-Control: no-store` from the existing request guard. Forecasts are not persisted; clients must discard and recompute after log/measurement edits. No current iPhone forecast UI is claimed.
+Wire safeguards: extra-field rejection, finite bounded input sizes/numbers, strict booleans and explicit offsets; no raw-value errors. Domain upper limits are software request limits, not biological safety limits. Generated results carry `Cache-Control: no-store` from the existing request guard. Forecasts are not persisted; clients must discard and recompute after log/measurement edits.
+
+## Native history-only consumer
+
+For an actual sample, `observed_at` is completion time. UTC elapsed time from exercise start must cover at least measured duration minus its explicitly supplied duration error; an impossible completed interval is rejected. Missing error bounds never authorize an earlier completion.
+
+The first iPhone consumer requests the current local date/timezone and seven history days, with no exercise, samples, calibration consent, HealthKit data or photo. It displays descriptive logged-day totals and missing-day counts, with daily requirements explicitly unavailable. It must never label historical minimum/maximum as a target or a future requirement. No mass/calibration entry or exercise recommendation UI is introduced by this consumer.
+
+Use the existing authenticated ephemeral backend session and reject unexpected method/status/date/timezone or inconsistent/nonfinite bounds. Forecast errors are separate from beverage logging errors: an older backend without this endpoint must still support logging and summary. Invalidate displayed forecasts on refresh, confirmed mutations and connection changes; discard late responses from older refreshes/configurations. Offline mode shows an unavailable explanation, without fabricating a backend forecast. Raw response text is not presented as model advice.

@@ -81,3 +81,33 @@ def test_wearable_export_is_not_opened_by_new_endpoint(client):
     response=client.post('/v1/forecasts',json=data,headers=AUTH)
     assert response.status_code == 422
     assert 'wearable' not in response.text and 'duration_minutes' not in response.text
+
+
+def test_impossible_completed_duration_is_a_generic_invalid_request(client):
+    now = datetime.now(timezone.utc)
+    event_id = str(uuid4())
+    start = now - timedelta(minutes=2)
+    conditions = {'activity': 'running', 'intensity': 'moderate',
+                  'temperature_c': 20.0, 'humidity_percent': 60.0}
+    data = payload() | {
+        'date': start.date().isoformat(), 'calibration_processing_consent': True,
+        'exercise': {
+            'event_id': event_id, 'starts_at': start.isoformat(), 'duration_minutes': 60.0,
+            'conditions': conditions, 'comparable_conditions_confirmed': True,
+            'actual': {
+                'event_id': event_id, 'observed_at': (now - timedelta(minutes=1)).isoformat(),
+                'conditions': conditions,
+                'measurement': {'pre_mass_kg': 70.0, 'post_mass_kg': 69.0, 'consumed_ml': 400.0,
+                    'urine_ml': 0.0, 'duration_minutes': 60.0, 'protocol_confirmed': True,
+                    'provenance': ['private-measurement-source']},
+                'errors': {'pre_mass_kg': .05, 'post_mass_kg': .05, 'consumed_ml': 10.0,
+                    'urine_ml': 0.0, 'duration_minutes': 0.0, 'provenance': ['synthetic-bounds']},
+            },
+        },
+    }
+    response = client.post('/v1/forecasts', json=data, headers=AUTH)
+    assert response.status_code == 422
+    assert response.json()['code'] == 'invalid_request'
+    assert response.headers['cache-control'] == 'no-store'
+    assert 'private-measurement-source' not in response.text
+    assert 'duration' not in response.text

@@ -153,8 +153,19 @@ def exercise_loss(exercise: Exercise | None, samples: tuple[SweatSample, ...], *
         result["uncertainty_reasons"].append("feedback_is_context_only_no_numeric_adjustment")
     if exercise.actual is not None:
         actual = exercise.actual
-        if convert_time(actual.observed_at, utc.utc, "observed_at") > convert_time(generated_at, utc.utc, "generated_at") or convert_time(actual.observed_at, utc.utc, "observed_at") < convert_time(exercise.starts_at, utc.utc, "starts_at"):
+        observed = convert_time(actual.observed_at, utc.utc, "observed_at")
+        started = convert_time(exercise.starts_at, utc.utc, "starts_at")
+        if observed > convert_time(generated_at, utc.utc, "generated_at") or observed < started:
             raise CalculationError("invalid_actual_time", "actual")
+        if actual.measurement.duration_minutes is not None and actual.errors is not None:
+            elapsed = observed - started
+            elapsed_minutes = (Fraction(elapsed.days * 86400 + elapsed.seconds)
+                               + Fraction(elapsed.microseconds, 1_000_000)) / 60
+            # A completed measurement cannot precede even the shortest duration
+            # allowed by its independently supplied error bounds.
+            minimum_duration = exact(actual.measurement.duration_minutes) - exact(actual.errors.duration_minutes)
+            if minimum_duration > elapsed_minutes:
+                raise CalculationError("invalid_actual_duration", "actual")
         if actual.event_id in seen:
             raise CalculationError("duplicate_event", "actual")
         selected = [actual]
