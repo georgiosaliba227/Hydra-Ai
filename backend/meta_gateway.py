@@ -48,10 +48,19 @@ class GuardedMetaGateway:
             raise ValueError("Select exactly one known Meta account")
         self.ledger, self.account, self.transport, self.notifier = ledger, account, transport, notifier
 
+    def deliver_pending_notices(self) -> None:
+        for notice in self.ledger.notices():
+            if notice["delivered_at"] is None:
+                receipt = self.notifier.deliver(notice)
+                if not receipt:
+                    raise BudgetDenied("Notification lacks delivery receipt")
+                self.ledger.notice_delivered(notice["id"], receipt)
+
     def analyze(self, image: AnalysisRequest) -> AnalysisResult:
         if image.mode != "meta_live" or image.meta_photo_consent is not True:
             raise RecognitionUnavailable()
         attempt = None
+        provider_replied = False
         try:
             self.ledger.verify_credential(self.account, self.transport.credential_fingerprint)
             payload = request_payload(image)
@@ -60,17 +69,13 @@ class GuardedMetaGateway:
             self.ledger.quote(self.account, bound)
             digest = hashlib.sha256(sanitized_jpeg(image)).hexdigest()
             attempt = self.ledger.reserve_first(self.account, digest, bound)
-            for notice in self.ledger.notices():
-                if notice["delivered_at"] is None:
-                    receipt = self.notifier.deliver(notice)
-                    if not receipt:
-                        raise BudgetDenied("Notification lacks delivery receipt")
-                    self.ledger.notice_delivered(notice["id"], receipt)
+            self.deliver_pending_notices()
             # Durable dispatch marker precedes the sole network operation. A crash
             # on either side of this boundary keeps the reservation unresolved.
             fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
             ticket = self.ledger.mark_dispatched(attempt, fingerprint)
             reply = self.transport.generate(payload, ticket)
+            provider_replied = True
             self.ledger.settle_provider_reply(attempt, reply)
             result = parse_recognition(reply, attempt)
             self.ledger.mark_recognized(attempt)
@@ -83,4 +88,11 @@ class GuardedMetaGateway:
                     self.ledger.quarantine(attempt)
                 except Exception:
                     pass  # Unavailable/corrupt ledger cannot admit another call.
+                if provider_replied:
+                    try:
+                        # A provider breach of the reserved bound may itself cross
+                        # $75. Keep its durable outbox and freeze even if delivery fails.
+                        self.deliver_pending_notices()
+                    except Exception:
+                        pass
             raise RecognitionUnavailable() from None

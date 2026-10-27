@@ -17,6 +17,7 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 from .meta_budget import MetaBudget, BudgetDenied
 from .recognition import MODEL
+from .meta_policy import MAX_INPUT_TOKENS, OUTPUT_LIMIT
 
 ACCOUNTS = ("georgiosaliba227", "aminealichaouche")
 USD = 1_000_000
@@ -135,6 +136,12 @@ class AccountLedger(MetaBudget):
     def event(db: sqlite3.Connection, account: str | None, kind: str, reference: str) -> None:
         db.execute("INSERT INTO live_events(at,account_id,kind,reference) VALUES(?,?,?,?)", (stamp(), account, kind, reference))
 
+    @staticmethod
+    def queue_threshold_notices(db: sqlite3.Connection, account: str, exposure: int) -> None:
+        if exposure >= 75 * USD:
+            for recipient in ACCOUNTS:
+                db.execute("INSERT OR IGNORE INTO live_notices(id,account_id,recipient,threshold) VALUES(?,?,?,75)", (str(uuid4()), account, recipient))
+
     def attest_account(self, evidence: Evidence) -> None:
         # Private operator interface. A caller cannot submit evidence through iOS.
         evidence = Evidence.model_validate(evidence.model_dump())
@@ -206,11 +213,11 @@ class AccountLedger(MetaBudget):
 
     def quote(self, account: str, input_bound: int) -> tuple[Price, int]:
         self.verify_storage()
-        if type(input_bound) is not int or not 1 <= input_bound <= 1_048_576:
+        if type(input_bound) is not int or not 1 <= input_bound <= MAX_INPUT_TOKENS:
             raise BudgetDenied("Unknown input token bound")
         with self.transaction() as db:
             evidence, price, permit = self._policy(db, account)
-            maximum = price.cost(input_bound, 512) + evidence.extra_charge_bound_micro_usd
+            maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
             if maximum > CAP:
                 raise BudgetDenied("Verified maximum exceeds the $0.25 first-test ceiling")
             return price, maximum
@@ -222,9 +229,9 @@ class AccountLedger(MetaBudget):
             evidence, price, permit = self._policy(db, account)
             if image_hash != permit.image_sha256:
                 raise BudgetDenied("Image does not match owner-approved permit")
-            if type(input_bound) is not int or not 1 <= input_bound <= 1_048_576:
+            if type(input_bound) is not int or not 1 <= input_bound <= MAX_INPUT_TOKENS:
                 raise BudgetDenied("Unknown input bound")
-            maximum = price.cost(input_bound, 512) + evidence.extra_charge_bound_micro_usd
+            maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
             if maximum > CAP:
                 raise BudgetDenied("Verified maximum exceeds $0.25")
             if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
@@ -240,9 +247,7 @@ class AccountLedger(MetaBudget):
             db.execute("UPDATE live_permit SET spent=1 WHERE id=1")
             db.execute("INSERT INTO live_attempts(id,account_id,price,reserved,state,created_at,input_bound) VALUES(?,?,?,?,?,?,?)", (attempt, account, price.model_dump_json(), maximum, "reserved", stamp(), input_bound))
             self.event(db, account, "reserved", attempt)
-            if proposed >= 75 * USD:
-                for recipient in ACCOUNTS:
-                    db.execute("INSERT OR IGNORE INTO live_notices(id,account_id,recipient,threshold) VALUES(?,?,?,75)", (str(uuid4()), account, recipient))
+            self.queue_threshold_notices(db, account, proposed)
             return attempt
 
     def mark_dispatched(self, attempt: str, payload_sha256: str) -> "DispatchTicket":
@@ -326,7 +331,9 @@ class AccountLedger(MetaBudget):
                     db.execute("UPDATE live_attempts SET provider_id=?,usage=? WHERE id=?", (identifier, json.dumps({"input_tokens": inputs, "output_tokens": outputs, "cached_tokens": cached, "total_tokens": total}), attempt))
                     raise ValueError
                 db.execute("UPDATE live_attempts SET actual=?,provider_id=?,usage=?,state='settled' WHERE id=?", (amount, identifier, json.dumps({"input_tokens": inputs, "output_tokens": outputs, "cached_tokens": cached, "total_tokens": total}, sort_keys=True), attempt))
-                blocked = amount > row[2] or inputs > row[4] or outputs > 512
+                exposure = evidence["gross_micro_usd"] + db.execute("SELECT COALESCE(SUM(COALESCE(actual,reserved)),0) FROM live_attempts WHERE account_id=?", (row[0],)).fetchone()[0]
+                self.queue_threshold_notices(db, row[0], exposure)
+                blocked = amount > row[2] or inputs > row[4] or outputs > OUTPUT_LIMIT
                 if blocked:
                     db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (row[0],))
                 self.event(db, row[0], "settled_over_bound" if blocked else "settled", attempt)

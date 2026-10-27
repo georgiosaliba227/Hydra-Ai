@@ -14,7 +14,7 @@ Implementation on existing branch `codex/meta-beverage-recognition`, PR #7. No d
 
 ## Hard financial blocker, intentionally enforced
 
-The real transport's currently verified conservative upper bound is the full 1,048,576 input-token context, plus <=512 output tokens. At reviewed public Standard prices this costs **$1.312896 before any other charges**. It exceeds the preserved **$0.25** first-test ceiling. Both gateway and actual network-ticket checks refuse dispatch. Flags, a key, a low-bound synthetic ticket or a human approval reference cannot bypass that bound. A smaller provider-backed bound or separately reviewed, verified preflight accounting method is required; no guessed pixel multiplier is accepted.
+Follow-up cost review corrected the original $1.312896 reservation: the 1,048,576-token context is shared. The conservative bound is now 1,048,064 input tokens plus <=512 output tokens, costing **$1.312256 before any other charges** at reviewed public Standard prices. It exceeds the preserved **$0.25** first-test ceiling. Both gateway and actual network-ticket checks refuse dispatch. Flags, a key, a low-bound synthetic ticket or a human approval reference cannot bypass that bound. A smaller provider-backed bound or separately reviewed, verified preflight accounting method is required; no guessed pixel multiplier is accepted.
 
 Public pricing remains $1.25/M input, $0.15/M cached input and $4.25/M output. [Pricing](https://dev.meta.ai/docs/pricing-rate-limits), [Responses](https://dev.meta.ai/docs/protocols/responses), [structured output](https://dev.meta.ai/docs/structured-output), [token counting](https://dev.meta.ai/docs/token-counting). Approximate image costs are not verified maximum exposure. No token-count/authentication probe was sent.
 
@@ -28,9 +28,11 @@ The program cannot constrain direct spending through keys outside its gateway. E
 
 ## Verification
 
-- Maintained backend/domain suites: 189 passed + 32 subtests; existing Starlette/httpx deprecation warning.
+- Maintained backend/domain suites: 228 passed + 32 subtests; existing Starlette/httpx deprecation warning.
 - Preserved starter suite: 3 passed from its own directory.
 - Signed iOS simulator unit suite: 22 passed (includes live-consent refusal before network, live receipt validation and pending payload encoding).
 - Mock-backend UI regression: 2 passed; physical-only cases skip in simulator runs.
 - Live-mode UI simulation: 1 passed against a loopback server using ONLY an injected fake Meta transport and generated test image. Verified both consents, Meta label/receipt and 125 mL confirmed daily contribution. The test runner refuses real/billable servers for this mode. Initial consent-control scrolling/tap issues were fixed in the test harness; no failed iteration is counted as a pass.
 - No new dependency, live accuracy/billing verification or new physical-device live-consent test is claimed. Earlier physical mock testing remains historical evidence in PHYSICAL_IPHONE_TESTING_2026-10-27.md.
+
+Follow-up investigation, evidence, additional both-account tests and the conditional first-test procedure: [final readiness report](META_LIVE_READINESS_2026-10-27.md).

@@ -16,11 +16,14 @@ def main():
     parser.add_argument('--destination', default='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5')
     parser.add_argument('--derived-data', default='/tmp/hydra-e2e-derived')
     parser.add_argument('--live-simulation', action='store_true', help='Run live-consent UI against a loopback fake provider ONLY; never real Meta.')
+    parser.add_argument('--skip-simulator-diagnostics', action='store_true', help='Skip verbose simulator sysdiagnose collection if Xcode hangs after tests; test assertions/results still run.')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     backend = os.environ.get('HYDRA_E2E_BACKEND_URL', 'http://127.0.0.1:8000')
     token = os.environ.get('HYDRA_API_TOKEN', '')
     url = urlparse(backend)
+    if args.skip_simulator_diagnostics and 'platform=iOS Simulator,' not in args.destination:
+        parser.error('Skipping verbose diagnostics is restricted to simulator tests.')
     if url.scheme not in ('http', 'https') or url.hostname not in ('localhost', '127.0.0.1', '::1') or url.username or url.password or url.query or url.fragment or url.path not in ('', '/'):
         parser.error('UI test requires a loopback backend with synthetic data.')
     if len(token) < 32:
@@ -61,7 +64,8 @@ def main():
         with os.fdopen(descriptor, 'wb') as handle:
             plistlib.dump(data, handle)
         subprocess.run(['xcodebuild', 'test-without-building', '-xctestrun', private_path,
-                        '-destination', args.destination, '-parallel-testing-enabled', 'NO'],
+                        '-destination', args.destination, '-parallel-testing-enabled', 'NO',
+                        *(['-collect-test-diagnostics', 'never'] if args.skip_simulator_diagnostics else [])],
                        cwd=root, env=build_env, check=True)
     finally:
         Path(private_path).unlink(missing_ok=True)

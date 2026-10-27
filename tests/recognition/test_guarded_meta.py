@@ -52,7 +52,9 @@ def reply(**changes):
 
 class FakeTransport:
     credential_fingerprint=hashlib.sha256(b"synthetic-key").hexdigest()
-    def __init__(self, response=None, fault=None): self.response=response or reply(); self.calls=0; self.fault=fault
+    def __init__(self, response=None, fault=None, account=ACCOUNTS[0]):
+        self.response=response or reply(); self.calls=0; self.fault=fault
+        self.credential_fingerprint=evidence(account).key_sha256
     def input_bound(self, payload): return 1000  # Synthetic bound only; no real sender.
     def generate(self, payload, ticket):
         ticket.claim(payload, input_bound=1000, credential_fingerprint=self.credential_fingerprint)
@@ -87,7 +89,7 @@ def test_actual_transport_bound_blocks_before_any_network(tmp_path, monkeypatch)
     monkeypatch.setattr('http.client.HTTPSConnection.request', forbidden)
     gateway=GuardedMetaGateway(ledger,ACCOUNTS[0],OfficialMetaTransport('synthetic-key'),FakeNotifier())
     with pytest.raises(RecognitionUnavailable): gateway.analyze(image())
-    assert price().cost(1_048_576,512)==1_312_896
+    assert price().cost(1_048_576 - 512,512)==1_312_256
     assert ledger.project_view()['project_reserved_micro_usd']==0
 
 
@@ -298,18 +300,19 @@ def test_known_over_bound_usage_is_recorded_and_frozen(tmp_path):
     assert b'sensitive_extra' not in (tmp_path/'authority.sqlite3').read_bytes()
 
 
-def test_separate_processes_cannot_consume_project_permit_twice(tmp_path):
+@pytest.mark.parametrize("account", ACCOUNTS)
+def test_separate_processes_cannot_consume_project_permit_twice(tmp_path, account):
     import subprocess,sys
-    ledger=setup(tmp_path)
+    ledger=setup(tmp_path, account=account)
     code='''from backend.meta_accounts import AccountLedger
 from backend.meta_budget import BudgetDenied
 import sys
 try:
- AccountLedger(sys.argv[1]).reserve_first("georgiosaliba227",sys.argv[2],1000)
+ AccountLedger(sys.argv[1]).reserve_first(sys.argv[3],sys.argv[2],1000)
  print("reserved")
 except BudgetDenied: print("denied")
 '''
-    def child(_): return subprocess.check_output([sys.executable,'-c',code,ledger.path,HASH],text=True).strip()
+    def child(_): return subprocess.check_output([sys.executable,'-c',code,ledger.path,HASH,account],text=True).strip()
     with ThreadPoolExecutor(max_workers=6) as pool: results=list(pool.map(child,range(12)))
     assert results.count('reserved')==1
     assert AccountLedger(ledger.path).project_view()['project_reserved_micro_usd']>0
@@ -349,21 +352,22 @@ def test_provider_http_failures_never_retry_or_assume_zero(tmp_path,status):
     assert provider.calls==1 and ledger.project_view()['project_reserved_micro_usd']>0
 
 
-def test_crash_after_network_claim_is_durable(tmp_path):
+@pytest.mark.parametrize("account", ACCOUNTS)
+def test_crash_after_network_claim_is_durable(tmp_path, account):
     import subprocess,sys
-    ledger=setup(tmp_path)
+    ledger=setup(tmp_path, account=account)
     code='''from backend.meta_accounts import AccountLedger
 import sys,os
-l=AccountLedger(sys.argv[1]);a=l.reserve_first("georgiosaliba227",sys.argv[2],1000)
+l=AccountLedger(sys.argv[1]);a=l.reserve_first(sys.argv[4],sys.argv[2],1000)
 t=l.mark_dispatched(a,"0"*64)
 l.claim_send(a,t.nonce,"0"*64,1000,sys.argv[3])
 os._exit(17)
 '''
-    result=subprocess.run([sys.executable,'-c',code,ledger.path,HASH,FakeTransport.credential_fingerprint])
+    result=subprocess.run([sys.executable,'-c',code,ledger.path,HASH,evidence(account).key_sha256,account])
     assert result.returncode==17
     restored=AccountLedger(ledger.path)
     assert restored.project_view()['project_reserved_micro_usd']>0
-    with pytest.raises(BudgetDenied): restored.reserve_first(ACCOUNTS[0],HASH,1000)
+    with pytest.raises(BudgetDenied): restored.reserve_first(account,HASH,1000)
 
 
 def test_no_financial_image_or_raw_provider_content_persists(tmp_path):
@@ -404,3 +408,132 @@ def test_live_normalization_removes_location_metadata_and_comments():
     assert sanitized_jpeg(payload)==JPEG
     sent=request_payload(payload)['input'][0]['content'][1]['image_url']
     assert base64.b64decode(sent.split(',',1)[1])==JPEG
+
+
+@pytest.mark.parametrize('account', ACCOUNTS)
+@pytest.mark.parametrize('baseline,credits,further,allowed,notices', [
+    (0,150_000_000,None,True,False),
+    (74_999_000,150_000_000,None,True,True),
+    (99_999_000,150_000_000,None,False,False),
+    (99_999_000,150_000_000,'synthetic-account-specific-approval',True,True),
+    (119_996_573,150_000_000,'synthetic-approval',True,True),
+    (119_996_574,150_000_000,'synthetic-approval',False,False),
+    (150_000_000,150_000_000,'synthetic-approval',False,False),
+    (0,3426,None,True,False),
+    (0,3425,None,False,False),
+])
+def test_both_account_boundaries_and_independent_balances(tmp_path,account,baseline,credits,further,allowed,notices):
+    ledger=setup(tmp_path,account=account,baseline=baseline,credits=credits,further=further)
+    other=next(a for a in ACCOUNTS if a != account)
+    ledger.attest_account(evidence(other,baseline=10_000_000))
+    provider=FakeTransport(account=account); notifier=FakeNotifier()
+    gateway=GuardedMetaGateway(ledger,account,provider,notifier)
+    if allowed:
+        result=gateway.analyze(image())
+        assert ledger.receipt(result.recognition_id)['account_id']==account
+    else:
+        with pytest.raises(RecognitionUnavailable): gateway.analyze(image())
+    rows={row['account_id']:row for row in ledger.project_view()['accounts']}
+    assert provider.calls==int(allowed)
+    assert rows[other]['gross_micro_usd']==10_000_000
+    assert rows[other]['reserved_micro_usd']==0 and not rows[other]['frozen']
+    assert rows[account]['gross_micro_usd']==baseline+(338 if allowed else 0)
+    assert bool(notifier.delivered)==notices
+    if notices:
+        assert set(notifier.delivered)==set(ACCOUNTS)
+        assert all(n['account_id']==account and n['delivered_at'] for n in ledger.notices())
+    # Switching accounts, providers or the API key never creates another permit.
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(ledger,other,FakeTransport(account=other),notifier).analyze(image())
+
+
+@pytest.mark.parametrize('account', ACCOUNTS)
+@pytest.mark.parametrize('failure', ['timeout','http','missing_usage','malformed','incomplete','refusal'])
+def test_both_accounts_failures_reconciliation_and_restart(tmp_path,account,failure):
+    ledger=setup(tmp_path,account=account)
+    responses={
+        'timeout':reply(), 'http':ProviderReply(429,{}),
+        'missing_usage':reply(usage=None), 'malformed':reply(output=[]),
+        'incomplete':reply(status='incomplete'),
+        'refusal':reply(output=[{'type':'message','role':'assistant','status':'completed',
+                                'content':[{'type':'refusal','refusal':'synthetic-only'}]}]),
+    }
+    provider=FakeTransport(responses[failure], fault=TimeoutError() if failure=='timeout' else None,account=account)
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(ledger,account,provider,FakeNotifier()).analyze(image())
+    restored=AccountLedger(ledger.path)
+    row=restored.project_view()['accounts'][0]
+    assert row['frozen'] and row['account_id']==account
+    uncertain=failure in ('timeout','http','missing_usage')
+    assert row['reserved_micro_usd']==(3426 if uncertain else 0)
+    assert row['gross_micro_usd']==(0 if uncertain else 338)
+    restored.record_reconciliation_reference(account,'UNVERIFIED-NO-REFUND')
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(restored,account,provider,FakeNotifier()).analyze(image())
+    assert provider.calls==1  # No retry, including HTTP 429 or after restart.
+
+
+def test_reviewed_cost_policy_and_canonical_request():
+    from backend.meta_policy import MODEL_CONTEXT, OUTPUT_LIMIT, MAX_INPUT_TOKENS
+    payload=request_payload(image())
+    assert MODEL_CONTEXT==1_048_576 and OUTPUT_LIMIT==512
+    assert MAX_INPUT_TOKENS+OUTPUT_LIMIT==MODEL_CONTEXT
+    assert OfficialMetaTransport('synthetic-key').input_bound(payload)==MAX_INPUT_TOKENS
+    assert price().cost(MAX_INPUT_TOKENS,OUTPUT_LIMIT)==1_312_256
+    # No cached discount and no separate unbounded reasoning budget.
+    assert payload['reasoning']=={'effort':'minimal'}
+    assert payload['max_output_tokens']==OUTPUT_LIMIT
+    assert payload['text']['format']['type']=='json_schema'
+    assert payload['text']['format']['strict'] is True
+    schema=payload['text']['format']['schema']
+    assert '"title":' not in json.dumps(schema)
+    candidate=schema['$defs']['ProviderCandidate']
+    assert candidate['additionalProperties'] is False
+    assert set(candidate['required'])=={'category','brand','product','container_ml','confidence','uncertainty_reasons'}
+    assert candidate['properties']['container_ml']['anyOf'][0]['maximum']==5000
+    assert set(payload)=={'model','store','stream','background','max_output_tokens','reasoning','text','input'}
+    # A verified full-input bound would need to be <=198,259 tokens to fit.
+    assert price().cost(198_259,OUTPUT_LIMIT)==250_000
+    assert price().cost(198_260,OUTPUT_LIMIT)==250_001
+
+
+@pytest.mark.parametrize('account', ACCOUNTS)
+def test_configured_http_route_cannot_bypass_real_transport_bound(tmp_path,monkeypatch,account):
+    ledger=setup(tmp_path,account=account)
+    monkeypatch.setenv('HYDRA_AI_MODE','guarded_meta')
+    monkeypatch.setenv('META_BILLABLE_REQUESTS_ENABLED','true')
+    monkeypatch.setenv('HYDRA_META_ACCOUNT',account)
+    key='synthetic-key' if account==ACCOUNTS[0] else 'synthetic-amine-key'
+    variable='HYDRA_META_GEORGIO_API_KEY' if account==ACCOUNTS[0] else 'HYDRA_META_AMINE_API_KEY'
+    monkeypatch.setenv(variable,key)
+    monkeypatch.setenv('HYDRA_GITHUB_NOTIFICATION_TOKEN','synthetic-only')
+    def forbidden(*args,**kwargs): pytest.fail('No provider or notification network allowed')
+    monkeypatch.setattr('http.client.HTTPSConnection.request',forbidden)
+    with TestClient(create_app(ledger.path,TOKEN)) as client:
+        response=client.post('/v1/recognitions',json=image().model_dump(),headers=AUTH)
+        assert response.status_code==503 and response.json()['retryable'] is False
+    with sqlite3.connect(ledger.path) as db:
+        assert db.execute('SELECT COUNT(*) FROM live_attempts').fetchone()[0]==0
+        assert db.execute('SELECT spent FROM live_permit').fetchone()[0]==0
+
+
+@pytest.mark.parametrize('account', ACCOUNTS)
+@pytest.mark.parametrize('delivery_fails', [False,True])
+def test_unexpected_billed_threshold_crossing_notifies_and_stays_frozen(tmp_path,account,delivery_fails):
+    ledger=setup(tmp_path,account=account)
+    # Fault injection: impossible under the contract, but never discard actual
+    # reported charges or omit a threshold event because the reservation was small.
+    usage={'input_tokens':80_000_000,'output_tokens':0,'total_tokens':80_000_000,
+           'input_tokens_details':{'cached_tokens':0}}
+    provider=FakeTransport(reply(usage=usage),account=account)
+    notifier=FakeNotifier(fail=delivery_fails)
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(ledger,account,provider,notifier).analyze(image())
+    row=ledger.project_view()['accounts'][0]
+    assert row['gross_micro_usd']==100_000_000 and row['frozen']
+    notices=ledger.notices()
+    assert len(notices)==2 and {n['recipient'] for n in notices}==set(ACCOUNTS)
+    assert all(bool(n['delivered_at']) is not delivery_fails for n in notices)
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(AccountLedger(ledger.path),account,provider,notifier).analyze(image())
+    assert provider.calls==1

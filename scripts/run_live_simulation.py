@@ -12,6 +12,7 @@ def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destination',default='platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5')
     parser.add_argument('--derived-data',default='/tmp/hydra-guarded-live-ui-derived')
+    parser.add_argument('--skip-simulator-diagnostics',action='store_true')
     args=parser.parse_args()
     root=Path(__file__).resolve().parents[1]
     sys.path.insert(0,str(root));sys.path.insert(0,str(root/'tests/recognition'))
@@ -55,7 +56,7 @@ def main() -> None:
             if not server.started:
                 raise RuntimeError('Local fake-provider server did not start.')
             env=os.environ.copy();env['HYDRA_API_TOKEN']=token;env['HYDRA_E2E_BACKEND_URL']=f'http://127.0.0.1:{port}'
-            result=subprocess.run([sys.executable,str(root/'scripts/run_ios_e2e.py'),'--destination',args.destination,'--derived-data',args.derived_data,'--live-simulation'],env=env)
+            result=subprocess.run([sys.executable,str(root/'scripts/run_ios_e2e.py'),'--destination',args.destination,'--derived-data',args.derived_data,'--live-simulation',*(['--skip-simulator-diagnostics'] if args.skip_simulator_diagnostics else [])],env=env)
             raise SystemExit(result.returncode)
         finally: server.should_exit=True;thread.join(timeout=5);listener.close()
 
