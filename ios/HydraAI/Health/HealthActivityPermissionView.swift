@@ -61,7 +61,7 @@ struct HealthActivityPermissionView: View {
             }
 
             Section {
-                Text("Only the daily total is shown here. Raw Health records stay on your iPhone, and no activity is sent to the mock backend.")
+                Text("Only the daily total is shown here. Raw Health records stay on your iPhone, and no activity is sent to the backend.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

@@ -87,7 +87,7 @@
 		100000000000000000000010 = { isa = XCConfigurationList; buildConfigurations = (100000000000000000000060, 100000000000000000000061); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		100000000000000000000011 = { isa = XCConfigurationList; buildConfigurations = (100000000000000000000062, 100000000000000000000063); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		100000000000000000000012 = { isa = XCConfigurationList; buildConfigurations = (100000000000000000000064, 100000000000000000000065); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		100000000000000000000060 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Debug; };
+		100000000000000000000060 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG"; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Debug; };
 		100000000000000000000061 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; }; name = Release; };
 		100000000000000000000062 = {
 			isa = XCBuildConfiguration;
