@@ -14,6 +14,9 @@ struct CameraCaptureView: View {
     @State private var alertTitle = ""
     @State private var alertMessage: String?
 
+    #if DEBUG
+    @State private var libraryFixtureReady = false
+    #endif
     @State private var consent = false
     @State private var scenario = "ambiguous"
     @State private var isAnalyzing = false
@@ -155,6 +158,15 @@ struct CameraCaptureView: View {
     private var captureOptions: some View {
         VStack(alignment: .leading, spacing: 14) {
             #if DEBUG
+            if ProcessInfo.processInfo.environment["HYDRA_TEST_LIBRARY_FIXTURE"] == "1" {
+                Button("Add synthetic picker fixture") {
+                    Task {
+                        do { try await PhotoLibraryTestFixture.add(); libraryFixtureReady = true }
+                        catch { alertTitle = "Test fixture unavailable"; alertMessage = "Add-only Photos permission is needed for this opt-in test." }
+                    }
+                }.accessibilityIdentifier("addLibraryFixture")
+                if libraryFixtureReady { Text("Synthetic picker fixture ready").accessibilityIdentifier("libraryFixtureReady") }
+            }
             if ProcessInfo.processInfo.environment["HYDRA_TEST_PHOTO_FIXTURE"] == "1" {
                 Button("Use synthetic test photo") {
                     capturedImage = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
@@ -182,6 +194,7 @@ struct CameraCaptureView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .accessibilityIdentifier("chooseBeveragePhoto")
 
             Button("Log without photo", action: onLogManually)
                 .frame(maxWidth: .infinity)

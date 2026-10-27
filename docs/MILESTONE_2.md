@@ -1,6 +1,6 @@
 # Milestone 2 — mock Meta beverage recognition
 
-Implemented for local review on `codex/meta-beverage-recognition`. No deployment, live provider transport, billable requests or automatic merge. Human review by both developers is required. The existing manually tested iPhone baseline is user-reported; this milestone needs its own physical-camera verification.
+Implemented for local review on `codex/meta-beverage-recognition`. No deployment, live provider transport, billable requests or automatic merge. Human review by both developers is required. The existing manually tested iPhone baseline is user-reported. Milestone 2 physical-device results and remaining coverage are now recorded in [the physical iPhone report](PHYSICAL_IPHONE_TESTING_2026-10-27.md).
 
 ## Implemented
 
@@ -34,7 +34,7 @@ Photos remain in app memory until consented analysis; the app redraws pixels at 
 
 ## Live activation requirements / blockers
 
-1. Human review/approval of this PR and a separately reviewed live adapter; physical iPhone capture/selection/permission tests for this milestone.
+1. Human review/approval of this PR and a separately reviewed live adapter. See the physical iPhone report for completed camera/selection/permission checks and remaining coverage.
 2. Reconcile actual cumulative gross usage, credit validity/coverage, project identity and every alternate key/spend path for both developers. Do not assume the $0 payable balance means $0 gross usage.
 3. Verify account access to exact Standard model, image billing/token-count behavior, every billable category, safe input/output cost bound, provider limits and retention terms. Do not probe billable endpoints yet.
 4. Establish exclusive server-side key custody and the single authoritative ledger; connect reservation/settlement to every dispatch/retry. Deliver threshold notices to both developers and implement provider reconciliation/kill-switch operations. Durable pending notice alone is not notification delivery.
