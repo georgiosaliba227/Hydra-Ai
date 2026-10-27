@@ -10,6 +10,19 @@ The camera uses `POST https://api.meta.ai/v1/responses`, `muse-spark-1.3`, `text
 
 The existing iPhone flow prepares/exports one JPEG, requires backend and Meta disclosure consent, and requires confirmation of beverage identity and quantity consumed. Model capacity estimates and unverified label transcription never become confirmed consumption or nutrition. No iOS key or raw HealthKit upload is introduced.
 
+## Implemented and verified in this follow-up
+
+- Authenticated `POST /v1/hydration-explanations` and capability endpoint, initially synthetic-only. `HYDRA_META_HYDRATION_ENABLED=false` remains independent of the camera flag. An approved live service uses Amine's key/account and the same ledger object; it never selects another account automatically. See the [hydration contract](architecture/HYDRATION_INTELLIGENCE_API.md). The model selects grounded signals for intake, exercise, weather and synthetic patterns; reviewed text renders them and unsupported selections are counted. No model-written numerical or medical recommendation is accepted.
+- Camera and hydration attempt observations bind the returned structured output digest, API latency, HTTP status and failure stage to the existing ledger's usage records. Only compact metadata is persisted. Usage-derived token cost is separate from externally reviewed final billing. No permanent schema migration occurred.
+- [Offline evaluation](META_EVALUATION.md) covers category/brand accuracy, capacity errors, abstention, unsupported selections, human hallucination/quality rubrics, consistency, latency, tokens and separate account costs. Exact-input/output ledger evidence is required for live results; a `meta_live` label alone is insufficient. The seven-case synthetic dataset has six handcrafted observations and one unrun case. Its reproducible [report](../evaluation/synthetic-report.json) explicitly records **zero actual Meta runs**; it does not measure model performance.
+
+Validation on the combined changes: **410 pytest tests + 32 subtests passed**, **31 XCTest unit tests passed**, and **1 camera consent/confirmation UI test passed against a loopback fake provider**. The seven-group offline backend rehearsal passed with network attempts blocked. The evaluation command below exactly reproduced the committed report. Independent code review found and corrected malformed-preflight handling and two scoring edge cases. One existing Starlette/httpx deprecation warning remains. No physical-device, real model, live account, or invoice validation is claimed; no new dependency was added.
+
+```sh
+python -m pytest tests -q
+python -m scripts.evaluate_meta --dataset evaluation/synthetic-dataset.json --observations evaluation/synthetic-observations.json
+```
+
 ## Credential preflight
 
 Run the local, read-only diagnostic without starting a server or contacting Meta:

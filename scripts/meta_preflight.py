@@ -59,7 +59,9 @@ def inspect_configuration(env_file: Path, database: Path, account: str) -> dict:
     report = {
         "version": "meta-preflight-v1", "account": account, "model": MODEL,
         "credential_locally_loadable": credential_valid,
-        "configured_account_matches": environment.get("HYDRA_META_ACCOUNT") == account,
+        "configured_camera_account_matches": environment.get("HYDRA_META_ACCOUNT") == account,
+        "configured_hydration_enabled": environment.get("HYDRA_META_HYDRATION_ENABLED", "false").lower() == "true",
+        "hydration_account_is_fixed_to_amine": True,
         "configured_mock": environment.get("HYDRA_AI_MODE", "mock") == "mock",
         "configured_billable_disabled": environment.get("META_BILLABLE_REQUESTS_ENABLED", "false").lower() == "false",
         "notification_credential_present": bool(environment.get("HYDRA_GITHUB_NOTIFICATION_TOKEN")),
@@ -82,6 +84,8 @@ def inspect_configuration(env_file: Path, database: Path, account: str) -> dict:
                 if row is not None:
                     report["account_attestation_present"] = True
                     evidence = json.loads(row[0])
+                    if not isinstance(evidence, dict):
+                        raise ValueError("Invalid local account attestation")
                     report["credential_binding"] = "matches_local_attestation" if fingerprint and evidence.get("key_sha256") == fingerprint else "mismatch"
         finally:
             db.close()

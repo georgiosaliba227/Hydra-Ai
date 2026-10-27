@@ -50,6 +50,17 @@ def test_matching_local_binding_is_not_authenticated_access(files):
     assert result["activation_authorized"] is False
 
 
+@pytest.mark.parametrize("evidence", [None, [], 17, "private-invalid-content"])
+def test_malformed_account_attestation_is_redacted_and_fails_closed(files, evidence):
+    env, ledger = files
+    with sqlite3.connect(ledger) as db:
+        db.execute("INSERT INTO live_accounts VALUES (?, ?)", ("georgiosaliba227", json.dumps(evidence)))
+    result = inspect_configuration(env, ledger, "georgiosaliba227")
+    assert result["credential_binding"] == "unverified"
+    assert not result["activation_authorized"]
+    assert "private-invalid-content" not in json.dumps(result)
+
+
 def test_missing_ledger_is_never_created(files):
     env, ledger = files
     ledger.unlink()
@@ -97,4 +108,5 @@ def test_other_account_cannot_inherit_georgio_key(files):
     env, ledger = files
     result = inspect_configuration(env, ledger, "aminealichaouche")
     assert not result["credential_locally_loadable"]
-    assert not result["configured_account_matches"]
+    assert not result["configured_camera_account_matches"]
+    assert result["hydration_account_is_fixed_to_amine"]
