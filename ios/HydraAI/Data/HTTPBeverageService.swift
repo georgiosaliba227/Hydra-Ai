@@ -1,0 +1,112 @@
+import Foundation
+
+struct DailySummary: Codable, Sendable {
+    let localDate: String
+    let timezone: String
+    let beverageTotalMl: Double
+    let estimatedWaterMl: Double?
+    let forecastStatus: String
+    enum CodingKeys: String, CodingKey {
+        case localDate = "local_date", timezone
+        case beverageTotalMl = "beverage_total_ml", estimatedWaterMl = "estimated_water_ml"
+        case forecastStatus = "forecast_status"
+    }
+}
+
+enum ServiceError: LocalizedError {
+    case configuration, credentials, invalidResponse, pending, storage, unauthorized
+    case server(Int)
+    var errorDescription: String? {
+        switch self {
+        case .configuration: "Set a valid backend URL and a development access token of at least 32 characters in Settings. HTTP is restricted to local development hosts."
+        case .credentials: "The development access token could not be saved securely."
+        case .invalidResponse: "The backend returned an unexpected response."
+        case .pending: "A beverage is awaiting confirmation. Retry it before creating another or changing connection settings."
+        case .storage: "The pending beverage could not be stored safely. No new request was sent."
+        case .unauthorized: "The backend rejected the development access token. Check Settings."
+        case .server(let status): "The backend could not complete this request (HTTP \(status)). Retry when it is available."
+        }
+    }
+}
+
+/// Refuse redirects so a backend cannot forward the local credential elsewhere.
+final class NoRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
+}
+
+actor HTTPBeverageService: BeverageService {
+    private let baseURL: URL
+    private let token: String
+    private let session: URLSession
+    private let delegate: NoRedirectDelegate
+
+    init(configuration: APIConfiguration, session: URLSession? = nil) throws {
+        self.baseURL = try configuration.validatedURL()
+        self.token = configuration.token
+        self.delegate = NoRedirectDelegate()
+        let options = URLSessionConfiguration.ephemeral
+        options.timeoutIntervalForRequest = 15
+        options.timeoutIntervalForResource = 30
+        self.session = session ?? URLSession(configuration: options, delegate: delegate, delegateQueue: nil)
+    }
+
+    static func decoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { value in
+            let text = try value.singleValueContainer().decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: text) { return date }
+            formatter.formatOptions = [.withInternetDateTime]
+            guard let date = formatter.date(from: text) else { throw ServiceError.invalidResponse }
+            return date
+        }
+        return decoder
+    }
+
+    private func send<T: Decodable>(_ path: String, query: [URLQueryItem] = [], request body: CreateBeverageRequest? = nil, key: UUID? = nil) async throws -> T {
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        if !query.isEmpty { components.queryItems = query }
+        guard let url = components.url else { throw ServiceError.configuration }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let body {
+            let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+            request.httpMethod = "POST"
+            request.httpBody = try encoder.encode(body)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(key?.uuidString, forHTTPHeaderField: "Idempotency-Key")
+        }
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard (200...299).contains(response.statusCode) else {
+            if response.statusCode == 401 { throw ServiceError.unauthorized }
+            throw ServiceError.server(response.statusCode)
+        }
+        return try Self.decoder().decode(T.self, from: data)
+    }
+
+    func listBeverages() async throws -> [BeverageLog] {
+        struct Page: Decodable { let items: [BeverageLog]; let next_cursor: String? }
+        var logs: [BeverageLog] = []; var cursor: String?; var seen = Set<String>(); var ids = Set<UUID>()
+        repeat {
+            var query = [URLQueryItem(name: "limit", value: "200")]
+            if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }
+            let page: Page = try await send("v1/beverages", query: query)
+            for log in page.items where ids.insert(log.id).inserted { logs.append(log) }
+            cursor = page.next_cursor
+            if let cursor, !seen.insert(cursor).inserted { throw ServiceError.invalidResponse }
+        } while cursor != nil
+        return logs
+    }
+
+    func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog {
+        try request.validate()
+        return try await send("v1/beverages", request: request, key: idempotencyKey)
+    }
+
+    func dailySummary(date: String, timezone: String) async throws -> DailySummary {
+        try await send("v1/summary", query: [.init(name: "date", value: date), .init(name: "timezone", value: timezone)])
+    }
+}

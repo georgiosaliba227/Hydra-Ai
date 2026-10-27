@@ -17,6 +17,9 @@ struct HistoryView: View {
 
     var body: some View {
         List {
+            if case .failed(let message) = store.state {
+                Text(message).foregroundStyle(.red)
+            }
             Section {
                 WeeklyVolumeView(logs: store.logs)
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
@@ -45,6 +48,7 @@ struct HistoryView: View {
                 }
             }
         }
+        .refreshable { await store.refresh() }
         .navigationTitle("History")
         .task {
             await store.refresh()

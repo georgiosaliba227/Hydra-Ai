@@ -1,13 +1,37 @@
-# Hydra AI iPhone client
+# Hydra AI native iOS prototype
 
-Open `HydraAI.xcodeproj` in Xcode 27. The SwiftUI app targets iOS 17 or later. To build and test on the iPhone 17 Pro simulator:
+SwiftUI app connected to the local FastAPI/SQLite backend. Existing camera and HealthKit views remain on device; no images or biometric records are sent to the backend or AI. No Meta credentials or requests exist in this client.
+
+## Run
+
+1. Start the root backend using the integration guide and a generated local development token (`HYDRA_API_TOKEN`, not a Meta key).
+2. Open `HydraAI.xcodeproj`; choose HydraAI and an available iPhone simulator. Physical devices require your signing team/bundle setup.
+3. Open Settings in the app. Enter `http://127.0.0.1:8000` for a simulator, or the Mac's private LAN address for a physical phone on a trusted network. Enter the local development token, then Save connection. The token stays in Keychain; the URL/mode use UserDefaults.
+4. Today → Log a beverage → enter actual consumed mL → Save. The server's hydration engine supplies the daily beverage total. Water content remains unknown when composition is unsourced; no hydration goal or multiplier is invented.
+5. Terminate/reopen the app: it reloads server history and summary from SQLite. Pull to refresh or use Refresh after connection errors.
+
+Startup defaults to unconfigured backend mode. Offline demo is an explicit Settings choice with separate local JSON data; it never silently replaces a failed backend or uploads mock history.
+
+## Delivery and failure behavior
+
+The app persists the confirmed request and UUID idempotency key before POST. A timeout, lost response, or restart keeps that exact request available through **Retry pending beverage** on Today. New logging and changing destinations are blocked until confirmation resolves. Changing the credential for the same destination is allowed to correct authentication. A corrupt pending file blocks new submissions rather than risk a duplicate; preserve the file for recovery. There is deliberately no ambiguous-request discard button.
+
+Server history pagination is followed to completion. The Today card uses the server summary, not the first history page. On refresh failure the previous view remains with an explicit error; no fresh total is fabricated. Pending acknowledgements are cleared only after server success and local removal succeeds.
+
+## Transport and scope
+
+HTTP is permitted only for localhost/private IPv4/LAN `.local` development hosts; remote URLs require HTTPS. Redirects are rejected to prevent credential forwarding. ATS allows local networking only, not arbitrary insecure traffic. The backend credential represents one local-demo account; this is not a production multi-user login. No public deployment is authorized.
+
+## Tests/build
 
 ```sh
 xcodebuild -project ios/HydraAI.xcodeproj -scheme HydraAI \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' \
-  CODE_SIGNING_ALLOWED=NO test
+  -derivedDataPath /tmp/hydra-integration-ios-build CODE_SIGNING_ALLOWED=NO test
 ```
 
-Manual logs use a local mock of the draft v1 `POST /v1/beverages` and `GET /v1/beverages` contract. The mock persists confirmed logs in this app's Application Support directory. It sends no network requests and has no Meta credentials. The app shows confirmed beverage volume; it does not calculate water content, fluid goals, retention, or forecasts.
+The suite covers inherited mock persistence/validation plus HTTP pagination/auth/idempotency/summary/errors, unsafe URL rejection, pending-request retry after store restart, and corrupt-pending fail-closed behavior. URLProtocol fixtures make no network calls. Physical-iPhone camera, HealthKit and LAN behavior need physical-device validation.
 
-Camera photos remain in memory, with explicit discard or handoff to manual entry. Photo recognition is unavailable in this build. HealthKit access is optional and initiated only from the Health tab; the current client reads a daily step total locally and does not upload Health records. A physical-device HealthKit test and signing profile are still needed. Before API integration, freeze the OpenAPI schema and review authentication, deletion, image consent, and transport policy with the backend owner.
+For DEBUG simulator verification only, launch-time `HYDRA_TEST_BACKEND_URL` and `HYDRA_TEST_API_TOKEN` override connection settings. With `simctl launch`, pass them through the documented `SIMCTL_CHILD_` environment prefix; never put a real token in source or a committed command. Release builds do not read these overrides.
+
+Accessibility identifiers: `backendURL`, `backendToken`, `saveConnection`, `offlineMode`, `logBeverage`, `consumedVolume`, `saveBeverage`, `dailyTotal`, `retryPending`, `connectionError`.

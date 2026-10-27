@@ -101,7 +101,9 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for your review. Images stay on this device in mock mode.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for your review. Images stay on this device in mock mode.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend on the local network to save confirmed beverages.";
+                INFOPLIST_FILE = Configuration/Info.plist;
+                INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -126,7 +128,9 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for your review. Images stay on this device in mock mode.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for your review. Images stay on this device in mock mode.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend on the local network to save confirmed beverages.";
+                INFOPLIST_FILE = Configuration/Info.plist;
+                INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

@@ -24,6 +24,8 @@ struct RootView: View {
                 HealthActivityPermissionView()
             }
             .tabItem { Label("Health", systemImage: "heart.text.square") }
+            NavigationStack { BackendSettingsView() }
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
         .sheet(isPresented: $showingCameraManualLog) {
             NavigationStack { ManualLogView() }
