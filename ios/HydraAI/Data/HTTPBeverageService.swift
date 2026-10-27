@@ -14,10 +14,11 @@ struct DailySummary: Codable, Sendable {
 }
 
 enum ServiceError: LocalizedError {
-    case configuration, credentials, invalidResponse, pending, storage, unauthorized
+    case configuration, credentials, invalidResponse, pending, storage, unauthorized, consent
     case server(Int)
     var errorDescription: String? {
         switch self {
+        case .consent: "Explicit consent to send this image to Meta is required."
         case .configuration: "Set a valid backend URL and a development access token of at least 32 characters in Settings. HTTP is restricted to local development hosts."
         case .credentials: "The development access token could not be saved securely."
         case .invalidResponse: "The backend returned an unexpected response."
@@ -46,7 +47,7 @@ actor HTTPBeverageService: BeverageService {
         self.delegate = NoRedirectDelegate()
         let options = URLSessionConfiguration.ephemeral
         options.timeoutIntervalForRequest = 15
-        options.timeoutIntervalForResource = 30
+        options.timeoutIntervalForResource = 60
         self.session = session ?? URLSession(configuration: options, delegate: delegate, delegateQueue: nil)
     }
 
@@ -85,6 +86,32 @@ actor HTTPBeverageService: BeverageService {
             throw ServiceError.server(response.statusCode)
         }
         return try Self.decoder().decode(T.self, from: data)
+    }
+
+    func analyzePhoto(_ jpeg: Data, scenario: String, mode: String = "mock", metaConsent: Bool = false) async throws -> RecognitionResult {
+        guard ["mock", "meta_live"].contains(mode) else { throw ServiceError.invalidResponse }
+        guard mode != "meta_live" || metaConsent else { throw ServiceError.consent }
+        guard jpeg.count <= 1_048_576 else { throw ServiceError.invalidResponse }
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/recognitions"))
+        request.timeoutInterval = mode == "meta_live" ? 45 : 15
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        request.httpBody = try encoder.encode(RecognitionRequest(imageBase64: jpeg.base64EncodedString(), photoConsent: true, mockScenario: scenario, mode: mode == "mock" ? nil : mode, metaPhotoConsent: mode == "mock" ? nil : metaConsent))
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        let result = try JSONDecoder().decode(RecognitionResult.self, from: data)
+        try result.validate()
+        guard result.mode == mode else { throw ServiceError.invalidResponse }
+        return result
+    }
+
+    func recognitionCapabilities() async throws -> RecognitionCapabilities {
+        let result: RecognitionCapabilities = try await send("v1/recognition-capabilities")
+        try result.validate()
+        return result
     }
 
     func listBeverages() async throws -> [BeverageLog] {

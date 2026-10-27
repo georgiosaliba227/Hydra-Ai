@@ -4,7 +4,7 @@
 Prepared: repository inventory; root AGENTS.md; proposed architecture and directory ownership; draft API/data contracts; team workflow; issue backlog. Existing starter preserved. Planning PR #1 was merged; full development authorization now permits the end-to-end prototype.
 
 ## M0B — onboarding
-Prepared: local tool inspection, Python environment, configuration template, corrected starter run instructions, evidence review, shared budget design. Startup official rules reviewed; user confirms $150.00 shared credits, $0.00 pay-as-you-go balance and attached payment method. Personal eligibility, account/model access, credit expiry/coverage and historical usage verification remain incomplete; onboarding is not fully approved. No Meta calls authorized.
+Prepared: local tool inspection, Python environment, configuration template, corrected starter run instructions, evidence review, shared budget design. Startup official rules reviewed; the updated user report is two independently unverified, nontransferable $150 account allocations (see API_BUDGET.md). Personal eligibility, account/model access, credit expiry/coverage and historical usage verification remain incomplete; onboarding is not fully approved. No Meta calls authorized.
 
 ## Approval record
 - Planning PR #1 merged. User reports both developers authorize cross-component prototype integration. Existing feature PRs remain subject to human review; no automatic merge.

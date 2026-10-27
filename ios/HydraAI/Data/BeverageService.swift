@@ -37,7 +37,7 @@ actor MockBeverageService: BeverageService {
         let log = BeverageLog(
             id: idempotencyKey, consumedMl: submitted.consumedMl, category: submitted.category,
             consumedAt: submitted.consumedAt, timezone: submitted.timezone,
-            source: "manual", revision: 1
+            source: submitted.source, revision: 1
         )
         var logs = try listBeverages()
         if let existing = logs.first(where: { $0.id == idempotencyKey }) {

@@ -1,6 +1,6 @@
 # Meta model strategy
 
-Public documentation checked 2026-10-26; Startup track selected. User confirms $150.00 shared project credits, $0.00 pay-as-you-go balance and an attached payment method; model-specific account access is unverified. Credits do not authorize inference or prevent overages. The $120 cumulative-usage cutoff and $30 reserve remain unchanged. No inference implemented or called.
+Public documentation rechecked 2026-10-27; Startup track selected. Updated user report: separate $150 allocations for each developer, independently unverified and not transferable; model-specific account access is unverified. Credits do not authorize inference or prevent overages. The $120 cumulative-usage cutoff and $30 reserve remain unchanged. Mock recognition and an offline payload builder are implemented; a guarded transport is now implemented but real dispatch remains blocked by the verified maximum-cost gate; no live calls. See [Milestone 2](MILESTONE_2.md).
 
 | Feature | Proposed model | Status |
 |---|---|---|
@@ -12,7 +12,7 @@ Public documentation checked 2026-10-26; Startup track selected. User confirms $
 | Self-hosting | Muse Spark Open | deferred; hardware/license feasibility not established |
 
 ## Verified public API facts
-Meta's base URL is `https://api.meta.ai/v1`; official examples use bearer authentication and `MODEL_API_KEY`. Hydra proposes `META_MODEL_API_KEY`, mapped by a future adapter. Prefer direct HTTP to keep the endpoint explicit. [Overview](https://dev.meta.ai/docs/overview)
+Meta's base URL is `https://api.meta.ai/v1`; official examples use bearer authentication and `MODEL_API_KEY`. Hydra's implemented direct-HTTP adapter loads only the selected server account's `HYDRA_META_GEORGIO_API_KEY` or `HYDRA_META_AMINE_API_KEY`, with no generic-key fallback. [Overview](https://dev.meta.ai/docs/overview)
 
 Spark 1.3 supports image input and text output; Responses examples use `input_image`. Image token use depends on resolution. A token-count endpoint is documented, but its billing status must be verified before calling it. [Image understanding](https://dev.meta.ai/docs/image-understanding)
 

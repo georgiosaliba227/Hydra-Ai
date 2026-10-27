@@ -1,6 +1,6 @@
 # Hydra AI native iOS prototype
 
-SwiftUI app connected to the local FastAPI/SQLite backend. Existing camera and HealthKit views remain on device; no images or biometric records are sent to the backend or AI. No Meta credentials or requests exist in this client.
+SwiftUI app connected to the local FastAPI/SQLite backend. A selected, resized beverage photo is uploaded only after backend consent; guarded Meta mode additionally requires explicit consent to transmit it to Meta. HealthKit records stay on device. No Meta credentials exist in this client.
 
 ## Run
 
@@ -45,3 +45,15 @@ Accessibility identifiers: `backendURL`, `backendToken`, `saveConnection`, `offl
 Build with `xcodebuild ... -scheme HydraAIEndToEnd ... build-for-testing`. Set those two environment values in the generated `.xctestrun` file's UI target `EnvironmentVariables` in a private temporary directory, then run `xcodebuild test-without-building -xctestrun <temporary-file> -destination <simulator>`. Never commit the populated file or print its token. The normal unit suite does not require backend access.
 
 The UI test launches with runtime configuration, saves it through Settings/Keychain, logs 125 mL, checks the backend-derived total increases, terminates the app, then relaunches **without** configuration overrides and checks the same total. It fails if an existing pending beverage needs reconciliation. This validates simulator UI/network/persistence behavior, not physical-device camera/HealthKit behavior.
+
+## Milestone 2 mock recognition
+
+See [Milestone 2](../docs/MILESTONE_2.md). Configure the local backend, open Camera, capture/select a photo, consent to backend upload and choose an explicitly synthetic demo scenario. Analyze, review/correct identity and container capacity, enter actual consumed mL and confirm before Save. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
+
+## Guarded Meta mode
+
+Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. Meta mode requires both backend-upload consent and separate Meta disclosure consent. It never claims zero retention. Live results require a server-issued settled recognition receipt, preserved in pending submissions, and confirmation of identity/capacity/consumption. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
+
+`run_ios_e2e.py --live-simulation` only accepts an explicitly marked nonbillable loopback fake-provider backend. It runs the opt-in live-consent UI case with generated synthetic image data. It must never be pointed at a real Meta transport. Physical-only tests skip in normal simulator runs.
+
+If Xcode hangs after passing simulator tests while collecting verbose diagnostics, `--skip-simulator-diagnostics` adds `-collect-test-diagnostics never`. Assertions and result bundles remain enabled; the flag is refused for physical destinations. `run_live_simulation.py` forwards this optional switch.

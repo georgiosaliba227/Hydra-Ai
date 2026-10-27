@@ -1,3 +1,5 @@
+> Historical Milestone 1 review. Current guarded transport and account-specific budget architecture are documented in [API_BUDGET.md](API_BUDGET.md); earlier shared-credit/controller statements below are superseded.
+
 # End-to-end integration review
 
 ## Authorization and source preservation
