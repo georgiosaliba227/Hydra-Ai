@@ -2,11 +2,13 @@
 import hashlib
 import http.client
 import json
+from time import monotonic_ns
 from typing import Protocol
 
 from .meta_accounts import ACCOUNTS, AccountLedger
 from .meta_budget import BudgetDenied
 from .meta_images import sanitized_jpeg
+from .meta_observations import record_observation
 from .meta_provider import MetaTransport, parse_recognition, request_payload
 from .recognition import AnalysisRequest, AnalysisResult, RecognitionUnavailable
 
@@ -61,6 +63,9 @@ class GuardedMetaGateway:
             raise RecognitionUnavailable()
         attempt = None
         provider_replied = False
+        latency_ms = None
+        provider_http_status = None
+        outcome = "admission_denied"
         try:
             self.ledger.verify_credential(self.account, self.transport.credential_fingerprint)
             self.ledger.verify_purpose(self.account, "camera")
@@ -75,11 +80,22 @@ class GuardedMetaGateway:
             # on either side of this boundary keeps the reservation unresolved.
             fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
             ticket = self.ledger.mark_dispatched(attempt, fingerprint)
-            reply = self.transport.generate(payload, ticket)
+            outcome = "transport_error"
+            started = monotonic_ns()
+            try:
+                reply = self.transport.generate(payload, ticket)
+            finally:
+                latency_ms = max(0, (monotonic_ns() - started) // 1_000_000)
             provider_replied = True
+            provider_http_status = reply.status
+            outcome = "usage_unresolved"
             self.ledger.settle_provider_reply(attempt, reply)
+            outcome = "output_rejected"
             result = parse_recognition(reply, attempt)
             self.ledger.mark_recognized(attempt)
+            record_observation(self.ledger, attempt, purpose="camera", result=result.model_dump(mode="json"),
+                               latency_ms=latency_ms, outcome="success", transport=self.transport,
+                               provider_http_status=provider_http_status)
             return result
         except Exception:
             if attempt is not None:
@@ -89,6 +105,12 @@ class GuardedMetaGateway:
                     self.ledger.quarantine(attempt)
                 except Exception:
                     pass  # Unavailable/corrupt ledger cannot admit another call.
+                try:
+                    record_observation(self.ledger, attempt, purpose="camera", result=None,
+                                       latency_ms=latency_ms, outcome=outcome, transport=self.transport,
+                                       provider_http_status=provider_http_status)
+                except Exception:
+                    pass  # Missing observation cannot claim successful evaluation.
                 if provider_replied:
                     try:
                         # A provider breach of the reserved bound may itself cross
