@@ -13,4 +13,6 @@ Only current cross-component decisions belong here. Detailed contracts stay in d
 | 2026-10-27 | First native forecast consumer is history-only, with unavailable daily requirements and no calibration or HealthKit upload | Existing deterministic endpoint can improve demo integration without new health disclosure or unsupported targets |
 | 2026-10-27 | Preserve the permanent ledger unchanged; verify ownership, permissions, integrity and counts read-only | Existing schema initialization was documented in #12; empty records cannot authenticate historical provider spending |
 
+Publication access: the branch push succeeded, but CLI PR creation and the connected owner app both lacked the required permission. The browser was signed out. Preserve the pushed branch and complete PR description on #10; do not alter credentials or access settings to resolve this.
+
 No decision authorizes paid inference, support messages, deployment, credential changes, production migrations, purchases or automatic merges. GitHub coordination/review notifications are authorized by the user's request.

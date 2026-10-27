@@ -4,6 +4,7 @@ Updated October 27, 2026. Record each blocker once; revisit only when new eviden
 
 | Blocker | Needed evidence / decision | Owner / affected work |
 | --- | --- | --- |
+| Review PR publication | Branch is pushed, but CLI georgiosaliba-lgtm has READ permission (createPullRequest: must be a collaborator); connected owner integration returns 403 Resource not accessible by integration; browser is signed out. Create the PR from the existing branch or provide a writable authenticated GitHub session; do not change credentials/permissions automatically | Georgio; new review PR only. Comments/own issue updates still work |
 | Human integration review | Submitted reviews for current #10/#11/#9 and integration changes; explicit human merges | Georgio and Amine; main integration only |
 | Live Meta cost and policy | Provider-backed whole-request gross bound including internal/failed/timeout/extra charges; current full-context token allowance exceeds $0.25. A $2 proposal is not permission to replace the first-test limit | Selected account owner + both reviewers; live dispatch only; [Issue #8](https://github.com/georgiosaliba227/Hydra-Ai/issues/8) |
 | Account evidence and approvals | Authenticated selected-account/key mapping, credits/expiry/restrictions, gross/pending usage across keys, custody, notification delivery, exact request/image consent and expiring spending authorization | Selected owner; no credentials or private evidence in GitHub |
