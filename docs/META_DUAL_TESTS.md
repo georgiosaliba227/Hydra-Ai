@@ -34,3 +34,6 @@ Suggested approval, **not issued**: “I, [named owner], authorize use of [accou
 ## Verification and remaining limits
 
 Local maintained suites: 244 passed plus 32 subtests, one existing Starlette/httpx deprecation warning. Includes 16 new mock-only cases: both accounts settle once, concurrent hydration attempts, cross-account unresolved billing, wrong-purpose/mutated input, invalid/private input, untrusted numerical/diagnostic output and sender/gateway bounds, engine-derived values, label provenance and both official transports against mocked HTTP. No live provider, invoice, account-access, new iOS/XCTest or physical-device verification is claimed. No dependencies added. Existing camera UI remains in place; additive label transcription is backend-only. Provider/account facts and explicit approvals are the remaining activation gates.
+
+
+Post-implementation review: [PR #10 review and remaining human/provider actions](PR10_REVIEW_2026-10-27.md). Follow-up validation: 247 maintained tests plus 32 subtests passed after rejecting impossible physical-water totals; the 244-test result above is historical.
