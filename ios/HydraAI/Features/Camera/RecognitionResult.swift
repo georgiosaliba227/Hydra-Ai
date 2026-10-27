@@ -14,7 +14,10 @@ struct RecognitionRequest: Encodable {
 }
 
 struct RecognitionCandidate: Codable, Identifiable, Sendable {
-    var id: String { identity }
+    // One local identity per decoded/created alternative, retained across view
+    // updates and value copies. Names (and even whole candidates) may repeat.
+    // Deliberately omitted from CodingKeys: no API contract or persistence change.
+    let id = UUID()
     let identity: String
     let productId: String?
     let containerMl: Int?
@@ -27,6 +30,58 @@ struct RecognitionCandidate: Codable, Identifiable, Sendable {
     enum CodingKeys: String, CodingKey {
         case identity, confidence, nutrition, category, brand, product
         case productId = "product_id", containerMl = "container_ml", uncertaintyReasons = "uncertainty_reasons"
+    }
+}
+
+enum RecognitionPresentation: Sendable, Equatable {
+    case unavailable, mock, metaLive
+
+    init(mode: String?) {
+        switch mode {
+        case "mock": self = .mock
+        case "meta_live": self = .metaLive
+        default: self = .unavailable
+        }
+    }
+
+    var header: String {
+        switch self {
+        case .unavailable: "Take or choose a beverage photo. Verify the backend recognition mode before analysis."
+        case .mock: "Take or choose a photo, try mock analysis, then confirm what you drank."
+        case .metaLive: "Take or choose a photo for live Meta analysis, then confirm what you drank."
+        }
+    }
+
+    var photoDescription: String {
+        switch self {
+        case .unavailable: "Analysis is unavailable until the backend recognition mode is verified."
+        case .mock: "Mock analysis: selected demo responses do not interpret this photo."
+        case .metaLive: "Live Meta analysis sends this photo to Meta. Recognition is uncertain; verify every suggestion."
+        }
+    }
+
+    var analyzeTitle: String {
+        switch self {
+        case .unavailable: "Analysis unavailable"
+        case .mock: "Analyze with mock Meta response"
+        case .metaLive: "Analyze with live Meta"
+        }
+    }
+
+    var resultTitle: String {
+        switch self {
+        case .unavailable: "Recognition source unavailable"
+        case .mock: "Mock result — confirmation required"
+        case .metaLive: "Live Meta result — confirmation required"
+        }
+    }
+
+    var suggestionTitle: String {
+        switch self {
+        case .unavailable: "Recognition source unavailable — verify every field"
+        case .mock: "Mock suggestion — verify every field"
+        case .metaLive: "Live Meta suggestion — verify every field"
+        }
     }
 }
 

@@ -4,7 +4,7 @@ Requires the existing development pytest/uvicorn environment; not production cod
 """
 import argparse
 import socket
-import sys,os,tempfile,secrets,subprocess,time,hashlib,threading
+import sys,os,tempfile,secrets,subprocess,time,hashlib,threading,json
 from pathlib import Path
 
 
@@ -17,7 +17,7 @@ def main() -> None:
     root=Path(__file__).resolve().parents[1]
     sys.path.insert(0,str(root));sys.path.insert(0,str(root/'tests/recognition'))
     os.environ['HYDRA_AI_MODE']='mock';os.environ['META_BILLABLE_REQUESTS_ENABLED']='false'
-    from test_guarded_meta import evidence,price,FakeTransport,FakeNotifier,ACCOUNTS,future
+    from test_guarded_meta import evidence,price,reply,FakeTransport,FakeNotifier,ACCOUNTS,future
     from backend.app import create_app
     from backend.meta_accounts import AccountLedger,FirstPermit
     from backend.meta_gateway import GuardedMetaGateway, GitHubNotifier
@@ -40,7 +40,14 @@ def main() -> None:
                         digest=hashlib.sha256(sanitized_jpeg(payload)).hexdigest()
                         ledger.approve_first_test(FirstPermit(account_id=ACCOUNTS[0],image_sha256=digest,price_version='fixture-v1',developer_approvals=ACCOUNTS,spending_authority_reference='SYNTHETIC-NO-SPEND',account_owner_authorization_reference='SYNTHETIC-ACCOUNT-OWNER',image_owner_consent_reference='GENERATED-FIXTURE-ONLY',valid_until=future()))
                         self.approved=True
-                return GuardedMetaGateway(ledger,ACCOUNTS[0],FakeTransport(),FakeNotifier()).analyze(payload)
+                # Same product name with different capacities exercises distinct
+                # SwiftUI row/sheet identity. Only this local fixture changes.
+                response=reply()
+                content=response.body['output'][0]['content'][0]
+                alternatives=json.loads(content['text'])
+                alternatives['candidates'].append(alternatives['candidates'][0] | {'container_ml':450})
+                content['text']=json.dumps(alternatives)
+                return GuardedMetaGateway(ledger,ACCOUNTS[0],FakeTransport(response=response),FakeNotifier()).analyze(payload)
         app.state.recognizer=SimulatedRecognizer()
         app.router.routes[:]=[route for route in app.router.routes if getattr(route,'path',None)!='/health']
         @app.get('/health')

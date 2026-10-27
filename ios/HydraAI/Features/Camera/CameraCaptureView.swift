@@ -3,7 +3,7 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Explicitly consented mock analysis; images are transient, never saved by Hydra.
+/// Explicitly consented recognition; images are transient, never saved by Hydra.
 struct CameraCaptureView: View {
     @EnvironmentObject private var store: BeverageStore
     let onLogManually: () -> Void
@@ -20,6 +20,7 @@ struct CameraCaptureView: View {
     @State private var consent = false
     @State private var metaConsent = false
     @State private var recognitionMode: String?
+    private var presentation: RecognitionPresentation { RecognitionPresentation(mode: recognitionMode) }
     private var isLive: Bool { recognitionMode == "meta_live" }
     @State private var scenario = "ambiguous"
     @State private var isAnalyzing = false
@@ -43,9 +44,10 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
-                    Text(isLive ? "Meta analysis sends this photo to Meta. Recognition is uncertain; verify every suggestion." : "Mock analysis: selected demo responses do not interpret this photo.")
+                    Text(presentation.photoDescription)
                         .font(.subheadline).foregroundStyle(.secondary)
-                    if !isLive { Picker("Demo response", selection: $scenario) {
+                        .accessibilityIdentifier("recognitionSource")
+                    if presentation == .mock { Picker("Demo response", selection: $scenario) {
                         Text("Ambiguous / no match").tag("ambiguous")
                         Text("Branded US cola").tag("branded")
                         Text("Generic coffee").tag("generic")
@@ -62,17 +64,19 @@ struct CameraCaptureView: View {
                             .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing)
                         Text("Meta may retain content for service, safety and legal purposes. Zero retention is not promised. No location metadata or HealthKit records are sent.").font(.footnote)
                     }
-                    Button(isAnalyzing ? "Analyzing…" : (isLive ? "Analyze with Meta" : "Analyze with mock Meta response")) {
+                    Button(isAnalyzing ? "Analyzing…" : presentation.analyzeTitle) {
                         Task { await analyze() }
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("analyzePhoto")
                     .disabled(!consent || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
                     if let result {
-                        Text(result.mode == "meta_live" ? "Meta result — confirmation required" : "Mock result — confirmation required").font(.headline)
+                        Text(RecognitionPresentation(mode: result.mode).resultTitle).font(.headline)
+                            .accessibilityIdentifier("recognitionResultSource")
                         ForEach(result.candidates) { candidate in
                             Button("Review \(candidate.identity) (\(candidate.confidence) confidence)") { selectedCandidate = candidate }
                                 .buttonStyle(.bordered)
+                                .accessibilityIdentifier("recognitionCandidate-\(candidate.id.uuidString)")
                         }
                         if result.candidates.isEmpty {
                             Text("No confident match. Retake the photo or enter the identity and capacity yourself.")
@@ -171,8 +175,9 @@ struct CameraCaptureView: View {
                 .accessibilityHidden(true)
             Text("Add a beverage photo")
                 .font(.title2.bold())
-            Text("Take or choose a photo, try mock analysis, then confirm what you drank.")
+            Text(presentation.header)
                 .foregroundStyle(.secondary)
+                .accessibilityIdentifier("recognitionHeader")
         }
     }
 

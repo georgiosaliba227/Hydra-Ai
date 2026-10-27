@@ -138,4 +138,54 @@ final class GuardedRecognitionTests: XCTestCase {
         XCTAssertTrue(String(decoding: data, as: UTF8.self).contains("recognition_id"))
         XCTAssertFalse(String(decoding: data, as: UTF8.self).contains("image_base64"))
     }
+
+    func testDuplicateNamesAndIdenticalCandidatesKeepDistinctStableLocalIDs() throws {
+        let candidate = """
+        {"identity":"Tea","product_id":null,"container_ml":300,"confidence":"low","uncertainty_reasons":["Verify capacity"]}
+        """
+        let other = candidate.replacingOccurrences(of: "300", with: "450")
+        let data = Data("""
+        {"version":"recognition-v1","mode":"mock","model":"muse-spark-1.3","requires_confirmation":true,"candidates":[\(candidate),\(other),\(candidate)]}
+        """.utf8)
+        let result = try JSONDecoder().decode(RecognitionResult.self, from: data)
+        try result.validate()
+        let ids = result.candidates.map(\.id)
+        XCTAssertEqual(Set(ids).count, 3)
+        XCTAssertEqual(result.candidates.map(\.id), ids, "Reading IDs again must not regenerate them")
+        XCTAssertEqual(result.candidates.map(\.containerMl), [300, 450, 300])
+        let copied = result
+        XCTAssertEqual(copied.candidates.map(\.id), ids)
+        var edited = copied.candidates[1]
+        edited.brand = "User correction"
+        XCTAssertEqual(edited.id, ids[1], "Value updates must preserve selection identity")
+        let wire = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(edited)) as? [String: Any])
+        XCTAssertNil(wire["id"], "Local row identity must not change the API payload")
+        let fresh = try JSONDecoder().decode(RecognitionResult.self, from: data)
+        XCTAssertTrue(Set(fresh.candidates.map(\.id)).isDisjoint(with: ids), "A new response has new alternatives")
+    }
+
+    func testRecognitionLabelsSeparateMockLiveAndUnverifiedModes() {
+        let mock = RecognitionPresentation(mode: "mock")
+        let live = RecognitionPresentation(mode: "meta_live")
+        XCTAssertEqual(mock.header, "Take or choose a photo, try mock analysis, then confirm what you drank.")
+        XCTAssertEqual(live.header, "Take or choose a photo for live Meta analysis, then confirm what you drank.")
+        for label in [mock.header, mock.photoDescription, mock.analyzeTitle, mock.resultTitle, mock.suggestionTitle] {
+            XCTAssertTrue(label.lowercased().contains("mock"))
+            XCTAssertFalse(label.lowercased().contains("live"))
+        }
+        for label in [live.header, live.photoDescription, live.analyzeTitle, live.resultTitle, live.suggestionTitle] {
+            XCTAssertTrue(label.contains("Meta"))
+            XCTAssertTrue(label.lowercased().contains("live"))
+            XCTAssertFalse(label.lowercased().contains("mock"))
+        }
+        for mode: String? in [nil, "", "unknown"] {
+            let unavailable = RecognitionPresentation(mode: mode)
+            XCTAssertEqual(unavailable, .unavailable)
+            for label in [unavailable.header, unavailable.photoDescription, unavailable.analyzeTitle, unavailable.resultTitle, unavailable.suggestionTitle] {
+                XCTAssertFalse(label.lowercased().contains("mock"))
+                XCTAssertFalse(label.lowercased().contains("live"))
+                XCTAssertFalse(label.contains("Meta"))
+            }
+        }
+    }
 }

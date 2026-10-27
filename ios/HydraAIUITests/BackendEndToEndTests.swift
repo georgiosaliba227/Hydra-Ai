@@ -60,9 +60,14 @@ final class BackendEndToEndTests: XCTestCase {
         XCTAssertTrue(total.waitForExistence(timeout: 15))
         let initial = try XCTUnwrap(Int(total.value as? String ?? ""))
         app.tabBars.buttons["Camera"].tap()
+        let header = app.staticTexts["recognitionHeader"]
+        XCTAssertTrue(header.waitForExistence(timeout: 10))
+        let mockHeader = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'mock analysis'"), object: header)
+        XCTAssertEqual(XCTWaiter.wait(for: [mockHeader], timeout: 10), .completed)
         app.buttons["syntheticPhoto"].tap()
         let analyze = app.buttons["analyzePhoto"]
         XCTAssertTrue(analyze.waitForExistence(timeout: 10)); XCTAssertFalse(analyze.isEnabled)
+        XCTAssertEqual(analyze.label, "Analyze with mock Meta response")
         app.switches["photoConsent"].tap()
         analyze.tap()
         let enter = app.buttons["Enter or correct beverage details"]

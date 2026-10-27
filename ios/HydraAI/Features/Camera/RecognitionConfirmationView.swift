@@ -28,7 +28,7 @@ struct RecognitionConfirmationView: View {
     }
     var body: some View {
         Form {
-            Section(mode == "meta_live" ? "Meta suggestion — verify every field" : "Mock suggestion — verify every field") {
+            Section(RecognitionPresentation(mode: mode).suggestionTitle) {
                 Text("Confidence: \(candidate.confidence) (uncalibrated)")
                 ForEach(candidate.uncertaintyReasons, id: \.self) { Text($0).font(.footnote) }
                 LabeledContent("Beverage identity") {

@@ -2,6 +2,8 @@
 
 Reviewed 2026-10-27: full feature diff at `87aedfc` against remote `main` (`9c73ecb`), including the original camera/mock workflow and guarded integration. Review outcome: **no merge-blocking defect found for a human-reviewed merge with the existing mock/false defaults. Not approved for live activation, paid inference, deployment or automatic merge.** This is a source/local-test review, not a penetration test or provider-billing certification.
 
+Cleanup follow-up: the two original iOS findings below are now implemented with regression coverage; financial controls/defaults are unchanged. Final cleanup verification is recorded in the follow-up section. The original source-review reference above remains historical.
+
 ## Findings and scope
 
 | Area | Finding / consequence |
@@ -13,13 +15,13 @@ Reviewed 2026-10-27: full feature diff at `87aedfc` against remote `main` (`9c73
 | iOS/privacy | Camera denial/manual fallbacks, photo selection, consent gating, metadata redraw/strip, uncertain candidates, user correction, confirmation and pending-save persistence remain intact. Separate Meta consent and settled receipts are tested with fakes. HealthKit stays on device; no zero-retention claim. Release build excludes DEBUG photo fixtures. |
 | Regression/test limits | All maintained backend/domain suites and starter suite pass; simulator unit/UI checks pass. No new physical-device or real-provider test. No CI workflow/check is configured/reported. Existing one-user trusted-local-network prototype restrictions remain; this review does not authorize public deployment. |
 
-### Nonblocking for the disabled mock merge; fix before live activation
+### Original findings — resolved in cleanup
 
-- **R1 — distinct candidate row identity.** `ios/HydraAI/Features/Camera/RecognitionResult.swift:17` uses beverage identity as the SwiftUI ID. Valid live alternatives can share the same product name while differing in capacity or uncertainty; `ForEach(result.candidates)` then receives duplicate IDs. Use stable per-response candidate IDs or indexed rows and test duplicate-name selection. Current mock scenarios contain at most one candidate. This is a statically identified live-path risk, not a reproduced default-mode failure.
-- **R2 — mode-aware header.** `ios/HydraAI/Features/Camera/CameraCaptureView.swift:174` always says “try mock analysis,” including configured Meta mode. The analysis button, source/result labels and separate Meta consent are accurate; update this header and test it before activation. Default mock wording is correct.
+- **R1 — distinct candidate row identity.** `ios/HydraAI/Features/Camera/RecognitionResult.swift:17` uses beverage identity as the SwiftUI ID. Valid live alternatives can share the same product name while differing in capacity or uncertainty; `ForEach(result.candidates)` then receives duplicate IDs. Use stable per-response candidate IDs or indexed rows and test duplicate-name selection. Current mock scenarios contain at most one candidate. Resolution: a stored client-only UUID now identifies each decoded/created candidate, including identical alternatives, and survives view updates/value copies without changing wire fields. Unit coverage verifies distinct/stable IDs; a fake-provider UI regression selects both same-name alternatives and checks their capacities.
+- **R2 — mode-aware header.** `ios/HydraAI/Features/Camera/CameraCaptureView.swift:174` always says “try mock analysis,” including configured Meta mode. The analysis button, source/result labels and separate Meta consent are accurate; update this header and test it before activation. Resolution: shared mode-specific wording now drives the header, source caption, analysis button, result and confirmation labels. Unknown/unverified mode gets neutral wording. Unit and mock/fake-provider UI regressions cover these states.
 - Private ledger-directory ownership, all alternate API-key spending paths, genuine approval evidence, retention terms and authoritative billing reconciliation require operator/provider verification before live use. A mode flag or an attestation string cannot independently prove those facts. Do not copy a ledger to establish another authority.
 
-No cost optimization or production iOS code was changed during this review. The recognition contract's historical mock-only wording was clarified to point unambiguously to the implemented guarded extension.
+The original review made no cost optimization or production iOS changes; the subsequently authorized cleanup implements R1/R2 only. The recognition contract's historical mock-only wording was clarified to point unambiguously to the implemented guarded extension.
 
 ## Executed verification
 
@@ -84,7 +86,7 @@ The documentation therefore does **not yet establish a reliable pre-dispatch all
 
 ### 4. Requirements for the first live Meta request
 
-- [ ] Resolve R1/R2 above and add duplicate-name selection/mode-header tests; repeat relevant local checks.
+- [x] Resolve R1/R2 above and add duplicate-name selection/mode-header regressions; repeat local checks as recorded below.
 - [ ] Implement and review the provider-backed bound at both gateway and sender; prove it covers every charge and stays <=$0.25. Do not weaken the current refusal while evidence is missing.
 - [ ] Record genuine account, price and approval evidence in the one authoritative ledger; never initialize a genuine account using synthetic tests or an assumed-zero baseline.
 - [ ] Independently verify all account gates and that no unresolved prior attempt exists. Keep the other account inactive; no rotation/fallback.
@@ -92,3 +94,14 @@ The documentation therefore does **not yet establish a reliable pre-dispatch all
 - [ ] Reconcile the single attempt using authenticated provider evidence, restore mock/false, preserve unresolved reservations and never retry ambiguity. Confirm/correct beverage details before logging.
 
 The detailed conditional procedure remains in [META_LIVE_READINESS_2026-10-27.md](META_LIVE_READINESS_2026-10-27.md). It has not been executed.
+
+## Final cleanup verification
+
+- Python: 228 maintained tests + 32 subtests passed; 3 starter tests passed separately.
+- iOS simulator unit suite: 24 passed, including stable/distinct candidate IDs and mock/live/unverified source wording.
+- Mock UI: 2 passed; 4 skipped (three physical-only and one separately run fake-provider case).
+- Fake-provider UI regression: 1 passed, selecting both same-name Tea alternatives (300/450 mL), verifying distinct IDs remain stable after dismissing a sheet, checking live labels/consents and logging 125 mL. Real Meta/notification senders are explicitly forbidden.
+- Release simulator build passed. No physical-device regression run is claimed.
+- Backend, pricing, budget admission and committed configuration were not modified. Defaults remain mock/false; each account's $120 cutoff, $100 approval, $75 notices and $150 ceiling are unchanged. The one-request $0.25 maximum remains enforced and real inference remains blocked.
+- A credential-signature scan of all six existing feature commits plus working changes found no matches; no `.env`, key/certificate, database or populated `.xctestrun` is tracked. Changed source/test data was reviewed as synthetic; no selected photos, health records, credentials or genuine account approval evidence were added. This is a scoped source/history check, not a guarantee against every possible secret format.
+- Final merge recommendation: ready for human-reviewed merge with live inference disabled, after Amine reviews the final diff. All executed local checks pass. Account/billing evidence and explicit approvals remain activation prerequisites. No paid calls, deployment or automatic merge.
