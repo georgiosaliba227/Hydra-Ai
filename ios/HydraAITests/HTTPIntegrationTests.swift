@@ -71,6 +71,18 @@ final class HTTPIntegrationTests: XCTestCase {
         catch ServiceError.unauthorized { }
     }
 
+    func testRuntimeConfigurationPersistsCredentialInKeychain() throws {
+        let previous = APIConfiguration.load()
+        defer { try? previous.save() }
+        let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: UUID().uuidString, offline: false)
+        try config.save()
+        let loaded = APIConfiguration.load()
+        XCTAssertEqual(loaded.baseURL, config.baseURL)
+        XCTAssertEqual(loaded.token, config.token)
+        XCTAssertFalse(loaded.offline)
+        XCTAssertNil(UserDefaults.standard.string(forKey: "hydra.token"))
+    }
+
     func testRejectsPublicHTTPAndCredentialInURL() throws {
         XCTAssertThrowsError(try APIConfiguration(baseURL: "http://example.com", token: configuration.token, offline: false).validatedURL())
         XCTAssertThrowsError(try APIConfiguration(baseURL: "https://user:pass@example.com", token: configuration.token, offline: false).validatedURL())
