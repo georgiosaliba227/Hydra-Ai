@@ -1,6 +1,6 @@
 # Personal exercise-loss forecasting implementation — October 27, 2026
 
-Separate branch `codex/personal-workout-forecast`, based on main 424f9fe, independently reviewable from PR #10. This implements useful local numerical exercise estimates and an authenticated product API; no iPhone forecasting screen or live Meta interpretation is claimed.
+Separate branch `codex/personal-workout-forecast`, based on main 424f9fe, independently reviewable from PR #10. This implements local numerical exercise estimates and an authenticated product API. The later integration adds a history-only iPhone dashboard consumer; raw calibration/workout entry and live Meta interpretation remain absent.
 
 ## Implemented behavior
 
@@ -24,7 +24,7 @@ There is no new baseline formula, dehydration diagnosis, heart-rate/HRV inferenc
 
 See [wire/core contract](architecture/PERSONAL_FORECAST_API.md). The new route is local-session authenticated with finite bounded schemas and generic no-value errors. Processing any weighing sample requires explicit calibration-processing consent separate from image/Meta disclosure. HealthKit raw records, arbitrary health text and raw HR/HRV fields are rejected. Results have no-store headers; raw sample masses/volumes are not echoed or persisted, and no AI/provider call occurs. Existing local development server access controls still apply; this is not a production identity/hosting design.
 
-No cache is persisted. Each request recomputes log revisions; callers must discard prior results after any change. The client can inspect the new endpoint through the backend's existing local API explorer. Legacy summary/logging APIs remain unchanged. Default mode remains mock/false. No billing configuration or Meta payload is modified by this PR.
+No cache is persisted. Each request recomputes log revisions; callers must discard prior results after any change. The native dashboard now sends only local date/timezone and a seven-day history window. It renders descriptive logged-day totals, missing-day counts and unavailable requirements, rejects inconsistent bounds, and discards stale results. An unavailable endpoint does not block logging. No calibration or HealthKit data is uploaded by this view. The full exercise endpoint can also be inspected through the existing local API explorer. Legacy summary/logging APIs remain unchanged. Default mode remains mock/false. No billing configuration or Meta payload is modified by this PR.
 
 ## Validation
 
@@ -39,3 +39,5 @@ No cache is persisted. Each request recomputes log revisions; callers must disca
 PR #10's [review report](https://github.com/georgiosaliba227/Hydra-Ai/blob/codex/meta-dual-test-readiness/docs/PR10_REVIEW_2026-10-27.md) contains the full separate-owner checklist. Georgio provides authenticated account/credit/gross-spend/access/key-binding evidence and exact owned image approval. Amine independently provides his own packet and exact synthetic context approval; both review code/privacy/financial controls. Only after provider-backed gross exposure and reconciliation are verified should they record genuine one-use permits with short UTC expiry. The proposed ceiling remains $2/account, with $75 notices, $100 further approval, rejection reaching $120 and $150 gross absolute ceiling. No account pooling, rotation or fallback.
 
 Public [Meta pricing](https://dev.meta.ai/docs/pricing-rate-limits) and [models](https://dev.meta.ai/docs/models) were re-read October 27: Muse Spark 1.3 Standard, $1.25/M uncached input, $4.25/M output. These do not verify access or credits on either private account. The conservative full-context token bound is still $1.312256 before other charges, leaving at most $0.687744 under the proposed $2 ceiling. Provider clarification is still needed for any undocumented additional/internal/failed-request charges and billing finality. Nonzero/uncertain extras cannot be reconciled by guessing from tokens; the current gateway freezes. No counting probe or support message was sent, and no live approval is inferred from this report.
+
+Integration follow-up: completed actual samples must allow their minimum explicitly bounded measured duration to have elapsed from event start in UTC. Duration and DST regression tests cover this; see current verification in [PROJECT_STATUS.md](PROJECT_STATUS.md).

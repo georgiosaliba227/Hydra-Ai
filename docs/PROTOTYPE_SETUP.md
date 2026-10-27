@@ -20,7 +20,7 @@ set +a
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-Use a persistent `HYDRA_DATABASE_PATH` and the same token after restarting. SQLite schema initializes automatically. A missing/short token or non-mock AI setting rejects startup. `GET /health` is public; beverage/history/summary routes require Bearer authentication. The only identity is `local-demo`: this is a single-user development prototype, not a multi-user identity system. No public hosting is configured. SQLite stores confirmed logs on the backend host and is not encrypted by the app; use synthetic demo data and OS disk protection. Back up the database if needed; no silent purge/migration is performed.
+Use a persistent `HYDRA_DATABASE_PATH` and the same token after restarting. SQLite schema initializes automatically. A missing/short token or contradictory mode/billable flags reject startup. Keep mock/false for this demonstration; guarded live mode requires separately reviewed account, price, permit, consent and budget evidence. `GET /health` is public; beverage/history/summary routes require Bearer authentication. The only identity is `local-demo`: this is a single-user development prototype, not a multi-user identity system. No public hosting is configured. SQLite stores confirmed logs on the backend host and is not encrypted by the app; use synthetic demo data and OS disk protection. Back up the database if needed; no silent purge/migration is performed.
 
 ## iOS
 
@@ -38,13 +38,13 @@ The app retains a pending request and its UUID idempotency key before sending. I
 6. Restart the backend using the same database path; verify the same history and total.
 7. Stop the backend, try a new log, and verify an actionable error/pending state. Restart and retry; verify exactly one entry.
 
-This demonstrates logged volume accounting, not personalized requirement forecasting, photo inference or HealthKit-based targets. No Meta network request is needed.
+This demonstrates logged volume accounting and descriptive history. The dashboard's previous-seven-days range describes logged intake only; missing days are unknown, and daily requirements remain unavailable. No Meta request or HealthKit export is needed.
 
 ## Automated verification
 
 From repository root:
 ```sh
-python -m pytest tests/hydration tests/database tests/backend -q
+python -m pytest tests -q
 xcodebuild -project ios/HydraAI.xcodeproj -scheme HydraAI \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' \
   -derivedDataPath /tmp/hydra-prototype-derived CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES test
@@ -62,3 +62,23 @@ HYDRA_E2E_BACKEND_URL=http://127.0.0.1:8000 python scripts/run_ios_e2e.py
 ```
 
 Use `--destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID'` to select another installed simulator. This test writes a 125 mL beverage to the configured test database, saves the local connection in the simulator's Keychain, and relaunches without injected credentials to verify the persisted total. It is not a read-only test: use a dedicated simulator and synthetic database. Generated private test configuration is mode 0600 and removed after execution; test result bundles remain local and may contain test configuration, so never publish them without review. The ordinary unit scheme is `HydraAI`; the opt-in UI scheme is `HydraAIEndToEnd` and skips when its required runtime test environment is absent.
+
+## Offline mock rehearsal
+
+From the maintained backend environment, run:
+
+```sh
+python scripts/rehearse_demo.py
+```
+
+This one-shot command creates a temporary synthetic beverage database and an in-process backend, clears inherited provider configuration, and blocks network/provider/financial-ledger operations. It never reads the permanent financial ledger. It checks authentication, a 250 mL manual log and idempotent replay, known/unknown/ambiguous/refused mock photo paths, separate 150 mL confirmation, persistence across app recreation, descriptive seven-day history, unknown water composition and the documented 645–755 mL conditional exercise-loss arithmetic. The synthetic illustration is a structural mock JPEG, not a real-image recognition test. Results print compact JSON without tokens, photos or raw calibration inputs; the temporary database is removed. This verifies software behavior, not scientific future coverage.
+
+## Demonstration narrative for review
+
+1. Show Today and explicitly identify the connected **mock** backend. Log a consumed 250 mL beverage; explain that all beverage volume counts while unsourced physical water content stays unknown.
+2. Open Camera, select an owned nonsensitive image, inspect the prepared JPEG export option and consent only to the local mock backend. Analyze and show the mock-source label; correct identity and consumed quantity before confirming. Never present mock results as real Meta inference.
+3. Refresh Today/History, relaunch, and verify persistence. Show previous-seven-days descriptive totals, missing days and unavailable daily requirements. The native screen does not request raw calibration data or HealthKit records.
+4. Run the offline rehearsal to show the separately tested conditional workout-loss interval. State its assumptions and that it is not a drinking target, deficit, diagnosis or validated prediction. Native workout-entry UI is not implemented.
+5. Show the fail-closed budget policy and explain the pending account/provider/consent gates. Preserve the real ledger and mock/false settings. Do not switch live modes for a recording.
+
+The script is a proposed rehearsal sequence, not a recorded final demo or verified submission. Physical camera/share destinations, HealthKit permissions, participant eligibility, portal-specific video requirements and truthful real Meta use remain separate human gates in PROJECT_STATUS.md and BLOCKERS.md.

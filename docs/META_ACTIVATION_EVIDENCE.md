@@ -2,6 +2,10 @@
 
 Reviewed 2026-10-27 against merged main `424f9fe` (PR #7). **Blocked pending provider evidence and human approval.** This is preparation only. No Meta API call, billing change, credential probe, token-count request or support message was made. Both accounts remain separate; live inference remains disabled.
 
+## Integration reconciliation — October 27, 2026
+
+PR #9's $0.25 analysis remains the active first-test restriction in this execution. PR #10's `dual-test-v1` $2/account path is a disabled proposal, not an approved replacement. Its full-context calculation does not require a counting preflight, but still needs verified additional-charge bounds and a separate explicit policy decision. The findings below about counting privacy, fees and invoice finality remain applicable to any future counting proposal. The selected owner can prepare an account packet independently; the other owner's private key is unnecessary for that request. Both developers still review the code/privacy/financial safeguards. See [decisions](DECISION_LOG.md) and [current status](PROJECT_STATUS.md).
+
 ## Preflight finding
 
 [Meta's counting guide](https://dev.meta.ai/docs/token-counting) and [endpoint reference](https://dev.meta.ai/docs/api-reference/responses/count-input-tokens) document `POST https://api.meta.ai/v1/responses/input_tokens`. It accepts supported Responses fields, requires model/input and returns an integer count. It tokenizes initial rendered context, including media; it does not generate, execute hosted tools, store a response or record generation usage. It validates supported initial request structure, not later tool iterations. Counts depend on the selected model and deployment. History is resolved through `previous_response_id`; conversation resources are unsupported. Hydra forbids both history and tools.

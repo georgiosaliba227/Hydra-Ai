@@ -1,6 +1,6 @@
 # Final guarded Meta readiness and conditional first-test procedure
 
-> Policy update: [dual controlled test preparation](META_DUAL_TESTS.md). The new $2/account policy is proposed and disabled pending exact approvals; older $0.25 statements below describe legacy policy/history, which remains enforced for legacy permits.
+> Current restriction: one project-wide named-account/exact-image first test at <=$0.25, still disabled. The `dual-test-v1` <=$2/account path is an unapproved proposal; adopting it requires an explicit human policy decision in addition to account/input/spending approvals. See [decision log](DECISION_LOG.md).
 
 2026-10-27 follow-up on PR #7, branch `codex/meta-beverage-recognition`. **NOT READY for live inference.** All Meta requests remain disabled. No authentication, token-count, image-upload or inference request was sent to Meta. This document is neither approval nor an instruction to enable billing.
 

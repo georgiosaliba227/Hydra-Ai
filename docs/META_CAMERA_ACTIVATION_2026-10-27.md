@@ -1,3 +1,5 @@
+> Historical #12 preparation record. #12 is now human-merged into #10. Current reviews, active $0.25 restriction versus unapproved $2 proposal, and unchanged permanent-ledger status are tracked in [PROJECT_STATUS.md](PROJECT_STATUS.md) and [DECISION_LOG.md](DECISION_LOG.md).
+
 # Camera activation preparation — October 27, 2026
 
 **Status: local preparation completed; real Meta inference remains blocked.** This report is not spending, image-disclosure, deployment or merge authorization. Keep `HYDRA_AI_MODE=mock` and `META_BILLABLE_REQUESTS_ENABLED=false` until the evidence and explicit approvals below are complete.

@@ -1,3 +1,5 @@
+> Historical discovery report. The permanent empty ledger was subsequently initialized in PR #12 and checked read-only during integration; see [current status](PROJECT_STATUS.md). Do not initialize a second authority.
+
 # Georgio-first ledger discovery and activation reconciliation
 
 October 27, 2026. Preparation only. No Meta calls, billing changes, ledger initialization, migration, permit recording, process restart, deployment or merge.
