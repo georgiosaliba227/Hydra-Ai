@@ -1,0 +1,17 @@
+# Draft technical inquiry to Meta — NOT SENT
+
+Subject: Guaranteed pre-dispatch gross charge bound for one Muse Spark 1.3 Standard image request
+
+We are preparing a single approved test of `muse-spark-1.3` Standard through `POST /v1/responses`. It contains one inline JPEG <=1 MiB and <=2048 pixels per axis, a fixed short prompt and strict JSON schema, `reasoning.effort: minimal`, and `max_output_tokens: 512`. No tools, Files API, SAM, history, background processing, streaming, automatic retries or account/key rotation. Our hard first-test authorization is $0.25 gross, before promotional credits. We have not sent the test or a token-count request.
+
+Please clarify, with authoritative documentation or account-specific written guarantees:
+
+1. For identical, single-shot, tool-free requests, is `/v1/responses/input_tokens` a guaranteed upper bound on **billable** input tokens, including image preprocessing, prompt/schema scaffolding and internal model invocations? How is that guarantee bound to model/deployment version, exact request and validity period? The image guide recommends counting to estimate cost, while the dedicated counting guide says the result is for context fit rather than billing. Is the counting call itself free, and what retention terms apply to its image input?
+2. Does 512 bound all billable reasoning and visible-output tokens, including any internal processing? Are there separate image-understanding, internal-model, minimum-request, rounding or other fees for this setup? What account rates and taxes must enter an all-inclusive maximum? Are refusals, partial outputs, disconnects, timeouts or provider-side retries billed differently?
+3. Is there an enforceable request-level input-token/dollar ceiling or binding quote that rejects work before any charge above $0.25? What authenticated request-ID usage/billing evidence supports reconciliation after a timeout or lost response, and when is it final?
+4. The spend-alert Help Center says there is no hard usage cap, while Terms §13.2(iii) describes a maximum spending limit for invoice billing. Does any applicable account/prepaid arrangement enforce a gross hard cap atomically across concurrent keys and in-flight work? What are its scope, overshoot semantics and availability without changing our current billing? Payment thresholds and email alerts are insufficient.
+5. Each of our two independent accounts reports $150 remaining promotional credits. Please explain how each owner can independently confirm expiry, covered models/charges, grant/hackathon restrictions and overage behavior. We will not pool credits or treat one account as failover for the other.
+
+Please do not enable billing, alter payment settings, issue a test inference or enroll us in an invoicing arrangement. We need evidence before separately authorizing one request. We can provide each account's identity privately through its owner's support session; this draft includes no keys, images, health records or private billing details.
+
+References: [image understanding](https://dev.meta.ai/docs/image-understanding), [token counting](https://dev.meta.ai/docs/token-counting), [Responses](https://dev.meta.ai/docs/protocols/responses), [pricing](https://dev.meta.ai/docs/pricing-rate-limits), [spend alerts](https://dev.meta.ai/help/billing/spend-limit-alert), [Terms §§13.1–13.3](https://dev.meta.ai/legal/terms-of-service).
