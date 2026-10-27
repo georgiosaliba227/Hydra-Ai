@@ -90,6 +90,21 @@ final class HTTPIntegrationTests: XCTestCase {
         XCTAssertThrowsError(try APIConfiguration(baseURL: "http://127.0.0.1", token: "short", offline: false).validatedURL())
     }
 
+    func testLocalHTTPRequiresAnEntirePrivateIPv4Address() throws {
+        for host in ["127.attacker.0.0.1", "10.attacker.0.0.1", "192.168.attacker.0.1", "172.16.attacker.0.1", "127.0.0.1.example.com"] {
+            XCTAssertThrowsError(try APIConfiguration(baseURL: "http://\(host)", token: configuration.token, offline: false).validatedURL(), host)
+        }
+        for host in ["127.0.0.1", "10.0.0.1", "192.168.0.1", "172.16.0.1", "localhost", "hydra.local"] {
+            XCTAssertNoThrow(try APIConfiguration(baseURL: "http://\(host)", token: configuration.token, offline: false).validatedURL(), host)
+        }
+    }
+
+    func testRejectsNonASCIIWhitespaceAndControlTokens() throws {
+        for suffix in [" ", "\t", "\n", "\r", "é", "\u{0000}"] {
+            XCTAssertThrowsError(try APIConfiguration(baseURL: configuration.baseURL, token: configuration.token + suffix, offline: false).validatedURL())
+        }
+    }
+
     @MainActor
     func testPendingRequestSurvivesRestartAndRetriesSameKey() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

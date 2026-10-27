@@ -23,12 +23,16 @@ struct APIConfiguration {
         guard let url = URL(string: baseURL), let host = url.host,
               url.user == nil, url.password == nil, url.query == nil, url.fragment == nil,
               url.path.isEmpty || url.path == "/" else { throw ServiceError.configuration }
-        let parts = host.split(separator: ".").compactMap { Int($0) }
-        let privateIPv4 = parts.count == 4 && parts.allSatisfy { (0...255).contains($0) } &&
+        let labels = host.split(separator: ".", omittingEmptySubsequences: false)
+        let parts = labels.compactMap { label -> Int? in
+            guard !label.isEmpty, label.allSatisfy({ $0.isASCII && $0.isNumber }) else { return nil }
+            return Int(label)
+        }
+        let privateIPv4 = labels.count == 4 && parts.count == 4 && parts.allSatisfy { (0...255).contains($0) } &&
             (parts[0] == 10 || parts[0] == 127 || (parts[0] == 192 && parts[1] == 168) || (parts[0] == 172 && (16...31).contains(parts[1])))
         let local = host == "localhost" || host == "[::1]" || host == "::1" || host.hasSuffix(".local") || privateIPv4
         guard url.scheme == "https" || (url.scheme == "http" && local), token.count >= 32,
-              !token.contains("\n"), !token.contains("\r") else { throw ServiceError.configuration }
+              token.unicodeScalars.allSatisfy({ $0.isASCII && !CharacterSet.whitespacesAndNewlines.contains($0) && !CharacterSet.controlCharacters.contains($0) }) else { throw ServiceError.configuration }
         return url
     }
 
