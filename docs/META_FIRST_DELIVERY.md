@@ -1,0 +1,33 @@
+# Meta-first implementation and activation handoff
+
+October 27, 2026. **Real Meta camera and hydration inference have not run. The priority milestone is incomplete.** This work implements and tests the remaining safe integration path. It grants no spending or photo disclosure approval. The permanent ledger and private credentials remain unchanged.
+
+## Existing foundation retained
+
+Integration PR #13 (`codex/roadmap-integration`, inspected at `be4e492`) already contains #9, #10 including human-merged #12, and #11. The new work starts there in an isolated branch; it does not reapply #2/#4, rewrite source branches, merge PRs or expand unrelated UI. Amine coordination is [posted on #13](https://github.com/georgiosaliba227/Hydra-Ai/pull/13#issuecomment-6450854995).
+
+The camera uses `POST https://api.meta.ai/v1/responses`, `muse-spark-1.3`, `text.format` JSON Schema, minimal reasoning, at most 512 output tokens, no tools, no history and no retries. Standard model selection and transport structure match the official [Responses documentation](https://dev.meta.ai/docs/protocols/responses), [model catalogue](https://dev.meta.ai/docs/models), and [pricing](https://dev.meta.ai/docs/pricing-rate-limits), checked October 27. Public documentation is not authenticated account access or a whole-request billing guarantee.
+
+The existing iPhone flow prepares/exports one JPEG, requires backend and Meta disclosure consent, and requires confirmation of beverage identity and quantity consumed. Model capacity estimates and unverified label transcription never become confirmed consumption or nutrition. No iOS key or raw HealthKit upload is introduced.
+
+## Credential preflight
+
+Run the local, read-only diagnostic without starting a server or contacting Meta:
+
+```sh
+python -m scripts.meta_preflight \
+  --env-file '/Users/georgiosaliba/Library/Application Support/HydraAI/private/backend-georgio.env' \
+  --database '/Users/georgiosaliba/Library/Application Support/HydraAI/private/meta.sqlite3'
+```
+
+The existing Georgio credential loads and passes the official transport's local syntax validation. The private file is owned and mode 0600; selected account is Georgio, configured mode is mock, and billable requests are disabled. No credential or fingerprint is printed. This does **not** verify authentication or model access. Current preflight reports no notification credential, no recorded account/key binding, no finality table, and no matching authoritative-ledger path in this env file. Nothing was activated or migrated. Amine's credentials were not opened or modified.
+
+## One actionable activation checklist
+
+1. **Reviewed code and one authority:** Georgio and Amine review the exact integration/Meta-first commits. Separately review the additive finality-schema migration for the existing permanent ledger and configure the approved runtime to that same path; never initialize another authority or reset history. Supply and verify the existing notification path to both developers.
+2. **Private account evidence:** Georgio supplies authenticated provider identity/key binding, Standard model access, current credits/expiry/grant coverage, gross and pending usage across all keys, exclusive gateway custody and retention terms. Amine supplies his own independent evidence before hydration. Local key presence and reported $150 credits do not establish any of these facts.
+3. **Enforceable gross bound and policy:** obtain provider evidence bounding the whole request, including failed/partial/internal/extra charges and invoice finality. Current full-context token reservation is $1.312256 before extras, which fails the active $0.25 first-request ceiling. Either establish an enforceable smaller provider-backed bound with reviewed enforcement, or explicitly adopt a different policy. The proposed $2 ceiling is **not approved**; a larger ceiling alone does not verify costs. Amine's later hydration request also needs explicit policy authorization beyond the current one-image/project-wide permit.
+4. **Exact input and one-use authorization:** export the actual prepared iPhone JPEG, verify its backend-normalized SHA256, and obtain owner consent for those exact bytes plus expiring Georgio-specific spending approval bound to account, model, price, policy and input. Amine separately approves the exact synthetic context hash and his own later request. Each request keeps <=512 output tokens, one in flight, no retries/tools/Files/SAM and no unresolved prior billing.
+5. **Execute, reconcile, then evaluate:** after all gates pass, enable only the approved path for one request, restore disabled settings, retain the original ledger, and compare the request ID/usage with authenticated final billing. Unknown or mismatched charges freeze further work. Evaluate the linked output and record real metrics; do not substitute the offline fixture scores. Confirm camera identity/consumption on iPhone. Only after camera billing finality can a separately authorized hydration attempt proceed.
+
+Per-account $75 notices to both developers, $100 further approval, rejection reaching $120 and the $150 absolute ceiling remain in force. Credits never offset gross accounting or transfer between accounts. No automatic rotation or fallback exists. The provider support inquiry remains prepared and unsent.

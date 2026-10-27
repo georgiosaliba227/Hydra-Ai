@@ -2,6 +2,8 @@
 
 Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The manual logging and guarded recognition baseline is merged through PR #7. Current review work locally combines PRs #9, #10 (including #12), and #11; see the [project status](docs/PROJECT_STATUS.md).
 
+**Current engineering priority: verified real Meta camera recognition and synthetic hydration interpretation, followed by measured evaluation and the iPhone demonstration.** Unrelated UI and speculative features are deferred. Real inference has not yet been authorized or executed; [the activation handoff](docs/META_FIRST_DELIVERY.md) identifies the exact remaining requirements.
+
 ## Run the prototype
 
 See [prototype setup and demo](docs/PROTOTYPE_SETUP.md) for backend startup, iOS configuration, tests and restart verification. [API contract](docs/architecture/PROTOTYPE_API.md) defines authentication, idempotent logging, pagination and timezone-aware totals.

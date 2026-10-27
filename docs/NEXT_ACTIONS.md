@@ -1,24 +1,14 @@
 # Hydra AI next actions
 
-Updated October 27, 2026. Execute unblocked rows in order; [blockers](BLOCKERS.md) identify human/external gates. This is the execution view of [ROADMAP.md](ROADMAP.md), not a second product roadmap.
+Updated October 27, 2026 after the Meta-first reprioritization. The immediate milestone is verified Meta inference in both workstreams, measured results and the existing iPhone camera workflow. Unrelated UI and speculative development are deferred.
 
-| Priority | Action / owner | Completion evidence |
+| Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| Done | Orchestrator: isolated #10/#12 + #11 + #9 integration, independent reviews and regressions | 330 pytest + 32 subtests, 31 XCTest, 3 UI cases passed; review PR prepared for Amine |
-| Done | iOS: history-only forecast display with safe unavailable states | Strict validation, private three-field request, invalidation/race cases and mock E2E passed |
-| Done | Orchestrator: repeatable synthetic demo rehearsal and status reconciliation | Seven rehearsal groups passed; truthful demo narrative in PROTOTYPE_SETUP.md |
-| 4 | Georgio: create the review PR from the pushed branch (current CLI/app permissions block creation); then both developers review code and policy | Recorded reviews at current heads; humans decide merge order; no automatic merge |
-| 5 | Georgio: rehearse camera export/share and integrated dashboard on physical iPhone, using only mock backend | Received prepared JPEG normalized fingerprint matches; permission/denial, relaunch and outage paths verified |
-| 6 | Selected owner + both reviewers: provide provider/account evidence; decide whether to replace the active $0.25 policy | Provider-backed full-cost bound, private account baseline/key binding, exact-image consent and explicit account/policy-bound approval; see #8 |
-| 7 | Both developers: verify eligibility, representative authority and submission portal | Completed human entries in HACKATHON_COMPLIANCE.md; no inferred acceptance |
-| 8 | Developers: capture final demonstration and prepare submission package | Camera provider mode labeled honestly; confirmed volume and conditional exercise loss distinguished; rights/attributions and portal fields reviewed |
+| 1 | Both developers: review the Meta-first changes against existing integration PR #13 | Backend hydration route, structured parser, observation provenance and evaluation tests reviewed at the exact commit; humans choose merge order |
+| 2 | Georgio + provider: complete selected-account evidence and bounded-cost requirements | Private account/key binding and gross/pending spend, Standard access, all-inclusive bound satisfying active policy; exact checklist in META_FIRST_DELIVERY.md |
+| 3 | Georgio: approve one exact prepared iPhone JPEG and one bounded request after gates pass | Fingerprint, account/input/model/price/policy references and UTC expiry; <=$0.25 unless a different policy is explicitly adopted; no retry |
+| 4 | Operator + both reviewers: execute once, reconcile and evaluate the camera result | Official request ID, ledger-linked output digest, observed latency/tokens, usage-derived cost distinguished from final billing; human identity/consumption confirmation on iPhone |
+| 5 | Amine + both reviewers: separately authorize synthetic hydration context and a later request | Amine account evidence, exact context fingerprint and explicit policy permitting the additional request; prior camera invoice finality first; no account fallback |
+| 6 | Both developers: evaluate hydration relevance/consistency and record the real Meta demo | Real and mock results separated, errors and missing results included, deterministic calculations and all spending safeguards preserved |
 
-## Delivery sequence through November 4
-
-October 27–28: integration review, mock regressions, dashboard history and physical rehearsal. October 29–31: resolve account/provider evidence independently of software work; approve a scientific method before adding any requirement or drinking advice. November 1–2: freeze reviewed demo scope and record a rehearsal with clear limitations. November 3: verify portal fields, video/access requirements and eligibility with the authorized representative. November 4: humans submit ahead of the currently published 9 PM ET deadline. These are planned checkpoints, not scheduled automations or completed work.
-
-If live evidence remains unavailable, finish and rehearse the mock prototype but do not present mock output as real Meta usage or claim the Meta-tooling submission requirement has been satisfied. Scientific or privacy gates do not block descriptive logging/history work.
-
-## Resume entry point
-
-Read PROJECT_STATUS.md and BLOCKERS.md, fetch GitHub once, inspect the integration PR and local status, then run only checks needed for changed code. Preserve all existing worktrees and the authoritative private ledger. The exact next action is to create the review PR from [the pushed integration branch](https://github.com/georgiosaliba227/Hydra-Ai/compare/main...codex/roadmap-integration?expand=1) using a writable GitHub session; the complete description is [posted on #10](https://github.com/georgiosaliba227/Hydra-Ai/pull/10#issuecomment-6450693186). Then Amine reviews the combined diff and Georgio performs the physical mock camera/export/history rehearsal. When resumed, inspect new review comments and address them on this branch; if no review/evidence has arrived, do not repeat the ledger audit or attempt live inference.
+Backend/API/evaluation implementation and mock tests proceed without waiting for paid activation. Current gates and commands are consolidated in [META_FIRST_DELIVERY.md](META_FIRST_DELIVERY.md). Do not repeat completed financial inventories or reinitialize/copy the authoritative ledger. Keep support inquiry unsent until explicitly authorized. Final device verification and submission eligibility remain necessary but do not displace Meta integration work.

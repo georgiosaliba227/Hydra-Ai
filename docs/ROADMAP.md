@@ -2,6 +2,10 @@
 
 Current execution tracking: [status](PROJECT_STATUS.md), [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md). Stage exit gates below are product goals; historical preparation text is not evidence that every gate is complete.
 
+## Active priority — October 27 Meta-first instruction
+
+M2 and the Meta explanation portion of M3 are the immediate engineering priority: actual Muse Spark 1.3 Standard camera inference on Georgio's account, separately approved synthetic hydration interpretation on Amine's account, reproducible quality/latency/usage/cost evaluation, then the existing iPhone confirmation workflow. Defer unrelated UI changes and speculative features. The milestone stays incomplete until both real requests are authorized, executed, reconciled and evaluated. Complete safe code/tests while provider evidence and explicit spending/disclosure approval are pending; use [one activation handoff](META_FIRST_DELIVERY.md), not repeated general audits. The $2 proposal remains unapproved and all account cutoffs remain unchanged.
+
 ## M0 — planning
 Prepared: repository inventory; root AGENTS.md; proposed architecture and directory ownership; draft API/data contracts; team workflow; issue backlog. Existing starter preserved. Planning PR #1 was merged; full development authorization now permits the end-to-end prototype.
 

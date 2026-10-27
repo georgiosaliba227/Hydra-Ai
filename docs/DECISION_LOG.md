@@ -4,6 +4,8 @@ Only current cross-component decisions belong here. Detailed contracts stay in d
 
 | Date | Decision | Reason / authorization |
 | --- | --- | --- |
+| 2026-10-27 | Prioritize real Meta camera and synthetic hydration interpretation, reproducible evaluation, and the existing iPhone confirmation path; defer unrelated UI and speculative work | Latest user instruction authorizes parallel implementation/testing and GitHub coordination, but explicitly withholds billable requests, photo disclosure and automatic merges |
+| 2026-10-27 | Continue from existing integration PR #13 on an isolated Meta-first review branch | #13 now exists at `be4e492`; preserve #9/#10/#11 and integration history. CLI comments work; owner connector writes return 403 |
 | 2026-10-27 | Continue the authorized roadmap during the active execution, delegating non-overlapping work; retain four shared status files | User's autonomous development request; no claim of work after execution ends and no scheduled task requested |
 | 2026-10-27 | Combine #10 (including human-merged #12), #11 and #9 on a new isolated integration branch | Test semantic compatibility without rewriting source branches or merging GitHub PRs |
 | 2026-10-27 | The active first-test restriction remains one project-wide named-account/exact-image request <=$0.25; dual-test-v1 <=$2/account remains an unapproved, disabled proposal | Current explicit user instructions take precedence over proposal wording in branch docs. A changed policy requires a new explicit human decision, never inferred from code or silence |
