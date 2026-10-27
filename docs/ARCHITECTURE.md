@@ -1,8 +1,8 @@
-# Proposed architecture
+# Architecture
 
-Status: Startup track proposal; planning PR #1 review and approval required before Milestone 1. No feature migration or implementation in this phase.
+Status: planning PR #1 merged; full development authorization received for the local end-to-end prototype. See architecture/PROTOTYPE_API.md for implemented interface refinements. No paid AI or public deployment authorized.
 
-## Decision proposal
+## Architecture baseline
 Use one SwiftUI iPhone client, one modular FastAPI backend, a deterministic Python calculation module, and SQLite on one backend host. Keep the existing nested starter intact until a separately reviewed migration. Prefer an HTTP adapter for Meta once the actual API contract is verified; do not install a guessed SDK.
 
 ```text
@@ -34,3 +34,7 @@ Network/model errors leave manual logging usable. Invalid model JSON, unknown pr
 SwiftUI suits HealthKit and camera but needs Xcode project/signing setup. SQLite minimizes operations but requires one authoritative host. The starter's heuristic forecast cannot become the production algorithm by renaming it. A verified vision-capable Meta endpoint is a dependency, not an assumption. Weather/product provider, hosting, identity mechanism, baseline method, model ID and remaining participant/submission checks are unresolved.
 
 Shared interfaces: [contracts](architecture/CONTRACTS.md). Budget protocol: [API budget](API_BUDGET.md). Approval gates: [roadmap](ROADMAP.md).
+
+## Local prototype implementation
+
+The integration uses the existing PR #2 SwiftUI app and PR #4 calculation engine, preserving both branch histories. FastAPI authenticates a runtime-configured single-user development token, persists idempotent confirmed manual logs in SQLite, and obtains daily totals from the unchanged engine. URLSession sends logs and reads complete history/server summaries. Physical water composition stays unknown; no personalized target is inferred. Provider calls are absent and non-mock startup settings fail closed. See PROTOTYPE_SETUP.md for local-only operational limits.

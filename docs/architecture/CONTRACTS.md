@@ -1,6 +1,6 @@
 # Draft shared contracts (v1 proposal)
 
-These interfaces are design specifications, not existing endpoints. Existing starter endpoints are only `GET /health` and `POST /forecast`.
+These original interfaces remain the broader design specification. The implemented manual prototype subset and deliberate additions (GET /v1/summary, pagination, single-user local authentication and idempotency) are defined in [PROTOTYPE_API.md](PROTOTYPE_API.md). Unlisted proposed features below remain unimplemented. The legacy nested starter is separate.
 
 ## Conventions
 JSON, explicit units (`*_ml`, `*_mg`, `*_kg`), finite nonnegative values with reviewed upper bounds, RFC3339 timestamps, IANA timezone for local-day aggregation, UUID identifiers. Unknown is null, never zero. Reject extra/invalid fields at model boundaries. Errors use `{code, message, request_id, retryable}` without sensitive payloads. Authenticated user identity comes from the session, never a trusted client-supplied user ID. Mutation idempotency keys are scoped to the authenticated user.

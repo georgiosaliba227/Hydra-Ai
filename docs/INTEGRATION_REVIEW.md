@@ -24,11 +24,13 @@ No provider client is implemented. Startup rejects enabled billable requests or 
 
 | Check | Result |
 |---|---|
-| Combined backend, database and engine suite | 94 tests passed: 35 API + 13 database + 46 engine; engine includes 32 subtests |
+| Combined backend, database and engine suite | 108 tests passed: 49 API + 13 database + 46 engine; engine includes 32 subtests |
 | Engine arithmetic, DST and numerical regressions | Passed; not clinical validation |
 | API/database behavior | Authentication, validation, duplicate replay/conflict, concurrency, persistence, timezone/DST, pagination and mock-only guard tests passed |
-| iOS build and XCTest | Pending orchestrator update |
-| Native app → live backend → persistence → relaunch | Pending orchestrator runtime verification |
+| iOS build and XCTest | Ad-hoc signed simulator build passed; 11 XCTest cases passed on iPhone 17 Pro / iOS 26.5 |
+| Native app → live backend → persistence | iPhone 18 Pro / iOS 27 simulator manually saved 250 mL; HTTP and SQLite confirmed one record; backend process restart and app refresh retained it |
+| Runtime outage handling | Backend stopped: visible connection error; restart + refresh recovered original total |
+| Native UI test + relaunch without injected configuration | Passed on iPhone 18 Pro / iOS 27: Settings saved to Keychain, +125 mL logged, total 375 mL; terminated/relaunched with no overrides, same total and no pending duplicate |
 | Physical iPhone camera/HealthKit/device networking | Not verified by this review |
 
 ## Remaining gates
@@ -39,3 +41,12 @@ No provider client is implemented. Startup rejects enabled billable requests or 
 - Scientific approval of personalized daily requirements and source/measurement standards before introducing targets, water-content estimates or workout guidance beyond the existing engine's limits.
 - Explicit separate approval and a tested centralized, persistent, fail-closed spending controller before any paid Meta request. No top-ups or subscriptions are authorized.
 - Hackathon participant-specific eligibility, representative status, submission details and credit expiry/coverage remain human verification tasks in [HACKATHON_COMPLIANCE.md](HACKATHON_COMPLIANCE.md).
+
+## Issues found and resolved during integration
+
+- The existing Debug configuration did not define DEBUG; fixed it so simulator-only environment overrides work. Release remains without that flag.
+- Unsigned simulator builds could not write Keychain. Use ad-hoc simulator signing; no plaintext credential fallback was added. A focused Keychain test and full signed suite pass.
+- A root-directory test invocation of the preserved starter can hit its legacy package import collision; its tests are deliberately run separately from Hydra-Ai-Starter.
+- Starlette emits a TestClient/httpx deprecation warning; tests pass. Review a compatible test-client upgrade separately.
+
+Runtime database verification after UI test: exactly two records (250 mL manually logged and 125 mL from the UI test), 375 mL total. The opt-in UI test passed with zero failures; no physical iPhone run is claimed. Backend was stopped and restarted once using the same SQLite file; the existing record survived. All runtime data is synthetic and outside the repository.

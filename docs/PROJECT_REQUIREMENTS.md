@@ -1,6 +1,6 @@
 # Project requirements
 
-Status: proposed, 2026-10-26. Track: Startup, confirmed by the user. Milestone 1 remains blocked until planning PR #1 is reviewed and approved. This first execution covers Milestones 0 and 0B only.
+Status: proposed, 2026-10-26. Track: Startup, confirmed by the user. Planning PR #1 merged; full development authorization now covers the first manual end-to-end prototype.
 
 ## MVP acceptance criteria after approval
 1. SwiftUI user can confirm a beverage and consumed mL, edit/delete it, and see persisted daily beverage totals.

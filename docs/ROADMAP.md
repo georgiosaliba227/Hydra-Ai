@@ -1,20 +1,20 @@
 # Roadmap and review gates
 
 ## M0 — planning
-Prepared: repository inventory; root AGENTS.md; proposed architecture and directory ownership; draft API/data contracts; team workflow; issue backlog. Existing starter preserved. Planning PR #1 review and approval are required before Milestone 1.
+Prepared: repository inventory; root AGENTS.md; proposed architecture and directory ownership; draft API/data contracts; team workflow; issue backlog. Existing starter preserved. Planning PR #1 was merged; full development authorization now permits the end-to-end prototype.
 
 ## M0B — onboarding
 Prepared: local tool inspection, Python environment, configuration template, corrected starter run instructions, evidence review, shared budget design. Startup official rules reviewed; user confirms $150.00 shared credits, $0.00 pay-as-you-go balance and attached payment method. Personal eligibility, account/model access, credit expiry/coverage and historical usage verification remain incomplete; onboarding is not fully approved. No Meta calls authorized.
 
-## Approval record (all pending)
-- Both developers: review and approve planning PR #1, architecture, MVP boundaries, shared contracts and onboarding before M1.
+## Approval record
+- Planning PR #1 merged. User reports both developers authorize cross-component prototype integration. Existing feature PRs remain subject to human review; no automatic merge.
 - Startup track selected. Confirm both developers' acceptance and individual eligibility, founders/product status and authorized active-employee representative; verify portal-specific submission details.
 - Select supported Meta endpoint/model, exact prices and billing bounds; verify both developers' access, shared credit expiry/coverage and historical gross usage.
 - Approve baseline scientific method, uncertainty and safety behavior before presenting recommendations.
 - Approve initial paid requests only after budget gateway implementation and safeguards pass; separate approval at $100; automatic stop $120 cumulative gross usage with $30 reserve. No automatic top-ups; credits do not prevent overages.
 - Approve paid hosting/subscriptions, major architecture changes and each merge separately.
 
-## M1 — application foundation (blocked on first approval)
+## M1 — application foundation (active, authorized)
 Create Xcode project and modular backend, migrate starter under review, persist confirmed manual logs, implement dashboard and contracts. Exit: offline/manual path and client/API integration work with deterministic tests.
 
 ## M2 — Meta AI features
