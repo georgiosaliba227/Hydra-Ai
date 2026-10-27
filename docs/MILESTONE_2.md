@@ -1,3 +1,5 @@
+> Mock-milestone historical verification. Current guarded integration and the separate-account funding update are documented in [API_BUDGET.md](API_BUDGET.md) and [GUARDED_META_API.md](architecture/GUARDED_META_API.md). Prior shared-budget assumptions below are superseded; no live spend is authorized.
+
 # Milestone 2 — mock Meta beverage recognition
 
 Implemented for local review on `codex/meta-beverage-recognition`. No deployment, live provider transport, billable requests or automatic merge. Human review by both developers is required. The existing manually tested iPhone baseline is user-reported. Milestone 2 physical-device results and remaining coverage are now recorded in [the physical iPhone report](PHYSICAL_IPHONE_TESTING_2026-10-27.md).

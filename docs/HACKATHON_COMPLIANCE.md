@@ -37,14 +37,16 @@ The rules require original work and appropriate rights; open-source components a
 
 ## Credits and billing
 
-User-confirmed dashboard snapshot, 2026-10-26: **$150.00 free Meta Model API credits**, **$0.00 pay-as-you-go balance**, **payment method attached**. This is one shared project allocation, not per developer. The agent has not independently inspected the dashboard. Official rules describe a 10-day development credit window and link Credit Terms; exact account expiry, eligible usage, redemption/coverage and overage terms still require verification. No other participant or partner credit expands this project's ceiling.
+Updated 2026-10-27: each developer reports $150 on a separate Meta account. These allocations are not transferable and are not independently verified. The previous shared-project assumption is superseded. Each account must independently establish remaining credits, expiry, eligible model/usage coverage, gross historical usage, billing/overage behavior and applicable hackathon grant restrictions. Neither account is authorized for use by this task.
 
-Meta's [billing help](https://dev.meta.ai/help/billing/spend-limit-alert) confirms email alerts rather than a hard cap and liability for excess usage. Free credits and a zero payable balance do not eliminate overage risk or prove zero cumulative usage. Maintain the **$120 gross cumulative-usage cutoff and $30 reserve**, $75 notification and $100 approval gate. Require one persistent, centralized, fail-closed controller with atomic reservations; it is not implemented yet. No automatic top-ups, uncontrolled calls or paid requests are authorized.
+The official event page was rechecked on 2026-10-27 and still describes a ten-day event and one track per project. The waiver could not be freshly retrieved in this pass; the earlier register is historical evidence, not newly accepted terms or verified participant eligibility. An allocation on a personal account does not establish that account's grant conditions permit team/product use. Obtain participant-side evidence or organizer clarification; no organizer message or terms acceptance was performed.
+
+See [account-specific budget controls](API_BUDGET.md). Each account preserves $75 notices to both developers, a separate $100 approval checkpoint and an unconditional $120 cutoff. No combined-credit spending authorization is inferred. The initial test is one project-wide account/image-bound attempt capped at $0.25. Live dispatch remains blocked because the verified conservative request-cost bound exceeds that ceiling. No Meta requests or billing changes were made.
 
 ## Remaining approval checklist
 
 - [ ] Both developers verify the individual and Startup team conditions above and choose the representative.
 - [ ] Verify participant portal submission fields, model eligibility details, coding-assistant/pre-existing-code treatment and licensing obligations.
 - [ ] Verify exact credit expiry/coverage, historical gross usage and cash-overage behavior against the account and linked Credit Terms.
-- [ ] Implement/test the controller only in the approved later phase; verify concurrency, retries, recovery, all spending paths and reconciliation before separate paid-call approval.
+- [ ] Verify the implemented account-specific safeguards and all remaining external evidence/cost-bound/reconciliation gates before separate paid-call approval.
 - [x] Planning PR #1 merged; explicit development authorization received. Subsequent integration PRs still require human review; no automatic merge.

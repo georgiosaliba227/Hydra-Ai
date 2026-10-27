@@ -105,3 +105,37 @@ private extension Data {
         }
     }
 }
+
+final class GuardedRecognitionTests: XCTestCase {
+    override func tearDown() { FixtureURLProtocol.handler = nil }
+    func testLiveDisclosureRequiredBeforeNetwork() async throws {
+        let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
+        let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
+        FixtureURLProtocol.handler = { _ in XCTFail("No transmission without explicit Meta consent"); return (500, Data()) }
+        let service = try HTTPBeverageService(configuration: config, session: URLSession(configuration: options))
+        do { _ = try await service.analyzePhoto(Data([1,2,3]), scenario: "ambiguous", mode: "meta_live"); XCTFail("Expected consent denial") }
+        catch ServiceError.consent { }
+    }
+    func testLiveResponseNeedsReceiptAndSeparatesSource() throws {
+        let identifier = UUID().uuidString
+        let valid = """
+        {"version":"recognition-v1","mode":"meta_live","model":"muse-spark-1.3","recognition_id":"\(identifier)","requires_confirmation":true,"candidates":[{"identity":"Tea","category":"tea","brand":null,"product":null,"product_id":null,"container_ml":300,"confidence":"low","uncertainty_reasons":["Verify capacity"]}]}
+        """
+        let result = try JSONDecoder().decode(RecognitionResult.self, from: Data(valid.utf8))
+        XCTAssertNoThrow(try result.validate())
+        XCTAssertEqual(result.recognitionId?.uuidString, identifier)
+        XCTAssertEqual(result.candidates[0].category, "tea")
+        let missing = valid.replacingOccurrences(of: "\"recognition_id\":\"\(identifier)\",", with: "")
+        XCTAssertThrowsError(try JSONDecoder().decode(RecognitionResult.self, from: Data(missing.utf8)).validate())
+    }
+    func testReceiptSurvivesPendingPayloadEncoding() throws {
+        let request = CreateBeverageRequest(category: "Tea", consumedMl: 125, consumedAt: .now, timezone: "America/New_York", source: "confirmed_recognition", recognitionId: UUID(), containerMl: 300)
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
+        let data = try encoder.encode(request)
+        let restored = try decoder.decode(CreateBeverageRequest.self, from: data)
+        XCTAssertEqual(restored.recognitionId, request.recognitionId)
+        XCTAssertTrue(String(decoding: data, as: UTF8.self).contains("recognition_id"))
+        XCTAssertFalse(String(decoding: data, as: UTF8.self).contains("image_base64"))
+    }
+}

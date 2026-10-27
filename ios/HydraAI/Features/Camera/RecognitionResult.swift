@@ -5,8 +5,11 @@ struct RecognitionRequest: Encodable {
     let imageBase64: String
     let photoConsent: Bool
     let mockScenario: String
+    var mode: String? = nil
+    var metaPhotoConsent: Bool? = nil
     enum CodingKeys: String, CodingKey {
         case imageBase64 = "image_base64", photoConsent = "photo_consent", mockScenario = "mock_scenario"
+        case mode, metaPhotoConsent = "meta_photo_consent"
     }
 }
 
@@ -18,8 +21,11 @@ struct RecognitionCandidate: Codable, Identifiable, Sendable {
     let confidence: String
     let uncertaintyReasons: [String]
     var nutrition: SourcedNutrition? = nil
+    var category: String? = nil
+    var brand: String? = nil
+    var product: String? = nil
     enum CodingKeys: String, CodingKey {
-        case identity, confidence, nutrition
+        case identity, confidence, nutrition, category, brand, product
         case productId = "product_id", containerMl = "container_ml", uncertaintyReasons = "uncertainty_reasons"
     }
 }
@@ -30,13 +36,15 @@ struct RecognitionResult: Decodable, Sendable {
     let model: String
     let candidates: [RecognitionCandidate]
     let requiresConfirmation: Bool
+    var recognitionId: UUID? = nil
     enum CodingKeys: String, CodingKey {
         case version, mode, model, candidates
-        case requiresConfirmation = "requires_confirmation"
+        case requiresConfirmation = "requires_confirmation", recognitionId = "recognition_id"
     }
     func validate() throws {
-        guard version == "recognition-v1", mode == "mock", model == "muse-spark-1.3", requiresConfirmation,
+        guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3", requiresConfirmation,
               candidates.count <= 3 else { throw ServiceError.invalidResponse }
+        guard (mode == "meta_live") == (recognitionId != nil) else { throw ServiceError.invalidResponse }
         for candidate in candidates {
             guard !candidate.identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   candidate.identity.count <= 80, ["low", "medium", "high"].contains(candidate.confidence),
@@ -73,5 +81,14 @@ struct SourcedNutrition: Codable, Sendable {
     let provenance: [String]
     enum CodingKeys: String, CodingKey {
         case basisMl = "basis_ml", sodiumMg = "sodium_mg", carbohydrateG = "carbohydrate_g", provenance
+    }
+}
+
+struct RecognitionCapabilities: Decodable {
+    let version: String
+    let mode: String
+    let model: String
+    func validate() throws {
+        guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3" else { throw ServiceError.invalidResponse }
     }
 }

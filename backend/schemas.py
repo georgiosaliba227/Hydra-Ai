@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 import re
 from typing import Literal, Self
+from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .nutrition import lookup
@@ -17,12 +18,13 @@ class CreateBeverageRequest(BaseModel):
     consumed_at: datetime
     timezone: str = Field(min_length=1, max_length=128, strict=True)
     source: Literal["manual", "confirmed_recognition"]
+    recognition_id: UUID | None = None
     product_id: str | None = Field(default=None, max_length=80, strict=True)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
 
     @model_validator(mode="after")
     def confirmed_photo(self) -> Self:
-        if self.source == "manual" and (self.product_id is not None or self.container_ml is not None):
+        if self.source == "manual" and (self.product_id is not None or self.container_ml is not None or self.recognition_id is not None):
             raise ValueError("manual log cannot carry recognition fields")
         if self.source == "confirmed_recognition" and (self.container_ml is None or self.consumed_ml > self.container_ml):
             raise ValueError("confirm container and amount consumed")

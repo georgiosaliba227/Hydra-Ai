@@ -30,6 +30,8 @@ class MetaBudget:
             connection = sqlite3.connect(self.path, timeout=0.5)
             connection.execute("PRAGMA synchronous=FULL")
             connection.execute("BEGIN IMMEDIATE")
+            if type(self) is MetaBudget and connection.execute("SELECT 1 FROM sqlite_master WHERE name='live_accounts'").fetchone():
+                raise BudgetDenied("Legacy shared ledger is disabled after account-specific ledger initialization")
             yield connection
             connection.commit()
         except (sqlite3.Error, OSError):

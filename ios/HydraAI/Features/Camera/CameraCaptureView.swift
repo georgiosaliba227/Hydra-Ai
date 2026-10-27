@@ -18,6 +18,9 @@ struct CameraCaptureView: View {
     @State private var libraryFixtureReady = false
     #endif
     @State private var consent = false
+    @State private var metaConsent = false
+    @State private var recognitionMode: String?
+    private var isLive: Bool { recognitionMode == "meta_live" }
     @State private var scenario = "ambiguous"
     @State private var isAnalyzing = false
     @State private var result: RecognitionResult?
@@ -40,9 +43,9 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
-                    Text("Mock analysis: selected demo responses do not interpret this photo.")
+                    Text(isLive ? "Meta analysis sends this photo to Meta. Recognition is uncertain; verify every suggestion." : "Mock analysis: selected demo responses do not interpret this photo.")
                         .font(.subheadline).foregroundStyle(.secondary)
-                    Picker("Demo response", selection: $scenario) {
+                    if !isLive { Picker("Demo response", selection: $scenario) {
                         Text("Ambiguous / no match").tag("ambiguous")
                         Text("Branded US cola").tag("branded")
                         Text("Generic coffee").tag("generic")
@@ -50,18 +53,23 @@ struct CameraCaptureView: View {
                         Text("API failure").tag("failure")
                     }
                     .accessibilityIdentifier("mockScenario")
-                    .disabled(isAnalyzing)
+                    .disabled(isAnalyzing) }
                     Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $consent)
                         .accessibilityIdentifier("photoConsent")
                         .disabled(isAnalyzing)
-                    Button(isAnalyzing ? "Analyzing…" : "Analyze with mock Meta response") {
+                    if isLive {
+                        Toggle("I consent to sending this beverage photo to Meta for AI analysis", isOn: $metaConsent)
+                            .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing)
+                        Text("Meta may retain content for service, safety and legal purposes. Zero retention is not promised. No location metadata or HealthKit records are sent.").font(.footnote)
+                    }
+                    Button(isAnalyzing ? "Analyzing…" : (isLive ? "Analyze with Meta" : "Analyze with mock Meta response")) {
                         Task { await analyze() }
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("analyzePhoto")
-                    .disabled(!consent || isAnalyzing)
+                    .disabled(!consent || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
                     if let result {
-                        Text("Mock result — confirmation required").font(.headline)
+                        Text(result.mode == "meta_live" ? "Meta result — confirmation required" : "Mock result — confirmation required").font(.headline)
                         ForEach(result.candidates) { candidate in
                             Button("Review \(candidate.identity) (\(candidate.confidence) confidence)") { selectedCandidate = candidate }
                                 .buttonStyle(.bordered)
@@ -91,7 +99,7 @@ struct CameraCaptureView: View {
                     captureOptions
                 }
 
-                Text("Photos stay on device until you consent and tap Analyze. A resized copy without original metadata goes only to your configured backend, which uses mock responses and does not save images. No Meta upload occurs. Confirmed logs contain details you approve.")
+                Text("Photos stay on device until you consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Images are not saved by Hydra. Confirmed logs contain details you approve.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -104,8 +112,9 @@ struct CameraCaptureView: View {
                 .ignoresSafeArea()
         }
         .sheet(item: $selectedCandidate) { candidate in
-            NavigationStack { RecognitionConfirmationView(candidate: candidate, onSaved: clearPhoto) }
+            NavigationStack { RecognitionConfirmationView(candidate: candidate, mode: result?.mode ?? "mock", recognitionId: result?.recognitionId, onSaved: clearPhoto) }
         }
+        .task { await loadCapabilities() }
         .onChange(of: scenario) { _, _ in result = nil }
         .alert(alertTitle, isPresented: Binding(
             get: { alertMessage != nil },
@@ -124,21 +133,33 @@ struct CameraCaptureView: View {
     }
 
     private func clearPhoto() {
-        capturedImage = nil; photoItem = nil; result = nil; consent = false
+        capturedImage = nil; photoItem = nil; result = nil; consent = false; metaConsent = false
     }
 
     @MainActor private func analyze() async {
-        guard consent, !isAnalyzing, let capturedImage else { return }
+        guard consent, !isAnalyzing, let mode = recognitionMode, (!isLive || metaConsent), let capturedImage else { return }
         isAnalyzing = true; result = nil
         defer { isAnalyzing = false }
         do {
             guard !store.isOffline else { throw ServiceError.configuration }
             let jpeg = try PhotoPreparation.jpeg(capturedImage)
             let service = try HTTPBeverageService(configuration: store.configuration)
-            result = try await service.analyzePhoto(jpeg, scenario: scenario)
+            result = try await service.analyzePhoto(jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
         } catch {
             alertTitle = "Analysis unavailable"
-            alertMessage = "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
+            alertMessage = isLive ? "\(error.localizedDescription) Do not retry this Meta attempt. Ask a developer to review the budget ledger and reconcile any uncertain charges. You can log manually; analysis created no beverage." : "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
+        }
+    }
+
+    @MainActor private func loadCapabilities() async {
+        recognitionMode = nil; consent = false; metaConsent = false; result = nil
+        do {
+            guard !store.isOffline else { throw ServiceError.configuration }
+            let service = try HTTPBeverageService(configuration: store.configuration)
+            recognitionMode = try await service.recognitionCapabilities().mode
+        } catch {
+            alertTitle = "Recognition unavailable"
+            alertMessage = "Could not verify the backend recognition mode. \(error.localizedDescription) Reopen Camera after checking Settings."
         }
     }
 

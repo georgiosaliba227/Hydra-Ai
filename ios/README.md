@@ -49,3 +49,9 @@ The UI test launches with runtime configuration, saves it through Settings/Keych
 ## Milestone 2 mock recognition
 
 See [Milestone 2](../docs/MILESTONE_2.md). Configure the local backend, open Camera, capture/select a photo, consent to backend upload and choose an explicitly synthetic demo scenario. Analyze, review/correct identity and container capacity, enter actual consumed mL and confirm before Save. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
+
+## Guarded Meta mode
+
+Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. Meta mode requires both backend-upload consent and separate Meta disclosure consent. It never claims zero retention. Live results require a server-issued settled recognition receipt, preserved in pending submissions, and confirmation of identity/capacity/consumption. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
+
+`run_ios_e2e.py --live-simulation` only accepts an explicitly marked nonbillable loopback fake-provider backend. It runs the opt-in live-consent UI case with generated synthetic image data. It must never be pointed at a real Meta transport. Physical-only tests skip in normal simulator runs.

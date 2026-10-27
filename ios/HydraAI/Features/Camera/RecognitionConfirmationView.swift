@@ -4,6 +4,8 @@ struct RecognitionConfirmationView: View {
     @EnvironmentObject private var store: BeverageStore
     @Environment(\.dismiss) private var dismiss
     let candidate: RecognitionCandidate
+    let mode: String
+    let recognitionId: UUID?
     @FocusState private var inputFocused: Bool
     @State private var identity: String
     @State private var container: String
@@ -14,7 +16,8 @@ struct RecognitionConfirmationView: View {
     @State private var consumedAt = Date()
     let onSaved: () -> Void
 
-    init(candidate: RecognitionCandidate, onSaved: @escaping () -> Void) {
+    init(candidate: RecognitionCandidate, mode: String = "mock", recognitionId: UUID? = nil, onSaved: @escaping () -> Void) {
+        self.mode = mode; self.recognitionId = recognitionId
         self.candidate = candidate; self.onSaved = onSaved
         _identity = State(initialValue: candidate.identity)
         _container = State(initialValue: candidate.containerMl.map(String.init) ?? "")
@@ -25,7 +28,7 @@ struct RecognitionConfirmationView: View {
     }
     var body: some View {
         Form {
-            Section("Mock suggestion — verify every field") {
+            Section(mode == "meta_live" ? "Meta suggestion — verify every field" : "Mock suggestion — verify every field") {
                 Text("Confidence: \(candidate.confidence) (uncalibrated)")
                 ForEach(candidate.uncertaintyReasons, id: \.self) { Text($0).font(.footnote) }
                 LabeledContent("Beverage identity") {
@@ -81,7 +84,7 @@ struct RecognitionConfirmationView: View {
         defer { saving = false }
         do {
             try await store.add(category: identity, consumedMl: amount, at: consumedAt, source: "confirmed_recognition",
-                                productId: identity == candidate.identity ? candidate.productId : nil, containerMl: capacity)
+                                productId: identity == candidate.identity ? candidate.productId : nil, containerMl: capacity, recognitionId: recognitionId)
             onSaved(); dismiss()
         } catch {
             self.error = "\(error.localizedDescription) If confirmation is pending, close this form and use Retry pending beverage on Today."

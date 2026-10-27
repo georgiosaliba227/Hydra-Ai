@@ -12,7 +12,7 @@ The dashboard reports **confirmed beverage volume**, not a dehydration measureme
 
 Active development is authorized by both developers as reported in the development chat. The prototype remains for local/private development; public deployment and production authentication are not approved. Camera recognition is unavailable; photos and HealthKit activity remain on device. No AI inference or paid Meta requests are enabled. API startup rejects a non-mock configuration; the shared spending controller remains a future prerequisite for paid calls.
 
-User-confirmed billing: $150 shared project credits, $0 pay-as-you-go balance and an attached payment method. This is not $150 per developer. Keep the $120 cumulative gross-usage cutoff and $30 reserve, with $75 notification and $100 approval gate. Credits do not prevent overage billing. Never enable automatic top-ups.
+Updated user report: each developer has a separate $150 allocation, independently unverified. Never pool credits or rotate accounts to bypass limits. Each account keeps its $120 gross cutoff, $30 reserve, $75 notices and $100 additional-approval gate. No spending is authorized; one project-wide first-test gate remains. See docs/API_BUDGET.md. Credits do not prevent overage billing. Never enable automatic top-ups.
 
 ## Project documents
 

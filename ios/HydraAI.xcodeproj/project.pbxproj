@@ -123,10 +123,10 @@
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Add one synthetic beverage fixture for opt-in physical-device picker testing. Existing photos are not read.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy is sent to your configured mock backend only after your consent.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy is sent to your configured mock backend only after your consent.";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos with mock responses and save confirmed beverages.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos in the selected backend mode and save confirmed beverages.";
                 INFOPLIST_FILE = Configuration/Info.plist;
                 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -150,10 +150,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy is sent to your configured mock backend only after your consent.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy is sent to your configured mock backend only after your consent.";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos with mock responses and save confirmed beverages.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos in the selected backend mode and save confirmed beverages.";
                 INFOPLIST_FILE = Configuration/Info.plist;
                 INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

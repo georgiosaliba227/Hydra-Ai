@@ -14,6 +14,8 @@ class AnalysisRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     image_base64: str = Field(max_length=1_398_104, strict=True)
     photo_consent: Literal[True]
+    mode: Literal["mock", "meta_live"] = "mock"
+    meta_photo_consent: bool = Field(default=False, strict=True)
     mock_scenario: Literal["branded", "generic", "ambiguous", "missing_nutrition", "failure"] = "ambiguous"
 
     @field_validator("photo_consent", mode="before")
@@ -57,6 +59,9 @@ class AnalysisRequest(BaseModel):
 class Candidate(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     identity: str = Field(min_length=1, max_length=80)
+    category: str | None = Field(default=None, max_length=80)
+    brand: str | None = Field(default=None, max_length=80)
+    product: str | None = Field(default=None, max_length=80)
     product_id: str | None = Field(default=None, max_length=80)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
     confidence: Literal["low", "medium", "high"]
@@ -66,8 +71,9 @@ class Candidate(BaseModel):
 class AnalysisResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: Literal["recognition-v1"] = "recognition-v1"
-    mode: Literal["mock"] = "mock"
+    mode: Literal["mock", "meta_live"] = "mock"
     model: Literal["muse-spark-1.3"] = MODEL
+    recognition_id: str | None = None
     candidates: list[Candidate] = Field(max_length=3)
     requires_confirmation: Literal[True] = True
 
@@ -82,6 +88,8 @@ class BeverageRecognizer(Protocol):
 
 class MockMetaRecognizer:
     def analyze(self, image: AnalysisRequest) -> AnalysisResult:
+        if image.mode != "mock":
+            raise RecognitionUnavailable()
         scenario = image.mock_scenario
         if scenario == "failure":
             raise RecognitionUnavailable()

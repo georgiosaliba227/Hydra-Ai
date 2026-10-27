@@ -28,13 +28,13 @@ struct BackendSettingsView: View {
                     } catch { self.error = error.localizedDescription }
                 }
                 .accessibilityIdentifier("saveConnection")
-                Text(offline ? "Offline demo records stay on this device and are not uploaded." : "Use your local Hydra backend access token, not a Meta API key. The token is stored in Keychain. Backend mode sends confirmed beverage entries. Photos are sent to this backend only after consent and Analyze; Meta uploads are disabled. HealthKit records stay on device.")
+                Text(offline ? "Offline demo records stay on this device and are not uploaded." : "Use your local Hydra backend access token, not a Meta API key. The token is stored in Keychain. Backend mode sends confirmed beverage entries. Photos are sent to this backend only after consent and Analyze; Meta mode requires separate consent before sending photos to Meta. HealthKit records stay on device.")
                     .font(.footnote)
                 Text("For simulator: 127.0.0.1 reaches this Mac. For an iPhone: use the Mac's private LAN address on a trusted network. Public connections require HTTPS.")
                     .font(.footnote)
             }
             if let error { Text(error).foregroundStyle(.red) }
-            Section("AI") { Text("Meta requests are disabled. Photo analysis uses synthetic mock responses from your configured backend and requires confirmation before logging.") }
+            Section("AI") { Text("Camera verifies the backend mode before analysis. Mock responses are synthetic. Meta mode sends the photo to Meta only with separate consent and a server-approved budget permit. Suggestions always require confirmation; zero retention is not promised.") }
         }
         .navigationTitle("Settings")
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }

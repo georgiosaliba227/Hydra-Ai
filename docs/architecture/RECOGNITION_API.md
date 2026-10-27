@@ -1,3 +1,5 @@
+> Guarded live-mode and isolated account-budget extensions are specified in [GUARDED_META_API.md](GUARDED_META_API.md). The mock-only limitations below remain the default configuration; earlier shared-credit assumptions are superseded by account-specific controls.
+
 # Beverage recognition contract v1 (Milestone 2)
 
 Extends PROTOTYPE_API.md for the authorized mock-only milestone. Existing manual logging stays compatible. Backend startup still rejects live/billable flags. No provider transport or provider credential is loaded.

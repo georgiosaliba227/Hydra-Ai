@@ -1,0 +1,16 @@
+{
+  "version": "guarded-meta-accounts-v2",
+  "enabled": false,
+  "selected_account": null,
+  "reported_allocations_usd": {"georgiosaliba227": 150, "aminealichaouche": 150},
+  "allocations_independently_verified": false,
+  "account_evidence": null,
+  "price_snapshot": null,
+  "first_test_permit": null,
+  "project_request_count_limit": 1,
+  "maximum_gross_exposure_usd": 0.25,
+  "model": "muse-spark-1.3",
+  "maximum_output_tokens": 512,
+  "automatic_retries": 0,
+  "credits_transferable": false
+}
