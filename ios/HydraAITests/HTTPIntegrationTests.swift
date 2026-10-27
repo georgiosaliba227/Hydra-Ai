@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import Security
 @testable import HydraAI
 
 final class FixtureURLProtocol: URLProtocol {
@@ -72,8 +73,8 @@ final class HTTPIntegrationTests: XCTestCase {
     }
 
     func testRuntimeConfigurationPersistsCredentialInKeychain() throws {
-        let previous = APIConfiguration.load()
-        defer { try? previous.save() }
+        let saved = try SavedConnectionState()
+        defer { saved.restore() }
         let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: UUID().uuidString, offline: false)
         try config.save()
         let loaded = APIConfiguration.load()
@@ -131,5 +132,37 @@ private actor RecordingService: BeverageService {
         keys.append(idempotencyKey)
         if keys.count == 1 { throw URLError(.timedOut) }
         return BeverageLog(id: UUID(), consumedMl: request.consumedMl, category: request.category, consumedAt: request.consumedAt, timezone: request.timezone, source: "manual", revision: 1)
+    }
+}
+
+
+/// Restore raw state even when the prior configuration was intentionally incomplete.
+private struct SavedConnectionState {
+    private let url = UserDefaults.standard.object(forKey: "hydra.backendURL")
+    private let offline = UserDefaults.standard.object(forKey: "hydra.offline")
+    private let credential: [String: Any]?
+    private static let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "HydraAI.localBackend", kSecAttrAccount as String: "development-session"]
+
+    init() throws {
+        var query = Self.query
+        query[kSecReturnData as String] = true
+        query[kSecReturnAttributes as String] = true
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw ServiceError.credentials }
+        credential = result as? [String: Any]
+    }
+
+    func restore() {
+        UserDefaults.standard.set(url, forKey: "hydra.backendURL")
+        UserDefaults.standard.set(offline, forKey: "hydra.offline")
+        let deleted = SecItemDelete(Self.query as CFDictionary)
+        XCTAssertTrue(deleted == errSecSuccess || deleted == errSecItemNotFound)
+        if let credential, let data = credential[kSecValueData as String] {
+            var restored = Self.query
+            restored[kSecValueData as String] = data
+            if let accessible = credential[kSecAttrAccessible as String] { restored[kSecAttrAccessible as String] = accessible }
+            XCTAssertEqual(SecItemAdd(restored as CFDictionary, nil), errSecSuccess)
+        }
     }
 }
