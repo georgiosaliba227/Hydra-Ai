@@ -1,0 +1,98 @@
+{
+  "version": "meta-evaluation-dataset-v1",
+  "cases": [
+    {
+      "case_id": "clear_label",
+      "purpose": "camera",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "camera": {
+        "categories": [
+          "sparkling water"
+        ],
+        "brands": [
+          "Fixture Fizz"
+        ],
+        "container_ml": 330,
+        "capacity_visible": true
+      }
+    },
+    {
+      "case_id": "ambiguous",
+      "purpose": "camera",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "camera": {}
+    },
+    {
+      "case_id": "wrong_brand_volume",
+      "purpose": "camera",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "camera": {
+        "categories": [
+          "juice"
+        ],
+        "brands": [
+          "Fixture Juice"
+        ],
+        "container_ml": 250,
+        "capacity_visible": true
+      }
+    },
+    {
+      "case_id": "missing_result",
+      "purpose": "camera",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "camera": {
+        "categories": [
+          "water"
+        ]
+      }
+    },
+    {
+      "case_id": "intake_missing_composition",
+      "purpose": "hydration",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "hydration": {
+        "required_signals": [
+          "composition_missing"
+        ],
+        "allowed_signals": [
+          "review_intake",
+          "composition_missing"
+        ],
+        "consistency_group": "same_context"
+      }
+    },
+    {
+      "case_id": "same_intake_repeat",
+      "purpose": "hydration",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "hydration": {
+        "required_signals": [
+          "composition_missing"
+        ],
+        "allowed_signals": [
+          "review_intake",
+          "composition_missing"
+        ],
+        "consistency_group": "same_context"
+      }
+    },
+    {
+      "case_id": "provider_failure",
+      "purpose": "camera",
+      "source": "synthetic_fixture",
+      "truth_reference": "synthetic-rubric-v1",
+      "camera": {
+        "categories": [
+          "coffee"
+        ]
+      }
+    }
+  ]
+}

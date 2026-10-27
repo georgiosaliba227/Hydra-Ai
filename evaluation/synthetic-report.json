@@ -1,0 +1,294 @@
+{
+  "dataset_cases": 7,
+  "limits": [
+    "Mock scores test the harness, not Meta performance.",
+    "Accuracy denominators use successful identifiable cases; errors and missing runs are reported separately.",
+    "Capacity is container volume, never volume consumed.",
+    "Confidence is uncalibrated; manual hallucination rubrics require explicit review.",
+    "Settled token cost is distinct from independently reviewed final gross billing.",
+    "No population generalization or clinical validation is implied by this small dataset."
+  ],
+  "modes": {
+    "meta_live": {
+      "accounts": {},
+      "all_required_signals_present": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "brand_top1": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "brand_topk": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "capacity_absolute_error_ml": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "p95_nearest_rank": null
+      },
+      "capacity_absolute_percentage_error": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "p95_nearest_rank": null
+      },
+      "capacity_prediction_coverage": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "cases": 0,
+      "category_top1": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "category_topk": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "consistency_groups_exact_match": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "discarded_signal_count": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "p95_nearest_rank": null
+      },
+      "errors": 0,
+      "hallucinated_identity": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "high_confidence_category_error": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "invented_nutrition": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "invoice_verified_gross_cost": {
+        "count": 0,
+        "micro_usd": null
+      },
+      "latency_ms": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "p95_nearest_rank": null
+      },
+      "raw_signal_supported_fraction": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "required_signal_recall": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "reviewed_explanation_quality": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "p95_nearest_rank": null
+      },
+      "signals_precision": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "status": "not_run",
+      "successes": 0,
+      "unknown_brand_abstention": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "unknown_category_abstention": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "unsupported_capacity_claim": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "unsupported_medical_claim": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "unsupported_numerical_recommendation": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "usage": {
+        "count": 0,
+        "totals": null
+      },
+      "usage_settled_cost": {
+        "count": 0,
+        "micro_usd": null
+      }
+    },
+    "mock": {
+      "accounts": {},
+      "all_required_signals_present": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "brand_top1": {
+        "denominator": 2,
+        "numerator": 1,
+        "value": 0.5
+      },
+      "brand_topk": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "capacity_absolute_error_ml": {
+        "count": 2,
+        "mean": 25,
+        "median": 25.0,
+        "p95_nearest_rank": 50
+      },
+      "capacity_absolute_percentage_error": {
+        "count": 2,
+        "mean": 10.0,
+        "median": 10.0,
+        "p95_nearest_rank": 20.0
+      },
+      "capacity_prediction_coverage": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "cases": 6,
+      "category_top1": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "category_topk": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "consistency_groups_exact_match": {
+        "denominator": 1,
+        "numerator": 1,
+        "value": 1.0
+      },
+      "discarded_signal_count": {
+        "count": 2,
+        "mean": 0,
+        "median": 0.0,
+        "p95_nearest_rank": 0
+      },
+      "errors": 1,
+      "hallucinated_identity": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "high_confidence_category_error": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "invented_nutrition": {
+        "denominator": 0,
+        "numerator": 0,
+        "value": null
+      },
+      "invoice_verified_gross_cost": {
+        "count": 0,
+        "micro_usd": null
+      },
+      "latency_ms": {
+        "count": 6,
+        "mean": 1.1666666666666667,
+        "median": 1.0,
+        "p95_nearest_rank": 2.0
+      },
+      "raw_signal_supported_fraction": {
+        "denominator": 4,
+        "numerator": 4,
+        "value": 1.0
+      },
+      "required_signal_recall": {
+        "denominator": 2,
+        "numerator": 2,
+        "value": 1.0
+      },
+      "reviewed_explanation_quality": {
+        "count": 2,
+        "mean": 5,
+        "median": 5.0,
+        "p95_nearest_rank": 5
+      },
+      "signals_precision": {
+        "denominator": 4,
+        "numerator": 4,
+        "value": 1.0
+      },
+      "status": "evaluated",
+      "successes": 5,
+      "unknown_brand_abstention": {
+        "denominator": 1,
+        "numerator": 1,
+        "value": 1.0
+      },
+      "unknown_category_abstention": {
+        "denominator": 1,
+        "numerator": 1,
+        "value": 1.0
+      },
+      "unsupported_capacity_claim": {
+        "denominator": 1,
+        "numerator": 0,
+        "value": 0.0
+      },
+      "unsupported_medical_claim": {
+        "denominator": 2,
+        "numerator": 0,
+        "value": 0.0
+      },
+      "unsupported_numerical_recommendation": {
+        "denominator": 2,
+        "numerator": 0,
+        "value": 0.0
+      },
+      "usage": {
+        "count": 0,
+        "totals": null
+      },
+      "usage_settled_cost": {
+        "count": 0,
+        "micro_usd": null
+      }
+    }
+  },
+  "not_run_cases": 1,
+  "observed_cases": 6,
+  "version": "meta-evaluation-report-v1"
+}
