@@ -297,4 +297,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         return {**jsonable_encoder(asdict(summary)), "method_version": METHOD_VERSION,
                 "forecast_status": "insufficient_data"}
 
+    from .personal_forecasts import install_forecast_routes
+    install_forecast_routes(app, to_engine)
     return app
