@@ -167,3 +167,64 @@ def test_context_water_cannot_exceed_beverage_volume(water):
 def test_context_water_boundary_and_unknown():
     assert context(estimated_water_ml=750.0).estimated_water_ml == 750.0
     assert context().estimated_water_ml is None
+
+
+def camera_only_ledger(tmp_path):
+    ledger = AccountLedger(tmp_path/'authority.sqlite3')
+    ledger.initialize_accounts()
+    ledger.record_price(price())
+    ledger.attest_account(evidence(ACCOUNTS[0]))
+    ledger.approve_controlled_test(permit(ACCOUNTS[0], HASH))
+    return ledger
+
+
+def test_camera_first_without_other_account_evidence_or_permit(tmp_path):
+    ledger = camera_only_ledger(tmp_path)
+    provider = FakeTransport()
+    GuardedMetaGateway(ledger, ACCOUNTS[0], provider, FakeNotifier()).analyze(image())
+    assert provider.calls == 1
+    other = FakeTransport(response=hydration_reply(), account=ACCOUNTS[1])
+    with pytest.raises(RecognitionUnavailable):
+        HydrationIntelligence(ledger, ACCOUNTS[1], other, FakeNotifier()).explain(context())
+    assert other.calls == 0
+    # Later independent approval does not reset the consumed camera permit.
+    ledger.attest_account(evidence(ACCOUNTS[1]))
+    ledger.approve_controlled_test(permit(ACCOUNTS[1], context_fingerprint(context())))
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(ledger, ACCOUNTS[0], provider, FakeNotifier()).analyze(image())
+    assert provider.calls == 1
+    HydrationIntelligence(ledger, ACCOUNTS[1], other, FakeNotifier()).explain(context())
+    assert other.calls == 1
+
+
+def test_later_approval_cannot_bypass_unresolved_first_charge(tmp_path):
+    ledger = camera_only_ledger(tmp_path)
+    with pytest.raises(RecognitionUnavailable):
+        GuardedMetaGateway(ledger, ACCOUNTS[0], FakeTransport(fault=TimeoutError()), FakeNotifier()).analyze(image())
+    ledger.attest_account(evidence(ACCOUNTS[1]))
+    with pytest.raises(BudgetDenied):
+        ledger.approve_controlled_test(permit(ACCOUNTS[1], context_fingerprint(context())))
+    assert AccountLedger(ledger.path).project_view()['project_reserved_micro_usd'] > 0
+
+
+def test_later_approval_cannot_bypass_frozen_settled_account(tmp_path):
+    ledger = camera_only_ledger(tmp_path)
+    GuardedMetaGateway(ledger, ACCOUNTS[0], FakeTransport(), FakeNotifier()).analyze(image())
+    with ledger.transaction() as db:
+        db.execute('UPDATE live_accounts SET frozen=1 WHERE account_id=?', (ACCOUNTS[0],))
+    ledger.attest_account(evidence(ACCOUNTS[1]))
+    with pytest.raises(BudgetDenied):
+        ledger.approve_controlled_test(permit(ACCOUNTS[1], context_fingerprint(context())))
+
+
+def test_controlled_approval_preserves_legacy_singleton(tmp_path):
+    from backend.meta_accounts import FirstPermit
+    ledger = AccountLedger(tmp_path/'authority.sqlite3')
+    ledger.initialize_accounts()
+    legacy = permit(ACCOUNTS[0], HASH).model_dump(exclude={'policy_version', 'purpose', 'maximum_micro_usd'})
+    ledger.approve_first_test(FirstPermit(**legacy))
+    with pytest.raises(BudgetDenied):
+        ledger.approve_controlled_test(permit(ACCOUNTS[0], HASH))
+    with ledger.transaction() as db:
+        assert db.execute('SELECT COUNT(*) FROM live_permit').fetchone()[0] == 1
+        assert db.execute('SELECT COUNT(*) FROM controlled_permits').fetchone()[0] == 0

@@ -197,8 +197,17 @@ class AccountLedger(MetaBudget):
         if permit.purpose != expected:
             raise BudgetDenied("Account owner and test purpose mismatch")
         with self.transaction() as db:
-            if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute("SELECT 1 FROM live_attempts").fetchone():
+            if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute(
+                "SELECT 1 FROM live_attempts a LEFT JOIN controlled_permits p "
+                "ON p.account_id=a.account_id WHERE p.account_id IS NULL"
+            ).fetchone():
                 raise BudgetDenied("Legacy approval or prior attempt requires separate policy review")
+            # Owners may approve independently, including the second owner later.
+            # Never treat a reservation, ambiguous bill or frozen account as settled.
+            if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone() or db.execute(
+                "SELECT 1 FROM live_accounts WHERE frozen=1"
+            ).fetchone():
+                raise BudgetDenied("Unresolved billing or frozen account blocks another approval")
             db.execute("INSERT INTO controlled_permits(account_id,permit) VALUES(?,?)", (permit.account_id, permit.model_dump_json()))
             self.event(db, permit.account_id, "controlled_test_approved", permit.spending_authority_reference)
 
