@@ -4,7 +4,7 @@ from datetime import date, timezone as dt_timezone
 from math import fsum
 
 from .contributions import calculate_contribution
-from .models import BeverageLog, CalculationError, DailySummary, number, zone
+from .models import BeverageLog, CalculationError, DailySummary, convert_time, number, zone
 
 
 def summarize_day(logs: Iterable[BeverageLog], local_date: date, timezone: str) -> DailySummary:
@@ -18,8 +18,8 @@ def summarize_day(logs: Iterable[BeverageLog], local_date: date, timezone: str) 
             raise CalculationError("duplicate_log", "id")
         seen.add(log.id)
     selected = sorted(
-        (log for log in snapshot if log.consumed_at.astimezone(local_zone).date() == local_date),
-        key=lambda log: (log.consumed_at.astimezone(dt_timezone.utc), str(log.id)),
+        (log for log in snapshot if convert_time(log.consumed_at, local_zone, "consumed_at").date() == local_date),
+        key=lambda log: (convert_time(log.consumed_at, dt_timezone.utc, "consumed_at"), str(log.id)),
     )
     contributions = tuple(calculate_contribution(log) for log in selected)
     try:

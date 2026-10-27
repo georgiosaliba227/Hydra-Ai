@@ -57,6 +57,8 @@ backend, database, integration, shared contract, or starter files are changed.
 
 `Composition`, `BeverageLog`, and `WorkoutMeasurement` validate construction.
 Result dataclasses are trusted internal outputs, not untrusted HTTP request models.
+Forecast assembly additionally checks that totals are finite, nonnegative, and
+estimated water does not exceed beverage volume.
 Unknown constructor keywords fail. Backend must parse/validate wire schemas,
 reject extra fields, enforce reviewed domain upper bounds and request limits,
 map nutrition/provenance structures, and serialize dates/UUIDs. This engine rejects
@@ -107,3 +109,41 @@ path. All billable Meta behavior remains outside this engine and disabled for th
 work. A no-network test exercises calculation paths with socket connections blocked;
 it does not verify Amine's future gateway, shared cap, or bypass prevention. The
 $150 shared ceiling and $120 operational cutoff are unchanged.
+
+## PR #4 correctness review
+
+The review found and fixed intermediate ratio overflow/underflow in composition
+and workout projection arithmetic, decimal mass-balance cancellation residue,
+unchecked forecast totals, and untyped timezone conversion overflow. Nonexistent
+ZoneInfo wall times in a DST gap are rejected; both valid fall-back folds remain
+valid. Local-day selection also has a half-hour DST-transition regression test.
+Duplicate checks reject all repeated IDs in a supplied snapshot, including outside
+the selected day; callers must not submit multiple users or revision histories.
+
+Numeric policy: input int/float values are interpreted through their decimal string
+representation for serving conversion and workout arithmetic, using standard-library
+Fraction intermediates. This avoids range loss from intermediate multiplication or
+division and decimal subtraction residue. Results round to float at each public
+output boundary. A positive value too small to represent is rejected as
+numeric_underflow, never reported as known zero. Workout numeric failures return
+insufficient_data with a reason. This policy cannot recover precision lost before
+input and is not an uncertainty model. Extreme test values verify safe failure, not
+physiological plausibility. Daily nonnegative totals use math.fsum.
+
+Ready for backend adapter development after PR review, with these remaining gates:
+
+- Freeze and test HTTP schemas, error mappings, and serialization. Preserve the
+  requested date/timezone and log-revision context alongside forecast output.
+- Enforce ownership, complete snapshot retrieval, current revisions, idempotency,
+  stale-result invalidation, and reviewed domain/request-size limits in the backend.
+- Verify nutrition evidence and basis units. Mass-based water composition (g/100 g)
+  cannot be passed as mL/100 mL without a justified density conversion.
+- Validate the weighing protocol, measurement resolution, repeatability, and
+  comparable exercise conditions before using projections with users. Constant
+  sweat rate over another duration remains an assumption, not a validated personal
+  forecast. Do not present it as a required intake or hydration-state diagnosis.
+- Approve a daily baseline method and supported population before replacing the
+  insufficient-data fallback. Numerical tests are not scientific validation.
+
+The legacy starter's heuristic forecast is preserved and is not used by this engine.
+Its passing tests do not approve those formulas for backend integration.

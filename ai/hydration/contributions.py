@@ -1,5 +1,5 @@
 """Accounting for consumed quantities, not physiological retention."""
-from .models import BeverageLog, Contribution, number
+from .models import BeverageLog, Contribution, exact, representable
 
 
 def calculate_contribution(log: BeverageLog) -> Contribution:
@@ -9,9 +9,8 @@ def calculate_contribution(log: BeverageLog) -> Contribution:
         value = getattr(composition, field) if composition is not None else None
         if value is None:
             return None
-        result = (value / composition.basis_ml) * log.consumed_ml
-        number(result, field)
-        return result
+        result = exact(value) * exact(log.consumed_ml) / exact(composition.basis_ml)
+        return representable(result, field)
 
     water = scaled("water_ml")
     sources = log.provenance + (composition.provenance if composition is not None else ())

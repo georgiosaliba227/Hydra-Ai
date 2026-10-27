@@ -1,7 +1,7 @@
 """NATA 2017 Table 2 mass-balance estimate; never a drinking prescription."""
 from dataclasses import replace
 
-from .models import CalculationError, WorkoutMeasurement, WorkoutResult, number
+from .models import CalculationError, WorkoutMeasurement, WorkoutResult, exact, number, representable
 
 METHOD = "nata-2017-mass-balance-v1"
 ASSUMPTIONS = (
@@ -20,16 +20,15 @@ def estimate_workout_loss(measurement: WorkoutMeasurement) -> WorkoutResult:
                            ASSUMPTIONS, ("measurement_uncertainty_not_quantified",), missing)
     if missing:
         return result
-    loss = ((measurement.pre_mass_kg - measurement.post_mass_kg) * 1000
-            + measurement.consumed_ml - measurement.urine_ml)
+    loss = ((exact(measurement.pre_mass_kg) - exact(measurement.post_mass_kg)) * 1000
+            + exact(measurement.consumed_ml) - exact(measurement.urine_ml))
     if loss < 0:
         return replace(result, uncertainty_reasons=result.uncertainty_reasons + ("inconsistent_mass_balance",))
     try:
-        number(loss, "estimated_loss_ml")
-        rate = loss / measurement.duration_minutes * 60
-        number(rate, "sweat_rate_ml_per_hour")
-    except CalculationError:
-        return replace(result, uncertainty_reasons=result.uncertainty_reasons + ("numeric_overflow",))
+        rate = representable(loss * 60 / exact(measurement.duration_minutes), "sweat_rate_ml_per_hour")
+        loss = representable(loss, "estimated_loss_ml")
+    except CalculationError as error:
+        return replace(result, uncertainty_reasons=result.uncertainty_reasons + (error.code,))
     return replace(result, status="estimated", estimated_loss_ml=loss, sweat_rate_ml_per_hour=rate)
 
 
@@ -47,13 +46,13 @@ def project_workout_loss(
                        missing_inputs=result.missing_inputs + ("comparable_conditions",))
     if result.status != "estimated":
         return result
-    loss = result.sweat_rate_ml_per_hour * (duration_minutes / 60)
+    loss = exact(result.sweat_rate_ml_per_hour) * exact(duration_minutes) / 60
     try:
-        number(loss, "estimated_loss_ml")
-    except CalculationError:
+        loss = representable(loss, "estimated_loss_ml")
+    except CalculationError as error:
         return replace(result, status="insufficient_data", estimated_loss_ml=None,
                        sweat_rate_ml_per_hour=None,
-                       uncertainty_reasons=result.uncertainty_reasons + ("numeric_overflow",))
+                       uncertainty_reasons=result.uncertainty_reasons + (error.code,))
     return replace(result, estimated_loss_ml=loss, method_version=METHOD + "-projection",
                    assumptions=result.assumptions + ("same_rate_under_comparable_conditions",),
                    uncertainty_reasons=result.uncertainty_reasons + ("future_rate_may_vary",))

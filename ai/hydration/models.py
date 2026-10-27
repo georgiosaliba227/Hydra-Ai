@@ -1,6 +1,7 @@
 """Internal calculation types; HTTP schemas and authorization belong to backend."""
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone, tzinfo
+from fractions import Fraction
 from math import isfinite
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -28,14 +29,50 @@ def number(value: float, field: str, *, positive: bool = False) -> None:
         raise CalculationError("invalid_number", field)
 
 
+def exact(value: float) -> Fraction:
+    """Use the supplied number's decimal representation, without intermediate rounding."""
+    return Fraction(str(value))
+
+
+def representable(value: Fraction, field: str) -> float:
+    """Round once at the output boundary; never silently turn a positive value to zero."""
+    try:
+        result = float(value)
+    except OverflowError:
+        raise CalculationError("numeric_overflow", field) from None
+    if not isfinite(result):
+        raise CalculationError("numeric_overflow", field)
+    if value != 0 and result == 0:
+        raise CalculationError("numeric_underflow", field)
+    number(result, field)
+    return result
+
+
 def text(value: str, field: str) -> None:
     if not isinstance(value, str) or not value.strip():
         raise CalculationError("missing_text", field)
 
 
+def convert_time(value: datetime, target: tzinfo, field: str) -> datetime:
+    try:
+        return value.astimezone(target)
+    except (ValueError, OverflowError):
+        raise CalculationError("invalid_timestamp", field) from None
+
+
 def aware(value: datetime, field: str) -> None:
-    if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
+    if not isinstance(value, datetime) or value.tzinfo is None:
         raise CalculationError("invalid_timestamp", field)
+    try:
+        if value.utcoffset() is None:
+            raise CalculationError("invalid_timestamp", field)
+    except (ValueError, OverflowError):
+        raise CalculationError("invalid_timestamp", field) from None
+    utc = convert_time(value, timezone.utc, field)
+    restored = convert_time(utc, value.tzinfo, field)
+    # ZoneInfo allows constructing nonexistent local times during a DST gap.
+    if restored.replace(tzinfo=None) != value.replace(tzinfo=None):
+        raise CalculationError("nonexistent_local_time", field)
 
 
 def zone(value: str) -> ZoneInfo:

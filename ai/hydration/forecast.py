@@ -1,11 +1,16 @@
 """Contract-shaped fallback until a daily requirement method is approved."""
 from datetime import datetime, timezone
 
-from .models import Contribution, DailySummary, Forecast, METHOD_VERSION, aware
+from .models import Contribution, DailySummary, Forecast, METHOD_VERSION, CalculationError, aware, number
 
 
 def calculate_forecast(summary: DailySummary, *, generated_at: datetime) -> Forecast:
     aware(generated_at, "generated_at")
+    number(summary.beverage_total_ml, "beverage_total_ml")
+    if summary.estimated_water_ml is not None:
+        number(summary.estimated_water_ml, "estimated_water_ml")
+        if summary.estimated_water_ml > summary.beverage_total_ml:
+            raise CalculationError("invalid_summary", "estimated_water_ml")
     return Forecast(
         status="insufficient_data", lower_ml=None, upper_ml=None,
         beverage_total_ml=summary.beverage_total_ml,
