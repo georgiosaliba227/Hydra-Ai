@@ -108,6 +108,28 @@ actor HTTPBeverageService: BeverageService {
         return result
     }
 
+    /// Sends only the history window. No calibration, wearable or photo data.
+    func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast {
+        struct HistoryRequest: Encodable {
+            let date: String
+            let timezone: String
+            let history_days = 7
+        }
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/forecasts"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = try JSONEncoder().encode(HistoryRequest(date: date, timezone: timezone))
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        let forecast = try JSONDecoder().decode(IntakeHistoryForecast.self, from: data)
+        try forecast.validate(date: date, timezone: timezone)
+        return forecast
+    }
+
     func recognitionCapabilities() async throws -> RecognitionCapabilities {
         let result: RecognitionCapabilities = try await send("v1/recognition-capabilities")
         try result.validate()

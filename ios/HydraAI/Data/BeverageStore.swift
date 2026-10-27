@@ -15,6 +15,8 @@ struct PendingBeverage: Codable {
 final class BeverageStore: ObservableObject {
     @Published private(set) var logs: [BeverageLog] = []
     @Published private(set) var state: LoadState = .idle
+    @Published private(set) var intakeHistory: IntakeHistoryForecast?
+    @Published private(set) var intakeHistoryState: LoadState = .idle
     @Published private(set) var summary: DailySummary?
     @Published private(set) var pending: PendingBeverage?
     @Published private(set) var configuration: APIConfiguration
@@ -24,6 +26,13 @@ final class BeverageStore: ObservableObject {
     private let pendingURL: URL
     private var pendingReadError = false
     private var refreshVersion = 0
+    private var historyTask: Task<Void, Never>?
+
+    private func invalidateHistory() {
+        refreshVersion += 1
+        historyTask?.cancel(); historyTask = nil
+        intakeHistory = nil; intakeHistoryState = .idle
+    }
     var isConfigured: Bool { service != nil }
     var isOffline: Bool { configuration.offline }
     var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving }
@@ -49,24 +58,39 @@ final class BeverageStore: ObservableObject {
         if let pending, pending.destination != (config.offline ? "offline" : config.baseURL) { throw ServiceError.pending }
         let next: any BeverageService = config.offline ? MockBeverageService() : try HTTPBeverageService(configuration: config)
         try config.save()
-        refreshVersion += 1
+        invalidateHistory()
         configuration = config; service = next; logs = []; summary = nil; state = .idle
     }
 
     func refresh() async {
+        invalidateHistory()
         guard !pendingReadError else { return }
         guard let service else { state = .failed(ServiceError.configuration.localizedDescription); return }
-        refreshVersion += 1
         let version = refreshVersion
         state = .loading
         let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = .current; formatter.dateFormat = "yyyy-MM-dd"
+        let date = formatter.string(from: .now), zone = TimeZone.current.identifier
         do {
             let nextLogs = try await service.listBeverages()
-            let nextSummary = try await service.dailySummary(date: formatter.string(from: .now), timezone: TimeZone.current.identifier)
+            let nextSummary = try await service.dailySummary(date: date, timezone: zone)
             guard version == refreshVersion else { return }
             guard nextSummary.beverageTotalMl.isFinite, nextSummary.beverageTotalMl >= 0 else { throw ServiceError.invalidResponse }
             logs = nextLogs; summary = nextSummary; state = .loaded
+            if !isOffline && pending == nil {
+                intakeHistoryState = .loading
+                historyTask = Task { [weak self] in
+                    do {
+                        let history = try await service.intakeHistory(date: date, timezone: zone)
+                        try history.validate(date: date, timezone: zone)
+                        guard let self, version == self.refreshVersion, !Task.isCancelled else { return }
+                        self.intakeHistory = history; self.intakeHistoryState = .loaded
+                    } catch {
+                        guard let self, version == self.refreshVersion, !Task.isCancelled else { return }
+                        self.intakeHistoryState = .failed("Logged-intake history unavailable. Beverage logging still works.")
+                    }
+                }
+            }
         } catch {
             guard version == refreshVersion else { return }
             state = .failed("Could not refresh beverages. \(error.localizedDescription)")
@@ -89,6 +113,7 @@ final class BeverageStore: ObservableObject {
 
     func retryPending() async throws {
         guard !isSaving, !pendingReadError, let service, let item = pending, item.destination == destination else { throw ServiceError.pending }
+        invalidateHistory()
         isSaving = true
         defer { isSaving = false }
         do {
