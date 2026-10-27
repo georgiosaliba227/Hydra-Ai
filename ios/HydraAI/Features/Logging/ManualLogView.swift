@@ -28,6 +28,7 @@ struct ManualLogView: View {
                 TextField("Volume in mL", text: $volumeText)
                     .keyboardType(.numberPad)
                     .accessibilityLabel("Consumed beverage volume in milliliters")
+                    .accessibilityIdentifier("consumedVolume")
                 DatePicker("Consumed at", selection: $consumedAt, in: ...Date.now)
             }
 
@@ -55,7 +56,8 @@ struct ManualLogView: View {
                 Button(isSaving ? "Saving…" : "Save") {
                     Task { await save() }
                 }
-                .disabled(parsedVolumeMl == nil || isSaving)
+                .disabled(parsedVolumeMl == nil || isSaving || !store.canLog)
+                .accessibilityIdentifier("saveBeverage")
             }
         }
     }
@@ -71,7 +73,7 @@ struct ManualLogView: View {
             try await store.add(category: category.lowercased(), consumedMl: volumeMl, at: consumedAt)
             dismiss()
         } catch {
-            errorMessage = "Could not save this beverage. Please check the details and try again."
+            errorMessage = "\(error.localizedDescription) Close this form and use Retry pending beverage on Today if confirmation is pending."
         }
     }
 }

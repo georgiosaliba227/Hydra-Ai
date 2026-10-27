@@ -2,7 +2,8 @@ import Foundation
 
 protocol BeverageService: Sendable {
     func listBeverages() async throws -> [BeverageLog]
-    func createBeverage(_ request: CreateBeverageRequest) async throws -> BeverageLog
+    func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
+    func dailySummary(date: String, timezone: String) async throws -> DailySummary
 }
 
 /// Offline stand-in for GET and POST /v1/beverages. It round-trips the same
@@ -29,19 +30,39 @@ actor MockBeverageService: BeverageService {
             .sorted { $0.consumedAt > $1.consumedAt }
     }
 
-    func createBeverage(_ request: CreateBeverageRequest) throws -> BeverageLog {
+    func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) throws -> BeverageLog {
         try request.validate()
         // Encode and decode to exercise the planned v1 wire shape in mock mode.
         let submitted = try decoder.decode(CreateBeverageRequest.self, from: encoder.encode(request))
         let log = BeverageLog(
-            id: UUID(), consumedMl: submitted.consumedMl, category: submitted.category,
+            id: idempotencyKey, consumedMl: submitted.consumedMl, category: submitted.category,
             consumedAt: submitted.consumedAt, timezone: submitted.timezone,
             source: "manual", revision: 1
         )
         var logs = try listBeverages()
+        if let existing = logs.first(where: { $0.id == idempotencyKey }) {
+            guard existing == log else { throw ServiceError.pending }; return existing
+        }
         logs.append(log)
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try encoder.encode(logs).write(to: fileURL, options: .atomic)
         return log
+    }
+}
+
+
+extension BeverageService {
+    func createBeverage(_ request: CreateBeverageRequest) async throws -> BeverageLog {
+        try await createBeverage(request, idempotencyKey: UUID())
+    }
+}
+
+extension MockBeverageService {
+    func dailySummary(date: String, timezone: String) throws -> DailySummary {
+        guard let zone = TimeZone(identifier: timezone) else { throw ServiceError.invalidResponse }
+        let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = zone; formatter.dateFormat = "yyyy-MM-dd"
+        let logs = try listBeverages().filter { formatter.string(from: $0.consumedAt) == date }
+        return DailySummary(localDate: date, timezone: timezone, beverageTotalMl: Double(logs.reduce(0) { $0 + $1.consumedMl }), estimatedWaterMl: logs.isEmpty ? 0 : nil, forecastStatus: "insufficient_data")
     }
 }

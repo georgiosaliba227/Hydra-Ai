@@ -1,30 +1,28 @@
 # Hydra AI
 
-**Hackathon track: Startup.**
+Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The integration branch incorporates the existing iOS foundation (PR #2) and calculation engine (PR #4) without merging either GitHub PR automatically.
 
-Hydra AI aims to combine confirmed beverage logging, Meta-powered beverage recognition, and transparent hydration forecasts in an iPhone wellness app.
+## Run the prototype
 
-**Status: planning and onboarding; PR #1 review and approval required before Milestone 1.** Existing code is a small demonstration under `Hydra-Ai-Starter/`, not a complete app. It contains a FastAPI forecast endpoint, three heuristic tests, and a local SwiftUI water counter. No Meta inference, persistence, HealthKit, image recognition, or shared spending enforcement is implemented. Forecast formulas are illustrative and not validated recommendations.
+See [prototype setup and demo](docs/PROTOTYPE_SETUP.md) for backend startup, iOS configuration, tests and restart verification. [API contract](docs/architecture/PROTOTYPE_API.md) defines authentication, idempotent logging, pagination and timezone-aware totals.
 
-Start with [developer onboarding](docs/DEVELOPER_ONBOARDING.md), [architecture](docs/ARCHITECTURE.md), and [roadmap and approval gates](docs/ROADMAP.md). All agents must read [AGENTS.md](AGENTS.md).
+The dashboard reports **confirmed beverage volume**, not a dehydration measurement or personalized fluid prescription. Composition stays unknown without a verified source. No arbitrary beverage multipliers are used. The older `Hydra-Ai-Starter/` demo remains intact but is not the application's backend or calculation engine.
 
-## Planning documents
-- [Product requirements](docs/PROJECT_REQUIREMENTS.md)
-- [Shared contracts](docs/architecture/CONTRACTS.md)
-- [Meta model strategy](docs/META_MODEL_STRATEGY.md)
-- [Hydration evidence and design](docs/HYDRATION_MODEL.md)
-- [Shared API budget](docs/API_BUDGET.md)
-- [Team workflow](docs/TEAM_WORKFLOW.md)
-- [Hackathon compliance](docs/HACKATHON_COMPLIANCE.md)
-- [Environment inventory](docs/ENVIRONMENT.md)
-- [Proposed GitHub issues](docs/ISSUE_PROPOSALS.md)
+## Scope and safety
 
-## Existing starter tests
-From the repository root:
-```sh
-cd Hydra-Ai-Starter
-python3 -m unittest discover -s tests -v
-```
-See onboarding for backend startup. An Xcode project has not yet been created. Root component directories are future destinations; the nested starter remains intact. Its older roadmap describes the demo and is superseded for project planning by the root `docs/ROADMAP.md`.
+Active development is authorized by both developers as reported in the development chat. The prototype remains for local/private development; public deployment and production authentication are not approved. Camera recognition is unavailable; photos and HealthKit activity remain on device. No AI inference or paid Meta requests are enabled. API startup rejects a non-mock configuration; the shared spending controller remains a future prerequisite for paid calls.
 
-User-confirmed billing snapshot (2026-10-26): $150.00 in shared project free credits, $0.00 pay-as-you-go balance, and a payment method attached. Credits do not prevent overage billing. No paid API requests are authorized. Keep the $75 notification, $100 approval gate, and $120 cumulative-usage cutoff with a $30 reserve under the $150 absolute ceiling. The persistent shared controller must fail closed; provider alerts and configuration templates are not hard caps. Automatic top-ups are prohibited. Startup team eligibility conditions and remaining personal checks are recorded in the compliance document.
+User-confirmed billing: $150 shared project credits, $0 pay-as-you-go balance and an attached payment method. This is not $150 per developer. Keep the $120 cumulative gross-usage cutoff and $30 reserve, with $75 notification and $100 approval gate. Credits do not prevent overage billing. Never enable automatic top-ups.
+
+## Project documents
+
+- [Agent instructions](AGENTS.md)
+- [Architecture](docs/ARCHITECTURE.md) and [original draft contracts](docs/architecture/CONTRACTS.md)
+- [Product requirements](docs/PROJECT_REQUIREMENTS.md) and [roadmap](docs/ROADMAP.md)
+- [Hydration evidence](docs/HYDRATION_MODEL.md) and [engine interfaces](ai/hydration/README.md)
+- [Meta strategy](docs/META_MODEL_STRATEGY.md) and [budget policy](docs/API_BUDGET.md)
+- [Developer onboarding](docs/DEVELOPER_ONBOARDING.md), [team workflow](docs/TEAM_WORKFLOW.md), [environment inventory](docs/ENVIRONMENT.md)
+- [Startup compliance and human checks](docs/HACKATHON_COMPLIANCE.md)
+- [Issue proposals](docs/ISSUE_PROPOSALS.md)
+
+Human PR review is required; no automatic merges. Startup participant eligibility, account credit terms and production readiness remain separate verification tasks.

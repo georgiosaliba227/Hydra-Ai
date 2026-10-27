@@ -1,6 +1,8 @@
 # Developer onboarding
 
-Status: local starter setup verified on Developer A's current Mac only. Developer B's environment, remote collaboration and Meta onboarding remain unverified. Milestone 1 requires review and approval of planning PR #1 by both developers.
+**Current application:** use [PROTOTYPE_SETUP.md](PROTOTYPE_SETUP.md) for the integrated native app/backend. The starter instructions below are preserved as historical setup and are not the new application entrypoint.
+
+Status: local starter setup verified on Developer A's current Mac only. Developer B's environment, remote collaboration and Meta onboarding remain unverified. Planning PR #1 is merged and cross-component prototype development is authorized.
 
 ## Clone and branch
 ```sh

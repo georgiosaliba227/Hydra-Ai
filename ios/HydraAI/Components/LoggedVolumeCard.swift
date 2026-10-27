@@ -26,5 +26,6 @@ struct LoggedVolumeCard: View {
         .padding(20)
         .background(.cyan.opacity(0.09), in: RoundedRectangle(cornerRadius: 20))
         .accessibilityElement(children: .combine)
+        .accessibilityValue(String(volumeMl))
     }
 }

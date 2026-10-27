@@ -47,4 +47,4 @@ Meta's [billing help](https://dev.meta.ai/help/billing/spend-limit-alert) confir
 - [ ] Verify participant portal submission fields, model eligibility details, coding-assistant/pre-existing-code treatment and licensing obligations.
 - [ ] Verify exact credit expiry/coverage, historical gross usage and cash-overage behavior against the account and linked Credit Terms.
 - [ ] Implement/test the controller only in the approved later phase; verify concurrency, retries, recovery, all spending paths and reconciliation before separate paid-call approval.
-- [ ] Review and approve planning PR #1 before beginning Milestone 1. No automatic merge.
+- [x] Planning PR #1 merged; explicit development authorization received. Subsequent integration PRs still require human review; no automatic merge.

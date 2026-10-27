@@ -1,4 +1,4 @@
-# Environment inspection — 2026-10-26
+# Historical planning environment inspection — 2026-10-26
 
 Inspected `/Users/georgiosaliba/Desktop/Hydra-Ai` on the current Mac. No assertion about the second developer's machine.
 
@@ -23,3 +23,5 @@ Root directory placeholders already existed for most planned modules; added data
 Known risks: unvalidated forecast heuristics; no persistence/client-backend wiring; no actual budget enforcement; Startup founders/representative status and both participants' personal eligibility/acceptance need confirmation; credit expiry/coverage and historical gross usage remain unresolved. Tracked `.DS_Store` was left intact to preserve existing files, and future copies are ignored. No CI workflow or lockfile was implemented in this planning phase.
 
 Validation note: API smoke checks emitted a Starlette TestClient deprecation warning for httpx (suggesting httpx2); no failures. Review compatible test dependency pins during foundation work, rather than changing starter dependencies in planning.
+
+This is the original planning snapshot. The integrated app now has an Xcode project, HTTP backend and SQLite persistence; current setup is in PROTOTYPE_SETUP.md and verification is in INTEGRATION_REVIEW.md.

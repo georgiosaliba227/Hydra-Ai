@@ -1,6 +1,6 @@
 # Hydration calculation design and evidence
 
-Status: evidence-informed proposal, not a validated or implemented physiological model. Scope proposal: generally healthy adults. Individualized guidance for minors, pregnancy/lactation, fluid restrictions or clinically managed conditions needs separate review.
+Status: deterministic accounting is implemented in ai/hydration and used by the manual prototype. Personalized physiological requirement modeling remains an evidence-informed proposal, not a validated or implemented model. Scope proposal: generally healthy adults. Individualized guidance for minors, pregnancy/lactation, fluid restrictions or clinically managed conditions needs separate review.
 
 ## Accounting first
 Sum confirmed consumed beverage mL as **beverage volume**, including coffee, milk, shakes and sports drinks. Keep estimated physical water content separate and unknown when composition is unavailable. Nutrients use a verified source and explicit serving conversions. Electrolytes do not create water; short-term retention is not a universal hydration multiplier.

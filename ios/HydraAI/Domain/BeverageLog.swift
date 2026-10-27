@@ -37,12 +37,14 @@ enum BeverageValidationError: LocalizedError {
     case invalidVolume
     case invalidTimezone
     case futureDate
+    case historicalDate
 
     var errorDescription: String? {
         switch self {
         case .invalidCategory: "Choose a beverage category."
         case .invalidVolume: "Enter an amount between 1 and 5,000 mL."
         case .invalidTimezone: "The device timezone is unavailable."
+        case .historicalDate: "The consumption time must be in 2000 or later."
         case .futureDate: "The consumption time cannot be in the future."
         }
     }
@@ -54,6 +56,7 @@ extension CreateBeverageRequest {
               category.count <= 80 else { throw BeverageValidationError.invalidCategory }
         guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
+        guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
         guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
     }
 }
