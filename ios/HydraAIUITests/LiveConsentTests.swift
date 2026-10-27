@@ -21,6 +21,14 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [liveHeader], timeout: 10), .completed)
         XCTAssertFalse(header.label.lowercased().contains("mock"))
         app.buttons["syntheticPhoto"].tap()
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].waitForExistence(timeout: 10))
+        let refresh = app.buttons["refreshRecognitionMode"]
+        refresh.tap()
+        let refreshed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [refreshed], timeout: 10), .completed)
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].exists, "Refreshing mode must preserve the prepared image")
+        XCTAssertEqual(app.switches["photoConsent"].value as? String, "0")
+        XCTAssertEqual(app.switches["metaPhotoConsent"].value as? String, "0")
         let analyze = app.buttons["analyzePhoto"]
         XCTAssertTrue(analyze.waitForExistence(timeout: 10));XCTAssertFalse(analyze.isEnabled)
         app.swipeUp()
@@ -65,6 +73,12 @@ final class LiveConsentTests: XCTestCase {
         app.switches["confirmPhotoDetails"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         app.buttons["savePhotoBeverage"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        app.buttons["syntheticPhoto"].tap()
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.switches["photoConsent"].value as? String, "0")
+        XCTAssertEqual(app.switches["metaPhotoConsent"].value as? String, "0")
+        XCTAssertFalse(app.buttons["analyzePhoto"].isEnabled)
+        XCTAssertFalse(app.staticTexts["recognitionResultSource"].exists)
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '125'"), object: total)
