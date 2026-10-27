@@ -30,7 +30,8 @@ No cache is persisted. Each request recomputes log revisions; callers must disca
 
 - Main-based branch: **268 tests plus 32 subtests passed** across maintained recognition, hydration, backend and database suites. One existing Starlette/httpx deprecation warning. Tests verify independent interval fixtures, duration error propagation, historical envelopes and composition, actual-replaces-planned, duplicates/future events, DST folds, missing calibration/environment, explicit consent, raw/wearable export rejection, authentication/no-store and socket-blocked operation.
 - `git diff --check` passed.
-- Combined PR #10 + forecasting verification is recorded below after local integration testing. No hosted PR merge is performed.
+- Combined PR #10 (1fc0f24) plus forecast commit d4cb36f: patch applied cleanly in a disposable isolated worktree; **287 tests plus 32 subtests passed**. This was local compatibility testing, not a GitHub PR merge.
+- Preserved starter suite: **3 passed** from its own directory. Starter heuristics remain isolated and scientifically unapproved.
 - No new iOS/XCTest/device run, clinical/forecast calibration study, provider billing/account verification or live Meta request. New functionality is backend/core only. No dependencies added.
 
 ## Remaining live-test actions
