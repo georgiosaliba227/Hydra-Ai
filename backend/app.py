@@ -44,6 +44,7 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "method_not_allowed": "This method is not supported.",
         "request_too_large": "The request exceeds the size limit.",
         "recognition_unavailable": "Photo analysis is unavailable. Log manually or ask a developer to review the attempt.",
+        "hydration_unavailable": "Hydration explanation is unavailable. Ask a developer to review the attempt.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -165,9 +166,11 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     """Default to mock; explicit guarded configuration still requires ledger gates."""
     mode = os.getenv("HYDRA_AI_MODE", "mock")
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
-    if mode not in ("mock", "guarded_meta") or billable not in ("false", "true"):
+    hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
+    if mode not in ("mock", "guarded_meta") or billable not in ("false", "true") or hydration_enabled not in ("false", "true"):
         raise ValueError("Unsupported AI configuration")
-    if (mode == "mock" and billable != "false") or (mode == "guarded_meta" and billable != "true"):
+    live_feature = mode == "guarded_meta" or hydration_enabled == "true"
+    if (billable == "true") != live_feature:
         raise ValueError("Mode and billable gate conflict")
     token = api_token if api_token is not None else os.getenv("HYDRA_API_TOKEN", "")
     if not isinstance(token, str) or len(token) < 32 or not token.isascii() or any(c.isspace() for c in token):
@@ -252,7 +255,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "ai_mode": app.state.recognition_mode, "billable_requests_enabled": mode == "guarded_meta", "dispatch_requires_account_permit_and_verified_bound": True}
+        return {"status": "ok", "ai_mode": app.state.recognition_mode, "billable_requests_enabled": billable == "true", "dispatch_requires_account_permit_and_verified_bound": True}
 
     @app.post("/v1/beverages", status_code=201)
     def create_beverage(payload: CreateBeverageRequest, request: Request,
@@ -297,6 +300,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         return {**jsonable_encoder(asdict(summary)), "method_version": METHOD_VERSION,
                 "forecast_status": "insufficient_data"}
 
+    from .hydration_routes import install_hydration_routes
+    install_hydration_routes(app, enabled=hydration_enabled == "true", error_response=error_response)
     from .personal_forecasts import install_forecast_routes
     install_forecast_routes(app, to_engine)
     return app

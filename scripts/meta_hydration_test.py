@@ -23,7 +23,7 @@ def main() -> None:
     if not args.execute_approved_once:
         print(context_fingerprint(context))
         return
-    if os.getenv('HYDRA_AI_MODE', 'mock') != 'guarded_meta' or os.getenv('META_BILLABLE_REQUESTS_ENABLED', 'false') != 'true' or os.getenv('HYDRA_META_ACCOUNT') != ACCOUNTS[1]:
+    if os.getenv('HYDRA_META_HYDRATION_ENABLED', 'false') != 'true' or os.getenv('META_BILLABLE_REQUESTS_ENABLED', 'false') != 'true':
         raise ValueError
     database = Path(args.database)
     if not database.is_absolute() or database.is_symlink():
