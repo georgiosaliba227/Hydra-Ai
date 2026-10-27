@@ -19,3 +19,10 @@ Persist only confirmed identity, container, consumed amount, source, nutrition/p
 ## Live gate
 
 A guarded Responses transport is implemented but live dispatch remains blocked by the verified maximum-cost gate. Follow GUARDED_META_API.md and docs/API_BUDGET.md: verify each account independently, retain one authoritative gateway with isolated account ledgers, establish a whole-request cost bound, verify retention and consent, deliver required notices and obtain explicit approvals. Committed defaults remain mock/false. No configuration flag alone authorizes or bypasses the budget gateway.
+
+
+## Controlled-test additive label observation (2026-10-27)
+
+Candidates may include nullable `visible_label_text` (at most 600 characters), a verbatim, unverified transcription of visible nutrition/volume labels. This field is untrusted display evidence only; never parse it into verified composition or log nutrients automatically. The current iPhone ignores this additive field. Existing confirmation, curated nutrition selection and receipt-based deterministic logging remain required. The provider JSON schema requires this field with null for unreadable labels; legacy response fixtures can omit it at the backend parser boundary.
+
+The proposed disabled `dual-test-v1` policy binds Georgio to camera and Amine to synthetic hydration explanation, with separate <=$2 explicit approvals. See [controlled test contract and procedure](../META_DUAL_TESTS.md). It does not change recognition-v1 confirmation or authorize requests.

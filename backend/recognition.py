@@ -62,6 +62,7 @@ class Candidate(BaseModel):
     category: str | None = Field(default=None, max_length=80)
     brand: str | None = Field(default=None, max_length=80)
     product: str | None = Field(default=None, max_length=80)
+    visible_label_text: str | None = Field(default=None, max_length=600)
     product_id: str | None = Field(default=None, max_length=80)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
     confidence: Literal["low", "medium", "high"]

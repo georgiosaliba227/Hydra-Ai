@@ -1,5 +1,7 @@
 # Guarded Meta implementation and account update — 2026-10-27
 
+> Policy update: [dual controlled test preparation](META_DUAL_TESTS.md). The new $2/account policy is proposed and disabled pending exact approvals; older $0.25 statements below describe legacy policy/history, which remains enforced for legacy permits.
+
 Implementation on existing branch `codex/meta-beverage-recognition`, PR #7. No duplicate PR, deployment, live Meta request, account activation, billing setting change or automatic merge. No real images were sent to Meta. No genuine financial authority/baseline/approval was initialized; tests use disposable synthetic evidence and fake providers.
 
 ## Implemented files / behavior

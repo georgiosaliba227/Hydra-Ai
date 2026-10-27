@@ -22,6 +22,7 @@ from .meta_policy import MAX_INPUT_TOKENS, OUTPUT_LIMIT
 ACCOUNTS = ("georgiosaliba227", "aminealichaouche")
 USD = 1_000_000
 CAP = 250_000
+PROPOSED_CAP = 2_000_000
 
 
 def now() -> datetime:
@@ -48,7 +49,7 @@ class Evidence(BaseModel):
     provider_limits_verified: Literal[True]
     retention_reviewed: Literal[True]
     all_charge_categories_verified: Literal[True]
-    extra_charge_bound_micro_usd: StrictInt = Field(ge=0, le=CAP)
+    extra_charge_bound_micro_usd: StrictInt = Field(ge=0, le=PROPOSED_CAP)
 
     @field_validator("billing_verified", "hackathon_terms_verified", "exclusive_gateway_key_verified", "provider_limits_verified", "retention_reviewed", "all_charge_categories_verified", mode="before")
     @classmethod
@@ -103,6 +104,18 @@ class FirstPermit(BaseModel):
     _future = field_validator("valid_until")(Evidence.future.__func__)
 
 
+class ControlledPermit(FirstPermit):
+    """Proposed policy: inert until genuine account-specific approval is recorded."""
+    policy_version: Literal["dual-test-v1"]
+    purpose: Literal["camera", "hydration"]
+    maximum_micro_usd: StrictInt = Field(ge=1, le=PROPOSED_CAP)
+
+
+def parse_permit(raw: str) -> FirstPermit:
+    kind = json.loads(raw).get("policy_version")
+    return ControlledPermit.model_validate_json(raw) if kind else FirstPermit.model_validate_json(raw)
+
+
 class AccountLedger(MetaBudget):
     """Logical per-account ledgers within ONE authoritative local SQLite file.
 
@@ -130,6 +143,8 @@ class AccountLedger(MetaBudget):
             db.execute("CREATE TABLE IF NOT EXISTS live_events(id INTEGER PRIMARY KEY, at TEXT NOT NULL, account_id TEXT, kind TEXT NOT NULL, reference TEXT NOT NULL)")
             db.execute("CREATE TABLE IF NOT EXISTS live_notices(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, recipient TEXT NOT NULL, threshold INTEGER NOT NULL, delivered_at TEXT, delivery_reference TEXT, UNIQUE(account_id,recipient,threshold))")
 
+        with self.transaction() as db:
+            db.execute("CREATE TABLE IF NOT EXISTS controlled_permits(account_id TEXT PRIMARY KEY, permit TEXT NOT NULL, spent INTEGER NOT NULL DEFAULT 0)")
         os.chmod(self.path, 0o600)
 
     @staticmethod
@@ -171,19 +186,43 @@ class AccountLedger(MetaBudget):
     def approve_first_test(self, permit: FirstPermit) -> None:
         permit = FirstPermit.model_validate(permit.model_dump())
         with self.transaction() as db:
-            if db.execute("SELECT 1 FROM live_permit").fetchone():
+            if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute("SELECT 1 FROM controlled_permits").fetchone():
                 raise BudgetDenied("Project first-test permit already exists and cannot be reset")
             db.execute("INSERT INTO live_permit(id,permit) VALUES(1,?)", (permit.model_dump_json(),))
             self.event(db, permit.account_id, "first_test_approved", permit.spending_authority_reference)
 
+    def approve_controlled_test(self, permit: ControlledPermit) -> None:
+        permit = ControlledPermit.model_validate(permit.model_dump())
+        expected = "camera" if permit.account_id == ACCOUNTS[0] else "hydration"
+        if permit.purpose != expected:
+            raise BudgetDenied("Account owner and test purpose mismatch")
+        with self.transaction() as db:
+            if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute("SELECT 1 FROM live_attempts").fetchone():
+                raise BudgetDenied("Legacy approval or prior attempt requires separate policy review")
+            db.execute("INSERT INTO controlled_permits(account_id,permit) VALUES(?,?)", (permit.account_id, permit.model_dump_json()))
+            self.event(db, permit.account_id, "controlled_test_approved", permit.spending_authority_reference)
+
+    @staticmethod
+    def grant(db: sqlite3.Connection, account: str):
+        controlled = db.execute("SELECT permit,spent FROM controlled_permits WHERE account_id=?", (account,)).fetchone()
+        return controlled or db.execute("SELECT permit,spent FROM live_permit WHERE id=1").fetchone()
+
+    def verify_purpose(self, account: str, purpose: str) -> None:
+        with self.transaction() as db:
+            _, _, permit = self._policy(db, account)
+            if isinstance(permit, ControlledPermit) and permit.purpose != purpose:
+                raise BudgetDenied("Permit does not authorize this feature")
+            if not isinstance(permit, ControlledPermit) and purpose != "camera":
+                raise BudgetDenied("Legacy permit only covers camera")
+
     def _policy(self, db: sqlite3.Connection, account: str) -> tuple[Evidence, Price, FirstPermit]:
         row = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (account,)).fetchone()
-        grant = db.execute("SELECT permit,spent FROM live_permit WHERE id=1").fetchone()
+        grant = self.grant(db, account)
         if not row or row[1] or not grant or grant[1]:
             raise BudgetDenied("Account approval unavailable, frozen or already spent")
         try:
             evidence = Evidence.model_validate_json(row[0])
-            permit = FirstPermit.model_validate_json(grant[0])
+            permit = parse_permit(grant[0])
             if permit.account_id != account or evidence.account_id != account:
                 raise ValueError
             price_row = db.execute("SELECT snapshot FROM live_prices WHERE version=?", (permit.price_version,)).fetchone()
@@ -218,8 +257,8 @@ class AccountLedger(MetaBudget):
         with self.transaction() as db:
             evidence, price, permit = self._policy(db, account)
             maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
-            if maximum > CAP:
-                raise BudgetDenied("Verified maximum exceeds the $0.25 first-test ceiling")
+            if maximum > permit.maximum_micro_usd:
+                raise BudgetDenied("Verified maximum exceeds approved first-test ceiling")
             return price, maximum
 
     def reserve_first(self, account: str, image_hash: str, input_bound: int) -> str:
@@ -232,8 +271,8 @@ class AccountLedger(MetaBudget):
             if type(input_bound) is not int or not 1 <= input_bound <= MAX_INPUT_TOKENS:
                 raise BudgetDenied("Unknown input bound")
             maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
-            if maximum > CAP:
-                raise BudgetDenied("Verified maximum exceeds $0.25")
+            if maximum > permit.maximum_micro_usd:
+                raise BudgetDenied("Verified maximum exceeds approved ceiling")
             if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
                 raise BudgetDenied("Prior billing unresolved; no second request")
             exposure = evidence.gross_micro_usd + db.execute("SELECT COALESCE(SUM(COALESCE(actual,reserved)),0) FROM live_attempts WHERE account_id=?", (account,)).fetchone()[0]
@@ -244,7 +283,10 @@ class AccountLedger(MetaBudget):
                 raise BudgetDenied("Account needs explicit $100 further-spend approval")
             if proposed - evidence.gross_micro_usd > evidence.credits_remaining_micro_usd:
                 raise BudgetDenied("Verified account credits exhausted")
-            db.execute("UPDATE live_permit SET spent=1 WHERE id=1")
+            if isinstance(permit, ControlledPermit):
+                db.execute("UPDATE controlled_permits SET spent=1 WHERE account_id=?", (account,))
+            else:
+                db.execute("UPDATE live_permit SET spent=1 WHERE id=1")
             db.execute("INSERT INTO live_attempts(id,account_id,price,reserved,state,created_at,input_bound) VALUES(?,?,?,?,?,?,?)", (attempt, account, price.model_dump_json(), maximum, "reserved", stamp(), input_bound))
             self.event(db, account, "reserved", attempt)
             self.queue_threshold_notices(db, account, proposed)
@@ -260,9 +302,9 @@ class AccountLedger(MetaBudget):
                 raise BudgetDenied("Attempt cannot dispatch twice")
             # Evidence can expire while waiting; no dispatch on an expired queue.
             account = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (row[0],)).fetchone()
-            permit = db.execute("SELECT permit FROM live_permit WHERE id=1").fetchone()
+            permit = self.grant(db, row[0])
             try:
-                Evidence.model_validate_json(account[0]); Price.model_validate_json(row[1]); FirstPermit.model_validate_json(permit[0])
+                Evidence.model_validate_json(account[0]); Price.model_validate_json(row[1]); parse_permit(permit[0])
             except (ValueError, TypeError):
                 raise BudgetDenied("Approval expired before dispatch") from None
             if account[1] or db.execute("SELECT 1 FROM live_notices WHERE delivered_at IS NULL").fetchone():
@@ -278,9 +320,9 @@ class AccountLedger(MetaBudget):
             if not row or row[1:4] != ("dispatched", nonce, payload_sha256):
                 raise BudgetDenied("No matching one-use network dispatch ticket")
             account = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (row[0],)).fetchone()
-            permit = db.execute("SELECT permit FROM live_permit WHERE id=1").fetchone()
+            permit = self.grant(db, row[0])
             try:
-                current_account = Evidence.model_validate_json(account[0]); Price.model_validate_json(row[4]); FirstPermit.model_validate_json(permit[0])
+                current_account = Evidence.model_validate_json(account[0]); Price.model_validate_json(row[4]); parse_permit(permit[0])
                 if current_account.key_sha256 != credential_fingerprint or type(input_bound) is not int or input_bound != row[5]:
                     raise ValueError
             except (ValueError, TypeError):

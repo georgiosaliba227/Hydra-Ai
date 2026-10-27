@@ -1,0 +1,13 @@
+{
+  "policy_version": "dual-test-v1",
+  "enabled": false,
+  "proposed_only": true,
+  "maximum_gross_micro_usd_per_account": 2000000,
+  "accounts": {"georgiosaliba227": "camera", "aminealichaouche": "hydration"},
+  "account_evidence": null,
+  "permits": null,
+  "request_count_per_account": 1,
+  "project_in_flight_limit": 1,
+  "automatic_retries": 0,
+  "credits_transferable": false
+}

@@ -1,5 +1,7 @@
 # Guarded Meta integration contract
 
+> Policy update: [dual controlled test preparation](../META_DUAL_TESTS.md). The new $2/account policy is proposed and disabled pending exact approvals; older $0.25 statements below describe legacy policy/history, which remains enforced for legacy permits.
+
 Extends RECOGNITION_API.md. Default remains mock/false. No live call is authorized by implementation or configuration.
 
 Two reported accounts (`georgiosaliba227`, `aminealichaouche`) have independent financial partitions in ONE authoritative gateway SQLite file. Each has a $150 absolute gross ceiling, $120 admission cutoff, $100 further-approval checkpoint and $75 notices to both developers. Never add/transfer credits between accounts. Project reporting sums gross usage/reservations only. No key rotation, account fallback or automatic retries. Historical shared baseline is NOT automatically assigned to either account; reconciliation evidence is required independently.

@@ -1,5 +1,7 @@
 # Account-specific Meta budget architecture (v2)
 
+> Policy update: [dual controlled test preparation](META_DUAL_TESTS.md). The new $2/account policy is proposed and disabled pending exact approvals; older $0.25 statements below describe legacy policy/history, which remains enforced for legacy permits.
+
 Updated 2026-10-27. This supersedes the earlier single shared-$150 assumption. The user reports two individual allocations; neither has been independently verified. This update authorizes NO spending and NO automatic key/account rotation.
 
 | Account | Reported credit allocation | Current remaining / expiry | Gross usage / billing / hackathon grant terms | Authorization |

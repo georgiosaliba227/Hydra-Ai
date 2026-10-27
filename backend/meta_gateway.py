@@ -63,6 +63,7 @@ class GuardedMetaGateway:
         provider_replied = False
         try:
             self.ledger.verify_credential(self.account, self.transport.credential_fingerprint)
+            self.ledger.verify_purpose(self.account, "camera")
             payload = request_payload(image)
             # Bounds come from the selected trusted transport, never an HTTP field.
             bound = self.transport.input_bound(payload)
