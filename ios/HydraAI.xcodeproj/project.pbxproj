@@ -12,6 +12,7 @@
 				TargetAttributes = {
 				100000000000000000000002 = { CreatedOnToolsVersion = 27.0; };
 				100000000000000000000003 = { CreatedOnToolsVersion = 27.0; TestTargetID = 100000000000000000000002; };
+                100000000000000000000004 = { CreatedOnToolsVersion = 27.0; TestTargetID = 100000000000000000000002; };
 				};
 			};
 			buildConfigurationList = 100000000000000000000010;
@@ -25,7 +26,7 @@
 			productRefGroup = 100000000000000000000021;
 			projectDirPath = "";
 			projectRoot = "";
-			targets = (100000000000000000000002, 100000000000000000000003);
+			targets = (100000000000000000000002, 100000000000000000000003, 100000000000000000000004);
 		};
 		100000000000000000000002 = {
 			isa = PBXNativeTarget;
@@ -53,14 +54,37 @@
 			productReference = 100000000000000000000041;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+        100000000000000000000004 = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = 100000000000000000000013;
+            buildPhases = (100000000000000000000036, 100000000000000000000037, 100000000000000000000038);
+            buildRules = ();
+            dependencies = (100000000000000000000052);
+            fileSystemSynchronizedGroups = (100000000000000000000024);
+            name = HydraAIUITests;
+            packageProductDependencies = ();
+            productName = HydraAIUITests;
+            productReference = 100000000000000000000042;
+            productType = "com.apple.product-type.bundle.ui-testing";
+        };
+        100000000000000000000024 = { isa = PBXFileSystemSynchronizedRootGroup; path = HydraAIUITests; sourceTree = "<group>"; };
+        100000000000000000000036 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        100000000000000000000037 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        100000000000000000000038 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+        100000000000000000000042 = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HydraAIUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+        100000000000000000000052 = { isa = PBXTargetDependency; target = 100000000000000000000002; targetProxy = 100000000000000000000053; };
+        100000000000000000000053 = { isa = PBXContainerItemProxy; containerPortal = 100000000000000000000001; proxyType = 1; remoteGlobalIDString = 100000000000000000000002; remoteInfo = HydraAI; };
+        100000000000000000000013 = { isa = XCConfigurationList; buildConfigurations = (100000000000000000000066, 100000000000000000000067); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+        100000000000000000000066 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; PRODUCT_BUNDLE_IDENTIFIER = com.georgiosaliba.hydraai.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TEST_TARGET_NAME = HydraAI; }; name = Debug; };
+        100000000000000000000067 = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; PRODUCT_BUNDLE_IDENTIFIER = com.georgiosaliba.hydraai.uitests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TEST_TARGET_NAME = HydraAI; }; name = Release; };
 		100000000000000000000020 = {
 			isa = PBXGroup;
-			children = (100000000000000000000022, 100000000000000000000023, 100000000000000000000021);
+			children = (100000000000000000000022, 100000000000000000000023, 100000000000000000000024, 100000000000000000000021);
 			sourceTree = "<group>";
 		};
 		100000000000000000000021 = {
 			isa = PBXGroup;
-			children = (100000000000000000000040, 100000000000000000000041);
+			children = (100000000000000000000040, 100000000000000000000041, 100000000000000000000042);
 			name = Products;
 			sourceTree = "<group>";
 		};
