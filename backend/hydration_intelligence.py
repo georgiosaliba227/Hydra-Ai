@@ -5,7 +5,7 @@ import hashlib
 import json
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
 from ai.hydration import summarize_day
 from ai.hydration.models import BeverageLog, METHOD_VERSION
 from .meta_accounts import ACCOUNTS
@@ -45,6 +45,12 @@ class SyntheticContext(BaseModel):
     creatine_reported: bool | None = None
     feedback: Literal["comfortable", "thirst_reported", "missing"] = "missing"
     method: Literal["hydration-accounting-v1"] = METHOD_VERSION
+
+    @model_validator(mode="after")
+    def consistent_water_content(self):
+        if self.estimated_water_ml is not None and self.estimated_water_ml > self.beverage_total_ml:
+            raise ValueError("Estimated water cannot exceed beverage volume")
+        return self
 
     @field_validator("synthetic", "disclosure_consent", mode="before")
     @classmethod

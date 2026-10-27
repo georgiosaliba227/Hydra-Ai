@@ -157,3 +157,13 @@ def test_official_transport_mocked_http_once(tmp_path, monkeypatch, account):
         with pytest.raises(RecognitionUnavailable): gateway.explain(context())
     assert len(calls) == 1
     assert ledger.project_view()['project_reserved_micro_usd'] == 0
+
+
+@pytest.mark.parametrize('water', [750.01, 50000.0])
+def test_context_water_cannot_exceed_beverage_volume(water):
+    with pytest.raises(ValidationError): context(estimated_water_ml=water)
+
+
+def test_context_water_boundary_and_unknown():
+    assert context(estimated_water_ml=750.0).estimated_water_ml == 750.0
+    assert context().estimated_water_ml is None
