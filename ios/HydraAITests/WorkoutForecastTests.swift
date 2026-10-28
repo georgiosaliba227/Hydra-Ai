@@ -22,7 +22,7 @@ final class WorkoutForecastTests: XCTestCase {
     func testDemoRequestContainsNoMeasurementsAndUsesAuthNoStore() async throws {
         let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
         FixtureURLProtocol.handler = { request in
-            XCTAssertEqual(request.url?.path, "/v1/workout-forecasts")
+            XCTAssertEqual(request.url?.path, "/v2/workout-forecasts")
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer \(self.configuration.token)")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Cache-Control"), "no-store")
@@ -92,6 +92,71 @@ final class WorkoutForecastTests: XCTestCase {
             XCTAssertThrowsError(try JSONDecoder().decode(WorkoutForecast.self,
                 from: Data(withMock.replacingOccurrences(of: before, with: after).utf8)).validate(request: request))
         }
+    }
+
+    func testV2ContextCannotBeSilentlyIgnoredWhenItContainsNumericalOverride() throws {
+        let source = String(decoding: workoutJSON(), as: UTF8.self)
+        let value = source.replacingOccurrences(of: "\"mock_explanation\":null", with:
+            "\"mock_explanation\":null,\"context_comparison\":{\"systems\":{\"C\":{\"prediction\":{\"value_ml\":12345}}}}")
+        XCTAssertThrowsError(try JSONDecoder().decode(WorkoutForecast.self, from: Data(value.utf8))
+            .validate(request: .demonstration(timezone: "UTC")))
+    }
+
+    func testV2ContextValidatesNumbersNullUsageAndStrictInterpretationSchema() throws {
+        var outer = try XCTUnwrap(JSONSerialization.jsonObject(with: workoutJSON()) as? [String: Any])
+        let numericKeys: Set<String> = ["version", "status", "model_version", "quantity", "units", "value_ml", "lower_ml", "upper_ml", "interval_kind", "sample_count", "synthetic"]
+        let prediction = outer.filter { numericKeys.contains($0.key) }
+        let interpretation: [String: Any] = ["factors": [], "missing_information": [], "contradictions": [],
+            "uncertainty": ["synthetic_evidence_only", "not_daily_requirement"], "measurement_suggestions": [], "numerical_abstention": false,
+            "reviewed_text": ["factors": [], "missing_information": [], "contradictions": [],
+                              "uncertainty": ["Synthetic fixture only.", "Not a daily requirement."], "measurement_suggestions": []]]
+        let comparison: [String: Any] = ["version": "hydration-context-comparison-v2", "scenario": "complete", "synthetic": true,
+            "provenance": ["mode": "mock", "provider": NSNull(), "model": NSNull(), "candidate_model": "muse-spark-1.3", "candidate_tier": "Standard",
+                           "model_identity_verified": false, "live_dispatch_enabled": false, "interpretation_origin": "local_rules_and_reviewed_text"],
+            "provider_observations": ["latency_ms": NSNull(), "input_tokens": NSNull(), "output_tokens": NSNull(), "billed_cost_usd": NSNull()],
+            "systems": ["A": ["prediction": prediction, "interpretation": NSNull()],
+                        "B": ["prediction": NSNull(), "interpretation": interpretation],
+                        "C": ["prediction": prediction, "interpretation": interpretation]], "limitations": ["Not a Meta observation."]]
+        outer["context_comparison"] = comparison
+        let request = WorkoutForecastRequest.demonstration(timezone: "UTC")
+        func validate(_ body: [String: Any]) throws {
+            try JSONDecoder().decode(WorkoutForecast.self, from: JSONSerialization.data(withJSONObject: body)).validate(request: request)
+        }
+        XCTAssertNoThrow(try validate(outer))
+        var wrongNumbers = comparison
+        var badPrediction = prediction; badPrediction["value_ml"] = 650
+        wrongNumbers["systems"] = ["A": ["prediction": prediction, "interpretation": NSNull()],
+            "B": ["prediction": NSNull(), "interpretation": interpretation], "C": ["prediction": badPrediction, "interpretation": interpretation]]
+        var mutated = outer; mutated["context_comparison"] = wrongNumbers
+        XCTAssertThrowsError(try validate(mutated))
+        var wrongUsage = comparison
+        wrongUsage["provider_observations"] = ["latency_ms": 20, "input_tokens": NSNull(), "output_tokens": NSNull(), "billed_cost_usd": NSNull()]
+        mutated["context_comparison"] = wrongUsage
+        XCTAssertThrowsError(try validate(mutated))
+        var inventedGoal = interpretation; inventedGoal["daily_goal_ml"] = 3000
+        var wrongContext = comparison
+        wrongContext["systems"] = ["A": ["prediction": prediction, "interpretation": NSNull()],
+            "B": ["prediction": NSNull(), "interpretation": inventedGoal], "C": ["prediction": prediction, "interpretation": inventedGoal]]
+        mutated["context_comparison"] = wrongContext
+        XCTAssertThrowsError(try validate(mutated), "Unknown quantitative advice must not be silently accepted")
+    }
+
+    func testV2PersonalColdStartRequiresConsistentSessionHistoryMetadata() throws {
+        var body = try XCTUnwrap(JSONSerialization.jsonObject(with: workoutJSON(mode: "personal")) as? [String: Any])
+        body["model_version"] = "personal-longitudinal-v2"; body["interval_kind"] = "historical_error_envelope"
+        body["status"] = "insufficient_data"; body["value_ml"] = NSNull(); body["lower_ml"] = NSNull(); body["upper_ml"] = NSNull()
+        let request = WorkoutForecastRequest(mode: "personal", timezone: "UTC", exercise: nil, samples: [], calibration_processing_consent: false)
+        func validate(_ body: [String: Any]) throws {
+            try JSONDecoder().decode(WorkoutForecast.self, from: JSONSerialization.data(withJSONObject: body)).validate(request: request)
+        }
+        XCTAssertThrowsError(try validate(body))
+        var history: [String: Any] = ["total_samples": 0, "comparable_samples": 0, "recent_samples": 0,
+            "first_observed_at": NSNull(), "last_observed_at": NSNull(),
+            "method": "recent_comparable_median_with_historical_error_envelope", "history_retained_by_caller": true]
+        body["longitudinal_history"] = history
+        XCTAssertNoThrow(try validate(body))
+        history["total_samples"] = 1; body["longitudinal_history"] = history
+        XCTAssertThrowsError(try validate(body))
     }
 
     @MainActor func testInvalidationDiscardsLateForecastAndClearsLoadedResult() async throws {

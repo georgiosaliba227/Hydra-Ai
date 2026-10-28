@@ -123,6 +123,9 @@ struct WorkoutForecast: Decodable, Sendable {
     let mode: String
     let mockExplanation: MockExplanation?
     let explanationPolicy: String
+    let contextComparison: HydrationContextComparison?
+    let longitudinalHistory: LongitudinalHistory?
+    let missingInputs: [String]?
 
     enum CodingKeys: String, CodingKey {
         case version, status, quantity, units, provenance, limitations, synthetic, timezone, mode
@@ -130,6 +133,7 @@ struct WorkoutForecast: Decodable, Sendable {
         case intervalKind = "interval_kind", dataSufficiency = "data_sufficiency", personalizationStatus = "personalization_status"
         case sampleCount = "sample_count", inputFactors = "input_factors", generatedAt = "generated_at"
         case mockExplanation = "mock_explanation", explanationPolicy = "explanation_policy"
+        case contextComparison = "context_comparison", longitudinalHistory = "longitudinal_history", missingInputs = "missing_inputs"
     }
 
     func validate(request: WorkoutForecastRequest) throws {
@@ -154,12 +158,17 @@ struct WorkoutForecast: Decodable, Sendable {
             if synthetic {
                 guard sampleCount == 0, intervalKind.hasPrefix("synthetic_") else { throw ServiceError.invalidResponse }
             } else {
-                guard modelVersion == "personal-exercise-loss-v1", sampleCount > 0, sampleCount <= request.samples.count,
-                      intervalKind == "conditional_measurement_envelope" else { throw ServiceError.invalidResponse }
+                let supported = (modelVersion == "personal-exercise-loss-v1" && intervalKind == "conditional_measurement_envelope")
+                    || (modelVersion == "personal-longitudinal-v2" && intervalKind == "historical_error_envelope" && longitudinalHistory != nil)
+                guard supported, sampleCount > 0, sampleCount <= request.samples.count else { throw ServiceError.invalidResponse }
             }
         } else {
             guard status == "insufficient_data", valueMl == nil, lowerMl == nil, upperMl == nil else { throw ServiceError.invalidResponse }
         }
+        if let contextComparison { try contextComparison.validate(forecast: self) }
+        if modelVersion == "personal-longitudinal-v2", longitudinalHistory == nil { throw ServiceError.invalidResponse }
+        if let longitudinalHistory { try longitudinalHistory.validate(request: request, forecast: self) }
+        if let missingInputs, missingInputs.count > 32 { throw ServiceError.invalidResponse }
         if let explanation = mockExplanation {
             guard synthetic, explanation.version == "hydration-explanation-v1", explanation.mode == "mock",
                   explanation.provider == nil, explanation.model == nil, explanation.account_id == nil,

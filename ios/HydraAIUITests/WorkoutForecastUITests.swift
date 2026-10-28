@@ -30,6 +30,18 @@ final class WorkoutForecastUITests: XCTestCase {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Synthetic workout forecast separated from consumption"; attachment.lifetime = .keepAlways
         add(attachment)
+        let comparison = app.buttons["contextComparison"]
+        for _ in 0..<6 {
+            if comparison.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(comparison.waitForExistence(timeout: 10)); comparison.tap()
+        XCTAssertTrue(app.staticTexts["A · Existing numerical estimate"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["B · Contextual mock; no numerical prediction"].exists)
+        XCTAssertTrue(app.staticTexts["C · Same estimate plus contextual mock"].exists)
+        let contextAttachment = XCTAttachment(screenshot: app.screenshot())
+        contextAttachment.name = "A B C contextual comparison with explicit mock provenance"; contextAttachment.lifetime = .keepAlways
+        add(contextAttachment)
         app.navigationBars.buttons.firstMatch.tap()
         if !total.isHittable { app.swipeDown() }
         XCTAssertTrue(total.waitForExistence(timeout: 10))

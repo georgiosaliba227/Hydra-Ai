@@ -67,7 +67,7 @@ class RequestGuard:
         request_id = str(uuid4())
         scope.setdefault("state", {})["request_id"] = request_id
         headers = {key.lower(): value for key, value in scope.get("headers", [])}
-        if scope["path"].startswith("/v1"):
+        if scope["path"].startswith(("/v1", "/v2")):
             provided = headers.get(b"authorization", b"")
             expected = ("Bearer " + self.token).encode()
             if not hmac.compare_digest(provided, expected):
@@ -75,7 +75,7 @@ class RequestGuard:
                 return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
-        elif scope["path"] == "/v1/workout-forecasts":
+        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
             body_limit = MAX_BODY_BYTES
@@ -311,4 +311,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_forecast_routes(app, to_engine)
     from .workout_forecasts import install_workout_forecast_routes
     install_workout_forecast_routes(app)
+    from .hydration_context_v2 import install_context_v2_routes
+    install_context_v2_routes(app)
     return app

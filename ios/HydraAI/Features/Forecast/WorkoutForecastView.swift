@@ -198,6 +198,36 @@ struct WorkoutForecastView: View {
             Text("Data: \(result.dataSufficiency.replacingOccurrences(of: "_", with: " "))")
             Text("Personalization: \(result.personalizationStatus.replacingOccurrences(of: "_", with: " "))")
             Text("\(result.sampleCount) calibration measurements · \(result.modelVersion)") .font(.caption)
+            if let history = result.longitudinalHistory {
+                Text("Calibration history: \(history.comparable_samples) comparable of \(history.total_samples) supplied workouts; \(history.recent_samples) recent measurements.")
+                    .accessibilityIdentifier("longitudinalHistory")
+                if let first = history.first_observed_at, let last = history.last_observed_at {
+                    Text("Observation window (UTC): \(first) to \(last)").font(.caption)
+                }
+                Text("History is held for this session only. Recent-workout adaptation is experimental; its range is not a calibrated prediction interval.")
+                    .font(.footnote)
+            }
+            if let missing = result.missingInputs, !missing.isEmpty {
+                Text("Missing: " + missing.map { $0.replacingOccurrences(of: "_", with: " ") }.joined(separator: ", "))
+                    .font(.footnote).accessibilityIdentifier("workoutMissingMeasurements")
+            }
+            if let comparison = result.contextComparison, let interpretation = comparison.systems["B"]?.interpretation {
+                DisclosureGroup("Compare A / B / C · research mock") {
+                    Text("A · Existing numerical estimate")
+                    Text("B · Contextual mock; no numerical prediction")
+                    Text("C · Same estimate plus contextual mock")
+                    Text("No Meta response or billed request was observed. Spark and Wonder are unverified future experiment candidates, not models used for this result.")
+                        .font(.footnote)
+                    ForEach(["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"], id: \.self) { category in
+                        if let texts = interpretation.reviewed_text[category], !texts.isEmpty {
+                            Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
+                            ForEach(Array(texts.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
+                        }
+                    }
+                    Text("Provider latency, tokens and actual cost: not observed.").font(.caption)
+                }
+                .accessibilityIdentifier("contextComparison")
+            }
             DisclosureGroup("Input factors and provenance") {
                 ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
                     Text("\(key.replacingOccurrences(of: "_", with: " ")): \(result.inputFactors[key]!.display)")

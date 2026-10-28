@@ -141,7 +141,7 @@ actor HTTPBeverageService: BeverageService {
     /// Manual calibration stays at the user's backend. The demo submits no measurements.
     func workoutForecast(_ payload: WorkoutForecastRequest) async throws -> WorkoutForecast {
         try payload.validate()
-        var request = URLRequest(url: baseURL.appendingPathComponent("v1/workout-forecasts"))
+        var request = URLRequest(url: baseURL.appendingPathComponent("v2/workout-forecasts"))
         request.httpMethod = "POST"
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
