@@ -18,15 +18,16 @@ struct CameraCaptureView: View {
     #if DEBUG
     @State private var libraryFixtureReady = false
     #endif
-    @State private var consent = false
-    @State private var metaConsent = false
-    @State private var recognitionMode: String?
-    @State private var isLoadingCapabilities = false
+    @StateObject private var cameraSession = CameraSession()
+    private var consent: Bool { cameraSession.consent }
+    private var metaConsent: Bool { cameraSession.metaConsent }
+    private var recognitionMode: String? { cameraSession.mode }
+    private var isLoadingCapabilities: Bool { cameraSession.isLoadingCapabilities }
     private var presentation: RecognitionPresentation { RecognitionPresentation(mode: recognitionMode) }
     private var isLive: Bool { recognitionMode == "meta_live" }
     @State private var scenario = "ambiguous"
-    @State private var isAnalyzing = false
-    @State private var result: RecognitionResult?
+    private var isAnalyzing: Bool { cameraSession.isAnalyzing }
+    private var result: RecognitionResult? { cameraSession.result }
     @State private var selectedCandidate: RecognitionCandidate?
 
     private let maximumImageBytes = 12 * 1_024 * 1_024
@@ -67,11 +68,11 @@ struct CameraCaptureView: View {
                     }
                     .accessibilityIdentifier("mockScenario")
                     .disabled(isAnalyzing) }
-                    Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $consent)
+                    Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
                         .accessibilityIdentifier("photoConsent")
                         .disabled(isAnalyzing || isLoadingCapabilities)
                     if isLive {
-                        Toggle("I consent to sending this beverage photo to Meta for AI analysis", isOn: $metaConsent)
+                        Toggle("I consent to sending this beverage photo to Meta for AI analysis", isOn: $cameraSession.metaConsent)
                             .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing || isLoadingCapabilities)
                         Text("Meta may retain content for service, safety and legal purposes. Zero retention is not promised. No location metadata or HealthKit records are sent.").font(.footnote)
                     }
@@ -129,8 +130,12 @@ struct CameraCaptureView: View {
         .sheet(item: $selectedCandidate) { candidate in
             NavigationStack { RecognitionConfirmationView(candidate: candidate, mode: result?.mode ?? "mock", recognitionId: result?.recognitionId, onSaved: clearPhoto) }
         }
-        .task { await loadCapabilities() }
-        .onChange(of: scenario) { _, _ in result = nil }
+        .task(id: store.configurationGeneration) { await loadCapabilities() }
+        .onChange(of: store.configurationGeneration) { _, generation in
+            cameraSession.bind(to: generation)
+            selectedCandidate = nil; alertMessage = nil
+        }
+        .onChange(of: scenario) { _, _ in cameraSession.discardResult() }
         .alert(alertTitle, isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -148,13 +153,15 @@ struct CameraCaptureView: View {
     }
 
     private func clearPhoto() {
-        preparedPhoto = nil; photoItem = nil; result = nil; selectedCandidate = nil; consent = false; metaConsent = false
+        preparedPhoto = nil; photoItem = nil; selectedCandidate = nil
+        cameraSession.revokePhotoConsent()
     }
 
     @MainActor private func selectPhoto(_ image: UIImage?) {
         // A camera selection must invalidate any older in-flight library load.
         photoItem = nil
-        preparedPhoto = nil; result = nil; selectedCandidate = nil; consent = false; metaConsent = false
+        preparedPhoto = nil; selectedCandidate = nil
+        cameraSession.revokePhotoConsent()
         guard let image else { return }
         do {
             preparedPhoto = try PreparedRecognitionPhoto(image: image)
@@ -166,29 +173,40 @@ struct CameraCaptureView: View {
     }
 
     @MainActor private func analyze() async {
-        guard consent, !isAnalyzing, !isLoadingCapabilities, let mode = recognitionMode, (!isLive || metaConsent), let preparedPhoto else { return }
-        isAnalyzing = true; result = nil
-        defer { isAnalyzing = false }
+        guard let preparedPhoto, !store.isOffline else { return }
+        let generation = store.configurationGeneration
+        let configuration = store.configuration
+        guard let ticket = cameraSession.beginAnalysis(generation: generation), let mode = ticket.mode else { return }
+        let metaConsent = cameraSession.metaConsent
         do {
-            guard !store.isOffline else { throw ServiceError.configuration }
-            let service = try HTTPBeverageService(configuration: store.configuration)
-            result = try await service.analyzePhoto(preparedPhoto.export.jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
+            let service = try HTTPBeverageService(configuration: configuration)
+            let next = try await service.analyzePhoto(preparedPhoto.export.jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
+            guard cameraSession.completeAnalysis(next, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
+            if let receipt = next.recognitionId {
+                guard store.registerRecognitionReceipt(receipt, generation: generation) else {
+                    cameraSession.revokePhotoConsent()
+                    return
+                }
+            }
         } catch {
+            guard cameraSession.completeAnalysis(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Analysis unavailable"
-            alertMessage = isLive ? "\(error.localizedDescription) Do not retry this Meta attempt. Ask a developer to review the budget ledger and reconcile any uncertain charges. You can log manually; analysis created no beverage." : "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
+            alertMessage = mode == "meta_live" ? ServiceError.liveRecognitionUnverified.localizedDescription : "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
         }
     }
 
     @MainActor private func loadCapabilities() async {
-        guard !isAnalyzing, !isLoadingCapabilities else { return }
-        isLoadingCapabilities = true
-        defer { isLoadingCapabilities = false }
-        recognitionMode = nil; consent = false; metaConsent = false; result = nil; selectedCandidate = nil
+        let generation = store.configurationGeneration
+        let configuration = store.configuration
+        guard let ticket = cameraSession.beginCapabilities(generation: generation) else { return }
+        selectedCandidate = nil
         do {
-            guard !store.isOffline else { throw ServiceError.configuration }
-            let service = try HTTPBeverageService(configuration: store.configuration)
-            recognitionMode = try await service.recognitionCapabilities().mode
+            guard !configuration.offline else { throw ServiceError.configuration }
+            let service = try HTTPBeverageService(configuration: configuration)
+            let mode = try await service.recognitionCapabilities().mode
+            _ = cameraSession.completeCapabilities(mode, ticket: ticket, currentGeneration: store.configurationGeneration)
         } catch {
+            guard cameraSession.completeCapabilities(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Recognition unavailable"
             alertMessage = "Could not verify the backend recognition mode. \(error.localizedDescription) Check Settings, then tap Refresh analysis mode."
         }

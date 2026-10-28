@@ -20,6 +20,7 @@ final class BeverageStore: ObservableObject {
     @Published private(set) var summary: DailySummary?
     @Published private(set) var pending: PendingBeverage?
     @Published private(set) var configuration: APIConfiguration
+    @Published private(set) var configurationGeneration = UUID()
     @Published private(set) var isSaving = false
 
     private var service: (any BeverageService)?
@@ -27,6 +28,7 @@ final class BeverageStore: ObservableObject {
     private var pendingReadError = false
     private var refreshVersion = 0
     private var historyTask: Task<Void, Never>?
+    private var currentRecognitionReceipts: Set<UUID> = []
 
     private func invalidateHistory() {
         refreshVersion += 1
@@ -59,6 +61,8 @@ final class BeverageStore: ObservableObject {
         let next: any BeverageService = config.offline ? MockBeverageService() : try HTTPBeverageService(configuration: config)
         try config.save()
         invalidateHistory()
+        configurationGeneration = UUID()
+        currentRecognitionReceipts.removeAll()
         configuration = config; service = next; logs = []; summary = nil; state = .idle
     }
 
@@ -97,8 +101,19 @@ final class BeverageStore: ObservableObject {
         }
     }
 
+    /// A transient camera result may be confirmed only on its original backend
+    /// configuration. Already-persisted pending mutations retain their retry path.
+    func registerRecognitionReceipt(_ receipt: UUID, generation: UUID) -> Bool {
+        guard generation == configurationGeneration else { return false }
+        currentRecognitionReceipts.insert(receipt)
+        return true
+    }
+
     func add(category: String, consumedMl: Int, at: Date, source: String = "manual", productId: String? = nil, containerMl: Int? = nil, recognitionId: UUID? = nil) async throws {
         guard canLog else { throw ServiceError.pending }
+        if let recognitionId, !currentRecognitionReceipts.contains(recognitionId) {
+            throw ServiceError.liveRecognitionUnverified
+        }
         let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl)
         try request.validate()
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
