@@ -2,7 +2,33 @@
 
 Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
-## Current forecasting implementation — October 28
+## V2 review branch — October 28
+
+`codex/hydration-intelligence-v2` extends the unmerged forecasting branch. The
+$30 Georgio-only experiment allocation supersedes the proposed $10; $20 Spark /
+$10 Wonder remain soft targets. The new financial module has only review-state
+reservations and no private-ledger migration or live dispatch. Amine and the
+existing finance modules/history remain untouched.
+
+Implemented: supplied chronological calibration histories, UTC/DST ordering,
+conservative historical envelopes, synthetic prequential comparison, strict
+mock contextual A/B/C contracts, additive v2 endpoints and native display.
+QDE artifacts/splits remain frozen; no independently validated real improvement.
+Mock labels cannot rank Meta models; provider latency/tokens/billing stay null.
+
+Integrated verification: **613 pytest tests + 32 subtests passed**, one optional
+training module skipped and the existing Starlette warning. The pinned training
+environment separately passed **50 forecasting tests** (overlapping runtime and
+ingestion tests included). **50 XCTest tests** and **one targeted V2 UI test**
+passed; its screenshot was visually inspected. The contextual benchmark reproduced
+exactly and the longitudinal scenarios regenerated independently. Independent
+reviews covered financial accounting and contextual/native numerical authority.
+
+See [review handoff](HYDRATION_V2_REVIEW.md), [experiment controls](META_EXPERIMENT_BUDGET_V2.md)
+and [longitudinal evidence](FORECAST_V2_EVALUATION.md). Missing live engineering,
+review, account evidence and consent gates are explicit; no paid requests occurred.
+
+## Forecasting implementation baseline — October 28
 
 The latest fetched `main` is `700fe6d`, which merged PR #13. The user then authorized
 isolated ML implementation on `codex/hydration-forecast-ml`, coordinated through

@@ -2,7 +2,7 @@
 
 Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The existing integration is merged through PR #13 (`700fe6d`); see the [project status](docs/PROJECT_STATUS.md).
 
-**Current engineering priority: reproducible workout forecasting using verified public study data and separately labeled synthetic scenarios.** Camera development is paused; existing camera behavior is preserved. All live Meta requests remain disabled for this phase. The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) distinguishes measured outcomes, research proxy targets, personal calibration, and synthetic demonstrations. The earlier [Meta activation handoff](docs/META_FIRST_DELIVERY.md) remains a separate gated workstream.
+**Current engineering priority: V2 contextual/hybrid hydration research, supplied longitudinal calibration histories, and a guarded $30 Georgio-only experimental budget.** Camera development is paused; existing camera behavior is preserved. All live Meta requests remain disabled for this phase. The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) distinguishes measured outcomes, research proxy targets, personal calibration, and synthetic demonstrations. The earlier [Meta activation handoff](docs/META_FIRST_DELIVERY.md) remains a separate gated workstream.
 
 ## Run the prototype
 
@@ -30,3 +30,5 @@ Updated user report: each developer has a separate $150 allocation, independentl
 - [Issue proposals](docs/ISSUE_PROPOSALS.md)
 
 Human PR review is required; no automatic merges. Startup participant eligibility, account credit terms and production readiness remain separate verification tasks.
+
+V2 review work and live gates: [design](docs/HYDRATION_V2_PLAN.md), [aggregate experiment controls](docs/META_EXPERIMENT_BUDGET_V2.md), and [longitudinal evidence](docs/FORECAST_V2_EVALUATION.md). The $20 Spark / $10 Wonder split is a soft planning target within one $30 ceiling. All live experiment dispatch remains disabled; actual provider quality, latency, usage and billing have not been measured.
