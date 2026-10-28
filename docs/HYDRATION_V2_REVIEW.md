@@ -25,3 +25,12 @@ Detailed evidence: `FORECAST_V2_EVALUATION.md`, `HYDRATION_CONTEXT_V2.md`, `HYDR
 ## Combined verification
 
 613 maintained pytest tests and 32 subtests passed; one optional training module skipped in the runtime environment, with the existing Starlette warning. The pinned training environment separately passed 50 forecasting tests (overlapping ingestion/runtime included). Native: 50 XCTest tests and one targeted V2 UI test passed. The mock benchmark reproduced exactly, longitudinal scenarios regenerated, and independent financial/context reviews found no remaining blocker in the implemented inert scope. No real model ranking, live financial validation, external-population improvement or clinical reliability is established.
+
+## Publication status
+
+Pushed `codex/hydration-intelligence-v2`, based on `codex/hydration-forecast-ml`.
+PR creation is blocked: the connector returned 403 and the CLI account is not a
+repository collaborator. [Issue #16](https://github.com/georgiosaliba227/Hydra-Ai/issues/16)
+tags Amine and preserves the complete review handoff. A review issue is not a PR;
+no PR or human approval is claimed. An owner/collaborator can create the PR from
+[the V2-only comparison](https://github.com/georgiosaliba227/Hydra-Ai/compare/codex/hydration-forecast-ml...codex/hydration-intelligence-v2).
