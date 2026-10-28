@@ -4,6 +4,9 @@ Only current cross-component decisions belong here. Detailed contracts stay in d
 
 | Date | Decision | Reason / authorization |
 | --- | --- | --- |
+| 2026-10-28 | Use human-merged main `700fe6d` for final camera preparation; apply only its existing-ledger additive migration and bind the disabled backend to that authority | Owner's final activation steps 1–3; compatibility/tests and offline handles checked, prior rows/file identity preserved; no spending or image disclosure approval inferred |
+| 2026-10-28 | Prepare the owner-selected existing bottle illustration and exact-input permit drafts privately; keep both permit alternatives invalid and unrecorded | Owner selected the illustration for the first controlled request. Choice of input is not consent or policy/spending approval; iPhone re-encoding requires a new reviewed hash |
+| 2026-10-28 | Treat the reported card authorization separately from actual API usage and promotional-credit accounting | Owner clarification and provider billing/usage distinctions; no invented API charge, credit deduction or zero gross baseline entered |
 | 2026-10-28 | Resume the identical Meta-first/PR #13 head `ef7dc94`; update the same review branch without reapplying completed proposals | Latest user instruction and fetched GitHub refs; clean checkout and zero divergence; Amine has made no changes as confirmed by Georgio |
 | 2026-10-28 | Keep finality migration explicit, existing-only, atomic and independently reviewed; preparation remains read-only | Current authority lacks the finality table. New preview confirms compatibility; migration code/tests do not authorize operating on the real file |
 | 2026-10-28 | Bind camera consent, delayed operations and receipts to saved-backend generations, and suppress generic live retry advice | Targeted review found a stale-backend confirmation race and contradictory guidance before a potentially billed attempt |

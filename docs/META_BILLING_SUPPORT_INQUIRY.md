@@ -33,6 +33,8 @@ Public schema and pricing facts are verified; account-specific availability, rat
 
 October 28 follow-up: public Standard rates, fixed model ID and Responses formatting were rechecked and still match code. An authenticated owner dashboard was inspected after user sign-in, but selected-window usage and outstanding balance do not establish the complete gross baseline or pending-charge finality. Funding-specific content-use conditions require clarification before photo consent. No private account/payment details are included here, no billing setting changed and this inquiry remains **NOT SENT**.
 
+Final camera-preparation clarification: the owner identifies the reported payment item as a card authorization, not confirmed Model API consumption. It must not be counted as gross API usage or mechanically subtracted from promotional credits. [API billing](https://dev.meta.ai/help/billing/api-bill), [payment activity](https://dev.meta.ai/help/billing/unrecognized-payment) and [usage help](https://dev.meta.ai/help/usage-and-limits/api-usage) distinguish payment records and usage, but the public material does not establish this account's authorization release timing or credit impact. Account-specific available credits, expiry/grant terms and historical/pending API usage remain separate private evidence. This clarification does not grant spending or authorize sending the inquiry.
+
 ## Evidence each owner must provide privately
 
 Use the account owner's authenticated dashboard/support session; do not put keys, private account IDs or billing screenshots in GitHub. Georgio's camera preparation can proceed independently of Amine's hydration test, but unresolved project-wide billing still blocks all dispatch. Required evidence is:

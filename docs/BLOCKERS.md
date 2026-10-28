@@ -18,6 +18,8 @@ For the immediate Meta milestone, use the consolidated exact activation checklis
 
 The prepared [Meta support inquiry](META_BILLING_SUPPORT_INQUIRY.md) remains unsent. The user authorized GitHub coordination, not provider/organizer messages. No repeat request for permission is needed for ordinary mock coding/testing/docs.
 
+Final activation update: PR #13 is human-merged into main `700fe6d`, and the owner-requested existing-ledger finality migration and disabled backend path binding are complete. These integration/schema operations are no longer blockers. Remaining first-request approvals are only those in [META_CAMERA_FINAL_GATE.md](META_CAMERA_FINAL_GATE.md). The owner clarified that the reported payment item is a card authorization rather than confirmed API consumption; do not reserve/deduct it as usage or infer an effect on promotional credits. Lifetime/pending API billing, applicable funding/privacy terms and a reliable all-inclusive request bound remain distinct evidence requirements.
+
 ## Known local limitations
 
 A beverage timestamp accepted within the existing 60-second clock-skew allowance can temporarily make the strict forecast endpoint return 422 until that timestamp passes. Logging remains available; native forecast errors must remain separate. No future event is silently counted as already consumed.

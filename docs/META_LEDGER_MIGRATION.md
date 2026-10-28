@@ -2,6 +2,8 @@
 
 This implementation adds the existing `live_finalities` definition to an older, already initialized account ledger. It is a prerequisite for later reviewed invoice-finality imports, not approval for spending, a billable probe, photo disclosure, a second request or the proposed $2 policy. No migration of the real private ledger has been performed by this work.
 
+Operational update after PR #13's human merge at `700fe6d`: under the owner's final camera-activation step 2, this exact additive operation was applied to the existing permanent ledger. No open ledger process handles were found; preview and targeted tests passed; all prior financial rows and the file identity were preserved; the finality table and one audit event were added. The audit reference records the owner instruction and merged source, not an invented Amine/spending approval. The final preview reports `already_current`. Do not rerun init or create/copy another authority. All inference flags remain disabled; account/price/permit approvals were not imported. The procedure below remains the contract for separately reviewed future operations, and its earlier unmigrated statement is historical.
+
 The operator must use the one authoritative gateway database, keep all billable feature flags disabled, and stop backend and other ledger-writing processes for the maintenance window. Both developers must review the migration and its exact target before execution. Do not run `init` again, create a replacement database, copy an active authority, delete sidecars, reset permits or fabricate invoice evidence.
 
 Preview uses SQLite read-only/query-only mode and does not create files, add tables or change records:

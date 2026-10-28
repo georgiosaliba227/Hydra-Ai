@@ -2,6 +2,20 @@
 
 Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
+## Final camera preparation after the human merge
+
+PR #13 is human-merged into main at `700fe6d40e618fd2da1dad67f5cf0446e4f0651e`. The merged tree matches the previously tested integration; this preparation uses isolated branch `codex/meta-camera-final-activation`, not a new implementation. Earlier integration sections below are historical checkpoints.
+
+Under the owner's final activation step 2, the existing permanent ledger received the merged additive `live_finalities` migration. A maintenance check found no open process handles, exact-schema preview passed, the file identity and every preexisting financial row were verified unchanged, and only the finality table plus one migration audit event were added. No ledger was initialized/copied/reset, and no account baseline, price, permit or spending approval was imported. The audit reference identifies the real user instruction and merged source; it does not claim Amine approved spending.
+
+The private backend's nonsecret database setting now selects the same permanent authority. Georgio's existing key is unchanged and locally loadable; mock/false and hydration-disabled settings remain in force. No backend/provider request was started. Notifications and provider-account/key binding evidence remain unconfigured.
+
+The user selected the existing synthetic bottle illustration for the first controlled request. Its backend-normalized JPEG, exact image/payload hashes, read-only gate report and deliberately invalid one-use permit drafts are privately prepared in the existing activation-preparation directory. No image, key, provider identifier or private financial evidence was committed. Selection is not disclosure consent or spending permission. iPhone re-encoding requires export/review of the actual prepared JPEG and a new matching hash before approval.
+
+The owner identifies the previously reported payment item as a card authorization, not confirmed API usage. It is not entered as gross API spending or deducted from promotional credits. Public provider help does not establish its account-specific effect on credit availability; current credits, lifetime/pending gross usage and funding terms still need authenticated evidence. Browser refresh was unavailable in this final pass, so earlier selected-window observations are not promoted to a verified lifetime baseline. [Remaining approvals](META_CAMERA_FINAL_GATE.md) are consolidated without reopening unrelated work. All real Meta requests remain disabled.
+
+Validation from merged source: **485 maintained pytest tests + 32 subtests passed**; the 170-case targeted migration/preparation/gateway subset also passed. The synthetic evaluation report reproduced exactly. Both private permit drafts were verified to fail the real permit schema until missing approvals/evidence/expiry are supplied. Existing 41 XCTest and mock/fake-provider UI results apply to the byte-identical merged client; no new device or real-model test is claimed.
+
 ## Current integration
 
 `main` is `424f9fe` (merged #7). PR #12 was human-merged into #10 on October 27; #10 is `77a3ff4`, #11 `8ee883a`, and #9 `61f94e5`. These heads are combined in existing [integration PR #13](https://github.com/georgiosaliba227/Hydra-Ai/pull/13), initially `be4e492`. Meta-first implementation starts from that head on an isolated branch and preserves every source branch and worktree. No GitHub PR is automatically merged. Amine was notified on #13; unpublished work remains unknown.
