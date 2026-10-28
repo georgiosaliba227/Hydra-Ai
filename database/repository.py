@@ -56,7 +56,13 @@ class BeverageRepository:
             # Existing file permissions are deliberately left to the operator.
             self.path.touch(mode=0o600, exist_ok=True)
             with closing(self._connect()) as connection, connection:
-                connection.execute("PRAGMA journal_mode=WAL")
+                # A shared financial authority has its own reviewed journal
+                # contract. Backend startup must not silently migrate it to WAL.
+                financial = connection.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name IN ('live_accounts','meta_policy')"
+                ).fetchone()
+                if financial is None:
+                    connection.execute("PRAGMA journal_mode=WAL")
                 connection.execute("""
                     CREATE TABLE IF NOT EXISTS beverages (
                         id TEXT PRIMARY KEY NOT NULL,

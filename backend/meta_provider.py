@@ -64,6 +64,9 @@ class OfficialMetaTransport:
         if not key or not key.isascii() or any(c.isspace() or ord(c) < 33 for c in key):
             raise ValueError("Selected server credential required")
         self._key = key
+        # Operator may persist this bounded response privately for the explicitly
+        # approved synthetic test. Never includes request headers/image/prompt.
+        self.last_reply: ProviderReply | None = None
         self.credential_fingerprint = hashlib.sha256(key.encode()).hexdigest()
 
     def input_bound(self, payload: dict) -> int:
@@ -99,7 +102,8 @@ class OfficialMetaTransport:
             body = strict_json(raw)
             if not isinstance(body, dict):
                 raise RecognitionUnavailable()
-            return ProviderReply(response.status, body)
+            self.last_reply = ProviderReply(response.status, body)
+            return self.last_reply
         except Exception:
             # Never include provider body, keys, image/prompt data or socket details.
             raise RecognitionUnavailable() from None

@@ -8,7 +8,7 @@ import sqlite3
 from typing import Callable
 
 from scripts.meta_preflight import private_file, read_private_environment
-from .meta_accounts import ACCOUNTS, CAP, PROPOSED_CAP, AccountLedger, ControlledPermit, Evidence, Price, parse_permit
+from .meta_accounts import ACCOUNTS, CAP, PROPOSED_CAP, RISK_POLICY, AccountLedger, ControlledPermit, RiskPermit, Price, parse_permit, parse_evidence
 from .meta_budget import BudgetDenied
 from .meta_gateway import GitHubNotifier
 from .meta_images import sanitized_jpeg
@@ -40,6 +40,12 @@ def _required_json_row(row: tuple | None, model):
     if row is None:
         raise ValueError("Required local evidence missing")
     return _validated_json(row[0], model)
+
+
+def _required_account_evidence(row: tuple | None):
+    if row is None:
+        raise ValueError("Required local evidence missing")
+    return parse_evidence(json.dumps(strict_json(row[0]), allow_nan=False))
 
 
 def _private_jpeg(path: Path) -> bytes:
@@ -161,6 +167,9 @@ def prepare_camera(env_file: Path, database: Path, image_file: Path, account: st
             db.close()
     gates["active_cost_ceiling"] = _gate("blocked" if reference_quote > CAP else "unverified",
                                          "The full-context uncached token reference exceeds $0.25; obtain a provider-backed lower total bound with reviewed enforcement, or an explicit separate policy decision. $2 is not authorized.")
+    if report["policy"].get("version") == RISK_POLICY:
+        gates["active_cost_ceiling"] = _gate("locally_satisfied" if reference_quote <= PROPOSED_CAP else "blocked",
+            "Token reservation must fit the $2 intended maximum; unknown additional charges are separately accepted, never bounded.")
     gates["external_account_authentication"] = _gate("unverified", "Owner must independently verify selected provider identity/key binding, model access, gross and pending usage, credits/expiry/terms, and exclusive gateway custody.")
     gates["external_billing_and_notices"] = _gate("unverified", "Verify all charge categories, request-level billing/finality and actual notice delivery to both developers; local credential syntax is insufficient.")
     gates["dispatch"] = _gate("blocked", "This command only prepares a local plan; exact-image consent, account/model/price-bound human spending approval and authoritative gateway admission remain mandatory.")
@@ -202,7 +211,7 @@ def _inspect_evidence(db: sqlite3.Connection, ledger: AccountLedger, account: st
     attempts = db.execute("SELECT 1 FROM live_attempts LIMIT 1").fetchone()
     gates["first_project_request_unused"] = _gate("blocked" if attempts else "locally_satisfied", "The active policy permits only the first project-wide request; never reset attempts or permits.")
     row = db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (account,)).fetchone()
-    evidence = _check(gates, "account_evidence", lambda: _required_json_row(row, Evidence),
+    evidence = _check(gates, "account_evidence", lambda: _required_account_evidence(row),
                       "Record independently verified, current account billing/credit/retention/grant evidence; absence never means zero usage.")
     if evidence is not None:
         if evidence.account_id != account:
@@ -218,8 +227,13 @@ def _inspect_evidence(db: sqlite3.Connection, ledger: AccountLedger, account: st
     else:
         gates["permit_schema_current"] = _gate("blocked", "No selected permit exists; obtain and record exact-account/image/price human consent and spending approval through the reviewed operator process.")
     if permit is not None:
+        if isinstance(permit, RiskPermit):
+            report["policy"].update({"version": RISK_POLICY,
+                "active_first_request_cap_micro_usd": None,
+                "intended_maximum_micro_usd": permit.maximum_micro_usd,
+                "unknown_additional_charges_accepted": True})
         supported = not isinstance(permit, ControlledPermit)
-        gates["active_permit_policy"] = _gate("locally_satisfied" if supported else "blocked", "Only the active $0.25 first-camera policy applies; dual-test-v1 remains a disabled proposal.")
+        gates["active_permit_policy"] = _gate("locally_satisfied" if supported else "blocked", "Legacy $0.25 or exact-image first-camera risk policy; dual-test-v1 remains separate.")
         gates["permit_account_unused"] = _gate("locally_satisfied" if permit.account_id == account == ACCOUNTS[0] and grant[1] == 0 else "blocked", "Permit must belong to Georgio and be unused; never reset or substitute accounts.")
         gates["exact_image_consent"] = _gate("locally_satisfied" if permit.image_sha256 == report["normalized_image_sha256"] and bool(permit.image_owner_consent_reference.strip()) else "blocked",
                                               "Obtain disclosure consent for this exact backend-normalized prepared JPEG; source-photo consent does not authorize a re-encoding.")
@@ -234,6 +248,6 @@ def _inspect_evidence(db: sqlite3.Connection, ledger: AccountLedger, account: st
             report["reservation"]["locally_attested_token_quote_micro_usd"] = token_quote
             if evidence is not None:
                 report["reservation"]["locally_attested_extra_charge_bound_micro_usd"] = evidence.extra_charge_bound_micro_usd
-                report["reservation"]["locally_attested_total_bound_micro_usd"] = token_quote + evidence.extra_charge_bound_micro_usd
+                report["reservation"]["locally_attested_total_bound_micro_usd"] = None if isinstance(permit, RiskPermit) else token_quote + evidence.extra_charge_bound_micro_usd
     _check(gates, "existing_policy_validation", lambda: ledger._policy(db, account),
            "Existing gateway validation must accept current evidence, price and unused permit; this read-only check cannot reserve funds or grant admission.")
