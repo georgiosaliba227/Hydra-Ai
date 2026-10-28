@@ -107,6 +107,19 @@ def test_missing_ledger_is_not_created_and_no_baseline_invented(files):
     assert report["reservation"]["locally_attested_total_bound_micro_usd"] is None
 
 
+@pytest.mark.parametrize("mutation", ["DROP TABLE live_events", "CREATE INDEX extra_financial_index ON live_accounts(frozen)"])
+def test_plan_reuses_migration_schema_validation_and_preserves_invalid_database(files, mutation):
+    env, database, image = files
+    with sqlite3.connect(database) as db:
+        db.execute(mutation)
+    before = database.read_bytes()
+    report = prepare_camera(env, database, image)
+    assert blocked(report, "ledger_schema")
+    assert report["gates"]["existing_policy_validation"]["status"] == "not_evaluated"
+    assert not report["dispatch_authorized"]
+    assert database.read_bytes() == before
+
+
 def test_empty_ledger_gives_specific_missing_evidence(files):
     env, database, path = files
     with sqlite3.connect(database) as db:

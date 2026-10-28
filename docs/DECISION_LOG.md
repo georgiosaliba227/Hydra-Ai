@@ -4,6 +4,10 @@ Only current cross-component decisions belong here. Detailed contracts stay in d
 
 | Date | Decision | Reason / authorization |
 | --- | --- | --- |
+| 2026-10-28 | Resume the identical Meta-first/PR #13 head `ef7dc94`; update the same review branch without reapplying completed proposals | Latest user instruction and fetched GitHub refs; clean checkout and zero divergence; Amine has made no changes as confirmed by Georgio |
+| 2026-10-28 | Keep finality migration explicit, existing-only, atomic and independently reviewed; preparation remains read-only | Current authority lacks the finality table. New preview confirms compatibility; migration code/tests do not authorize operating on the real file |
+| 2026-10-28 | Bind camera consent, delayed operations and receipts to saved-backend generations, and suppress generic live retry advice | Targeted review found a stale-backend confirmation race and contradictory guidance before a potentially billed attempt |
+| 2026-10-28 | Treat authenticated dashboard observations as partial evidence; keep account-specific details private and do not import an inferred zero baseline | Selected-window usage, pending financial activity and funding-specific content-use terms still require reconciliation; no spending or image consent was given |
 | 2026-10-27 | Prioritize real Meta camera and synthetic hydration interpretation, reproducible evaluation, and the existing iPhone confirmation path; defer unrelated UI and speculative work | Latest user instruction authorizes parallel implementation/testing and GitHub coordination, but explicitly withholds billable requests, photo disclosure and automatic merges |
 | 2026-10-27 | Continue from existing integration PR #13 on an isolated Meta-first review branch | #13 now exists at `be4e492`; preserve #9/#10/#11 and integration history. CLI comments work; owner connector writes return 403 |
 | 2026-10-27 | Continue the authorized roadmap during the active execution, delegating non-overlapping work; retain four shared status files | User's autonomous development request; no claim of work after execution ends and no scheduled task requested |

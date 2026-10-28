@@ -1,12 +1,12 @@
 # Hydra AI next actions
 
-Updated October 27, 2026 after the Meta-first reprioritization. The immediate milestone is verified Meta inference in both workstreams, measured results and the existing iPhone camera workflow. Unrelated UI and speculative development are deferred.
+Updated October 28, 2026 after state restoration and additional camera safeguards. Meta-first and integration branches were already identical at `ef7dc94`; use existing PR #13 without reapplying completed development. The immediate milestone is verified Meta inference in both workstreams, measured results and the existing iPhone camera workflow. Unrelated UI and speculative development remain deferred.
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Both developers: review the Meta-first changes against existing integration PR #13 | Backend hydration route, structured parser, observation provenance and evaluation tests reviewed at the exact commit; humans choose merge order |
-| 2 | Georgio + provider: complete selected-account evidence and bounded-cost requirements | Private account/key binding and gross/pending spend, Standard access, all-inclusive bound satisfying active policy; exact checklist in META_FIRST_DELIVERY.md |
-| 3 | Georgio: approve one exact prepared iPhone JPEG and one bounded request after gates pass | Fingerprint, account/input/model/price/policy references and UTC expiry; <=$0.25 unless a different policy is explicitly adopted; no retry |
+| 1 | Both developers: review the current PR #13 camera/parser/generation fixes and additive migration | Exact reviewed commit; migrate only the existing permanent ledger after separate operational review, using META_LEDGER_MIGRATION.md; never init/copy/reset it |
+| 2 | Georgio + provider: finish the private selected-account evidence | Reconcile historical/pending gross billing and account-specific funding/content-use terms from authenticated evidence; bind the local key/account, verify credit expiry/grant terms and notice delivery; preserve dashboard details privately |
+| 3 | Georgio + both reviewers: complete exact-input and cost authorization | Export actual iPhone-prepared JPEG, run read-only scripts.meta_camera_prepare, resolve every gate. The full-context token reference is $1.312256 before extras, above active $0.25; $2 remains an unapproved proposal. Exact-image disclosure and expiring named-account/input/model/price/policy spending approval remain mandatory |
 | 4 | Operator + both reviewers: execute once, reconcile and evaluate the camera result | Official request ID, ledger-linked output digest, observed latency/tokens, usage-derived cost distinguished from final billing; human identity/consumption confirmation on iPhone |
 | 5 | Amine + both reviewers: separately authorize synthetic hydration context and a later request | Amine account evidence, exact context fingerprint and explicit policy permitting the additional request; prior camera invoice finality first; no account fallback |
 | 6 | Both developers: evaluate hydration relevance/consistency and record the real Meta demo | Real and mock results separated, errors and missing results included, deterministic calculations and all spending safeguards preserved |

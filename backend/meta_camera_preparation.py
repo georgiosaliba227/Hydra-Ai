@@ -64,6 +64,7 @@ def _ledger_snapshot(database: Path) -> sqlite3.Connection:
         raise ValueError("Ledger has active recovery or WAL sidecars")
     connection = sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=0.5)
     try:
+        connection.execute("PRAGMA trusted_schema=OFF")
         connection.execute("PRAGMA query_only=ON")
         connection.execute("BEGIN")
         return connection
@@ -146,13 +147,13 @@ def prepare_camera(env_file: Path, database: Path, image_file: Path, account: st
     try:
         db = _ledger_snapshot(database)
         gates["authoritative_ledger_readable"] = _gate("locally_satisfied", "Operator must identify the existing authoritative ledger; this command does not establish custody.")
-        tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        required = {"live_accounts", "live_prices", "live_permit", "controlled_permits", "live_attempts", "live_finalities", "live_notices"}
-        if not required <= tables:
+        ledger = AccountLedger(database)
+        schema = _check(gates, "ledger_schema", lambda: ledger._inspect_finality_schema(db),
+                        "Existing financial tables, constraints and finality schema must match the reviewed migration contract.")
+        if schema is None or schema["status"] != "already_current":
             gates["ledger_schema"] = _gate("blocked", "Review the missing authoritative ledger schema/finality migration separately; preparation never migrates.")
         else:
-            gates["ledger_schema"] = _gate("locally_satisfied", "Required existing financial and finality tables are present.")
-            _inspect_evidence(db, AccountLedger(database), account, fingerprint, report)
+            _inspect_evidence(db, ledger, account, fingerprint, report)
     except (OSError, ValueError, TypeError, KeyError, AttributeError, sqlite3.Error, BudgetDenied):
         gates["authoritative_ledger_readable"] = _gate("blocked", "Provide an existing owned 0600 ledger with valid rollback-journal schema; close writers or resolve recovery state without copying/resetting it.")
     finally:

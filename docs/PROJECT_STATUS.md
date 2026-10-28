@@ -1,12 +1,20 @@
 # Hydra AI project status
 
-Updated October 27, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
+Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
 ## Current integration
 
 `main` is `424f9fe` (merged #7). PR #12 was human-merged into #10 on October 27; #10 is `77a3ff4`, #11 `8ee883a`, and #9 `61f94e5`. These heads are combined in existing [integration PR #13](https://github.com/georgiosaliba227/Hydra-Ai/pull/13), initially `be4e492`. Meta-first implementation starts from that head on an isolated branch and preserves every source branch and worktree. No GitHub PR is automatically merged. Amine was notified on #13; unpublished work remains unknown.
 
 The latest user instruction makes real Muse Spark 1.3 Standard camera and synthetic hydration inference the highest engineering priority. Unrelated UI and speculative features are deferred. **Neither real inference has run; the milestone remains incomplete.** Safe backend wiring, evaluation and request evidence are implemented for review. The single actionable activation checklist is [META_FIRST_DELIVERY.md](META_FIRST_DELIVERY.md).
+
+## October 28 resumption
+
+Fetched branches and inspected #9/#10/#11/#13. At resumption `codex/meta-first-delivery`, `origin/codex/meta-first-delivery` and PR #13's `origin/codex/roadmap-integration` were identical at `ef7dc94cc1888cf9699852e65e1b92732359955a`; the working tree was clean. All source proposal heads were already included, and main remained `424f9fe`. No duplicate merge or cherry-pick of completed development was needed. Georgio confirms Amine made no development changes since the previous session. Continue this same integration PR, preserving every earlier commit and requiring human review.
+
+New safe work: reject blank model identity/explanation fields; give live camera errors fixed no-retry guidance; bind camera capabilities, consent, delayed results and confirmation receipts to backend configuration generations; add explicit existing-only finality migration preview/execution tools; and prepare exact-image, read-only request plans using the same payload, cost arithmetic and financial validators. The real permanent ledger remains unmigrated and unmodified. See [one-request procedure](META_CAMERA_ONE_REQUEST.md) and [migration contract](META_LEDGER_MIGRATION.md).
+
+Georgio's server key again passed local loading without disclosure or an API call. The existing private configuration still selects mock mode, disables billing/hydration, lacks account/key attestation and notification configuration, and does not yet select the authoritative ledger. After user sign-in, the selected account's dashboard, billing, credit and all-key/all-model usage views were inspected read-only. This advances account evidence but does not establish a complete historical/pending gross baseline, key/account binding, grant expiry/terms, or billing finality. Account-specific funding/content-use terms also require review before image consent. Private dashboard identifiers, financial/payment details and screenshots remain outside GitHub. No evidence was fabricated or imported; no account setting was changed.
 
 | Area | Implemented / verified | Remaining |
 | --- | --- | --- |
@@ -21,6 +29,7 @@ The latest user instruction makes real Muse Spark 1.3 Standard camera and synthe
 
 ## Verification record
 
+- October 28 combined changes: **485 maintained pytest tests + 32 subtests passed**; **3 preserved-starter tests passed** from the starter's own working directory. **41 XCTest unit tests passed** on the existing iPhone 18 Pro / iOS 27 simulator. Integrated UI: **2 mock tests passed, 4 opt-in cases skipped**, and **1 dedicated loopback fake-provider consent/confirmation test passed**. The synthetic evaluation report reproduced exactly and the seven-group offline rehearsal passed. Independent review found no additional actionable defects in the generation/receipt fixes or targeted migration. One existing Starlette/httpx deprecation warning and existing Xcode/fixture diagnostics remain; no new dependencies or physical-device/real-model verification.
 - Meta-first combined changes: **410 pytest tests + 32 subtests**, **31 XCTest unit tests**, and **1 loopback fake-provider camera consent/confirmation UI test passed**. Offline evaluation reproduced its committed synthetic report; real camera/hydration observations remain zero. The seven-group offline rehearsal also passed. See [implementation and activation handoff](META_FIRST_DELIVERY.md) for precise scope and remaining requirements.
 - Combined baseline before new review fixes: **291 pytest tests and 32 subtests passed**; one existing Starlette/httpx deprecation warning.
 - Earlier integration baseline: **330 tests and 32 subtests passed**; **3 preserved-starter tests passed separately**. Includes account-freeze races, missing/corrupt invoice finality, privacy and completed-workout UTC/DST regressions. One existing Starlette/httpx warning remains.

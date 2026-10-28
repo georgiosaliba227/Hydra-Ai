@@ -32,6 +32,8 @@ The active first-request ceiling remains **$0.25**. The proposed **$2** dual-tes
 
 The command reuses existing ledger evidence/price/permit validators, `_policy`, `grant`, `verify_project_unfrozen` and `verify_prior_finalities` on the read-only connection. It checks exact-image matching, the selected account/key binding, permit policy and one-use state, prior attempts, unresolved billing, freezes and pending developer notices. It does not implement a second reservation/admission engine. The authoritative gateway retains the atomic race checks, separate account spending, $75 notifications to both developers, $100 further approval, $120 rejection boundary and $150 absolute ceiling.
 
+Schema checks reuse the migration's exact known-table/constraint validation. Missing event/finality tables, altered financial indexes, triggers or incompatible definitions block preparation; table names alone do not establish compatibility. Run only the separate reviewed migration on the existing authority when required. The preparation command has no migration or execution switch.
+
 Resolve the reported requirements before requesting a live run:
 
 1. **Account and billing evidence:** Georgio privately verifies provider identity/key binding, Standard model access, gross/pending usage across keys, credits/expiry/grant terms, exclusive gateway custody, retention, all charge categories and request-level billing/finality. Verify notification delivery to both developers. Local key presence proves none of those facts.
