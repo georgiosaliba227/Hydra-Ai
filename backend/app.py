@@ -73,7 +73,12 @@ class RequestGuard:
             if not hmac.compare_digest(provided, expected):
                 await error_response("unauthorized", 401, request_id)(scope, receive, send)
                 return
-        body_limit = 1_400_000 if scope["path"] == "/v1/recognitions" else MAX_BODY_BYTES
+        if scope["path"] == "/v1/recognitions":
+            body_limit = 1_400_000
+        elif scope["path"] == "/v1/workout-forecasts":
+            body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
+        else:
+            body_limit = MAX_BODY_BYTES
         length = headers.get(b"content-length")
         if length is not None:
             try:
@@ -304,4 +309,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_hydration_routes(app, enabled=hydration_enabled == "true", error_response=error_response)
     from .personal_forecasts import install_forecast_routes
     install_forecast_routes(app, to_engine)
+    from .workout_forecasts import install_workout_forecast_routes
+    install_workout_forecast_routes(app)
     return app

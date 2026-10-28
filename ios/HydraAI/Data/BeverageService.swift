@@ -4,6 +4,7 @@ protocol BeverageService: Sendable {
     func listBeverages() async throws -> [BeverageLog]
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
+    func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
 }
 
@@ -53,6 +54,10 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast {
+        throw ServiceError.invalidResponse
+    }
+
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast {
         throw ServiceError.invalidResponse
     }

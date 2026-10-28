@@ -138,6 +138,24 @@ actor HTTPBeverageService: BeverageService {
         return forecast
     }
 
+    /// Manual calibration stays at the user's backend. The demo submits no measurements.
+    func workoutForecast(_ payload: WorkoutForecastRequest) async throws -> WorkoutForecast {
+        try payload.validate()
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/workout-forecasts"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = try JSONEncoder().encode(payload)
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        let result = try JSONDecoder().decode(WorkoutForecast.self, from: data)
+        try result.validate(request: payload)
+        return result
+    }
+
     func recognitionCapabilities() async throws -> RecognitionCapabilities {
         let result: RecognitionCapabilities = try await send("v1/recognition-capabilities")
         try result.validate()
