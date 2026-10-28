@@ -1,0 +1,229 @@
+{
+  "evidence_kind": "hand_labeled_synthetic_mock_cases",
+  "limitations": [
+    "No ranking of Spark and Wonder is possible from shared local mocks.",
+    "No provider latency, token usage or billed cost was observed.",
+    "Handwritten fixture labels are not physiological ground truth."
+  ],
+  "numerical_improvement_claimed": false,
+  "real_meta_observations": 0,
+  "rows": [
+    {
+      "abstention_correct": true,
+      "candidate": "muse-spark-1.3",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "complete",
+      "selection_count": 13,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-spark-1.3",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "missing_measurements",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-spark-1.3",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "contradictory_mass",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-spark-1.3",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "changing_conditions",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-spark-1.3",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "biometrics_and_supplements",
+      "selection_count": 18,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-wonder-1.0",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "complete",
+      "selection_count": 13,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-wonder-1.0",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "missing_measurements",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-wonder-1.0",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "contradictory_mass",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-wonder-1.0",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "changing_conditions",
+      "selection_count": 12,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    },
+    {
+      "abstention_correct": true,
+      "candidate": "muse-wonder-1.0",
+      "contradictions_correct": true,
+      "explanation_consistent": true,
+      "hybrid_numerical_equal": true,
+      "missing_information_correct": true,
+      "provider_observations": {
+        "billed_cost_usd": null,
+        "input_tokens": null,
+        "latency_ms": null,
+        "output_tokens": null
+      },
+      "scenario": "biometrics_and_supplements",
+      "selection_count": 18,
+      "uncertainty_complete": true,
+      "unsupported_claims": 0
+    }
+  ],
+  "systems": {
+    "A": {
+      "contextual_metrics": null,
+      "note": "Numerical evaluation remains in separate real-study reports.",
+      "numerical_metrics": null
+    },
+    "B": {
+      "contextual_metrics": {
+        "appropriate_abstention_fraction": 1.0,
+        "case_count": 10,
+        "contradiction_detection_fraction": 1.0,
+        "enum_groundedness_fraction": 1.0,
+        "explanation_consistency_fraction": 1.0,
+        "groundedness_scope": "enum validator and reviewed text only; not measured model groundedness",
+        "missing_information_fraction": 1.0,
+        "uncertainty_communication_fraction": 1.0,
+        "unsupported_claims": 0
+      },
+      "numerical_metrics": null
+    },
+    "C": {
+      "contextual_metrics": {
+        "appropriate_abstention_fraction": 1.0,
+        "case_count": 10,
+        "contradiction_detection_fraction": 1.0,
+        "enum_groundedness_fraction": 1.0,
+        "explanation_consistency_fraction": 1.0,
+        "groundedness_scope": "enum validator and reviewed text only; not measured model groundedness",
+        "missing_information_fraction": 1.0,
+        "uncertainty_communication_fraction": 1.0,
+        "unsupported_claims": 0
+      },
+      "numerical_equal_to_A": true,
+      "numerical_metrics": null
+    }
+  },
+  "version": "hydration-context-benchmark-v2"
+}

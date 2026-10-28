@@ -91,6 +91,11 @@ struct DashboardView: View {
 
                 historyCard
 
+                NavigationLink { WorkoutForecastView() } label: {
+                    Label("Workout forecast · separate from intake", systemImage: "figure.run")
+                }
+                .accessibilityIdentifier("workoutForecast")
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent today")
                         .font(.title3.bold())

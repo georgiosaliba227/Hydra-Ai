@@ -1,8 +1,8 @@
 # Hydra AI
 
-Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The manual logging and guarded recognition baseline is merged through PR #7. Current review work locally combines PRs #9, #10 (including #12), and #11; see the [project status](docs/PROJECT_STATUS.md).
+Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The existing integration is merged through PR #13 (`700fe6d`); see the [project status](docs/PROJECT_STATUS.md).
 
-**Current engineering priority: verified real Meta camera recognition and synthetic hydration interpretation, followed by measured evaluation and the iPhone demonstration.** Unrelated UI and speculative features are deferred. Real inference has not yet been authorized or executed; [the activation handoff](docs/META_FIRST_DELIVERY.md) identifies the exact remaining requirements.
+**Current engineering priority: V2 contextual/hybrid hydration research, supplied longitudinal calibration histories, and a guarded $30 Georgio-only experimental budget.** Camera development is paused; existing camera behavior is preserved. All live Meta requests remain disabled for this phase. The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) distinguishes measured outcomes, research proxy targets, personal calibration, and synthetic demonstrations. The earlier [Meta activation handoff](docs/META_FIRST_DELIVERY.md) remains a separate gated workstream.
 
 ## Run the prototype
 
@@ -23,9 +23,12 @@ Updated user report: each developer has a separate $150 allocation, independentl
 - [Architecture](docs/ARCHITECTURE.md) and [original draft contracts](docs/architecture/CONTRACTS.md)
 - [Product requirements](docs/PROJECT_REQUIREMENTS.md) and [roadmap](docs/ROADMAP.md)
 - [Hydration evidence](docs/HYDRATION_MODEL.md) and [engine interfaces](ai/hydration/README.md)
+- [Forecast dataset inventory and licenses](docs/FORECAST_DATA_INVENTORY.md), [model and reproduction](docs/FORECAST_MODEL.md), and [separate real/synthetic evaluation](docs/FORECAST_EVALUATION.md)
 - [Meta strategy](docs/META_MODEL_STRATEGY.md) and [budget policy](docs/API_BUDGET.md)
 - [Developer onboarding](docs/DEVELOPER_ONBOARDING.md), [team workflow](docs/TEAM_WORKFLOW.md), [environment inventory](docs/ENVIRONMENT.md)
 - [Startup compliance and human checks](docs/HACKATHON_COMPLIANCE.md)
 - [Issue proposals](docs/ISSUE_PROPOSALS.md)
 
 Human PR review is required; no automatic merges. Startup participant eligibility, account credit terms and production readiness remain separate verification tasks.
+
+V2 review work and live gates: [design](docs/HYDRATION_V2_PLAN.md), [aggregate experiment controls](docs/META_EXPERIMENT_BUDGET_V2.md), and [longitudinal evidence](docs/FORECAST_V2_EVALUATION.md). The $20 Spark / $10 Wonder split is a soft planning target within one $30 ceiling. All live experiment dispatch remains disabled; actual provider quality, latency, usage and billing have not been measured.

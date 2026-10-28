@@ -2,6 +2,26 @@
 
 Updated October 28, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
+## Current forecasting limits
+
+- PR #13 is now merged (`700fe6d`). The new forecasting changes require their own
+  human review; the older integration-review row below is historical.
+- Accessible exercise studies supply mass-loss proxies, not direct sweat collection
+  or daily intake requirements. Missing environment/intensity and differing
+  protocols prevent a generalization claim. Cold starts without comparable personal
+  calibration remain `insufficient_data`.
+- Public source metadata does not guarantee privacy or unique participants:
+  preprocessing removes identifiers and conservatively groups repeated source
+  identities. The source inventory records actual file counts and licensing limits.
+- Simulator tests do not replace physical-device verification of the new forecast
+  screen. Personal calibration is transient and not clinically validated.
+- Camera work is paused. This branch does not inspect or modify the private ledger
+  and does not resolve the earlier live-provider gates recorded below. Consult
+  current [Issue #8](https://github.com/georgiosaliba227/Hydra-Ai/issues/8) for that
+  separate workstream; historical rows are not a fresh audit of its private state.
+
+## Earlier Meta workstream blockers — historical
+
 | Blocker | Needed evidence / decision | Owner / affected work |
 | --- | --- | --- |
 | Human integration review | Review existing PR #13 and the exact Meta-first changes; humans decide merge order for #9/#10/#11/#13. The previous missing-PR blocker is resolved | Georgio and Amine; reviewed activation/main integration |

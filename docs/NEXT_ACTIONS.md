@@ -1,5 +1,21 @@
 # Hydra AI next actions
 
+## Current forecasting assignment — October 28
+
+Camera development is paused by the latest user request. PR #13 is merged at
+`700fe6d`; do not reapply its features or treat its old review gate as still open.
+Review the additive forecasting branch and [Issue #15](https://github.com/georgiosaliba227/Hydra-Ai/issues/15).
+The current work is public dataset verification/deidentification, separate study
+and synthetic experiments, personal calibration, and backend/iPhone integration.
+Use the [model contract](architecture/WORKOUT_MODEL_API.md), data inventory, model
+card and evaluation report as the review package. Human review, physical iPhone
+verification of the new screen, and external validation remain required before
+broader use. Generic physiological predictions and daily intake requirements stay
+unavailable without suitable evidence. All billable Meta requests remain disabled;
+this work does not change the private ledger or resolve provider gates.
+
+## Earlier Meta workstream handoff — historical
+
 Updated October 28, 2026 after state restoration and additional camera safeguards. Meta-first and integration branches were already identical at `ef7dc94`; use existing PR #13 without reapplying completed development. The immediate milestone is verified Meta inference in both workstreams, measured results and the existing iPhone camera workflow. Unrelated UI and speculative development remain deferred.
 
 Implementation `ae01987` is pushed to both branches and tested: 485 maintained pytest + 32 subtests, 3 starter, 41 XCTest, 2 mock UI and 1 fake-provider consent UI passed; 4 opt-in UI cases skipped. The ledger preview is compatible and read-only. Do not repeat those completed checks without a new code change or concern. Review the [posted PR #13 handoff](https://github.com/georgiosaliba227/Hydra-Ai/pull/13#issuecomment-6472453361); CLI permissions blocked editing PR metadata, so its conversation holds the full description. The next required progress is human review plus the private evidence/consent steps below.

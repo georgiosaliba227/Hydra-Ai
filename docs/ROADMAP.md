@@ -2,7 +2,19 @@
 
 Current execution tracking: [status](PROJECT_STATUS.md), [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md). Stage exit gates below are product goals; historical preparation text is not evidence that every gate is complete.
 
-## Active priority — October 27 Meta-first instruction
+## Active priority — October 28 measured-data forecasting instruction
+
+Add reproducible ingestion of suitable licensed exercise studies, participant-grouped
+baseline/ridge/forest/boosting comparisons, separate synthetic scenario testing,
+honest uncertainty and personal measurement calibration. Integrate a clearly
+labeled workout screen and authenticated endpoint without replacing the existing
+engine. Camera development is paused and live Meta remains disabled. See
+[workout contract](architecture/WORKOUT_MODEL_API.md) and [Issue #15](https://github.com/georgiosaliba227/Hydra-Ai/issues/15).
+Study proxy prediction and synthetic accuracy do not approve clinical claims or
+daily drinking targets. Human review is the integration gate; production and
+external validation remain separate.
+
+## Previous priority — October 27 Meta-first instruction
 
 M2 and the Meta explanation portion of M3 are the immediate engineering priority: actual Muse Spark 1.3 Standard camera inference on Georgio's account, separately approved synthetic hydration interpretation on Amine's account, reproducible quality/latency/usage/cost evaluation, then the existing iPhone confirmation workflow. Defer unrelated UI changes and speculative features. The milestone stays incomplete until both real requests are authorized, executed, reconciled and evaluated. Complete safe code/tests while provider evidence and explicit spending/disclosure approval are pending; use [one activation handoff](META_FIRST_DELIVERY.md), not repeated general audits. The $2 proposal remains unapproved and all account cutoffs remain unchanged.
 

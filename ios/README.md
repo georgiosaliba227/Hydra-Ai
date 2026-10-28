@@ -57,3 +57,11 @@ Camera fetches authenticated recognition capabilities and fails closed if mode c
 `run_ios_e2e.py --live-simulation` only accepts an explicitly marked nonbillable loopback fake-provider backend. It runs the opt-in live-consent UI case with generated synthetic image data. It must never be pointed at a real Meta transport. Physical-only tests skip in normal simulator runs.
 
 If Xcode hangs after passing simulator tests while collecting verbose diagnostics, `--skip-simulator-diagnostics` adds `-collect-test-diagnostics never`. Assertions and result bundles remain enabled; the flag is refused for physical destinations. `run_live_simulation.py` forwards this optional switch.
+
+## Workout forecast prototype
+
+Today → **Workout forecast · separate from intake** opens a separate estimate screen. **Run synthetic demonstration** submits only mode/timezone and requests the server-owned fixed fixture; the result is labeled simulated, never added to consumption. The local mock Meta explanation integration is explicitly labeled mock and makes no live provider request.
+
+For a personal estimate, manually enter a planned workout and comparable conditions. Add completed manual weighing measurements with recorded intake/urine and independently established absolute error bounds. Explicit calibration-processing consent is required before upload. Unknown values must stay unknown: do not enter zero or invent instrument bounds. Missing usable calibration returns insufficient data; the trained research artifact does not silently supply physiological ground truth.
+
+Session measurements/results remain in screen memory, are cleared on leaving or changing connection, and are not saved to HealthKit or beverage storage. Edits invalidate the displayed result and late responses. The backend processes calibration in memory, with no persistence or provider export. Numbers are estimated workout sweat loss, not consumed water, remaining need, diagnosis or recommended intake. A simulator run cannot validate physiology or physical-device behavior.

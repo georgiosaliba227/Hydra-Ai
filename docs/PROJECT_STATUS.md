@@ -2,7 +2,96 @@
 
 Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
-## Current integration
+## V2 review branch — October 28
+
+`codex/hydration-intelligence-v2` extends the unmerged forecasting branch. The
+$30 Georgio-only experiment allocation supersedes the proposed $10; $20 Spark /
+$10 Wonder remain soft targets. The new financial module has only review-state
+reservations and no private-ledger migration or live dispatch. Amine and the
+existing finance modules/history remain untouched.
+
+Implemented: supplied chronological calibration histories, UTC/DST ordering,
+conservative historical envelopes, synthetic prequential comparison, strict
+mock contextual A/B/C contracts, additive v2 endpoints and native display.
+QDE artifacts/splits remain frozen; no independently validated real improvement.
+Mock labels cannot rank Meta models; provider latency/tokens/billing stay null.
+
+Integrated verification: **613 pytest tests + 32 subtests passed**, one optional
+training module skipped and the existing Starlette warning. The pinned training
+environment separately passed **50 forecasting tests** (overlapping runtime and
+ingestion tests included). **50 XCTest tests** and **one targeted V2 UI test**
+passed; its screenshot was visually inspected. The contextual benchmark reproduced
+exactly and the longitudinal scenarios regenerated independently. Independent
+reviews covered financial accounting and contextual/native numerical authority.
+
+See [review handoff](HYDRATION_V2_REVIEW.md), [experiment controls](META_EXPERIMENT_BUDGET_V2.md)
+and [longitudinal evidence](FORECAST_V2_EVALUATION.md). Missing live engineering,
+review, account evidence and consent gates are explicit; no paid requests occurred.
+
+## Forecasting implementation baseline — October 28
+
+The latest fetched `main` is `700fe6d`, which merged PR #13. The user then authorized
+isolated ML implementation on `codex/hydration-forecast-ml`, coordinated through
+[Issue #15](https://github.com/georgiosaliba227/Hydra-Ai/issues/15). Camera development
+is paused. All work below is for human review, with no deployment or automatic
+merge. Earlier Meta handoffs below are historical and are not a fresh audit of
+private financial state.
+
+The branch is pushed. PR creation is currently blocked by GitHub access: the
+connector returned 403 and the CLI account is not a collaborator; Chrome is signed
+out. The complete [prepared PR description](FORECAST_PR_DESCRIPTION.md) is saved
+for the owner/collaborator to publish. Amine is tagged in Issue #15; a review issue
+is not a pull request. No PR creation or human approval is claimed.
+
+- Verified actual files and reuse conditions for all six requested data sources.
+  The ingestion pipeline produces 200 SpectroPhon corrected-mass-proxy records
+  (198 conservative participant groups) and 80 QDE uncorrected-mass-proxy records
+  (10 participants). Direct identifiers are stripped; repeated source identities
+  remain grouped. The raw identity-bearing workbook was deleted after preprocessing.
+  No raw or normalized individual records are committed. See [inventory](FORECAST_DATA_INVENTORY.md).
+- Trained and compared cohort-rate, ridge, forest and boosting candidates using
+  disjoint fit/validation/calibration/test participants. Real tasks are separate.
+  SpectroPhon ridge test MAE is 71.79 mL; QDE selected boosting test MAE is 331.60 mL
+  and is worse than its 314.22 mL baseline. Both artifacts are offline research
+  models, not generic physiological forecasts. See [evaluation](FORECAST_EVALUATION.md).
+- Generated a separate 480-scenario synthetic experiment from real training
+  anchors only. Bootstrap relatives share split groups; synthetic accuracy does
+  not establish real-world accuracy. JSON artifacts reproduce byte-for-byte in
+  the pinned offline environment. New numerical dependencies are training-only.
+- Added `/v1/workout-forecasts` and a separate iPhone screen for explicit synthetic
+  demonstration or consented manual measured calibration. Personal samples are
+  transient; median/envelope updates are deterministic, not persisted longitudinal
+  ML. Cold starts and daily requirements remain `insufficient_data`. Existing
+  logging, camera, HealthKit, Meta services and private ledgers are preserved.
+- Meta explanation integration is exercised through reviewed local mock signals
+  on server-owned synthetic context only. No real health record reaches Meta;
+  live model quality is unverified and all billable calls remain disabled.
+
+### Verification of the forecasting branch
+
+- Integrated Python application suite: **535 passed, 32 subtests passed**, one
+  optional training module skipped because that environment has no scikit-learn;
+  the existing Starlette/httpx deprecation warning remains.
+- Dedicated pinned Python 3.13 forecasting suite: **39 passed**, including the
+  skipped training module and overlapping ingestion/runtime tests. All four
+  artifacts independently rebuilt and compared byte-for-byte; full reproduction
+  also passed with `RuntimeWarning` treated as an error.
+- Preserved starter: **3 passed** in its own directory.
+- iOS simulator: **47 XCTest unit tests passed**; **3 integration UI tests passed**
+  (manual logging/restart, mock camera, forecast demo leaves intake unchanged),
+  **4 physical/live opt-ins skipped**. A final targeted forecast UI rerun passed
+  after plain-language range labels; its screenshot was visually checked.
+- Independent review checked scientific target separation and leakage, and
+  consent/stale-result/privacy handling. It found and fixed a 32-sample/body-limit
+  mismatch with an endpoint-specific 128 KiB cap and maximum-provenance tests.
+
+No physical iPhone test of the new screen, external-population validation, real
+Meta call, private-ledger modification, or physiological/clinical validation was
+performed. Training/proxy limitations and reproduction instructions are in the
+[model documentation](FORECAST_MODEL.md). Human review and physical-device testing
+remain necessary; there is no learned drinking recommendation.
+
+## Earlier integration record — historical
 
 `main` is `424f9fe` (merged #7). PR #12 was human-merged into #10 on October 27; #10 is `77a3ff4`, #11 `8ee883a`, and #9 `61f94e5`. These heads are combined in existing [integration PR #13](https://github.com/georgiosaliba227/Hydra-Ai/pull/13), initially `be4e492`. Meta-first implementation starts from that head on an isolated branch and preserves every source branch and worktree. No GitHub PR is automatically merged. Amine was notified on #13; unpublished work remains unknown.
 

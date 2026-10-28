@@ -1,0 +1,10 @@
+# Never commit raw public-study files (one source contains identity fields),
+# local transformed participant records, or generated synthetic row datasets.
+*.xlsx
+*.csv
+*.xpt
+*.zip
+*.jsonl
+normalized*.json
+raw/
+cache/
