@@ -1,7 +1,10 @@
 """Account-isolated v2 financial ledger. No network, provider keys or image storage."""
 from datetime import datetime, timezone
 from dataclasses import dataclass
+from contextlib import contextmanager
+from collections.abc import Iterator
 import os
+from pathlib import Path
 import stat
 import sqlite3
 from typing import TYPE_CHECKING
@@ -23,6 +26,24 @@ ACCOUNTS = ("georgiosaliba227", "aminealichaouche")
 USD = 1_000_000
 CAP = 250_000
 PROPOSED_CAP = 2_000_000
+
+FINALITY_SCHEMA_VERSION = "account-ledger-finality-v1"
+# These are the shipped pre-finality tables, including every constraint/default.
+# Migration accepts this known layout only; it never repairs unfamiliar schemas.
+FINANCIAL_DDL: dict[str, str] = {
+    "live_accounts": "CREATE TABLE live_accounts(account_id TEXT PRIMARY KEY, evidence TEXT NOT NULL, anchor_gross INTEGER NOT NULL, frozen INTEGER NOT NULL DEFAULT 0)",
+    "live_prices": "CREATE TABLE live_prices(version TEXT PRIMARY KEY, snapshot TEXT NOT NULL)",
+    "live_permit": "CREATE TABLE live_permit(id INTEGER PRIMARY KEY CHECK(id=1), permit TEXT NOT NULL, spent INTEGER NOT NULL DEFAULT 0)",
+    "live_attempts": "CREATE TABLE live_attempts(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, price TEXT NOT NULL, reserved INTEGER NOT NULL, actual INTEGER, provider_id TEXT, state TEXT NOT NULL, input_bound INTEGER NOT NULL, recognized INTEGER NOT NULL DEFAULT 0, usage TEXT, created_at TEXT NOT NULL, dispatched_at TEXT, payload_sha256 TEXT, ticket_nonce TEXT)",
+    "live_events": "CREATE TABLE live_events(id INTEGER PRIMARY KEY, at TEXT NOT NULL, account_id TEXT, kind TEXT NOT NULL, reference TEXT NOT NULL)",
+    "live_notices": "CREATE TABLE live_notices(id TEXT PRIMARY KEY, account_id TEXT NOT NULL, recipient TEXT NOT NULL, threshold INTEGER NOT NULL, delivered_at TEXT, delivery_reference TEXT, UNIQUE(account_id,recipient,threshold))",
+    "controlled_permits": "CREATE TABLE controlled_permits(account_id TEXT PRIMARY KEY, permit TEXT NOT NULL, spent INTEGER NOT NULL DEFAULT 0)",
+    "live_finalities": "CREATE TABLE live_finalities(attempt_id TEXT PRIMARY KEY, evidence TEXT NOT NULL, recorded_at TEXT NOT NULL)",
+}
+
+
+def _canonical_schema(sql: str) -> str:
+    return re.sub(r"\s+", "", sql).lower().replace("ifnotexists", "").rstrip(";")
 
 
 def now() -> datetime:
@@ -177,6 +198,106 @@ class AccountLedger(MetaBudget):
             db.execute("CREATE TABLE IF NOT EXISTS controlled_permits(account_id TEXT PRIMARY KEY, permit TEXT NOT NULL, spent INTEGER NOT NULL DEFAULT 0)")
             db.execute("CREATE TABLE IF NOT EXISTS live_finalities(attempt_id TEXT PRIMARY KEY, evidence TEXT NOT NULL, recorded_at TEXT NOT NULL)")
         os.chmod(self.path, 0o600)
+
+    @contextmanager
+    def _existing_migration_database(self, *, write: bool) -> Iterator[sqlite3.Connection]:
+        """Open an existing offline ledger only; never create or recover one.
+
+        Rollback-journal format is the known deployed layout. Refuse WAL or
+        leftover journals instead of modifying sidecars or silently recovering
+        potentially interrupted financial work during a schema operation.
+        """
+        connection = None
+        descriptor = None
+        try:
+            path = Path(self.path)
+            if not path.is_absolute() or any(item.is_symlink() for item in (path, *path.parents)):
+                raise ValueError
+            descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+            original = os.fstat(descriptor)
+            if (not stat.S_ISREG(original.st_mode) or original.st_uid != os.getuid()
+                    or stat.S_IMODE(original.st_mode) != 0o600 or original.st_nlink != 1):
+                raise ValueError
+            header = os.read(descriptor, 100)
+            if len(header) != 100 or header[:16] != b"SQLite format 3\x00" or header[18:20] != b"\x01\x01":
+                raise ValueError
+            if any(os.path.lexists(str(path) + suffix) for suffix in ("-journal", "-wal", "-shm")):
+                raise ValueError
+            connection = sqlite3.connect(path.as_uri() + ("?mode=rw" if write else "?mode=ro"),
+                                         uri=True, timeout=0.5)
+            connection.execute("PRAGMA trusted_schema=OFF")
+            connection.execute("PRAGMA synchronous=FULL" if write else "PRAGMA query_only=ON")
+            connection.execute("BEGIN IMMEDIATE" if write else "BEGIN")
+            current = os.stat(path, follow_symlinks=False)
+            if (current.st_dev, current.st_ino, current.st_uid, current.st_mode, current.st_nlink) != (
+                    original.st_dev, original.st_ino, original.st_uid, original.st_mode, original.st_nlink):
+                raise ValueError
+            yield connection
+            current = os.stat(path, follow_symlinks=False)
+            if (current.st_dev, current.st_ino, current.st_uid, current.st_mode, current.st_nlink) != (
+                    original.st_dev, original.st_ino, original.st_uid, original.st_mode, original.st_nlink):
+                raise ValueError
+            connection.commit() if write else connection.rollback()
+        except Exception:
+            if connection is not None:
+                try:
+                    connection.rollback()
+                except sqlite3.Error:
+                    pass  # Leave any interrupted journal for separate recovery.
+            raise BudgetDenied("Schema operation refused; existing private offline ledger requires review") from None
+        finally:
+            if connection is not None:
+                connection.close()
+            if descriptor is not None:
+                os.close(descriptor)
+
+    @staticmethod
+    def _inspect_finality_schema(db: sqlite3.Connection) -> dict:
+        if db.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+            raise BudgetDenied("Ledger integrity check failed")
+        objects = db.execute("SELECT type,name,tbl_name,sql FROM sqlite_master").fetchall()
+        by_name = {row[1]: row for row in objects}
+        for name, expected in FINANCIAL_DDL.items():
+            row = by_name.get(name)
+            if row is None and name == "live_finalities":
+                continue
+            if row is None or row[0] != "table" or not isinstance(row[3], str) or _canonical_schema(row[3]) != _canonical_schema(expected):
+                raise BudgetDenied("Unrecognized financial schema; migration refused")
+        for kind, name, table, sql in objects:
+            if (kind == "trigger" or (kind == "index" and table in FINANCIAL_DDL and sql is not None)
+                    or (name.startswith(("live_", "controlled_", "meta_")) and name not in FINANCIAL_DDL)):
+                raise BudgetDenied("Unexpected schema object; migration refused")
+        present = "live_finalities" in by_name
+        expected_ddl = "\n".join(_canonical_schema(sql) for sql in FINANCIAL_DDL.values())
+        return {"version": FINALITY_SCHEMA_VERSION, "compatible": True,
+                "status": "already_current" if present else "migration_required",
+                "financial_tables_verified": len(FINANCIAL_DDL) if present else len(FINANCIAL_DDL) - 1,
+                "target_schema_sha256": hashlib.sha256(expected_ddl.encode()).hexdigest(),
+                "existing_records_changed": False, "audit_event_added": False, "activation_authorized": False}
+
+    def preview_finality_schema(self) -> dict:
+        """Read-only compatibility/integrity inspection; no evidence/body output."""
+        with self._existing_migration_database(write=False) as db:
+            return self._inspect_finality_schema(db)
+
+    def migrate_finality_schema(self, *, review_reference: str) -> dict:
+        """Atomically add only the finality table and one schema audit event.
+
+        This never attests invoices, changes permits/balances or clears freezes.
+        Idempotent repeats still verify the complete known schema before success.
+        """
+        if (not isinstance(review_reference, str)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/# -]{0,199}", review_reference)
+                or review_reference != review_reference.strip()):
+            raise BudgetDenied("A bounded nonsecret schema review reference is required")
+        with self._existing_migration_database(write=True) as db:
+            before = self._inspect_finality_schema(db)
+            if before["status"] == "already_current":
+                return before
+            db.execute(FINANCIAL_DDL["live_finalities"])
+            self.event(db, None, "finality_schema_migrated", FINALITY_SCHEMA_VERSION + ":" + review_reference)
+            after = self._inspect_finality_schema(db)
+            return {**after, "status": "migrated", "audit_event_added": True}
 
     @staticmethod
     def event(db: sqlite3.Connection, account: str | None, kind: str, reference: str) -> None:

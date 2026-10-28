@@ -7,6 +7,7 @@ This program records human attestations; it does not authenticate their truth.
 import argparse
 import base64
 import hashlib
+import json
 from backend.meta_images import sanitized_jpeg
 from backend.recognition import AnalysisRequest
 import os
@@ -21,7 +22,7 @@ from backend.meta_accounts import AccountLedger, Evidence, Price, FirstPermit, C
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--database', required=True)
-    parser.add_argument('command', choices=['init','attest-account','record-price','approve-first-test','approve-controlled-test','record-invoice-finality','view','reconciliation-reference','image-fingerprint'])
+    parser.add_argument('command', choices=['init','preview-finality-schema','migrate-finality-schema','attest-account','record-price','approve-first-test','approve-controlled-test','record-invoice-finality','view','reconciliation-reference','image-fingerprint'])
     parser.add_argument('--evidence-file')
     parser.add_argument('--image')
     parser.add_argument('--account')
@@ -40,6 +41,10 @@ def main() -> None:
         print(hashlib.sha256(sanitized_jpeg(image)).hexdigest())
     elif args.command == 'init':
         ledger.initialize_accounts()
+    elif args.command == 'preview-finality-schema':
+        print(json.dumps(ledger.preview_finality_schema(), sort_keys=True))
+    elif args.command == 'migrate-finality-schema':
+        print(json.dumps(ledger.migrate_finality_schema(review_reference=args.reference or ''), sort_keys=True))
     elif args.command == 'view':
         print(ledger.project_view())
     elif args.command == 'reconciliation-reference':
