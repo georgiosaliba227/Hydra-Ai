@@ -11,6 +11,12 @@ is paused. All work below is for human review, with no deployment or automatic
 merge. Earlier Meta handoffs below are historical and are not a fresh audit of
 private financial state.
 
+The branch is pushed. PR creation is currently blocked by GitHub access: the
+connector returned 403 and the CLI account is not a collaborator; Chrome is signed
+out. The complete [prepared PR description](FORECAST_PR_DESCRIPTION.md) is saved
+for the owner/collaborator to publish. Amine is tagged in Issue #15; a review issue
+is not a pull request. No PR creation or human approval is claimed.
+
 - Verified actual files and reuse conditions for all six requested data sources.
   The ingestion pipeline produces 200 SpectroPhon corrected-mass-proxy records
   (198 conservative participant groups) and 80 QDE uncorrected-mass-proxy records
