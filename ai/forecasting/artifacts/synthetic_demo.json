@@ -1,0 +1,71 @@
+{
+  "dataset_sha256": "6c54feeb74dac9ea3687b03fcb468f4a1db76a1a5512d8066582128a84de24da",
+  "feature_bounds": {
+    "age_years": [
+      22.0,
+      53.0
+    ],
+    "duration_minutes": [
+      30.0,
+      120.0
+    ],
+    "pre_mass_kg": [
+      44.1,
+      93.43333333333334
+    ]
+  },
+  "features": [
+    "duration_minutes",
+    "pre_mass_kg",
+    "age_years"
+  ],
+  "fit_partition_sha256": "4abcd40aa53b4571c747f6ee73ad9433bcb4959d470eb78075356133dc657e34",
+  "imputation": [
+    60.0,
+    67.6,
+    37.0
+  ],
+  "interval": {
+    "calibration_participants": 12,
+    "kind": "participant_split_conformal",
+    "limitation": "Exchangeable participants within this source only; no external-study coverage guarantee.",
+    "nominal_coverage": 0.9,
+    "radius_ml": 402.2713190953084
+  },
+  "means": [
+    72.39795918367346,
+    67.46964285714289,
+    35.39795918367347
+  ],
+  "model": {
+    "coefficients": [
+      150.77804598390983,
+      62.689022770665076,
+      2.8576404720456425
+    ],
+    "intercept": 324.0184571460351,
+    "kind": "ridge"
+  },
+  "model_version": "synthetic-workout-demo-v1",
+  "provenance": [
+    "Hydra synthetic mass-balance scenarios v1, seed 8317; targets simulated; baseline covariates bootstrapped from attributed real training anchors",
+    "https://data.mendeley.com/datasets/jt22782wjh/1",
+    "CC BY 4.0"
+  ],
+  "runtime_use": "synthetic_demo_only",
+  "scales": [
+    34.686861535486436,
+    12.607593451073477,
+    9.035914504747678
+  ],
+  "schema_version": "offline-forecast-json-v1",
+  "seed": 20261028,
+  "selected_model": "ridge",
+  "study_id": "synthetic-scenarios-v1",
+  "synthetic": true,
+  "target_name": "simulated_sweat_loss_ml",
+  "training_versions": {
+    "numpy": "2.2.6",
+    "scikit_learn": "1.6.1"
+  }
+}
