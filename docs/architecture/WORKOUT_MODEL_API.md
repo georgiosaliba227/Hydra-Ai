@@ -53,8 +53,12 @@ confirmed beverages or claims to estimate dehydration, retention, or net balance
 
 ## HTTP and iPhone boundary
 
-The additive authenticated `POST /v1/workout-forecasts` uses the existing bounded
-request guard, generic error envelope, and `Cache-Control: no-store`. The adapter
+The additive authenticated `POST /v1/workout-forecasts` uses the existing request
+guard with an endpoint-specific **128 KiB** serialized-body limit, generic error
+envelope, and `Cache-Control: no-store`. Other endpoints keep their existing
+limits. This accommodates 32 typical calibration samples and bounded provenance;
+excessive JSON escaping or whitespace still counts toward the independent wire
+limit and can produce 413. The adapter
 uses existing exercise/sample validators, explicit timezone and offset timestamps,
 server-generated UTC calculation time, and separate strict calibration-processing
 consent. Manual measurements are transient request data only. Raw HealthKit records
