@@ -1,0 +1,73 @@
+{
+  "inventory_complete_before_synthetic": true,
+  "sources": [
+    {
+      "decision": "included_separate_proxy_task",
+      "filename": "spectrophon.xlsx",
+      "license": "CC-BY-4.0",
+      "observed_records": 200,
+      "raw_committed": false,
+      "sha256": "479a34372203db550fa9d8b55c1ba7f0fe9dbaa88cb870072ea477db4a123ea3",
+      "source_id": "spectrophon",
+      "split_groups": 198,
+      "study_id": "spectrophon-v1",
+      "training_records": 200,
+      "url": "https://data.mendeley.com/public-files/datasets/jt22782wjh/files/a6427fc3-3419-482f-a91c-33e3df048ccf/file_downloaded"
+    },
+    {
+      "decision": "included_separate_proxy_task",
+      "filename": "qde.csv",
+      "license": "ODC-By-1.0",
+      "observed_records": 90,
+      "raw_committed": false,
+      "sha256": "186f24f567eee623e475f6556217344a9cc3a522d969d76df02ffe5820628074",
+      "source_id": "qde",
+      "split_groups": 10,
+      "study_id": "qde-v1",
+      "training_records": 80,
+      "url": "https://physionet.org/files/qde/1.0.0/dehydration_estimation.csv"
+    },
+    {
+      "bytes": 11722480,
+      "codebook_participants": 8704,
+      "decision": "inventory_only_self_reported_consumption",
+      "license": "NCHS public-use statistical-purpose agreement",
+      "raw_committed": false,
+      "sha256": "390ae5205acfbcb87e0ca3d9aabd1c801b60657d3f2802ac08d5b3ed93f0af6d",
+      "source_id": "nhanes-dr1tot-j",
+      "url": "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2017/DataFiles/DR1TOT_J.xpt"
+    },
+    {
+      "bytes": 599670,
+      "decision": "excluded_no_fluid_target",
+      "license": "CC-BY-4.0",
+      "observed_records": 16099,
+      "observed_user_groups": 14,
+      "raw_committed": false,
+      "sha256": "8981a860111d4bf4a26301352c9d8c81d374a77fc3235d3f979af4086525a83f",
+      "source_id": "activity-skunk-v2",
+      "url": "https://zenodo.org/records/18153233/files/dataset_activity_skunk_v2.csv?download=1"
+    },
+    {
+      "bytes": 469303,
+      "decision": "excluded_food_composition_not_workout_outcome",
+      "license": "CC0-1.0",
+      "observed_food_records": 395,
+      "raw_committed": false,
+      "sha256": "186e988ec542e913f51ef62b86a47758e8cdd0d1dc3889e7b055581f3c09c77a",
+      "source_id": "fdc-foundation-2026-04",
+      "url": "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_foundation_food_json_2026-04-30.zip"
+    },
+    {
+      "bytes": 51248,
+      "decision": "excluded_startup_reuse_permission_not_established",
+      "documented_subject_codes": 16,
+      "license": "CC-BY-NC-SA-4.0",
+      "raw_committed": false,
+      "sha256": "3ca39425d14597914fb455dc9dffe369567850569ceb57bd5e209826702bc4e1",
+      "source_id": "ucr-milk-exercise-2023",
+      "url": "https://kerwa.ucr.ac.cr/bitstreams/404c53c4-2b75-40bc-bb32-0b19360b494f/download"
+    }
+  ],
+  "verified_at": "2026-10-28"
+}
