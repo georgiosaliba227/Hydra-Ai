@@ -30,7 +30,7 @@ Protocol: eight 15-minute treadmill bouts, eight-minute measurement breaks, no f
 
 Target `body_mass_loss_proxy_ml` = baseline minus subsequent scale mass ×1000, using the conventional approximate kg-to-L water equivalence. This includes rest-period and non-sweat losses and lacks urine correction. Active duration excludes rests; target losses do not. It is not equivalent to the SpectroPhon target, and the studies must not be pooled as the same task. Ten people are inadequate for broad generalization or stable subgroup calibration.
 
-Required original attribution: Ring, Lohmueller, Rauh & Eskofier (2015), *On sweat analysis for quantitative estimation of dehydration during physical exercise*, EMBC, 7011–7014; include PhysioNet's current citation from the linked page. No biomarker-based hydration diagnosis is implemented.
+Required original attribution: Ring, Lohmueller, Rauh & Eskofier (2015), *On sweat analysis for quantitative estimation of dehydration during physical exercise*, EMBC, 7011–7014; Also cite Pollard, T., Moody, B. E., Lehman, L., Gow, B., Fernandes, C., Xie, C., Johnson, A., Mark, R. G., & Heldt, T. (2026), *PhysioNet as a global platform for biomedical research*, Nature Health, https://doi.org/10.1038/s44360-026-00096-z. No biomarker-based hydration diagnosis is implemented.
 
 ## CDC NHANES 2017–2018 dietary intake — inventory only
 
