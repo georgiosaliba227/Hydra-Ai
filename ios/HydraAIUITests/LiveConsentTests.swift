@@ -21,6 +21,14 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [liveHeader], timeout: 10), .completed)
         XCTAssertFalse(header.label.lowercased().contains("mock"))
         app.buttons["syntheticPhoto"].tap()
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].waitForExistence(timeout: 10))
+        let refresh = app.buttons["refreshRecognitionMode"]
+        refresh.tap()
+        let refreshed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [refreshed], timeout: 10), .completed)
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].exists, "Refreshing mode must preserve the prepared image")
+        XCTAssertEqual(app.switches["photoConsent"].value as? String, "0")
+        XCTAssertEqual(app.switches["metaPhotoConsent"].value as? String, "0")
         let analyze = app.buttons["analyzePhoto"]
         XCTAssertTrue(analyze.waitForExistence(timeout: 10));XCTAssertFalse(analyze.isEnabled)
         app.swipeUp()
@@ -37,6 +45,20 @@ final class LiveConsentTests: XCTestCase {
         if metaConsent.value as? String != "1" {
             metaConsent.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         }
+        XCTAssertEqual(metaConsent.value as? String, "1")
+        // Refresh after granting both consents, not only while they are already off.
+        app.swipeDown()
+        refresh.tap()
+        let consentReset = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: refresh)
+        XCTAssertEqual(XCTWaiter.wait(for: [consentReset], timeout: 10), .completed)
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].exists)
+        XCTAssertEqual(backendConsent.value as? String, "0")
+        XCTAssertEqual(metaConsent.value as? String, "0")
+        XCTAssertFalse(analyze.isEnabled)
+        app.swipeUp()
+        backendConsent.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        metaConsent.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        XCTAssertEqual(backendConsent.value as? String, "1")
         XCTAssertEqual(metaConsent.value as? String, "1")
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: analyze)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
@@ -65,6 +87,12 @@ final class LiveConsentTests: XCTestCase {
         app.switches["confirmPhotoDetails"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         app.buttons["savePhotoBeverage"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        app.buttons["syntheticPhoto"].tap()
+        XCTAssertTrue(app.buttons["exportPreparedPhoto"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.switches["photoConsent"].value as? String, "0")
+        XCTAssertEqual(app.switches["metaPhotoConsent"].value as? String, "0")
+        XCTAssertFalse(app.buttons["analyzePhoto"].isEnabled)
+        XCTAssertFalse(app.staticTexts["recognitionResultSource"].exists)
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '125'"), object: total)

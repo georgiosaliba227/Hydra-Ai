@@ -1,0 +1,190 @@
+{
+  "version": "meta-evaluation-observations-v1",
+  "observations": [
+    {
+      "case_id": "clear_label",
+      "mode": "mock",
+      "outcome": "success",
+      "result": {
+        "version": "recognition-v1",
+        "mode": "mock",
+        "model": "muse-spark-1.3",
+        "recognition_id": null,
+        "candidates": [
+          {
+            "identity": "Fixture Fizz",
+            "category": "sparkling water",
+            "brand": "Fixture Fizz",
+            "product": null,
+            "visible_label_text": null,
+            "product_id": null,
+            "container_ml": 330,
+            "confidence": "medium",
+            "uncertainty_reasons": [
+              "Synthetic fixture; image pixels were not analyzed."
+            ]
+          }
+        ],
+        "requires_confirmation": true
+      },
+      "latency_ms": 1.0
+    },
+    {
+      "case_id": "ambiguous",
+      "mode": "mock",
+      "outcome": "success",
+      "result": {
+        "version": "recognition-v1",
+        "mode": "mock",
+        "model": "muse-spark-1.3",
+        "recognition_id": null,
+        "candidates": [],
+        "requires_confirmation": true
+      },
+      "latency_ms": 1.0
+    },
+    {
+      "case_id": "wrong_brand_volume",
+      "mode": "mock",
+      "outcome": "success",
+      "result": {
+        "version": "recognition-v1",
+        "mode": "mock",
+        "model": "muse-spark-1.3",
+        "recognition_id": null,
+        "candidates": [
+          {
+            "identity": "Other Juice",
+            "category": "juice",
+            "brand": "Other Juice",
+            "product": null,
+            "visible_label_text": null,
+            "product_id": null,
+            "container_ml": 300,
+            "confidence": "medium",
+            "uncertainty_reasons": [
+              "Synthetic fixture; image pixels were not analyzed."
+            ]
+          },
+          {
+            "identity": "Fixture Juice",
+            "category": "juice",
+            "brand": "Fixture Juice",
+            "product": null,
+            "visible_label_text": null,
+            "product_id": null,
+            "container_ml": 250,
+            "confidence": "medium",
+            "uncertainty_reasons": [
+              "Synthetic fixture; image pixels were not analyzed."
+            ]
+          }
+        ],
+        "requires_confirmation": true
+      },
+      "latency_ms": 1.0
+    },
+    {
+      "case_id": "intake_missing_composition",
+      "mode": "mock",
+      "outcome": "success",
+      "result": {
+        "version": "hydration-explanation-v1",
+        "mode": "mock",
+        "provider": null,
+        "model": null,
+        "attempt_id": null,
+        "context": {
+          "version": "hydration-context-v1",
+          "synthetic": true,
+          "disclosure_consent": true,
+          "beverage_total_ml": 750.0,
+          "estimated_water_ml": null,
+          "workout_minutes": null,
+          "workout_intensity": "missing",
+          "temperature_c": null,
+          "humidity_percent": null,
+          "estimated_sweat_loss_ml": null,
+          "creatine_reported": null,
+          "feedback": "missing",
+          "method": "hydration-accounting-v1"
+        },
+        "signals": [
+          "review_intake",
+          "composition_missing"
+        ],
+        "explanations": [
+          "Review confirmed beverage intake alongside your activity and feedback.",
+          "Missing verified beverage composition limits water and electrolyte estimates."
+        ],
+        "prediction": null,
+        "missing_information": [
+          "estimated_water_ml"
+        ],
+        "account_id": null,
+        "discarded_signal_count": 0
+      },
+      "latency_ms": 1.0,
+      "human_review": {
+        "reviewer_reference": "synthetic-harness-rubric",
+        "unsupported_medical_claim": false,
+        "unsupported_numerical_recommendation": false,
+        "explanation_quality_1_to_5": 5
+      }
+    },
+    {
+      "case_id": "same_intake_repeat",
+      "mode": "mock",
+      "outcome": "success",
+      "result": {
+        "version": "hydration-explanation-v1",
+        "mode": "mock",
+        "provider": null,
+        "model": null,
+        "attempt_id": null,
+        "context": {
+          "version": "hydration-context-v1",
+          "synthetic": true,
+          "disclosure_consent": true,
+          "beverage_total_ml": 750.0,
+          "estimated_water_ml": null,
+          "workout_minutes": null,
+          "workout_intensity": "missing",
+          "temperature_c": null,
+          "humidity_percent": null,
+          "estimated_sweat_loss_ml": null,
+          "creatine_reported": null,
+          "feedback": "missing",
+          "method": "hydration-accounting-v1"
+        },
+        "signals": [
+          "review_intake",
+          "composition_missing"
+        ],
+        "explanations": [
+          "Review confirmed beverage intake alongside your activity and feedback.",
+          "Missing verified beverage composition limits water and electrolyte estimates."
+        ],
+        "prediction": null,
+        "missing_information": [
+          "estimated_water_ml"
+        ],
+        "account_id": null,
+        "discarded_signal_count": 0
+      },
+      "latency_ms": 1.0,
+      "human_review": {
+        "reviewer_reference": "synthetic-harness-rubric",
+        "unsupported_medical_claim": false,
+        "unsupported_numerical_recommendation": false,
+        "explanation_quality_1_to_5": 5
+      }
+    },
+    {
+      "case_id": "provider_failure",
+      "mode": "mock",
+      "outcome": "error",
+      "latency_ms": 2.0
+    }
+  ]
+}

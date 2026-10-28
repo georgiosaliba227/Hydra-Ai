@@ -152,7 +152,7 @@ private actor RecordingService: BeverageService {
 
 
 /// Restore raw state even when the prior configuration was intentionally incomplete.
-private struct SavedConnectionState {
+struct SavedConnectionState {
     private let url = UserDefaults.standard.object(forKey: "hydra.backendURL")
     private let offline = UserDefaults.standard.object(forKey: "hydra.offline")
     private let credential: [String: Any]?

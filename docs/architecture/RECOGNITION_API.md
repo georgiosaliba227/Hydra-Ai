@@ -19,3 +19,16 @@ Persist only confirmed identity, container, consumed amount, source, nutrition/p
 ## Live gate
 
 A guarded Responses transport is implemented but live dispatch remains blocked by the verified maximum-cost gate. Follow GUARDED_META_API.md and docs/API_BUDGET.md: verify each account independently, retain one authoritative gateway with isolated account ledgers, establish a whole-request cost bound, verify retention and consent, deliver required notices and obtain explicit approvals. Committed defaults remain mock/false. No configuration flag alone authorizes or bypasses the budget gateway.
+
+
+## Controlled-test additive label observation (2026-10-27)
+
+Candidates may include nullable `visible_label_text` (at most 600 characters), a verbatim, unverified transcription of visible nutrition/volume labels. This field is untrusted display evidence only; never parse it into verified composition or log nutrients automatically. The current iPhone ignores this additive field. Existing confirmation, curated nutrition selection and receipt-based deterministic logging remain required. The provider JSON schema requires this field with null for unreadable labels; legacy response fixtures can omit it at the backend parser boundary.
+
+The proposed disabled `dual-test-v1` policy binds Georgio to camera and Amine to synthetic hydration explanation, with separate <=$2 explicit approvals. See [controlled test contract and procedure](../META_DUAL_TESTS.md). It does not change recognition-v1 confirmation or authorize requests.
+
+## Client and provider boundary safeguards (2026-10-28)
+
+Provider category, brand, product and uncertainty text are trimmed at parsing; a non-null field that becomes empty is invalid model output. Nullable identity fields must use null for unknown values. Verbatim `visible_label_text` is unchanged. Invalid output never receives a successful recognition receipt; already reported usage remains accounted and the existing quarantine prevents retries.
+
+The iPhone binds verified capabilities, photo consent and recognition receipts to the current backend connection generation. Switching backend, access token or offline mode revokes these states; delayed responses from a previous generation are discarded, including a switch away and back to the same URL. Confirmations must use the backend that produced their receipt. A failed live HTTP request, timeout or invalid response shows fixed no-retry guidance without inheriting generic backend retry text. Mock failures retain their existing local retry behavior.

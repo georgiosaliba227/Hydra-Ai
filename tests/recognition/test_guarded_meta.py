@@ -489,7 +489,7 @@ def test_reviewed_cost_policy_and_canonical_request():
     assert '"title":' not in json.dumps(schema)
     candidate=schema['$defs']['ProviderCandidate']
     assert candidate['additionalProperties'] is False
-    assert set(candidate['required'])=={'category','brand','product','container_ml','confidence','uncertainty_reasons'}
+    assert set(candidate['required'])=={'category','brand','product','container_ml','confidence','uncertainty_reasons','visible_label_text'}
     assert candidate['properties']['container_ml']['anyOf'][0]['maximum']==5000
     assert set(payload)=={'model','store','stream','background','max_output_tokens','reasoning','text','input'}
     # A verified full-input bound would need to be <=198,259 tokens to fit.

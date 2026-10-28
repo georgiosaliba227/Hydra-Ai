@@ -1,5 +1,7 @@
 # Account-specific Meta budget architecture (v2)
 
+> Current restriction: one project-wide named-account/exact-image first test at <=$0.25, still disabled. The `dual-test-v1` <=$2/account path is an unapproved proposal; adopting it requires an explicit human policy decision in addition to account/input/spending approvals. See [decision log](DECISION_LOG.md).
+
 Updated 2026-10-27. This supersedes the earlier single shared-$150 assumption. The user reports two individual allocations; neither has been independently verified. This update authorizes NO spending and NO automatic key/account rotation.
 
 | Account | Reported credit allocation | Current remaining / expiry | Gross usage / billing / hackathon grant terms | Authorization |
@@ -22,7 +24,7 @@ Project reporting sums gross usage/reservations, not credits. Missing account ev
 | Reaches $120 | Always reject new dispatch; the account's $30 reserve is untouched |
 | $150 | Absolute gross ceiling, additionally checked; credits never offset gross accounting |
 
-The first test has a stricter PROJECT-WIDE immutable singleton permit: one selected account, one approved metadata-normalized JPEG SHA256, both developer reviews, selected-account-owner authorization reference, spending-authority reference, image-owner consent reference, exact reviewed price version, expiry, $0.25 ceiling, one attempt and no retry. The permit is consumed in the atomic reservation transaction; it cannot be reset/reissued through the provided API/CLI. Any unresolved attempt in either account blocks another request. There is no HTTP admin/approval/settlement API.
+The first test has a stricter PROJECT-WIDE immutable singleton permit: one selected account, one approved metadata-normalized JPEG SHA256, both developer reviews, selected-account-owner authorization reference, spending-authority reference, image-owner consent reference, exact reviewed price version, expiry, $0.25 ceiling, one attempt and no retry. The permit is consumed in the atomic reservation transaction; it cannot be reset/reissued through the provided API/CLI. Any unresolved attempt, missing reviewed invoice finality or frozen account blocks another request project-wide. There is no HTTP admin/approval/settlement API.
 
 ## Spending protocol
 
@@ -43,7 +45,7 @@ A smaller provider-enforced/documented whole-request bound must be verified and 
 
 ## Local operator tools (no network)
 
-Use `python -m scripts.meta_budget_admin --database /absolute/private/ledger.sqlite3 init`, then `attest-account`, `record-price`, `approve-first-test` with individually reviewed mode-0600 JSON evidence files matching `Evidence`, `Price`, `FirstPermit` schemas. `view` reports isolated account totals; `reconciliation-reference` only adds an audit reference. No resets, live calls, key creation or billing settings changes are implemented. Do not initialize a genuine account with a synthetic/assumed zero baseline. `.env.example` and `docs/budget/first-test.disabled.json` remain disabled/incomplete templates.
+Use `python -m scripts.meta_budget_admin --database /absolute/private/ledger.sqlite3 init`, then `attest-account`, `record-price`, `approve-first-test` with individually reviewed mode-0600 JSON evidence files matching `Evidence`, `Price`, `FirstPermit` schemas. `view` reports isolated account totals; `reconciliation-reference` only adds an audit reference. The integration adds `record-invoice-finality --evidence-file /private/finality.json` for immutable `InvoiceFinality` attestations matching already settled authenticated usage, reviewed by both developers. It never changes amounts or unfreezes an account. The additive eighth table is tested only in temporary ledgers; do not run `init` on the permanent ledger without separate migration review. No resets, live calls, key creation or billing settings changes are implemented. Do not initialize a genuine account with a synthetic/assumed zero baseline. `.env.example` and `docs/budget/first-test.disabled.json` remain disabled/incomplete templates.
 
 ## Required human sign-off
 

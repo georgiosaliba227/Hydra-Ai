@@ -1,6 +1,10 @@
 # Final guarded Meta readiness and conditional first-test procedure
 
+> Current restriction: one project-wide named-account/exact-image first test at <=$0.25, still disabled. The `dual-test-v1` <=$2/account path is an unapproved proposal; adopting it requires an explicit human policy decision in addition to account/input/spending approvals. See [decision log](DECISION_LOG.md).
+
 2026-10-27 follow-up on PR #7, branch `codex/meta-beverage-recognition`. **NOT READY for live inference.** All Meta requests remain disabled. No authentication, token-count, image-upload or inference request was sent to Meta. This document is neither approval nor an instruction to enable billing.
+
+Issue #8 follow-up: see [activation evidence review](META_ACTIVATION_EVIDENCE.md) for the official counting-endpoint discrepancy, unverified preflight charges/limits, exact per-account evidence checklist and conditional bound design. No activation gate is satisfied by this documentation.
 
 ## Cost investigation
 

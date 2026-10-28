@@ -55,6 +55,36 @@ final class RecognitionTests: XCTestCase {
         XCTAssertLessThanOrEqual(properties[kCGImagePropertyPixelWidth] as! Int, 1600)
         XCTAssertNil(properties[kCGImagePropertyGPSDictionary])
     }
+    @MainActor func testPreparedExportAndAnalysisUseIdenticalMetadataStrippedBytes() async throws {
+        let original = UIGraphicsImageRenderer(size: CGSize(width: 1800, height: 900)).image { context in
+            UIColor.green.setFill(); context.fill(CGRect(x: 0, y: 0, width: 1800, height: 900))
+        }
+        let taggedData = NSMutableData()
+        let destination = try XCTUnwrap(CGImageDestinationCreateWithData(taggedData, "public.jpeg" as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, try XCTUnwrap(original.cgImage), [
+            kCGImagePropertyGPSDictionary: [kCGImagePropertyGPSLatitude: 37.5, kCGImagePropertyGPSLatitudeRef: "N"],
+            kCGImagePropertyExifDictionary: [kCGImagePropertyExifUserComment: "PRIVATE ORIGINAL METADATA"]
+        ] as CFDictionary)
+        XCTAssertTrue(CGImageDestinationFinalize(destination))
+        let originalSource = try XCTUnwrap(CGImageSourceCreateWithData(taggedData, nil))
+        let originalProperties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(originalSource, 0, nil)) as NSDictionary
+        XCTAssertNotNil(originalProperties[kCGImagePropertyGPSDictionary])
+        let prepared = try PreparedRecognitionPhoto(image: XCTUnwrap(UIImage(data: taggedData as Data)))
+        let exportedJPEG = prepared.export.jpeg
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(exportedJPEG as CFData, nil))
+        let properties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil)) as NSDictionary
+        XCTAssertNil(properties[kCGImagePropertyGPSDictionary])
+        XCTAssertNil((properties[kCGImagePropertyExifDictionary] as? NSDictionary)?[kCGImagePropertyExifUserComment])
+        XCTAssertLessThanOrEqual(properties[kCGImagePropertyPixelWidth] as! Int, 1600)
+        FixtureURLProtocol.handler = { request in
+            let body = try JSONSerialization.jsonObject(with: request.httpBody ?? Data(reading: request.httpBodyStream!)) as! [String: Any]
+            XCTAssertEqual(body["image_base64"] as? String, exportedJPEG.base64EncodedString(), "Approval export must be the exact analyzed copy")
+            return (200, Data(self.result.utf8))
+        }
+        _ = try await service().analyzePhoto(prepared.export.jpeg, scenario: "generic")
+        XCTAssertEqual(prepared.export.jpeg, exportedJPEG)
+    }
+
     func testConfirmedVolumeAndCorrectionBoundary() throws {
         var request = CreateBeverageRequest(category: "Coffee", consumedMl: 150, consumedAt: .now, timezone: "America/New_York", source: "confirmed_recognition", containerMl: 250)
         XCTAssertNoThrow(try request.validate())
@@ -108,6 +138,29 @@ private extension Data {
 
 final class GuardedRecognitionTests: XCTestCase {
     override func tearDown() { FixtureURLProtocol.handler = nil }
+    func testLiveFailuresNeverAdviseRetryOrRepeatRequest() async throws {
+        let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
+        for failure in ["http", "timeout", "invalidResponse"] {
+            var calls = 0
+            let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
+            FixtureURLProtocol.handler = { _ in
+                calls += 1
+                if failure == "timeout" { throw URLError(.timedOut) }
+                return failure == "http" ? (503, Data()) : (200, Data("invalid".utf8))
+            }
+            let service = try HTTPBeverageService(configuration: config, session: URLSession(configuration: options))
+            do {
+                _ = try await service.analyzePhoto(Data([1, 2, 3]), scenario: "ambiguous", mode: "meta_live", metaConsent: true)
+                XCTFail("Expected unverified live result")
+            } catch ServiceError.liveRecognitionUnverified {
+                let message = ServiceError.liveRecognitionUnverified.localizedDescription
+                XCTAssertTrue(message.contains("Do not retry"))
+                XCTAssertFalse(message.contains("Retry when"))
+            }
+            XCTAssertEqual(calls, 1, "A failed live attempt must never be repeated automatically")
+        }
+    }
+
     func testLiveDisclosureRequiredBeforeNetwork() async throws {
         let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
         let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]

@@ -4,6 +4,7 @@ protocol BeverageService: Sendable {
     func listBeverages() async throws -> [BeverageLog]
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
+    func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
 }
 
 /// Offline stand-in for GET and POST /v1/beverages. It round-trips the same
@@ -52,6 +53,10 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast {
+        throw ServiceError.invalidResponse
+    }
+
     func createBeverage(_ request: CreateBeverageRequest) async throws -> BeverageLog {
         try await createBeverage(request, idempotencyKey: UUID())
     }

@@ -1,5 +1,7 @@
 # Guarded Meta implementation and account update — 2026-10-27
 
+> Current restriction: one project-wide named-account/exact-image first test at <=$0.25, still disabled. The `dual-test-v1` <=$2/account path is an unapproved proposal; adopting it requires an explicit human policy decision in addition to account/input/spending approvals. See [decision log](DECISION_LOG.md).
+
 Implementation on existing branch `codex/meta-beverage-recognition`, PR #7. No duplicate PR, deployment, live Meta request, account activation, billing setting change or automatic merge. No real images were sent to Meta. No genuine financial authority/baseline/approval was initialized; tests use disposable synthetic evidence and fake providers.
 
 ## Implemented files / behavior

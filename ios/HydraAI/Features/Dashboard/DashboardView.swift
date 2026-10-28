@@ -15,6 +15,34 @@ struct DashboardView: View {
         return Int(value)
     }
 
+    private var historyCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Previous 7 days").font(.headline)
+            if let history = store.intakeHistory?.historicalLoggedIntake {
+                if let lower = history.beverageLowerMl, let upper = history.beverageUpperMl {
+                    Text("Logged-day range: \(lower.formatted(.number.precision(.fractionLength(0...1))))–\(upper.formatted(.number.precision(.fractionLength(0...1)))) mL")
+                } else {
+                    Text("No beverages logged in the previous 7 days.")
+                }
+                Text("\(history.loggedDays) days with logs · \(history.daysWithoutLogs) days without logs")
+                    .accessibilityIdentifier("historyCoverage")
+                Text("Logs may be incomplete. Days without logs are unknown, not measured zero intake.")
+            } else if case .loading = store.intakeHistoryState {
+                Text("Loading logged-intake history…")
+            } else if case .failed(let message) = store.intakeHistoryState {
+                Text(message)
+            } else {
+                Text(store.isOffline ? "Connect to your backend to view logged-intake history." : "Logged-intake history is unavailable until refreshed.")
+            }
+            Text("Daily hydration requirement unavailable. Logged amounts are descriptive and are not a drinking target.")
+                .accessibilityIdentifier("dailyRequirementUnavailable")
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("intakeHistoryCard")
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -60,6 +88,8 @@ struct DashboardView: View {
                 .controlSize(.large)
                 .disabled(!store.canLog)
                 .accessibilityIdentifier("logBeverage")
+
+                historyCard
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent today")

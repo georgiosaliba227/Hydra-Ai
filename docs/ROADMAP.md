@@ -1,5 +1,11 @@
 # Roadmap and review gates
 
+Current execution tracking: [status](PROJECT_STATUS.md), [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md). Stage exit gates below are product goals; historical preparation text is not evidence that every gate is complete.
+
+## Active priority — October 27 Meta-first instruction
+
+M2 and the Meta explanation portion of M3 are the immediate engineering priority: actual Muse Spark 1.3 Standard camera inference on Georgio's account, separately approved synthetic hydration interpretation on Amine's account, reproducible quality/latency/usage/cost evaluation, then the existing iPhone confirmation workflow. Defer unrelated UI changes and speculative features. The milestone stays incomplete until both real requests are authorized, executed, reconciled and evaluated. Complete safe code/tests while provider evidence and explicit spending/disclosure approval are pending; use [one activation handoff](META_FIRST_DELIVERY.md), not repeated general audits. The $2 proposal remains unapproved and all account cutoffs remain unchanged.
+
 ## M0 — planning
 Prepared: repository inventory; root AGENTS.md; proposed architecture and directory ownership; draft API/data contracts; team workflow; issue backlog. Existing starter preserved. Planning PR #1 was merged; full development authorization now permits the end-to-end prototype.
 
@@ -9,13 +15,13 @@ Prepared: local tool inspection, Python environment, configuration template, cor
 ## Approval record
 - Planning PR #1 merged. User reports both developers authorize cross-component prototype integration. Existing feature PRs remain subject to human review; no automatic merge.
 - Startup track selected. Confirm both developers' acceptance and individual eligibility, founders/product status and authorized active-employee representative; verify portal-specific submission details.
-- Select supported Meta endpoint/model, exact prices and billing bounds; verify both developers' access, shared credit expiry/coverage and historical gross usage.
+- Select supported Meta endpoint/model, exact prices and billing bounds; verify both developers' access, separate account credit expiry/coverage and historical gross usage.
 - Approve baseline scientific method, uncertainty and safety behavior before presenting recommendations.
 - Approve initial paid requests only after budget gateway implementation and safeguards pass; separate approval at $100; automatic stop $120 cumulative gross usage with $30 reserve. No automatic top-ups; credits do not prevent overages.
 - Approve paid hosting/subscriptions, major architecture changes and each merge separately.
 
-## M1 — application foundation (active, authorized)
-Create Xcode project and modular backend, migrate starter under review, persist confirmed manual logs, implement dashboard and contracts. Exit: offline/manual path and client/API integration work with deterministic tests.
+## M1 — application foundation (baseline implemented and previously device-tested)
+Xcode project, modular backend, confirmed manual logs, dashboard and contracts are implemented; the historical starter remains isolated. Exit: offline/manual path and client/API integration work with deterministic tests.
 
 ## M2 — Meta AI features
 Implement mock adapter and budget gateway first; verify all spending tests. Then approved real Meta recognition, product lookup and quantity confirmation. Exit: traceable real model use, uncertainty evaluation and reconciliation; no silent logging.

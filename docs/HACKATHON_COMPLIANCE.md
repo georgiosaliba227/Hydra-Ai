@@ -50,3 +50,5 @@ See [account-specific budget controls](API_BUDGET.md). Each account preserves $7
 - [ ] Verify exact credit expiry/coverage, historical gross usage and cash-overage behavior against the account and linked Credit Terms.
 - [ ] Verify the implemented account-specific safeguards and all remaining external evidence/cost-bound/reconciliation gates before separate paid-call approval.
 - [x] Planning PR #1 merged; explicit development authorization received. Subsequent integration PRs still require human review; no automatic merge.
+
+October 27 integration recheck: the official event page still lists November 4 at 9 PM ET, subject to organizer changes. The waiver could not be freshly retrieved; earlier rule analysis remains historical. This check did not verify either participant, log in to the submission portal, accept terms or submit anything. Current owners/actions are tracked in NEXT_ACTIONS.md.
