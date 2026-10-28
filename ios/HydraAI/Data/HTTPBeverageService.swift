@@ -14,7 +14,7 @@ struct DailySummary: Codable, Sendable {
 }
 
 enum ServiceError: LocalizedError {
-    case configuration, credentials, invalidResponse, pending, storage, unauthorized, consent
+    case configuration, credentials, invalidResponse, pending, storage, unauthorized, consent, liveRecognitionUnverified
     case server(Int)
     var errorDescription: String? {
         switch self {
@@ -25,6 +25,7 @@ enum ServiceError: LocalizedError {
         case .pending: "A beverage is awaiting confirmation. Retry it before creating another or changing connection settings."
         case .storage: "The pending beverage could not be stored safely. No new request was sent."
         case .unauthorized: "The backend rejected the development access token. Check Settings."
+        case .liveRecognitionUnverified: "Meta analysis did not return a verified result. Do not retry this Meta attempt. Ask a developer to review the ledger and any uncertain charges. You can log manually; analysis created no beverage."
         case .server(let status): "The backend could not complete this request (HTTP \(status)). Retry when it is available."
         }
     }
@@ -99,13 +100,20 @@ actor HTTPBeverageService: BeverageService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
         request.httpBody = try encoder.encode(RecognitionRequest(imageBase64: jpeg.base64EncodedString(), photoConsent: true, mockScenario: scenario, mode: mode == "mock" ? nil : mode, metaPhotoConsent: mode == "mock" ? nil : metaConsent))
-        let (data, response) = try await session.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
-        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
-        let result = try JSONDecoder().decode(RecognitionResult.self, from: data)
-        try result.validate()
-        guard result.mode == mode else { throw ServiceError.invalidResponse }
-        return result
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+            guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+            let result = try JSONDecoder().decode(RecognitionResult.self, from: data)
+            try result.validate()
+            guard result.mode == mode else { throw ServiceError.invalidResponse }
+            return result
+        } catch {
+            // A timeout, HTTP error or unusable response may follow a billed
+            // attempt. Never relay generic retry advice for live recognition.
+            if mode == "meta_live" { throw ServiceError.liveRecognitionUnverified }
+            throw error
+        }
     }
 
     /// Sends only the history window. No calibration, wearable or photo data.

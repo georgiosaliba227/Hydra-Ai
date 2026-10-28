@@ -13,7 +13,7 @@ import base64
 from .recognition import AnalysisRequest, AnalysisResult, Candidate, MODEL, RecognitionUnavailable
 
 MAX_PROVIDER_BYTES = 2_097_152
-Text = Annotated[str, StringConstraints(min_length=1, max_length=80)]
+Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
 class ProviderCandidate(BaseModel):
@@ -24,7 +24,7 @@ class ProviderCandidate(BaseModel):
     container_ml: StrictInt | None = Field(ge=1, le=5000)
     visible_label_text: str | None = Field(default=None, max_length=600)
     confidence: str = Field(pattern="^(low|medium|high|unknown)$")
-    uncertainty_reasons: list[Annotated[str, StringConstraints(min_length=1, max_length=300)]] = Field(min_length=1, max_length=8)
+    uncertainty_reasons: list[Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]] = Field(min_length=1, max_length=8)
 
 
 class ProviderRecognition(BaseModel):

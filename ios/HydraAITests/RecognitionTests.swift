@@ -138,6 +138,29 @@ private extension Data {
 
 final class GuardedRecognitionTests: XCTestCase {
     override func tearDown() { FixtureURLProtocol.handler = nil }
+    func testLiveFailuresNeverAdviseRetryOrRepeatRequest() async throws {
+        let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
+        for failure in ["http", "timeout", "invalidResponse"] {
+            var calls = 0
+            let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
+            FixtureURLProtocol.handler = { _ in
+                calls += 1
+                if failure == "timeout" { throw URLError(.timedOut) }
+                return failure == "http" ? (503, Data()) : (200, Data("invalid".utf8))
+            }
+            let service = try HTTPBeverageService(configuration: config, session: URLSession(configuration: options))
+            do {
+                _ = try await service.analyzePhoto(Data([1, 2, 3]), scenario: "ambiguous", mode: "meta_live", metaConsent: true)
+                XCTFail("Expected unverified live result")
+            } catch ServiceError.liveRecognitionUnverified {
+                let message = ServiceError.liveRecognitionUnverified.localizedDescription
+                XCTAssertTrue(message.contains("Do not retry"))
+                XCTAssertFalse(message.contains("Retry when"))
+            }
+            XCTAssertEqual(calls, 1, "A failed live attempt must never be repeated automatically")
+        }
+    }
+
     func testLiveDisclosureRequiredBeforeNetwork() async throws {
         let config = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
         let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
