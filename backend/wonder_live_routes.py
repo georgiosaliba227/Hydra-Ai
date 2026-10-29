@@ -9,6 +9,7 @@ from typing import Literal
 from fastapi import Request
 from fastapi.responses import JSONResponse
 import json
+import os
 from pydantic import BaseModel, ConfigDict, Field
 
 from ai.assistant import SUGGESTED
@@ -36,6 +37,18 @@ def _payload(kind: str, identifier: str) -> dict:
     if kind == "question" and identifier in SUGGESTED:
         return assistant_payload(identifier)
     raise ValueError("Unknown synthetic case")
+
+
+def _save_rejected(directory, kind: str, identifier: str, attempt: str, body: dict) -> None:
+    """Keep a rejected reply to a synthetic case for diagnosis; synthetic payloads hold no personal data."""
+    if directory is None:
+        return
+    try:
+        path = directory / f"rejected-{kind}-{identifier}-{attempt}.json"
+        with open(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w") as file:
+            json.dump(body, file, indent=2, sort_keys=True)
+    except (OSError, TypeError, ValueError):
+        pass  # Diagnosis only; the charge is already recorded in the ledger.
 
 
 def install_wonder_live_routes(app, *, error_response) -> None:
@@ -91,9 +104,12 @@ def install_wonder_live_routes(app, *, error_response) -> None:
             except (RecognitionUnavailable, OSError, ValueError):
                 if gateway.last_attempt is None:
                     return error_response("wonder_blocked", 409, request_id)
+                if gateway.rejected_reply is not None:
+                    _save_rejected(app.state.wonder_results_dir, payload.kind, payload.id, gateway.last_attempt,
+                                   gateway.rejected_reply)
                 response = error_response("wonder_attempt_unresolved", 502, request_id)
                 return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
-                                    status_code=502, headers=dict(response.headers))
+                                    status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
         finally:
             app.state.wonder_lock.release()
         try:

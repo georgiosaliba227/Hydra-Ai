@@ -460,6 +460,7 @@ def test_failure_after_reservation_names_the_attempt(tmp_path, client_env):
         response = client.post("/v1/wonder/trends", json=consent(view), headers=AUTH)
         body = response.json()
         assert response.status_code == 502 and body["code"] == "wonder_attempt_unresolved"
+        assert response.headers["content-length"] == str(len(response.content))
         assert body["attempt_id"] == attempt_rows(authority)[0][0] and frozen(authority)
 
 

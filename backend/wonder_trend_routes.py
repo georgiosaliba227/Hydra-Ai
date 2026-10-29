@@ -135,7 +135,7 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
                 response = error_response("wonder_attempt_unresolved", 502, request_id)
                 # A billable request may have been sent: name the attempt so a developer can reconcile it.
                 return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
-                                    status_code=502, headers=dict(response.headers))
+                                    status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
         finally:
             in_flight.release()
         try:
