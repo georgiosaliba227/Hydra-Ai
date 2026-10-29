@@ -20,6 +20,12 @@ MODEL = "muse-wonder-1.0"
 VERSION = "wonder-hydration-context-v1"
 # Micro-USD per million uncached input / output tokens; no cache discount is assumed.
 INPUT_PRICE, OUTPUT_PRICE = REFERENCE_PRICES[MODEL]
+# Input bound policy: at most one input token per byte of the canonical payload
+# JSON (which already includes schema, keys and quoting), plus a fixed allowance
+# for provider-side role/format framing. Settlement freezes the account if the
+# provider reports more input tokens than this bound.
+INPUT_BOUND_POLICY = "canonical-payload-bytes-v1"
+FRAMING_ALLOWANCE_TOKENS = 256
 
 
 def canonical(value) -> str:
@@ -51,8 +57,17 @@ def wonder_payload(scenario: str) -> dict:
                 "text": PROMPT + " Context: " + canonical({"context": context, "prediction": prediction})}]}]}
 
 
+def payload_json(payload: dict) -> str:
+    """Byte-identical to the digest a DispatchTicket claim computes before sending."""
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
 def payload_sha256(payload: dict) -> str:
-    return hashlib.sha256(canonical(payload).encode()).hexdigest()
+    return hashlib.sha256(payload_json(payload).encode()).hexdigest()
+
+
+def input_bound(payload: dict) -> int:
+    return len(payload_json(payload).encode()) + FRAMING_ALLOWANCE_TOKENS
 
 
 def worst_case_micro_usd(input_tokens: int, output_tokens: int = OUTPUT_LIMIT) -> int:
@@ -67,13 +82,13 @@ def preview(scenario: str) -> dict:
     """Read-only approval evidence. Neither bound is a provider billing guarantee."""
     payload = wonder_payload(scenario)
     full_context = worst_case_micro_usd(MAX_INPUT_TOKENS)
-    payload_bytes = len(canonical(payload).encode())
+    payload_bytes = len(payload_json(payload).encode())
     return {"version": VERSION, "scenario": scenario, "model": MODEL, "account_id": ACCOUNT,
             "payload_sha256": payload_sha256(payload), "payload_bytes": payload_bytes,
             "max_output_tokens": OUTPUT_LIMIT, "per_attempt_cap_micro_usd": CAP,
             "full_context_bound_micro_usd": full_context, "admissible_under_cap": full_context <= CAP,
-            # Assumes no more input tokens than canonical payload bytes; not yet reviewed for admission.
-            "unreviewed_byte_bound_micro_usd": worst_case_micro_usd(payload_bytes),
+            "input_bound_policy": INPUT_BOUND_POLICY, "input_bound_tokens": input_bound(payload),
+            "byte_bound_micro_usd": worst_case_micro_usd(input_bound(payload)),
             "dispatch_enabled": False, "billing_evidence": False}
 
 

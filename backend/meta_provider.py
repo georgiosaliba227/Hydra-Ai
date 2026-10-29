@@ -60,6 +60,8 @@ class MetaTransport(Protocol):
 
 class OfficialMetaTransport:
     """No arbitrary endpoints, SDK retries, env proxies, redirect following or probes."""
+    ticket_type = DispatchTicket  # Exact one-use ticket class this transport accepts.
+
     def __init__(self, key: str) -> None:
         if not key or not key.isascii() or any(c.isspace() or ord(c) < 33 for c in key):
             raise ValueError("Selected server credential required")
@@ -81,7 +83,7 @@ class OfficialMetaTransport:
             raise ValueError
 
     def generate(self, payload: dict, ticket: DispatchTicket) -> ProviderReply:
-        if type(ticket) is not DispatchTicket:
+        if type(ticket) is not self.ticket_type:
             raise RecognitionUnavailable()
         try:
             self.validate_payload(payload)

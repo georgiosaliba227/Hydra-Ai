@@ -133,6 +133,8 @@ class ExperimentRequest(StrictDescriptor):
 
 class ExperimentBudget:
     """Review-only reservations; never returns a network-capable ticket."""
+    SCHEMA = PROPOSED_SCHEMA  # Subclasses may require additional reviewed DDL.
+
     def __init__(self, authority: AccountLedger) -> None:
         if type(authority) is not AccountLedger:
             raise BudgetDenied("Existing AccountLedger authority required")
@@ -146,7 +148,7 @@ class ExperimentBudget:
             if db.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
                 raise BudgetDenied("Ledger integrity verification failed")
             expected = dict(FINANCIAL_DDL)
-            expected.update({sql.split()[2].split("(")[0]:sql for sql in PROPOSED_SCHEMA})
+            expected.update({sql.split()[2].split("(")[0]:sql for sql in self.SCHEMA})
             objects = {row[0]:(row[1],row[2],row[3]) for row in db.execute("SELECT name,type,tbl_name,sql FROM sqlite_master")}
             for name,sql in expected.items():
                 row = objects.get(name)
@@ -210,6 +212,12 @@ class ExperimentBudget:
         return sum(totals.values()), totals
 
     def reserve_review_only(self, request: ExperimentRequest) -> dict:
+        return self._reserve(request, "experiment_review_only")
+
+    def _check_case(self, db, request: ExperimentRequest) -> None:
+        """Hook for subclasses that admit only approved manifest cases."""
+
+    def _reserve(self, request: ExperimentRequest, state: str) -> dict:
         request = ExperimentRequest.model_validate(request.model_dump())
         with self._transaction() as db:
             # Evidence can expire while waiting for the authoritative write lock.
@@ -223,6 +231,7 @@ class ExperimentBudget:
                 raise BudgetDenied("Allocation expired or invalid") from None
             evidence = self._evidence(db, approval)
             self.authority.verify_prior_finalities(db)
+            self._check_case(db, request)
             if db.execute("SELECT 1 FROM live_notices WHERE delivered_at IS NULL").fetchone():
                 raise BudgetDenied("Both developers must receive pending notices")
             if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
@@ -256,7 +265,7 @@ class ExperimentBudget:
                 raise BudgetDenied("Verified available account credits insufficient")
             db.execute("INSERT INTO live_attempts(id,account_id,price,reserved,state,input_bound,created_at,payload_sha256) VALUES(?,?,?,?,?,?,?,?)",
                        (request.attempt_id,ACCOUNT,request.quote.model_dump_json(),request.maximum_micro_usd,
-                        "experiment_review_only",request.input_bound,stamp(),request.payload_sha256))
+                        state,request.input_bound,stamp(),request.payload_sha256))
             db.execute("INSERT INTO experiment_attempts(attempt_id,allocation_id,case_id,model,payload_sha256,retry_of,request) VALUES(?,1,?,?,?,?,?)",
                        (request.attempt_id,request.case_id,request.quote.model,request.payload_sha256,request.retry_of,request.model_dump_json()))
             self.authority.event(db, ACCOUNT, "experiment_review_only_reserved", request.attempt_id)
