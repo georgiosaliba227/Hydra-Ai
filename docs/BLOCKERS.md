@@ -1,6 +1,6 @@
 # Hydra AI blockers
 
-Updated October 28, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
+Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
 ## Wonder hydration intelligence
 
@@ -9,9 +9,11 @@ Updated October 28, 2026. Record each blocker once; revisit only when new eviden
   full-context $4.20. Settlement freezes the account if the provider exceeds it.
 - **Project freeze.** The PR #14 camera request's invoice finality is unresolved,
   which blocks every new request on any account.
-- **Activation.** The live adapter exists but `LIVE_SCHEMA` is not migrated into
-  the private ledger and no approved case, current evidence or spending approval
-  exists. No route or script calls it.
+- **Activation.** The live adapter and the operator `run-case` command exist,
+  but `LIVE_SCHEMA` is not migrated into the private ledger and no approved
+  case, current evidence or spending approval exists. No HTTP route dispatches.
+- **Physical device.** New screens (edit/delete, Ask Hydra, goal, recorded
+  Wonder) are verified on the simulator only.
 
 ## Current forecasting limits
 
