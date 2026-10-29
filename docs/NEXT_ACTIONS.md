@@ -1,5 +1,15 @@
 # Hydra AI next actions
 
+## One shared Wonder backend (shared backend PR)
+
+| Order | Action / owner | Completion evidence |
+| --- | --- | --- |
+| 1 | Amine: merge the account resume PR (#53) and the shared backend PR | Merged; CI green |
+| 2 | Georgio: resume his account (ACCOUNT_RESUME.md), then migrate and record the $30 allocation with `synthetic_dispatch_reference` | `view` shows unfrozen; `preview-schema` is `already_current` |
+| 3 | Georgio: confirm that Meta's terms allow teammate use through his backend | Note in the PR |
+| 4 | Amine: send Georgio his token hash; Georgio adds it and serves the backend over Tailscale (SHARED_BACKEND.md) | `GET /v1/wonder/live` works with Amine's token |
+| 5 | Amine: run `complete` once; Georgio records its invoice finality; then the next case | Recorded result replays in the app |
+
 ## Next actions — Wonder trends, October 29 (Amine)
 
 Wonder can now explain the user's own 14-day trends on either account
