@@ -37,7 +37,6 @@ MAX_BODY_BYTES = 16 * 1024
 def error_response(code: str, status: int, request_id: str, *, retryable: bool = False) -> JSONResponse:
     messages = {
         "unauthorized": "A valid development session is required.",
-        "forbidden": "This credential cannot use this feature.",
         "invalid_request": "The request is invalid.",
         "idempotency_conflict": "This request key was already used for different data.",
         "revision_conflict": "This beverage changed since it was loaded. Reload it and try again.",
@@ -65,10 +64,9 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
 class RequestGuard:
     """Bound payloads before parsing; avoid logging or retaining rejected bodies."""
 
-    def __init__(self, app, token: str, credentials: Path | None = None):
+    def __init__(self, app, token: str):
         self.app = app
         self.token = token
-        self.credentials = credentials  # Restricted developer tokens (backend/developer_access.py).
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -80,18 +78,9 @@ class RequestGuard:
         if scope["path"].startswith(("/v1", "/v2")):
             provided = headers.get(b"authorization", b"")
             expected = ("Bearer " + self.token).encode()
-            if hmac.compare_digest(provided, expected):
-                scope["state"]["principal"] = "owner"
-            else:
-                from .developer_access import allowed, developer_for
-                developer = developer_for(self.credentials, provided)
-                if developer is None:
-                    await error_response("unauthorized", 401, request_id)(scope, receive, send)
-                    return
-                if not allowed(developer, scope["method"], scope["path"]):
-                    await error_response("forbidden", 403, request_id)(scope, receive, send)
-                    return
-                scope["state"]["principal"] = "developer:" + developer["id"]
+            if not hmac.compare_digest(provided, expected):
+                await error_response("unauthorized", 401, request_id)(scope, receive, send)
+                return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
         elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts"):
@@ -217,11 +206,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         app.state.recognizer = GuardedMetaGateway(app.state.meta_ledger, account, transport, notifier)
     else:
         app.state.recognizer = MockMetaRecognizer()
-    configured = os.getenv("HYDRA_DEVELOPER_CREDENTIALS", "")
-    credentials = Path(configured) if configured else None
-    if credentials is not None and not credentials.is_absolute():
-        raise ValueError("HYDRA_DEVELOPER_CREDENTIALS must be an absolute path")
-    app.add_middleware(RequestGuard, token=token, credentials=credentials)
+    app.add_middleware(RequestGuard, token=token)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc):
@@ -229,7 +214,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc):
-        code = {404: "not_found", 405: "method_not_allowed", 401: "unauthorized", 403: "forbidden"}.get(exc.status_code, "invalid_request")
+        code = {404: "not_found", 405: "method_not_allowed", 401: "unauthorized"}.get(exc.status_code, "invalid_request")
         return error_response(code, exc.status_code, request.state.request_id)
 
     @app.exception_handler(IdempotencyConflict)

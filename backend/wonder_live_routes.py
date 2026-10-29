@@ -1,9 +1,8 @@
-"""Live Muse Wonder on Hydra's fixed synthetic payloads, for the owner or a restricted developer.
+"""Live Muse Wonder on Hydra's fixed synthetic payloads, for the backend's owner only.
 
 Each synthetic scenario and suggested question is sent at most once under the
 allocation's standing synthetic approval, then replayed from its saved result.
-The ledger records which credential asked. No personal data is involved.
-See docs/architecture/SHARED_BACKEND.md.
+No personal data is involved. See docs/architecture/WONDER_LIVE.md.
 """
 from typing import Literal
 
@@ -50,7 +49,7 @@ def install_wonder_live_routes(app, *, error_response) -> None:
             return None
 
     @app.get("/v1/wonder/live")
-    def live_status(request: Request):
+    def live_status():
         config = app.state.wonder_live_config
         items = []
         for kind, names in (("scenario", SCENARIOS), ("question", tuple(SUGGESTED))):
@@ -63,10 +62,6 @@ def install_wonder_live_routes(app, *, error_response) -> None:
         if config is not None:
             try:
                 allocation = config.ledger.snapshot()
-                if request.scope["state"].get("principal") != "owner":
-                    # A developer sees only what is left, not the owner's per-model spending.
-                    allocation = {key: allocation[key] for key in ("allocation_id", "account_id", "hard_limit_micro_usd",
-                                                                    "remaining_micro_usd")}
             except BudgetDenied:
                 allocation = None
         return {"version": VERSION, "live_available": app.state.wonder_trends_gateway is not None,
@@ -88,8 +83,7 @@ def install_wonder_live_routes(app, *, error_response) -> None:
             return error_response("wonder_busy", 409, request_id, retryable=True)
         try:
             gateway = factory()
-            # The ledger's case record names the credential that asked, for per-developer audit.
-            reference = f"{request.scope['state']['principal']}:{request_id}"
+            reference = f"owner:{request_id}"  # recorded with the ledger's case request event
             try:
                 quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
                 result = (gateway.explain_synthetic(payload.id, quote, reference) if payload.kind == "scenario"

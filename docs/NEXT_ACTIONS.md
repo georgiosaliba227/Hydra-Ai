@@ -1,17 +1,16 @@
 # Hydra AI next actions
 
-## Next actions — one shared Wonder backend (PRs #53, #54)
+## Next actions — own keys only, no shared backend (October 29, Amine)
+
+The shared backend was withdrawn: no Tailscale and no developer tokens. Each
+developer uses their own key on their own computer.
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | ~~Amine: merge the account resume PR (#53) and the shared backend PR (#54)~~ | Done; CI green |
-| 1b | Georgio: `meta_account_resume template`; if `_ledger_notes.reconcile_first` appears, fill in that finality file from the final invoice and run `meta_budget_admin reconcile-risk-invoice` (ACCOUNT_RESUME.md step 1) | Template shows the camera attempt `settled` with its final charge |
-| 2 | Georgio: stop the backend; `meta_account_resume template`, fill in `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)); `preview` until `would_resume: true` | Preview output |
-| 3 | Both: approve those exact files; Georgio runs `resume` | `account_resumed` event; `view` shows `frozen: false` |
-| 4 | Georgio: migrate the Wonder schema and record the $30 allocation with `synthetic_dispatch_reference`, valid through the hackathon | `preview-schema` is `already_current`; allocation recorded |
-| 5 | Georgio: confirm that Meta's terms allow teammate use through his backend | Note in the PR or issue |
-| 6 | Amine: send Georgio his token hash; Georgio adds it and serves the backend over Tailscale ([SHARED_BACKEND.md](architecture/SHARED_BACKEND.md)) | `GET /v1/wonder/live` works with Amine's token |
-| 7 | Amine or Georgio: run `complete` once; Georgio records its invoice finality; then the next case | Recorded result replays in the app |
+| 1 | Georgio: reconcile the camera invoice (ACCOUNT_RESUME.md step 1). Required before any request on either account (AGENTS.md) | `meta_account_resume template` shows the attempt `settled` with its final charge |
+| 2 | Amine: make a Meta key; set up his own ledger with `synthetic_dispatch_reference` and `trend_dispatch_reference` in the $100 allocation (WONDER_TRENDS_API.md, WONDER_LIVE.md) | `preview-schema` is `already_current`; allocation recorded |
+| 3 | Amine: run one case (a trend explanation or a synthetic scenario), then record its invoice finality | Saved result replays in the app |
+| 4 | Optional, Georgio: resume his own account (ACCOUNT_RESUME.md) only if he wants to spend his $30 himself | `account_resumed` event |
 
 ## Next actions — Wonder trends, October 29 (Amine)
 

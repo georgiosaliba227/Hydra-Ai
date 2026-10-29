@@ -62,9 +62,6 @@ def install_assistant_routes(app, to_engine) -> None:
 
     @app.post("/v1/assistant")
     def ask(payload: AssistantRequest, request: Request):
-        # A restricted developer credential never reads the owner's logs.
-        if payload.context_scope != "none" and request.scope["state"].get("principal") != "owner":
-            raise HTTPException(403, "forbidden")
         if payload.source == "recorded_wonder":
             from backend.wonder_results import load_recorded_answer
             try:
