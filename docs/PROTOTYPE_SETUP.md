@@ -63,6 +63,24 @@ HYDRA_E2E_BACKEND_URL=http://127.0.0.1:8000 python scripts/run_ios_e2e.py
 
 Use `--destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID'` to select another installed simulator. This test writes a 125 mL beverage to the configured test database, saves the local connection in the simulator's Keychain, and relaunches without injected credentials to verify the persisted total. It is not a read-only test: use a dedicated simulator and synthetic database. Generated private test configuration is mode 0600 and removed after execution; test result bundles remain local and may contain test configuration, so never publish them without review. The ordinary unit scheme is `HydraAI`; the opt-in UI scheme is `HydraAIEndToEnd` and skips when its required runtime test environment is absent.
 
+## Muse Wonder hydration intelligence
+
+Muse Wonder 1.0 is the only hydration-intelligence model; camera recognition
+stays on Muse Spark 1.3. The Workout forecast screen has a "Muse Wonder ·
+recorded live result" section. It replays a saved real Wonder result through
+`POST /v2/hydration-context-comparison` with `mode: "recorded"`, which never
+sends a Meta request.
+
+To serve a recording, start the backend with `HYDRA_WONDER_RESULTS_DIR` set to an
+absolute, owned directory with mode 0700 that holds `complete.json`. Without it
+the section shows "No recorded Muse Wonder result is available yet."
+
+Creating a recording is billable and gated; follow the operator procedure in
+[WONDER_HYDRATION_API.md](architecture/WONDER_HYDRATION_API.md): finality
+migration, `wonder_admin.py migrate-schema`, allocation and case import, then one
+`run-case --confirm-billable` on Georgio's account after invoice finality for
+every earlier request. No recording exists yet.
+
 ## Offline mock rehearsal
 
 From the maintained backend environment, run:
