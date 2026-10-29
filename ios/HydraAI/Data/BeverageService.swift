@@ -7,6 +7,9 @@ protocol BeverageService: Sendable {
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
+    func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
+    /// Succeeds when the log is gone, including when it was already deleted.
+    func deleteBeverage(id: UUID) async throws
 }
 
 /// Offline stand-in for GET and POST /v1/beverages. It round-trips the same
@@ -47,9 +50,32 @@ actor MockBeverageService: BeverageService {
             guard existing == log else { throw ServiceError.pending }; return existing
         }
         logs.append(log)
+        try save(logs)
+        return log
+    }
+
+    func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) throws -> BeverageLog {
+        try request.validate()
+        var logs = try listBeverages()
+        guard let index = logs.firstIndex(where: { $0.id == id }) else { throw ServiceError.server(404) }
+        let current = logs[index]
+        guard current.revision == request.revision else { throw ServiceError.server(409) }
+        let updated = BeverageLog(id: id, consumedMl: request.consumedMl ?? current.consumedMl,
+                                  category: request.category ?? current.category,
+                                  consumedAt: request.consumedAt ?? current.consumedAt, timezone: current.timezone,
+                                  source: current.source, revision: current.revision + 1)
+        logs[index] = updated
+        try save(logs)
+        return updated
+    }
+
+    func deleteBeverage(id: UUID) throws {
+        try save(listBeverages().filter { $0.id != id })
+    }
+
+    private func save(_ logs: [BeverageLog]) throws {
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try encoder.encode(logs).write(to: fileURL, options: .atomic)
-        return log
     }
 }
 
@@ -64,6 +90,14 @@ extension BeverageService {
     }
 
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison {
+        throw ServiceError.invalidResponse
+    }
+
+    func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog {
+        throw ServiceError.invalidResponse
+    }
+
+    func deleteBeverage(id: UUID) async throws {
         throw ServiceError.invalidResponse
     }
 

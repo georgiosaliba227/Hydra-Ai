@@ -198,6 +198,40 @@ actor HTTPBeverageService: BeverageService {
         return try await send("v1/beverages", request: request, key: idempotencyKey)
     }
 
+    func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog {
+        try request.validate()
+        guard request.hasChanges else { throw ServiceError.invalidResponse }
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        let (data, status) = try await mutate("v1/beverages/\(id.uuidString.lowercased())", method: "PATCH",
+                                              body: try encoder.encode(request))
+        guard status == 200 else { throw ServiceError.server(status) }
+        let log = try Self.decoder().decode(BeverageLog.self, from: data)
+        guard log.id == id, log.revision == request.revision + 1 else { throw ServiceError.invalidResponse }
+        return log
+    }
+
+    func deleteBeverage(id: UUID) async throws {
+        let (_, status) = try await mutate("v1/beverages/\(id.uuidString.lowercased())", method: "DELETE", body: nil)
+        // 404 after a lost response means the earlier delete already succeeded.
+        guard status == 204 || status == 404 else { throw ServiceError.server(status) }
+    }
+
+    private func mutate(_ path: String, method: String, body: Data?) async throws -> (Data, Int) {
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = method
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        if response.statusCode == 401 { throw ServiceError.unauthorized }
+        return (data, response.statusCode)
+    }
+
     func dailySummary(date: String, timezone: String) async throws -> DailySummary {
         try await send("v1/summary", query: [.init(name: "date", value: date), .init(name: "timezone", value: timezone)])
     }

@@ -36,6 +36,40 @@ struct CreateBeverageRequest: Codable, Sendable {
     }
 }
 
+/// A correction of a confirmed log. Nil fields are omitted and keep their stored value.
+struct UpdateBeverageRequest: Encodable, Equatable, Sendable {
+    let revision: Int
+    var category: String?
+    var consumedMl: Int?
+    var consumedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case revision, category
+        case consumedMl = "consumed_ml"
+        case consumedAt = "consumed_at"
+    }
+
+    /// Only fields that differ from `log`; a photo-confirmed log keeps its product category.
+    init(correcting log: BeverageLog, category: String, consumedMl: Int, consumedAt: Date) {
+        revision = log.revision
+        let trimmed = category.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.category = log.source == "manual" && trimmed != log.category ? trimmed : nil
+        self.consumedMl = consumedMl != log.consumedMl ? consumedMl : nil
+        self.consumedAt = abs(consumedAt.timeIntervalSince(log.consumedAt)) >= 1 ? consumedAt : nil
+    }
+
+    var hasChanges: Bool { category != nil || consumedMl != nil || consumedAt != nil }
+
+    func validate(now: Date = .now) throws {
+        if let category { guard !category.isEmpty, category.count <= 80 else { throw BeverageValidationError.invalidCategory } }
+        if let consumedMl { guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume } }
+        if let consumedAt {
+            guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
+            guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
+        }
+    }
+}
+
 enum BeverageValidationError: LocalizedError {
     case invalidCategory
     case invalidVolume
