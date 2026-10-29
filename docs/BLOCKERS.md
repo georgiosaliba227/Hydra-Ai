@@ -4,6 +4,15 @@ Updated October 29, 2026. Record each blocker once; revisit only when new eviden
 
 ## Top blocker: no way to lift an account freeze
 
+Update (account resume PR): a reviewed resume command now exists
+([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)). It lifts a freeze only
+after every attempt has matching invoice finality, and it keeps all history and
+spent permits. It also replaces PR #14's `RiskEvidence` with fresh `Evidence`,
+which removes the Wonder incompatibility described below. What remains is human:
+Georgio writes the approval and evidence files, both developers approve them,
+and he runs it on his real ledger. Timeouts or replies without usage still
+cannot be resumed.
+
 October 29 update: this now blocks **Georgio's** account only. Wonder trend
 explanations can run on Amine's account through a ledger file of his own
 (WONDER_TRENDS_API.md), which Georgio's freeze doesn't touch. Two checks remain:
