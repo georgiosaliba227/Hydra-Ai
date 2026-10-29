@@ -6,6 +6,22 @@ Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026
 
 **Meta models:** Muse Spark 1.3 for the camera and Muse Wonder 1.0 for hydration intelligence. One real Spark request has run; no Wonder request has. Every billable request goes through a guarded, per-account ledger and needs explicit approval ([Wonder contract](docs/architecture/WONDER_HYDRATION_API.md), [budget policy](docs/API_BUDGET.md)). The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) separates measured outcomes, research proxies, personal calibration and synthetic demonstrations.
 
+## How it fits together
+
+```mermaid
+flowchart LR
+    iPhone["SwiftUI app<br/>log · history · goal · Ask Hydra · camera"] -->|bearer token, local network| API["FastAPI backend"]
+    API --> Engine["Deterministic engine<br/>ai/hydration · forecasting"]
+    API --> Store[("SQLite<br/>logs · settings")]
+    API --> Rules["Reviewed answers<br/>ai/assistant"]
+    API -. "only with an approved,<br/>budgeted case" .-> Gateway["Guarded gateway<br/>+ per-account ledger"]
+    Gateway --> Spark["Muse Spark 1.3<br/>photo → candidates"]
+    Gateway --> Wonder["Muse Wonder 1.0<br/>chooses reviewed explanations"]
+```
+
+Numbers always come from the engine; Meta models only read photos and choose
+among reviewed explanations, and every reply is validated before use.
+
 ## Run the prototype
 
 See [prototype setup and demo](docs/PROTOTYPE_SETUP.md) for backend startup, iOS configuration, tests and restart verification. [API contract](docs/architecture/PROTOTYPE_API.md) defines authentication, idempotent logging, pagination and timezone-aware totals.
