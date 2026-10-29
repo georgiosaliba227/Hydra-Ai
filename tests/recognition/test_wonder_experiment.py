@@ -1,6 +1,7 @@
 """Wonder live-path accounting with disposable ledgers and fake transports. Never network."""
 from datetime import datetime, timedelta, timezone
 import json
+from pathlib import Path
 import socket
 import sqlite3
 from uuid import uuid4
@@ -313,3 +314,91 @@ def test_official_wonder_transport_accepts_only_exact_payloads_and_experiment_ti
         transport.input_bound(payload | {"tools": [{"type": "web_search"}]})
     with pytest.raises(RecognitionUnavailable):
         transport.generate(payload, object())  # wrong ticket type, before any socket
+
+
+def bare_ledger(tmp_path):
+    authority = AccountLedger(tmp_path / "authority.sqlite3")
+    authority.initialize_accounts()
+    authority.attest_account(evidence(ACCOUNTS[0]))
+    return authority
+
+
+def snapshot_records(authority):
+    with authority.transaction() as db:
+        return (db.execute("SELECT * FROM live_accounts").fetchall(),
+                db.execute("SELECT COUNT(*) FROM live_events").fetchone()[0])
+
+
+def test_live_schema_migration_is_explicit_atomic_and_idempotent(tmp_path):
+    authority = bare_ledger(tmp_path)
+    ledger = WonderExperimentLedger(authority)
+    raw_before = Path(authority.path).read_bytes()
+    preview = ledger.preview_live_schema()
+    assert preview["status"] == "migration_required" and len(preview["missing_objects"]) == len(LIVE_SCHEMA)
+    assert Path(authority.path).read_bytes() == raw_before  # preview is read-only
+    accounts, events = snapshot_records(authority)
+    with pytest.raises(BudgetDenied):
+        ledger.migrate_live_schema(review_reference=" padded ")
+    result = ledger.migrate_live_schema(review_reference="PR-20 schema review")
+    assert result["status"] == "migrated" and result["audit_event_added"] is True
+    assert snapshot_records(authority) == (accounts, events + 1)
+    assert ledger.migrate_live_schema(review_reference="PR-20 schema review")["status"] == "already_current"
+    ledger.record_approval(approval())
+    approve(ledger)
+
+
+def test_partial_review_only_schema_gets_only_missing_objects(tmp_path):
+    authority = bare_ledger(tmp_path)
+    with authority.transaction() as db:
+        for sql in meta_experiments.PROPOSED_SCHEMA:
+            db.execute(sql)
+    result = WonderExperimentLedger(authority).migrate_live_schema(review_reference="partial-review")
+    assert result["migrated_objects"] == ["experiment_cases", "experiment_cases_no_update", "experiment_cases_no_delete"]
+
+
+@pytest.mark.parametrize("tamper", [
+    "CREATE TRIGGER rogue AFTER INSERT ON live_attempts BEGIN SELECT 1; END",
+    "CREATE TABLE experiment_cases(case_id TEXT PRIMARY KEY, model TEXT, payload_sha256 TEXT, approval TEXT)",
+    "CREATE TABLE experiment_extra(id INTEGER)",
+    "CREATE INDEX live_attempts_extra ON live_attempts(state)",
+    "DROP TABLE live_finalities",
+])
+def test_live_schema_migration_refuses_unknown_or_old_schemas(tmp_path, tamper):
+    authority = bare_ledger(tmp_path)
+    with authority.transaction() as db:
+        db.execute(tamper)
+    ledger = WonderExperimentLedger(authority)
+    with pytest.raises(BudgetDenied):
+        ledger.preview_live_schema()
+    with pytest.raises(BudgetDenied):
+        ledger.migrate_live_schema(review_reference="tamper-review")
+
+
+def test_live_schema_migration_never_creates_a_ledger(tmp_path):
+    ledger = WonderExperimentLedger(AccountLedger(tmp_path / "missing.sqlite3"))
+    with pytest.raises(BudgetDenied):
+        ledger.migrate_live_schema(review_reference="missing-review")
+    assert not (tmp_path / "missing.sqlite3").exists()
+
+
+def test_admin_prepare_and_import_without_network(tmp_path, capsys):
+    from scripts.wonder_admin import main
+    main(["prepare", "--scenario", "contradictory_mass"])
+    package = json.loads(capsys.readouterr().out)
+    assert package["preview"]["dispatch_enabled"] is False
+    assert package["approved_case_template"]["payload_sha256"] == payload_sha256(wonder_payload("contradictory_mass"))
+    authority = bare_ledger(tmp_path)
+    database = str(authority.path)
+    main(["migrate-schema", "--database", database, "--reference", "admin-test-review"])
+    capsys.readouterr()
+    descriptor = tmp_path / "approval.json"
+    descriptor.write_text(approval().model_dump_json())
+    main(["record-allocation", "--database", database, "--descriptor", str(descriptor)])
+    case = package["approved_case_template"] | {"valid_until": future().isoformat(), "input_approval_reference": "a",
+                                                "live_dispatch_reference": "b", "spending_approval_reference": "c"}
+    descriptor.write_text(json.dumps(case))
+    main(["record-case", "--database", database, "--descriptor", str(descriptor)])
+    with pytest.raises(SystemExit):
+        main(["record-case", "--database", database, "--descriptor", str(descriptor.with_name("absent.json"))])
+    with pytest.raises(SystemExit):
+        main(["preview-schema", "--database", "relative.sqlite3"])

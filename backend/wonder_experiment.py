@@ -9,6 +9,7 @@ activates this module.
 """
 from dataclasses import dataclass
 from datetime import datetime
+import hashlib
 import json
 import re
 from time import monotonic_ns
@@ -17,7 +18,7 @@ from uuid import uuid4
 from pydantic import field_validator
 
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result
-from .meta_accounts import stamp
+from .meta_accounts import FINANCIAL_DDL, _canonical_schema, stamp
 from .meta_budget import BudgetDenied
 from .meta_experiments import (ACCOUNT, PROPOSED_SCHEMA, ExperimentApproval, ExperimentBudget, ExperimentQuote,
                                ExperimentRequest, Fingerprint, Model, Reference, StrictDescriptor)
@@ -33,7 +34,12 @@ LIVE_SCHEMA = PROPOSED_SCHEMA + (
     "CREATE TRIGGER experiment_cases_no_update BEFORE UPDATE ON experiment_cases BEGIN SELECT RAISE(ABORT,'immutable case manifest'); END",
     "CREATE TRIGGER experiment_cases_no_delete BEFORE DELETE ON experiment_cases BEGIN SELECT RAISE(ABORT,'immutable case manifest'); END",
 )
+LIVE_SCHEMA_VERSION = "experiment-live-v1"
 RESPONSE_ID = re.compile(r"resp_[A-Za-z0-9_-]{1,180}")
+
+
+def _object_name(sql: str) -> str:
+    return sql.split()[2].split("(")[0]
 
 
 class ApprovedCase(StrictDescriptor):
@@ -57,6 +63,59 @@ class WonderExperimentLedger(ExperimentBudget):
     methods accept none of the experiment states.
     """
     SCHEMA = LIVE_SCHEMA
+
+    @staticmethod
+    def _inspect_live_schema(db) -> dict:
+        """Accept the finality-current financial schema plus any exact subset of LIVE_SCHEMA."""
+        if db.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
+            raise BudgetDenied("Ledger integrity check failed")
+        objects = {row[1]: row for row in db.execute("SELECT type,name,tbl_name,sql FROM sqlite_master")}
+        for name, sql in FINANCIAL_DDL.items():
+            row = objects.get(name)
+            if row is None or row[0] != "table" or not isinstance(row[3], str) or _canonical_schema(row[3]) != _canonical_schema(sql):
+                raise BudgetDenied("Finality-current financial schema required first")
+        live = {_object_name(sql): sql for sql in LIVE_SCHEMA}
+        missing = [name for name in live if name not in objects]
+        for name, sql in live.items():
+            row = objects.get(name)
+            if row is not None and (not isinstance(row[3], str) or _canonical_schema(row[3]) != _canonical_schema(sql)):
+                raise BudgetDenied("Unrecognized experiment schema object; migration refused")
+        for kind, name, table, sql in objects.values():
+            if ((kind == "trigger" and name not in live)
+                    or (kind == "index" and sql is not None and (table in FINANCIAL_DDL or table in live))
+                    or (name.startswith("experiment_") and name not in live)):
+                raise BudgetDenied("Unexpected schema object; migration refused")
+        target = "\n".join(_canonical_schema(sql) for sql in LIVE_SCHEMA)
+        return {"version": LIVE_SCHEMA_VERSION, "compatible": True,
+                "status": "migration_required" if missing else "already_current", "missing_objects": missing,
+                "target_schema_sha256": hashlib.sha256(target.encode()).hexdigest(),
+                "existing_records_changed": False, "audit_event_added": False, "activation_authorized": False}
+
+    def preview_live_schema(self) -> dict:
+        """Read-only compatibility inspection of an existing private ledger."""
+        with self.authority._existing_migration_database(write=False) as db:
+            return self._inspect_live_schema(db)
+
+    def migrate_live_schema(self, *, review_reference: str) -> dict:
+        """Atomically add only missing LIVE_SCHEMA objects and one audit event.
+
+        Never creates a ledger, records approvals or cases, changes balances or
+        clears freezes. Run the finality migration first.
+        """
+        if (not isinstance(review_reference, str)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/# -]{0,199}", review_reference)
+                or review_reference != review_reference.strip()):
+            raise BudgetDenied("A bounded nonsecret schema review reference is required")
+        with self.authority._existing_migration_database(write=True) as db:
+            before = self._inspect_live_schema(db)
+            if before["status"] == "already_current":
+                return before
+            for sql in LIVE_SCHEMA:
+                if _object_name(sql) in before["missing_objects"]:
+                    db.execute(sql)
+            self.authority.event(db, None, "experiment_live_schema_migrated", LIVE_SCHEMA_VERSION + ":" + review_reference)
+            after = self._inspect_live_schema(db)
+            return {**after, "status": "migrated", "migrated_objects": before["missing_objects"], "audit_event_added": True}
 
     def record_case(self, case: ApprovedCase) -> None:
         case = ApprovedCase.model_validate(case.model_dump())
