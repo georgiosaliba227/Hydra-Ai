@@ -29,6 +29,10 @@ struct AssistantView: View {
                     .disabled(!connected || trimmed.isEmpty || trimmed.count > 300 || controller.state == .loading)
                     .accessibilityIdentifier("assistantAsk")
             }
+            // Answers sit above the suggestions so a tapped question's reply is visible without scrolling.
+            if controller.state == .loading { Section { ProgressView() } }
+            if case .failed(let message) = controller.state { Section { Text(message).foregroundStyle(.secondary) } }
+            if let answer = controller.answer { answerSections(answer) }
             if !controller.questions.isEmpty {
                 Section("Suggested questions") {
                     Toggle("Use Muse Wonder's recorded selection", isOn: $recordedWonder)
@@ -47,9 +51,6 @@ struct AssistantView: View {
                     }
                 }
             }
-            if controller.state == .loading { Section { ProgressView() } }
-            if case .failed(let message) = controller.state { Section { Text(message).foregroundStyle(.secondary) } }
-            if let answer = controller.answer { answerSections(answer) }
         }
         .navigationTitle("Ask Hydra")
         .task {
