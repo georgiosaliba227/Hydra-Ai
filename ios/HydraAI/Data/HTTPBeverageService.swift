@@ -293,6 +293,23 @@ actor HTTPBeverageService: BeverageService {
         return answer
     }
 
+    func wonderTrendPreview(timezone: String) async throws -> TrendPreview {
+        let preview: TrendPreview = try await send("v1/wonder/trends", query: [.init(name: "timezone", value: timezone)])
+        try preview.validate()
+        guard preview.facts.timezone == timezone else { throw ServiceError.invalidResponse }
+        return preview
+    }
+
+    /// Billable when the backend is live: sends exactly the previewed payload, once, with the user's consent.
+    func explainTrends(_ request: TrendExplanationRequest) async throws -> TrendExplanationResponse {
+        let (data, status) = try await mutate("v1/wonder/trends", method: "POST", body: try JSONEncoder().encode(request))
+        guard status == 200 else { throw ServiceError.server(status) }
+        let response = try JSONDecoder().decode(TrendExplanationResponse.self, from: data)
+        try response.result.validate()
+        guard response.result.payload_sha256 == request.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
+
     private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = []) async throws -> (Data, Int) {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }

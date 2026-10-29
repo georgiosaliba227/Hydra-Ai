@@ -14,6 +14,8 @@ protocol BeverageService: Sendable {
     func deleteAllData() async throws -> Int
     func updateGoal(_ milliliters: Int?) async throws -> GoalSettings
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
+    func wonderTrendPreview(timezone: String) async throws -> TrendPreview
+    func explainTrends(_ request: TrendExplanationRequest) async throws -> TrendExplanationResponse
     /// Succeeds when the log is gone, including when it was already deleted.
     func deleteBeverage(id: UUID, revision: Int) async throws
 }
@@ -130,6 +132,14 @@ extension BeverageService {
     }
 
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer {
+        throw ServiceError.invalidResponse
+    }
+
+    func wonderTrendPreview(timezone: String) async throws -> TrendPreview {
+        throw ServiceError.invalidResponse
+    }
+
+    func explainTrends(_ request: TrendExplanationRequest) async throws -> TrendExplanationResponse {
         throw ServiceError.invalidResponse
     }
 

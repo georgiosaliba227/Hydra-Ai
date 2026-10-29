@@ -47,6 +47,12 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "request_too_large": "The request exceeds the size limit.",
         "recognition_unavailable": "Photo analysis is unavailable. Log manually or ask a developer to review the attempt.",
         "hydration_unavailable": "Hydration explanation is unavailable. Ask a developer to review the attempt.",
+        "wonder_unavailable": "Live Muse Wonder is not configured on this backend.",
+        "wonder_busy": "Another Muse Wonder request is in progress.",
+        "wonder_blocked": "Muse Wonder is paused by a spending safeguard. Nothing was sent or charged.",
+        "wonder_attempt_unresolved": "The Muse Wonder request failed after it was reserved. Do not retry; a developer must reconcile the attempt.",
+        "trends_preview_stale": "Your log changed since the preview. Review the new preview first.",
+        "trends_insufficient_data": "Log drinks in the last 14 days before asking for trends.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -174,9 +180,11 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     mode = os.getenv("HYDRA_AI_MODE", "mock")
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
     hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
-    if mode not in ("mock", "guarded_meta") or billable not in ("false", "true") or hydration_enabled not in ("false", "true"):
+    wonder_live = os.getenv("HYDRA_WONDER_LIVE", "false").lower()
+    if (mode not in ("mock", "guarded_meta") or billable not in ("false", "true")
+            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
-    live_feature = mode == "guarded_meta" or hydration_enabled == "true"
+    live_feature = mode == "guarded_meta" or hydration_enabled == "true" or wonder_live == "true"
     if (billable == "true") != live_feature:
         raise ValueError("Mode and billable gate conflict")
     token = api_token if api_token is not None else os.getenv("HYDRA_API_TOKEN", "")
@@ -395,4 +403,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_workout_forecast_routes(app)
     from .hydration_context_v2 import install_context_v2_routes
     install_context_v2_routes(app)
+    from .wonder_trend_routes import install_wonder_trend_routes
+    install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
     return app

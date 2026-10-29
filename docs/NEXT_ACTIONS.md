@@ -1,6 +1,21 @@
 # Hydra AI next actions
 
-## Next actions — October 29 (Amine)
+## Next actions — Wonder trends, October 29 (Amine)
+
+Wonder can now explain the user's own 14-day trends on either account
+([WONDER_TRENDS_API.md](architecture/WONDER_TRENDS_API.md)). This is the
+fastest path to a real Wonder request, because Amine's account gets its own
+ledger and isn't affected by Georgio's freeze.
+
+| Order | Action / owner | Completion evidence |
+| --- | --- | --- |
+| 1 | Amine: review and merge the Wonder trends PR | Merged PR; CI green |
+| 2 | Georgio: confirm the camera request's invoice is final, and that his ledger does not attest Amine's account | Finality recorded or stated in the PR; `meta_budget_admin view` output |
+| 3 | Amine: set up his ledger (setup steps 2–6 in WONDER_TRENDS_API.md) from his Meta billing page | `preview-schema` reports `already_current`; allocation recorded |
+| 4 | Amine: start the backend live on his account; in the app, preview, consent and explain once | Saved `trends-<hash>.json`; screenshot of the result with tokens and cost |
+| 5 | Amine: record invoice finality before any second request | `record-invoice-finality` succeeds |
+
+## Next actions — October 29 (Amine), earlier
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |

@@ -97,7 +97,7 @@ final class RecordedWonderAssistantTests: XCTestCase {
         let asked = AssistantRequest.recordedWonder(questionId: "hot_weather")
         let tampers: [(inout [String: Any]) -> Void] = [
             { var p = $0["provenance"] as! [String: Any]; p["topic_selection"] = "muse-spark-1.3"; $0["provenance"] = p },
-            { var p = $0["provenance"] as! [String: Any]; p["account_id"] = "aminealichaouche"; $0["provenance"] = p },
+            { var p = $0["provenance"] as! [String: Any]; p["account_id"] = "someone-else"; $0["provenance"] = p },
             { var o = $0["provider_observations"] as! [String: Any]; o["billed_cost_usd"] = 0.01; $0["provider_observations"] = o },
             { $0["provider_observations"] = NSNull() },
             { $0["escalation"] = true },

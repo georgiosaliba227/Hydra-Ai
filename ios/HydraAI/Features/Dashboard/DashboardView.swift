@@ -112,6 +112,11 @@ struct DashboardView: View {
                 }
                 .accessibilityIdentifier("askAssistant")
 
+                NavigationLink { TrendsView() } label: {
+                    Label("Your trends · Muse Wonder", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                .accessibilityIdentifier("wonderTrends")
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent today")
                         .font(.title3.bold())

@@ -125,7 +125,7 @@ struct HydrationContextComparison: Decodable, Sendable {
               provenance.model == "muse-wonder-1.0", provenance.candidate_model == "muse-wonder-1.0",
               provenance.candidate_tier == "Standard", provenance.model_identity_verified, provenance.live_dispatch_enabled,
               provenance.interpretation_origin == "meta_selection_and_reviewed_text",
-              provenance.account_id == "georgiosaliba227", let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
+              provenance.account_id.map(MetaAccount.known.contains) == true, let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
               Set(provider_observations.keys) == Self.recordedObservationKeys.union(["billed_cost_usd"]),
               provider_observations["billed_cost_usd"] == .some(nil),
               Self.recordedObservationKeys.allSatisfy({ ((provider_observations[$0] ?? nil) ?? -1) >= 0 }),

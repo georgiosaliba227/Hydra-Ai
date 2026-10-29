@@ -4,6 +4,12 @@ Updated October 29, 2026. Record each blocker once; revisit only when new eviden
 
 ## Top blocker: no way to lift an account freeze
 
+October 29 update: this now blocks **Georgio's** account only. Wonder trend
+explanations can run on Amine's account through a ledger file of his own
+(WONDER_TRENDS_API.md), which Georgio's freeze doesn't touch. Two checks remain:
+Georgio's camera invoice must be final first (AGENTS.md project-wide rule), and
+Georgio's ledger must not also attest Amine's account.
+
 Every attempt that ends in usage settlement, a failure or (on PR #14) a
 successful risk-policy request freezes that account, and
 `verify_project_unfrozen` then blocks **all** project admission and dispatch,
