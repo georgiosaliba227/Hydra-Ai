@@ -1,5 +1,16 @@
 # Hydra AI next actions
 
+## Wonder hydration intelligence — October 28 (Amine)
+
+| Order | Action / owner | Completion evidence |
+| --- | --- | --- |
+| 1 | Georgio: push any unpublished Wonder work, confirm the Wonder-only and $30-account decisions, and say whether the $20 Spark target still applies | Reply on the Wonder PR; DECISION_LOG row confirmed or corrected |
+| 2 | Both: review `codex/wonder-hydration-intelligence` (contract, payload, parser, Wonder-only V2) | GitHub review on the exact commit |
+| 3 | Both: choose how a live Wonder request's input size is bounded (provider token count or reviewed byte bound) | Decision recorded; current full-context bound is $4.20 per request and cannot be admitted |
+| 4 | Amine: implement the Wonder live adapter through `ExperimentBudget`, mock-only | Dispatch, settlement and observation tests with fake transports; no private ledger touched |
+| 5 | Georgio: update iOS copy that still names Spark as a hydration candidate | `WorkoutForecastView.swift` text; XCTest/UI run |
+| 6 | Georgio + provider: camera invoice finality for the PR #14 request | Reconciled billing evidence; unblocks any further request |
+
 ## Current forecasting assignment — October 28
 
 Camera development is paused by the latest user request. PR #13 is merged at

@@ -69,16 +69,19 @@ def test_structured_outputs_cannot_override_numbers_or_add_diagnoses():
         validate_selection(valid | {"numerical_abstention": True}, context, prediction)
 
 
-def test_comparison_candidates_have_no_observed_usage_or_cost(client, monkeypatch):
+def test_wonder_is_the_only_candidate_and_has_no_observed_usage_or_cost(client, monkeypatch):
     import socket
     monkeypatch.setattr(socket, "create_connection", lambda *a, **k: pytest.fail("network forbidden"))
-    for candidate in ("muse-spark-1.3", "muse-wonder-1.0"):
-        response = client.post("/v2/hydration-context-comparison", json={"mode": "mock", "scenario": "complete", "candidate_model": candidate}, headers=AUTH)
+    for payload in ({"mode": "mock", "scenario": "complete"},
+                    {"mode": "mock", "scenario": "complete", "candidate_model": "muse-wonder-1.0"}):
+        response = client.post("/v2/hydration-context-comparison", json=payload, headers=AUTH)
         assert response.status_code == 200
         result = response.json()
-        assert result["provenance"]["candidate_model"] == candidate
+        assert result["provenance"]["candidate_model"] == "muse-wonder-1.0"
         assert result["provenance"]["model_identity_verified"] is False
         assert all(value is None for value in result["provider_observations"].values())
+    spark = {"mode": "mock", "scenario": "complete", "candidate_model": "muse-spark-1.3"}
+    assert client.post("/v2/hydration-context-comparison", json=spark, headers=AUTH).status_code == 422
 
 
 def test_mock_benchmark_uses_fixed_labels_and_separates_numerical_from_contextual():

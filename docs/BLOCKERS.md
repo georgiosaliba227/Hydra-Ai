@@ -2,6 +2,21 @@
 
 Updated October 28, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
+## Wonder hydration intelligence
+
+- **Cost bound.** The transport bounds input at the full context (1,048,064
+  tokens). At Wonder's $4 input / $20 output per million tokens that is about
+  $4.20 per request: above the $0.25 per-attempt cap, the $2 camera risk policy,
+  and 42% of the $10 Wonder target. The canonical scenario payloads are
+  3.4–3.9 KB, about $0.026 per request if a byte-based bound is approved. Needs a
+  reviewed decision (see architecture/WONDER_HYDRATION_API.md).
+- **Project freeze.** The PR #14 camera request's invoice finality is unresolved,
+  which blocks every new request on any account.
+- **No live adapter.** `ExperimentBudget` is review-only by design; the Wonder
+  dispatch path is unimplemented.
+- **Unconfirmed decisions.** Georgio has not yet confirmed Wonder-only, the
+  account choice, or the soft-target split; any unpublished Codex work is unknown.
+
 ## Current forecasting limits
 
 - PR #13 is now merged (`700fe6d`). The new forecasting changes require their own

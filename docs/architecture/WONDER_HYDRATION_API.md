@@ -1,0 +1,103 @@
+# Muse Wonder hydration intelligence — mock-only contract
+
+Version `wonder-hydration-context-v1`. Proposed by Amine on 2026-10-28, before
+implementation, for review by Georgio. It is additive: v1 explanations, the
+camera path and every financial module keep their current behavior. Nothing here
+authorizes a live request, migrates a ledger or changes a spending limit.
+
+## Decisions this contract records
+
+- `muse-wonder-1.0` Standard is the only Meta model for hydration
+  intelligence. Spark is no longer a hydration candidate; Wonder is not compared
+  against other models unless both developers change this decision.
+- Camera recognition keeps `muse-spark-1.3` Standard unchanged.
+- A future live Wonder request is charged to Georgio's conditional $30 experiment
+  allocation (`hydration-v2-georgio-30usd`), never to Amine's account. The
+  existing v1 synthetic explanation path (`HYDRA_META_HYDRATION_ENABLED`, fixed to
+  Amine, Spark-only ledger prices) is left in place and disabled by default; it is
+  not the Wonder path.
+- The $20 Spark / $10 Wonder soft targets inside the $30 ceiling are unchanged
+  here. Whether the Spark target still applies once hydration is Wonder-only is
+  an open question for Georgio.
+
+## Verified public facts (dev.meta.ai, checked 2026-10-28)
+
+- Model ID `muse-wonder-1.0`, Standard tier only, in preview. Contributor mode is
+  unavailable for Wonder.
+- Prices per million tokens: input $4.00, cached input $0.20, output $20.00.
+  Spark 1.3 Standard is $1.25 / $0.15 / $4.25.
+- Wonder and Spark "take the same requests on the same endpoints"; switching is a
+  model ID change. Wonder lists structured output and accepts reasoning effort
+  `minimal` through `max`.
+- Context window 1,048,576 tokens. `max_output_tokens` bounds reasoning plus
+  visible output. The docs do not state how reasoning tokens are billed, so every
+  generated token is priced as output.
+
+Public pages do not establish account access, available credits or an
+all-inclusive charge bound.
+
+## Request
+
+`backend/wonder_hydration.py` builds a deterministic Responses payload from a
+server-owned V2 scenario (`complete`, `missing_measurements`,
+`contradictory_mass`, `changing_conditions`, `biometrics_and_supplements`). No
+caller context, personal measurement, HealthKit value, free text or account
+selector is accepted.
+
+```json
+{"model": "muse-wonder-1.0", "store": false, "stream": false, "background": false,
+ "max_output_tokens": 512, "reasoning": {"effort": "minimal"},
+ "text": {"format": {"type": "json_schema", "name": "hydration_context_selection",
+                     "strict": true, "schema": "<Selection schema>"}},
+ "input": [{"role": "user", "content": [{"type": "input_text",
+            "text": "<reviewed V2 prompt> Context: <canonical scenario JSON>"}]}]}
+```
+
+The scenario JSON holds the synthetic context and the authoritative numerical
+prediction. `payload_sha256` is the SHA-256 of the canonical payload; any change
+to prompt, schema, scenario or model changes it and needs fresh input approval.
+
+## Response handling
+
+The reply must be HTTP 200 with `model == "muse-wonder-1.0"`,
+`status == "completed"`, no `error` or `incomplete_details`, exactly one completed
+assistant message (reasoning items ignored) and one `output_text` of at most 4,096
+characters. That text must be strict JSON matching `Selection`, then pass the
+existing `validate_selection`: only supported enum IDs, no omitted contradiction
+or required uncertainty, and matching numerical abstention. Anything else is
+rejected; there is no repair, retry or mock fallback.
+
+Accepted selections render through the existing reviewed text. The numerical
+prediction is copied from the deterministic engine, never from model output.
+Live provenance would read `mode: meta_live`, `provider: Meta`,
+`model: muse-wonder-1.0`, account `georgiosaliba227` and the ledger attempt ID.
+Until a live adapter exists, every response is `mode: mock` with null provider,
+model, account and attempt.
+
+## Cost bounds
+
+`worst_case_micro_usd(input_tokens, output_tokens)` prices input at $4 and output
+at $20 per million, rounded up, with no cache discount. The existing transport
+bounds input at the full context minus the output budget (1,048,064 tokens),
+because it never converts bytes into guessed token counts. At Wonder prices that
+is about $4.20 per request, which exceeds the $0.25 per-attempt cap, the $2
+camera risk policy and 42% of the $10 Wonder target. **A live Wonder request
+therefore cannot be admitted under current rules.** Unblocking it needs one of:
+
+1. A provider-verified input token count, once the count endpoint's billing
+   status is confirmed.
+2. A reviewed text-only bound, for example canonical UTF-8 bytes of the input plus
+   a fixed template allowance. This assumes no tokenizer emits more tokens than
+   bytes and must be independently reviewed before it is used for admission.
+
+`preview` reports both the full-context bound and this byte-based figure, clearly
+labeled, so reviewers can decide. Neither figure is billing evidence.
+
+## Not implemented here
+
+- No live transport, ledger reservation, dispatch ticket, settlement or route.
+  The $30 experiment module stays review-only; its live adapter is a separate,
+  independently reviewed change.
+- No ranking or quality claim. Mock selections are rule-based fixtures.
+- No iOS change. The client already accepts `muse-wonder-1.0` as the candidate
+  label; its explanatory copy still mentions Spark and is Georgio's to update.

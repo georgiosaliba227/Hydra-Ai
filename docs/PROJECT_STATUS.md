@@ -2,6 +2,24 @@
 
 Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
+## Current state — October 28 (Amine)
+
+`main` is `07ee4a3`: forecasting (`codex/hydration-forecast-ml`) and V2
+(`codex/hydration-intelligence-v2`) are **merged through PR #17**. The sections
+below that call them unmerged or PR-blocked are historical.
+
+One real Meta request has run: a single owner-authorized Muse Spark 1.3 Standard
+camera request (HTTP 200, synthetic water illustration), recorded on unmerged
+PR #14 (`codex/first-camera-risk-policy`). Its invoice finality is pending, so the
+project stays frozen for every new request. No hydration-intelligence request,
+Spark or Wonder, has run.
+
+| Task | Owner | Status | Branch / PR | Completion criteria | Test evidence | Remaining blockers |
+| --- | --- | --- | --- | --- | --- | --- |
+| Wonder-only hydration intelligence, mock layer | Amine | Implemented, awaiting review | `codex/wonder-hydration-intelligence` | Deterministic Wonder payload, cost preview, strict parser; V2 comparison Wonder-only | 643 pytest + 32 subtests passed, 1 skipped (local, Python 3.14) | Georgio review; no iOS or live change |
+| Wonder live adapter on the $30 experiment allocation | Amine | Not started | — | Reviewed dispatch/settlement path through `ExperimentBudget`, mock-tested | — | Full-context bound $4.20 per request exceeds the $0.25 cap; reviewed input bound needed |
+| Review PR #14 | Amine | Pending | PR #14 | Submitted GitHub review on `b3eda64` | — | Amine's own review |
+
 ## V2 review branch — October 28
 
 `codex/hydration-intelligence-v2` extends the unmerged forecasting branch. The
