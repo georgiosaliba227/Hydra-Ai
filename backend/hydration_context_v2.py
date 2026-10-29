@@ -2,6 +2,8 @@
 from copy import deepcopy
 from datetime import datetime, timezone
 import json
+import os
+from pathlib import Path
 from typing import Literal
 
 from fastapi import HTTPException
@@ -76,7 +78,8 @@ class Selection(BaseModel):
 
 class ComparisonInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    mode: Literal["mock"]
+    # "recorded" replays a validated, already-settled Wonder result; it never dispatches.
+    mode: Literal["mock", "recorded"]
     scenario: Literal["complete", "missing_measurements", "contradictory_mass", "changing_conditions", "biometrics_and_supplements"]
     candidate_model: Literal["muse-wonder-1.0"] = "muse-wonder-1.0"
 
@@ -269,9 +272,23 @@ def benchmark_context() -> dict:
 
 
 def install_context_v2_routes(app) -> None:
+    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "")
+    results_dir = Path(configured) if configured else None
+    if results_dir is not None and not results_dir.is_absolute():
+        raise ValueError("HYDRA_WONDER_RESULTS_DIR must be absolute")
+
     @app.post("/v2/hydration-context-comparison")
     def comparison(payload: ComparisonInput):
-        return compare_context(payload.scenario, payload.candidate_model)
+        if payload.mode == "mock":
+            return compare_context(payload.scenario, payload.candidate_model)
+        from .wonder_results import load_recorded
+        try:
+            recorded = load_recorded(results_dir, payload.scenario) if results_dir else None
+        except (OSError, ValueError):
+            recorded = None
+        if recorded is None:
+            raise HTTPException(404, "not_found")
+        return recorded
 
     @app.post("/v2/workout-forecasts")
     def workout(payload: WorkoutForecastInput):

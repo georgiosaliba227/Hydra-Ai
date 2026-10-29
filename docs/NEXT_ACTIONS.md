@@ -9,7 +9,7 @@
 | 3 | Georgio: update iOS copy that still names Spark as a hydration candidate, and show live Wonder provenance when present | `WorkoutForecastView.swift` text; XCTest/UI run |
 | 4 | Georgio + provider: camera invoice finality for the PR #14 request | Reconciled billing evidence; unblocks any further request |
 | 5 | Both: approve one Wonder case (exact payload hash, spending and live-dispatch references) on Georgio's account | Recorded `ApprovedCase`; explicit spending approval within the $30 allocation |
-| 6 | Operator: run one approved Wonder case, then record invoice finality | Settled attempt, observation, finality; demo evidence |
+| 6 | Operator: `wonder_admin.py run-case --confirm-billable` for one approved case, then record invoice finality | Recorded result replayable via `mode: "recorded"`; settled attempt and finality |
 
 ## Current forecasting assignment — October 28
 

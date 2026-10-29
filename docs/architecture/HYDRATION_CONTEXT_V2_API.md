@@ -16,7 +16,8 @@ in a new health database. Synthetic mode uses the existing server-owned fixture
 and adds the structured `context_comparison` below. No custom synthetic input is
 accepted through the numerical endpoint.
 
-`POST /v2/hydration-context-comparison` accepts only `mode:"mock"`, a server-owned
+`POST /v2/hydration-context-comparison` accepts `mode:"mock"` (or `mode:"recorded"` to
+replay a validated, already-settled Wonder result; see WONDER_HYDRATION_API.md), a server-owned
 scenario ID (`complete`, `missing_measurements`, `contradictory_mass`,
 `changing_conditions`, or `biometrics_and_supplements`) and an optional
 `candidate_model` (only `muse-wonder-1.0`, the default; Spark is rejected since
