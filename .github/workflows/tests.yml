@@ -1,0 +1,37 @@
+# Mock-only checks. No secrets, keys or network-dependent tests; all Meta paths stay disabled.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HYDRA_AI_MODE: mock
+      META_BILLABLE_REQUESTS_ENABLED: "false"
+      HYDRA_META_HYDRATION_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install pinned backend dependencies
+        run: python -m pip install -r backend/requirements.txt pytest httpx
+      - name: Run test suite
+        run: python -m pytest -q tests
+      - name: Offline demo rehearsal
+        run: python scripts/rehearse_demo.py
+      - name: Preserved starter tests
+        working-directory: Hydra-Ai-Starter
+        run: python -m pytest -q tests
