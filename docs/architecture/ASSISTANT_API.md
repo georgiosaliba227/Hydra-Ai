@@ -58,7 +58,26 @@ Response:
 returned when nothing matches. Errors follow the prototype envelope; invalid
 input returns 422 without echoing the question.
 
+## Muse Wonder topic selection (suggested questions only)
+
+`backend/wonder_assistant.py` builds one deterministic Wonder payload per
+suggested question. Its strict schema offers only that question's allowed
+topics (`ALLOWED`), never `urgent`, `medical_scope` or `scope`. The reply must
+select 1+ allowed topics, including at least one of the question's reviewed
+topics, with no other fields; anything else is rejected without repair.
+Answers are still the reviewed texts in priority order. Provenance reads
+`mode: meta_live`, `topic_selection: muse-wonder-1.0`,
+`answer_origin: reviewed_text`, Georgio's account and the attempt ID, plus
+tokens, latency and usage-derived cost.
+
+`WonderHydrationGateway.answer(question_id, case_id, quote, input_reference)`
+uses the same ledger flow as hydration explanations: approved case for the
+exact payload, $0.25 per attempt, $30 aggregate, one in flight, settlement,
+quarantine on any failure. `WonderMetaTransport` accepts exact scenario or
+suggested-question payloads only. The /v1/assistant route still answers from
+local rules; nothing dispatches from HTTP.
+
 ## Not in v1
 
-No live Wonder topic selection, conversation memory, free-text generation,
-HealthKit context or personalized targets.
+No conversation memory, free-text generation, HealthKit context or
+personalized targets. Free-text questions never reach Wonder.
