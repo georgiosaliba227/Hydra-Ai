@@ -9,7 +9,7 @@ from backend.meta_accounts import CAP
 from backend.meta_policy import MAX_INPUT_TOKENS, OUTPUT_LIMIT
 from backend.meta_provider import ProviderReply
 from backend.recognition import RecognitionUnavailable
-from backend.wonder_hydration import (MODEL, parse_selection, payload_sha256, preview, selection_schema,
+from backend.wonder_hydration import (CHOSEN, MODEL, parse_selection, payload_sha256, preview, scenario_schema, selection_schema,
                                       wonder_payload, worst_case_micro_usd)
 
 
@@ -28,6 +28,12 @@ def reply(text, *, http_status=200, model=MODEL, **body_changes):
 
 def supported(scenario):
     return supported_selection(*build_scenario(scenario))
+
+
+def chosen(scenario, selection=None):
+    """The part of a selection Wonder returns: only the fields its scenario schema offers."""
+    selection = supported(scenario) if selection is None else selection
+    return {name: selection[name] for name in scenario_schema(scenario)["properties"]}
 
 
 def test_payload_is_deterministic_wonder_only_and_bounded():
@@ -83,7 +89,7 @@ def test_full_context_bound_is_not_admissible_under_the_per_attempt_cap():
 @pytest.mark.parametrize("scenario", SCENARIOS)
 def test_supported_selection_parses_for_every_scenario(scenario):
     selection = supported(scenario)
-    assert parse_selection(reply(json.dumps(selection)), scenario) == selection
+    assert parse_selection(reply(json.dumps(chosen(scenario))), scenario) == selection
 
 
 @pytest.mark.parametrize("bad", [
@@ -99,7 +105,7 @@ def test_malformed_envelopes_fail_closed(bad):
 
 
 def test_two_messages_or_two_parts_fail_closed():
-    good = reply(json.dumps(supported("complete")))
+    good = reply(json.dumps(chosen("complete")))
     message = good.body["output"][1]
     with pytest.raises(RecognitionUnavailable):
         parse_selection(ProviderReply(200, good.body | {"output": [message, message]}), "complete")
@@ -131,6 +137,45 @@ def test_invalid_text_is_rejected(text):
 def test_contradiction_scenario_requires_the_contradiction():
     selection = supported("contradictory_mass")
     assert "negative_mass_balance" in selection["contradictions"]
-    assert parse_selection(reply(json.dumps(selection)), "contradictory_mass")["numerical_abstention"] is True
+    parsed = parse_selection(reply(json.dumps(chosen("contradictory_mass"))), "contradictory_mass")
+    # Hydra, not Wonder, supplies the required contradiction, uncertainty and abstention.
+    assert parsed["contradictions"] == selection["contradictions"] and parsed["numerical_abstention"] is True
+    with pytest.raises(RecognitionUnavailable):  # Wonder cannot send or drop them
+        parse_selection(reply(json.dumps(chosen("contradictory_mass") | {"contradictions": []})), "contradictory_mass")
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS)
+def test_each_scenario_schema_offers_only_its_supported_codes(scenario):
+    schema = scenario_schema(scenario)
+    selection = supported(scenario)
+    assert schema["additionalProperties"] is False and schema["required"] == list(schema["properties"])
+    assert set(schema["properties"]) == {name for name in CHOSEN if selection[name]}
+    for name, field in schema["properties"].items():
+        assert field == {"type": "array", "maxItems": len(selection[name]), "items": {"type": "string", "enum": selection[name]}}
+    assert wonder_payload(scenario)["text"]["format"]["schema"] == schema
+
+
+def test_the_live_missing_measurements_reply_now_parses_without_its_repeats():
+    # Wonder's real 2026-10-29 reply, minus the fields Hydra now fills in itself; its invented factor is gone
+    # because missing_measurements offers no factors.
+    live = {"missing_information": ["intake_completeness", "environmental_context", "calibration_measurements",
+                                    "environmental_context", "environmental_context"],
+            "measurement_suggestions": ["record_intake_urine", "record_environment", "record_intake_urine"]}
+    parsed = parse_selection(reply(json.dumps(live)), "missing_measurements")
+    assert parsed["missing_information"] == ["intake_completeness", "environmental_context", "calibration_measurements"]
+    assert parsed["measurement_suggestions"] == ["record_intake_urine", "record_environment"]
+    assert parsed["uncertainty"] == supported("missing_measurements")["uncertainty"]
+
+
+@pytest.mark.parametrize("change", [
+    {"factors": ["intake_logged"]},                       # a field this scenario doesn't offer
+    {"uncertainty": ["not_daily_requirement"]},           # Hydra's field, not Wonder's
+    {"missing_information": ["electrolyte_composition", "made_up_code"]},
+    {"missing_information": "environmental_context"},
+])
+def test_unoffered_fields_and_codes_are_rejected(change):
     with pytest.raises(RecognitionUnavailable):
-        parse_selection(reply(json.dumps(selection | {"contradictions": []})), "contradictory_mass")
+        parse_selection(reply(json.dumps(chosen("missing_measurements") | change)), "missing_measurements")
+    missing = {k: v for k, v in chosen("missing_measurements").items() if k != "measurement_suggestions"}
+    with pytest.raises(RecognitionUnavailable):  # every offered field is required
+        parse_selection(reply(json.dumps(missing)), "missing_measurements")

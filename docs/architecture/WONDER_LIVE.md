@@ -61,3 +61,21 @@ WONDER_TRENDS_API.md: `wonder_blocked`, `wonder_busy`,
 `wonder_attempt_unresolved` with `attempt_id`, and `wonder_unavailable`. After
 a request, record its invoice finality
 (`meta_budget_admin record-invoice-finality`) before the next one.
+
+## First live results (2026-10-29)
+
+Two scenario requests reached Muse Wonder and settled: `complete` for
+$0.011108 and `missing_measurements` for $0.007784. Neither froze the ledger.
+Hydra rejected both replies. In the saved `missing_measurements` reply,
+Wonder repeated codes, added a factor that scenario doesn't support, and left
+out two required uncertainty notes. At that point the schema offered every
+code for every scenario.
+
+Since then, each scenario's schema (`scenario_schema`) offers only the codes
+that scenario supports, and only for the fields Wonder chooses: factors,
+missing information and measurement suggestions. Hydra fills in the required
+uncertainty notes, contradictions and numerical abstention itself. Repeated
+codes or topics count once. A field or code that isn't offered is still
+rejected. These changes give each scenario a new payload hash, so each one
+gets one send under the standing approval. The allocation limit still caps
+total spending.

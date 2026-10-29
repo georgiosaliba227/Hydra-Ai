@@ -54,7 +54,10 @@ def approve(ledger, scenario="complete", **changes):
 
 
 def selection_reply(scenario="complete", *, inputs=900, outputs=120, cached=0, model=WONDER, text=None, identifier=None):
-    text = json.dumps(supported_selection(*build_scenario(scenario))) if text is None else text
+    if text is None:  # Wonder returns only the fields its scenario schema offers
+        from backend.wonder_hydration import scenario_schema
+        full = supported_selection(*build_scenario(scenario))
+        text = json.dumps({name: full[name] for name in scenario_schema(scenario)["properties"]})
     return ProviderReply(200, {
         "id": identifier or "resp_wonder_" + uuid4().hex, "model": model, "status": "completed", "error": None,
         "incomplete_details": None,
