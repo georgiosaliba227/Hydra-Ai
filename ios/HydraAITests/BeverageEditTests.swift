@@ -70,11 +70,12 @@ final class BeverageEditTests: XCTestCase {
         FixtureURLProtocol.handler = { request in
             XCTAssertEqual(request.httpMethod, "DELETE")
             XCTAssertEqual(request.url!.path, "/v1/beverages/\(self.id.uuidString.lowercased())")
+            XCTAssertEqual(request.url!.query, "revision=3")
             return (statuses.removeFirst(), Data())
         }
-        try await service().deleteBeverage(id: id)
-        try await service().deleteBeverage(id: id)
-        do { try await service().deleteBeverage(id: id); XCTFail("Server error accepted") }
+        try await service().deleteBeverage(id: id, revision: 3)
+        try await service().deleteBeverage(id: id, revision: 3)
+        do { try await service().deleteBeverage(id: id, revision: 3); XCTFail("Server error accepted") }
         catch ServiceError.server(let code) { XCTAssertEqual(code, 500) }
     }
 
@@ -92,6 +93,8 @@ final class BeverageEditTests: XCTestCase {
         do { try await store.update(original, category: "juice", consumedMl: 200, at: consumedAt); XCTFail("Stale edit accepted") }
         catch BeverageEditError.changedElsewhere {}
         XCTAssertEqual(store.logs.first?.consumedMl, 300, "A stale edit changes nothing and shows the latest version")
+        do { try await store.delete(original); XCTFail("Stale delete accepted") } catch BeverageEditError.changedElsewhere {}
+        XCTAssertEqual(store.logs.count, 1, "A stale delete removes nothing")
         try await store.delete(corrected)
         XCTAssertTrue(store.logs.isEmpty)
     }

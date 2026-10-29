@@ -322,8 +322,9 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             raise HTTPException(422, "invalid_request") from None
 
     @app.delete("/v1/beverages/{beverage_id}", status_code=204)
-    def delete_beverage(beverage_id: UUID, request: Request):
-        request.app.state.repository.delete("local-demo", str(beverage_id))
+    def delete_beverage(beverage_id: UUID, request: Request,
+                        revision: Annotated[int | None, Query(ge=1, le=1_000_000)] = None):
+        request.app.state.repository.delete("local-demo", str(beverage_id), revision)
         return Response(status_code=204)
 
     @app.get("/v1/beverages")

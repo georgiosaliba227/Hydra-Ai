@@ -234,8 +234,9 @@ actor HTTPBeverageService: BeverageService {
         return log
     }
 
-    func deleteBeverage(id: UUID) async throws {
-        let (_, status) = try await mutate("v1/beverages/\(id.uuidString.lowercased())", method: "DELETE", body: nil)
+    func deleteBeverage(id: UUID, revision: Int) async throws {
+        let (_, status) = try await mutate("v1/beverages/\(id.uuidString.lowercased())", method: "DELETE", body: nil,
+                                           query: [URLQueryItem(name: "revision", value: String(revision))])
         // 404 after a lost response means the earlier delete already succeeded.
         guard status == 204 || status == 404 else { throw ServiceError.server(status) }
     }
@@ -273,8 +274,11 @@ actor HTTPBeverageService: BeverageService {
         return answer
     }
 
-    private func mutate(_ path: String, method: String, body: Data?) async throws -> (Data, Int) {
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = []) async throws -> (Data, Int) {
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        if !query.isEmpty { components.queryItems = query }
+        guard let url = components.url else { throw ServiceError.configuration }
+        var request = URLRequest(url: url)
         request.httpMethod = method
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
