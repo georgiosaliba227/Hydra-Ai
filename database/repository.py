@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+from typing import Callable
 
 
 class IdempotencyConflict(Exception):
@@ -15,6 +16,18 @@ class IdempotencyConflict(Exception):
 
     def __init__(self) -> None:
         super().__init__("Idempotency key conflicts with an existing request.")
+
+
+class BeverageNotFound(Exception):
+    """No live record with this owner and ID; deleted records are not found."""
+
+
+class RevisionConflict(Exception):
+    """The caller's revision is stale. `current` is the stored record."""
+
+    def __init__(self, current: dict) -> None:
+        super().__init__("Beverage revision conflict.")
+        self.current = current
 
 
 class StorageUnavailable(Exception):
@@ -26,6 +39,15 @@ class StorageUnavailable(Exception):
 
 def _invalid_constant(value: str) -> None:
     raise ValueError("Nonfinite stored value")
+
+
+def _serialize(record: dict) -> tuple[str, str]:
+    payload = json.dumps(record, ensure_ascii=False, allow_nan=False,
+                         separators=(",", ":"), sort_keys=True)
+    instant = datetime.fromisoformat(record["consumed_at"].replace("Z", "+00:00"))
+    if instant.tzinfo is None or instant.utcoffset() is None:
+        raise ValueError("An aware timestamp is required.")
+    return payload, instant.astimezone(timezone.utc).isoformat(timespec="microseconds")
 
 
 def _decode(payload: str) -> dict:
@@ -92,12 +114,7 @@ class BeverageRepository:
         returns the originally committed UUID and complete response unchanged.
         Conflicts roll back and never replace the first record.
         """
-        payload = json.dumps(record, ensure_ascii=False, allow_nan=False,
-                             separators=(",", ":"), sort_keys=True)
-        instant = datetime.fromisoformat(record["consumed_at"].replace("Z", "+00:00"))
-        if instant.tzinfo is None or instant.utcoffset() is None:
-            raise ValueError("An aware timestamp is required.")
-        sort_time = instant.astimezone(timezone.utc).isoformat(timespec="microseconds")
+        payload, sort_time = _serialize(record)
         try:
             with closing(self._connect()) as connection, connection:
                 connection.execute("BEGIN IMMEDIATE")
@@ -106,7 +123,8 @@ class BeverageRepository:
                     "WHERE owner=? AND idempotency_key=?", (owner, key),
                 ).fetchone()
                 if row is not None:
-                    if row[0] != fingerprint:
+                    # A deleted log keeps its key, so a late retry cannot resurrect it.
+                    if row[0] != fingerprint or _decode(row[1]).get("deleted"):
                         raise IdempotencyConflict()
                     return _decode(row[1]), False
                 connection.execute(
@@ -127,6 +145,54 @@ class BeverageRepository:
                     "SELECT record_json FROM beverages WHERE owner=? "
                     "ORDER BY consumed_at DESC, id DESC", (owner,),
                 ).fetchall()
-            return [_decode(row[0]) for row in rows]
+            records = [_decode(row[0]) for row in rows]
+            return [record for record in records if not record.get("deleted")]
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
+    def update(self, owner: str, beverage_id: str, revision: int,
+               build: Callable[[dict], dict]) -> dict:
+        """Replace one live record if `revision` is current; `build` returns the new record.
+
+        `build` may raise ValueError to reject the change; nothing is written then.
+        """
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute("BEGIN IMMEDIATE")
+                row = connection.execute(
+                    "SELECT record_json FROM beverages WHERE owner=? AND id=?", (owner, beverage_id),
+                ).fetchone()
+                current = _decode(row[0]) if row is not None else None
+                if current is None or current.get("deleted"):
+                    raise BeverageNotFound()
+                if current["revision"] != revision:
+                    raise RevisionConflict(current)
+                record = build(current)
+                if record["id"] != beverage_id or record["revision"] != revision + 1:
+                    raise ValueError("Updates keep the ID and advance the revision by one.")
+                payload, sort_time = _serialize(record)
+                connection.execute(
+                    "UPDATE beverages SET consumed_at=?, record_json=? WHERE owner=? AND id=?",
+                    (sort_time, payload, owner, beverage_id),
+                )
+            return _decode(payload)
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
+    def delete(self, owner: str, beverage_id: str) -> None:
+        """Erase the record's content, keeping only its ID and idempotency identity."""
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute("BEGIN IMMEDIATE")
+                row = connection.execute(
+                    "SELECT record_json FROM beverages WHERE owner=? AND id=?", (owner, beverage_id),
+                ).fetchone()
+                if row is None or _decode(row[0]).get("deleted"):
+                    raise BeverageNotFound()
+                tombstone = json.dumps({"deleted": True, "id": beverage_id}, separators=(",", ":"), sort_keys=True)
+                connection.execute(
+                    "UPDATE beverages SET consumed_at='', record_json=? WHERE owner=? AND id=?",
+                    (tombstone, owner, beverage_id),
+                )
         except sqlite3.Error:
             raise StorageUnavailable() from None

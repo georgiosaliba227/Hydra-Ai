@@ -69,6 +69,29 @@ class CreateBeverageRequest(BaseModel):
         return value
 
 
+class UpdateBeverageRequest(BaseModel):
+    """Correct a confirmed log. Omitted fields keep their value; explicit nulls are rejected."""
+    model_config = ConfigDict(extra="forbid")
+
+    revision: StrictInt = Field(ge=1)
+    category: str | None = Field(default=None, min_length=1, max_length=80, strict=True)
+    consumed_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    consumed_at: datetime | None = None
+    timezone: str | None = Field(default=None, min_length=1, max_length=128, strict=True)
+
+    _clean_category = field_validator("category")(CreateBeverageRequest.clean_category.__func__)
+    _rfc3339 = field_validator("consumed_at", mode="before")(CreateBeverageRequest.require_rfc3339.__func__)
+    _instant = field_validator("consumed_at")(CreateBeverageRequest.validate_instant.__func__)
+    _timezone = field_validator("timezone")(CreateBeverageRequest.valid_timezone.__func__)
+
+    @model_validator(mode="after")
+    def explicit_changes(self) -> Self:
+        changed = self.model_fields_set - {"revision"}
+        if not changed or any(getattr(self, name) is None for name in changed):
+            raise ValueError("provide at least one non-null correction")
+        return self
+
+
 def utc_string(value: datetime) -> str:
     # Fixed-width canonical representation keeps SQLite/keyset ordering correct.
     return value.astimezone(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
