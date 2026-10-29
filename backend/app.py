@@ -353,6 +353,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_hydration_routes(app, enabled=hydration_enabled == "true", error_response=error_response)
     from .personal_forecasts import install_forecast_routes
     install_forecast_routes(app, to_engine)
+    from .assistant_routes import install_assistant_routes
+    install_assistant_routes(app, to_engine)
     from .workout_forecasts import install_workout_forecast_routes
     install_workout_forecast_routes(app)
     from .hydration_context_v2 import install_context_v2_routes
