@@ -2,6 +2,25 @@
 
 Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
+## Top blocker: no way to lift an account freeze
+
+Every attempt that ends in usage settlement, a failure or (on PR #14) a
+successful risk-policy request freezes that account, and
+`verify_project_unfrozen` then blocks **all** project admission and dispatch,
+on both accounts. No code on `main` or PR #14 ever clears `frozen`; PR #14's
+`reconcile_risk_invoice` records finality but explicitly does not unfreeze.
+After Georgio's first camera request, no further Meta request (including the
+Wonder demo recordings) can run until the developers decide how spending may
+resume.
+
+Proposed, not implemented: an explicit `resume_account(account, references)`
+operator command that succeeds only when every attempt on that account has
+recorded invoice finality, no attempt is unresolved or billing-pending, any
+overrun is recorded truthfully, both developers' review references are given
+and a fresh spending approval exists; it records an immutable audit event and
+never resets permits or history. Build it after PR #14 merges, since both touch
+`backend/meta_accounts.py`.
+
 ## Wonder hydration intelligence
 
 - **Input bound (resolved).** Policy `canonical-payload-bytes-v1` bounds input at

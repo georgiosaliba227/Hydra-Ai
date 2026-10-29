@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | 1 | Amine: review PR #14 (Georgio's first camera request policy) | Submitted GitHub review on `b3eda64` |
 | 2 | Georgio + provider: invoice finality for the PR #14 camera request | Reconciled billing evidence; unblocks any further request |
+| 2b | Both: decide how a frozen account may resume after verified reconciliation (see BLOCKERS top item); then implement and review it | Decision in DECISION_LOG; reviewed `resume_account` command |
 | 3 | Operator: finality migration, then `wonder_admin.py migrate-schema`, record the $30 allocation | Migration audit events; `preview-schema` reports `already_current` |
 | 4 | Both: approve one Wonder case per demo item: one scenario (`prepare --scenario complete`) and one suggested question (`prepare --question-id hot_weather`) | Recorded `ApprovedCase`s with spending and live-dispatch references |
 | 5 | Operator: `run-case --confirm-billable` for each approved case, then record invoice finality | `complete.json` and `assistant-hot_weather.json` replay in the app |
