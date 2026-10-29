@@ -402,3 +402,38 @@ def test_admin_prepare_and_import_without_network(tmp_path, capsys):
         main(["record-case", "--database", database, "--descriptor", str(descriptor.with_name("absent.json"))])
     with pytest.raises(SystemExit):
         main(["preview-schema", "--database", "relative.sqlite3"])
+
+
+def run_case_setup(tmp_path, monkeypatch, transport):
+    import scripts.wonder_admin as admin
+    monkeypatch.setattr(admin, "WonderMetaTransport", lambda key: transport)
+    monkeypatch.setattr(admin, "GitHubNotifier", lambda token: FakeNotifier())
+    authority, ledger = setup(tmp_path)
+    case = approve(ledger)
+    quote_file = tmp_path / "quote.json"
+    quote_file.write_text(quote(WONDER).model_dump_json())
+    results = tmp_path / "results"
+    results.mkdir(mode=0o700)
+    argv = ["run-case", "--database", str(authority.path), "--scenario", "complete", "--case-id", case.case_id,
+            "--descriptor", str(quote_file), "--input-reference", case.input_approval_reference,
+            "--results-dir", str(results)]
+    return admin, authority, results, argv
+
+
+def test_run_case_requires_explicit_billable_confirmation(tmp_path, monkeypatch):
+    transport = FakeWonderTransport()
+    admin, authority, results, argv = run_case_setup(tmp_path, monkeypatch, transport)
+    with pytest.raises(SystemExit):
+        admin.main(argv)
+    assert transport.calls == 0 and attempt_rows(authority) == [] and list(results.iterdir()) == []
+
+
+def test_run_case_records_a_replayable_validated_result(tmp_path, monkeypatch, capsys):
+    from backend.wonder_results import load_recorded
+    transport = FakeWonderTransport()
+    admin, authority, results, argv = run_case_setup(tmp_path, monkeypatch, transport)
+    admin.main(argv + ["--confirm-billable"])
+    output = json.loads(capsys.readouterr().out)
+    assert transport.calls == 1 and output["recorded_path"] == str(results / "complete.json")
+    assert load_recorded(results, "complete") == output["result"]
+    assert (results / "complete.json").stat().st_mode & 0o777 == 0o600

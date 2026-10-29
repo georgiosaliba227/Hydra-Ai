@@ -147,12 +147,30 @@ owned 0600 ledger only, with the same checks as the finality migration.
 4. `record-allocation --descriptor approval.json` imports the immutable $30
    `ExperimentApproval`; `record-case --descriptor case.json` imports one
    `ApprovedCase`.
+5. **Billable.** `run-case --database <abs> --scenario <name> --case-id <uuid>
+   --descriptor quote.json --input-reference <ref> --results-dir <abs private dir>
+   --confirm-billable`, with `HYDRA_META_GEORGIO_API_KEY` and
+   `HYDRA_GITHUB_NOTIFICATION_TOKEN` exported in that shell only. It runs the
+   gateway once and writes `<scenario>.json` (mode 0600, write-once) into the
+   results directory. Without `--confirm-billable` it refuses before touching the
+   ledger. Afterwards, record invoice finality before any next case.
+
+## Replay for the app and demo
+
+`POST /v2/hydration-context-comparison` with `{"mode": "recorded", "scenario":
+...}` returns the saved result when `HYDRA_WONDER_RESULTS_DIR` names an absolute,
+owned, private directory. It never dispatches. A record is served only if
+rebuilding it from the deterministic scenario, its re-validated selection and its
+provenance reproduces it exactly; otherwise, or when nothing is recorded, the
+response is 404. Replays carry the original `meta_live` provenance, attempt ID,
+tokens, latency and usage-derived cost; `billed_cost_usd` stays null.
 
 ## Still not implemented
 
-- No HTTP route, operator command or environment switch calls the gateway.
+- No HTTP route or environment switch dispatches; only the operator `run-case`
+  command can, after every ledger gate passes.
 - No private ledger has been migrated; no approved case, quote or spending
-  approval exists.
+  approval exists, and no real Wonder request has run.
 - No ranking or quality claim. Mock selections are rule-based fixtures.
 - No iOS change. The client already accepts `muse-wonder-1.0` as the candidate
   label; its explanatory copy still mentions Spark and is Georgio's to update.
