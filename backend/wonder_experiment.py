@@ -286,8 +286,9 @@ class WonderExperimentLedger(ExperimentBudget):
                     raise ValueError
                 recorded = json.dumps({"input_tokens": inputs, "output_tokens": outputs, "cached_tokens": cached, "total_tokens": total}, sort_keys=True)
                 evidence = json.loads(db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (account,)).fetchone()[0])
-                # Cache discounts and extra categories cannot be priced from usage alone.
-                if cached or quote["extra_charge_bound_micro_usd"] or evidence["extra_charge_bound_micro_usd"]:
+                # Extra categories cannot be priced from usage alone. Cached input is billed below the input
+                # price, so charging every input token at the full price is an upper bound, never an undercount.
+                if quote["extra_charge_bound_micro_usd"] or evidence["extra_charge_bound_micro_usd"]:
                     db.execute("UPDATE live_attempts SET provider_id=?,usage=? WHERE id=?", (identifier, recorded, attempt))
                     raise ValueError
                 amount = (inputs * quote["input_micro_per_million"] + outputs * quote["output_micro_per_million"] + 999_999) // 1_000_000

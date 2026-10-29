@@ -1,16 +1,15 @@
 # Hydra AI next actions
 
-## Next actions — own keys only, no shared backend (October 29, Amine)
+## Next actions — Georgio's key on Amine's Mac, $20 (October 29, Amine)
 
-The shared backend was withdrawn: no Tailscale and no developer tokens. Each
-developer uses their own key on their own computer.
+Owner override in AGENTS.md. Spending is recorded as Georgio's account.
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Georgio: reconcile the camera invoice (ACCOUNT_RESUME.md step 1). Required before any request on either account (AGENTS.md) | `meta_account_resume template` shows the attempt `settled` with its final charge |
-| 2 | Amine: make a Meta key; set up his own ledger with `synthetic_dispatch_reference` and `trend_dispatch_reference` in the $100 allocation (WONDER_TRENDS_API.md, WONDER_LIVE.md) | `preview-schema` is `already_current`; allocation recorded |
-| 3 | Amine: run one case (a trend explanation or a synthetic scenario), then record its invoice finality | Saved result replays in the app |
-| 4 | Optional, Georgio: resume his own account (ACCOUNT_RESUME.md) only if he wants to spend his $30 himself | `account_resumed` event |
+| 1 | ~~Georgio: agree to the shared key~~ (he may also resume his own $30 ledger; Amine's limit is capped at $85 so both stay under $120) | Done, relayed 2026-10-29 |
+| 2 | Amine: create the ledger for `georgiosaliba227` with `wonder-georgio-key-amine-mac-20usd`, both standing references; gross = dashboard + $1.312256 camera reservation | `preview-schema` is `already_current`; allocation recorded |
+| 3 | Amine: start the backend with `HYDRA_META_GEORGIO_API_KEY` (entered with `read -s`), run one case, then record its invoice finality | Saved result replays in the app |
+| 4 | Amine, any time: `wonder_admin set-limit --database ... --limit-usd <N> --reference <why>` (at most $85) | `experiment_limit_changed` event |
 
 ## Next actions — Wonder trends, October 29 (Amine)
 

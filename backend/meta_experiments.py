@@ -30,6 +30,8 @@ class Allocation:
     hard_limit: int
     soft_targets: dict[str, int]
     cutoff: int  # A reservation taking the account's gross exposure to this amount is refused.
+    # When set, the owner may change the limit later (`set_limit`), up to this ceiling; otherwise it is fixed.
+    limit_ceiling: int | None = None
 
 
 # Reviewed per-account limits. Georgio: $30 experiment within the $120 cutoff.
@@ -39,6 +41,21 @@ ALLOCATIONS = {
     "aminealichaouche": Allocation("wonder-amine-20usd", 20 * USD,
                                    {"muse-spark-1.3": 0, "muse-wonder-1.0": 20 * USD}, 100 * USD),
 }
+# Owner override (2026-10-29, Amine with Georgio's agreement): Georgio's key in a second ledger on Amine's
+# Mac, starting at $20 of Wonder within Georgio's $120 cutoff. Amine may change the limit, up to $85, so that
+# with Georgio's own $30 ledger also active (and the $1.31 camera reservation) the account stays under $120.
+GEORGIO_ON_AMINE_MAC = Allocation("wonder-georgio-key-amine-mac-20usd", 20 * USD,
+                                  {"muse-spark-1.3": 0, "muse-wonder-1.0": 20 * USD}, 120 * USD, 85 * USD)
+# Every reviewed allocation by ID, with the account it belongs to.
+REVIEWED_ALLOCATIONS = {allocation.allocation_id: (account, allocation) for account, allocation in
+                        [*ALLOCATIONS.items(), (ACCOUNT, GEORGIO_ON_AMINE_MAC)]}
+
+
+def allocation_for(allocation_id: str, account: str) -> Allocation:
+    reviewed = REVIEWED_ALLOCATIONS.get(allocation_id)
+    if reviewed is None or reviewed[0] != account:
+        raise BudgetDenied("Allocation names an unknown account or limit")
+    return reviewed[1]
 Reference = Annotated[str, Field(strict=True, min_length=1, max_length=500)]
 Fingerprint = Annotated[str, Field(strict=True, pattern=r"^[a-f0-9]{64}$")]
 
@@ -94,7 +111,10 @@ class ExperimentApproval(StrictDescriptor):
 
     @model_validator(mode="after")
     def reviewed_allocation(self):
-        allocation = ALLOCATIONS[self.account_id]
+        reviewed = REVIEWED_ALLOCATIONS.get(self.allocation_id)
+        if reviewed is None or reviewed[0] != self.account_id:
+            raise ValueError("Allocation does not match the reviewed account limits")
+        allocation = reviewed[1]
         if (self.allocation_id, self.hard_limit_micro_usd, self.spark_soft_target_micro_usd,
                 self.wonder_soft_target_micro_usd) != (allocation.allocation_id, allocation.hard_limit,
                                                        allocation.soft_targets["muse-spark-1.3"],
@@ -285,7 +305,7 @@ class ExperimentBudget:
             # Evidence can expire while waiting for the authoritative write lock.
             request = ExperimentRequest.model_validate(request.model_dump())
             approval = self._allocation(db)
-            account, allocation = approval.account_id, ALLOCATIONS[approval.account_id]
+            account, allocation = approval.account_id, allocation_for(approval.allocation_id, approval.account_id)
             if request.quote.account_id != account:
                 raise BudgetDenied("Quote is for another account; no account switching")
             evidence = self._evidence(db, approval)
@@ -307,7 +327,8 @@ class ExperimentBudget:
             elif request.retry_of is not None:
                 raise BudgetDenied("Retry ancestor must belong to the same case")
             aggregate, totals = self._exposure(db, account)
-            if aggregate + request.maximum_micro_usd > allocation.hard_limit:
+            limit = self._limit(db, allocation)
+            if aggregate + request.maximum_micro_usd > limit:
                 raise BudgetDenied("Aggregate experimental allocation exhausted")
             account_spend = 0
             acknowledged = self._acknowledged_overruns(db, account)
@@ -331,17 +352,62 @@ class ExperimentBudget:
             self.authority.event(db, account, "experiment_review_only_reserved", request.attempt_id)
             self.authority.queue_threshold_notices(db, account, proposed)
             totals[request.quote.model] += request.maximum_micro_usd
-            return self._view(aggregate + request.maximum_micro_usd, totals, account)
+            return self._view(aggregate + request.maximum_micro_usd, totals, account, allocation, limit)
 
     @staticmethod
-    def _view(aggregate: int, totals: dict[str, int], account: str) -> dict:
-        allocation = ALLOCATIONS[account]
+    def _limit(db, allocation: Allocation) -> int:
+        """The allocation's current limit: its reviewed limit, or the owner's latest recorded change."""
+        if allocation.limit_ceiling is None:
+            return allocation.hard_limit
+        row = db.execute("SELECT reference FROM live_events WHERE kind='experiment_limit_changed' "
+                         "ORDER BY id DESC LIMIT 1").fetchone()
+        if row is None:
+            return allocation.hard_limit
+        try:
+            change = json.loads(row[0])
+            value = change["limit_micro_usd"]
+            if change["allocation_id"] != allocation.allocation_id or type(value) is not int \
+                    or not 0 < value <= allocation.limit_ceiling:
+                raise ValueError
+        except (ValueError, KeyError, TypeError):
+            raise BudgetDenied("Recorded allocation limit change is invalid") from None
+        return value
+
+    def set_limit(self, limit_micro_usd: int, reference: str) -> dict:
+        """Owner command: change an adjustable allocation's limit. Appends one audit event; spending is never reset.
+
+        A lower limit than what is already spent just blocks further requests.
+        """
+        if (type(limit_micro_usd) is not int or not isinstance(reference, str) or not reference.strip()
+                or len(reference) > 500):
+            raise BudgetDenied("A whole micro-USD limit and a meaningful reference are required")
+        with self._transaction() as db:
+            approval = self._allocation(db)
+            account = approval.account_id
+            allocation = allocation_for(approval.allocation_id, account)
+            if allocation.limit_ceiling is None:
+                raise BudgetDenied("This allocation's limit is fixed")
+            if not 0 < limit_micro_usd <= allocation.limit_ceiling:
+                raise BudgetDenied(f"Limit must be above $0 and at most ${allocation.limit_ceiling // USD}")
+            previous = self._limit(db, allocation)
+            self.authority.event(db, account, "experiment_limit_changed", json.dumps({
+                "allocation_id": allocation.allocation_id, "previous_limit_micro_usd": previous,
+                "limit_micro_usd": limit_micro_usd, "reference": reference, "changed_at": stamp()}, sort_keys=True))
+            aggregate, totals = self._exposure(db, account)
+            return self._view(aggregate, totals, account, allocation, limit_micro_usd)
+
+    @staticmethod
+    def _view(aggregate: int, totals: dict[str, int], account: str, allocation: Allocation, limit: int) -> dict:
+        soft = dict(allocation.soft_targets)
+        if allocation.limit_ceiling is not None:  # an adjustable allocation is all Wonder
+            soft["muse-wonder-1.0"] = limit
         return {"allocation_id": allocation.allocation_id, "account_id": account, "dispatch_enabled": False,
-                "state": "review_only_no_live_adapter", "hard_limit_micro_usd": allocation.hard_limit,
+                "state": "review_only_no_live_adapter", "hard_limit_micro_usd": limit,
+                "limit_adjustable_up_to_micro_usd": allocation.limit_ceiling,
                 "account_cutoff_micro_usd": allocation.cutoff,
-                "aggregate_exposure_micro_usd": aggregate, "remaining_micro_usd": max(0, allocation.hard_limit - aggregate),
-                "model_exposure_micro_usd": totals, "soft_model_targets_micro_usd": dict(allocation.soft_targets),
-                "soft_target_exceeded": [model for model in totals if totals[model] > allocation.soft_targets[model]],
+                "aggregate_exposure_micro_usd": aggregate, "remaining_micro_usd": max(0, limit - aggregate),
+                "model_exposure_micro_usd": totals, "soft_model_targets_micro_usd": soft,
+                "soft_target_exceeded": [model for model in totals if totals[model] > soft[model]],
                 "credits_offset_gross": False, "reservation_replenishment": False}
 
     def snapshot(self) -> dict:
@@ -349,7 +415,7 @@ class ExperimentBudget:
             if not db.execute("SELECT 1 FROM experiment_allocation WHERE id=1").fetchone():
                 raise BudgetDenied("Reviewed allocation missing")
             # Reporting still works after the approval expires; only admission needs it current.
-            account = json.loads(db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()[0])["account_id"]
-            if account not in ALLOCATIONS:
-                raise BudgetDenied("Allocation names an unknown account")
-            return self._view(*self._exposure(db, account), account)
+            recorded = json.loads(db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()[0])
+            account = recorded["account_id"]
+            allocation = allocation_for(recorded.get("allocation_id"), account)
+            return self._view(*self._exposure(db, account), account, allocation, self._limit(db, allocation))

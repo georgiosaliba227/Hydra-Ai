@@ -7,11 +7,14 @@ preview-schema   Read-only LIVE_SCHEMA compatibility check of an existing ledger
 migrate-schema   Add missing LIVE_SCHEMA objects to an existing ledger (needs --reference).
 record-allocation / record-case
                  Import a reviewed JSON descriptor into the existing ledger.
+set-limit        Change an adjustable allocation's limit (--limit-usd, --reference). Appends one
+                 audit event; never resets spending. No request is sent.
 run-case         BILLABLE. Send one approved case to Muse Wonder on the quote's account
                  (HYDRA_META_GEORGIO_API_KEY or HYDRA_META_AMINE_API_KEY), then save the
                  validated result for replay. Requires --confirm-billable and every ledger gate.
 """
 import argparse
+from decimal import Decimal
 import json
 import os
 from pathlib import Path
@@ -21,7 +24,7 @@ from ai.assistant import SUGGESTED
 from backend.hydration_context_v2 import SCENARIOS
 from backend.meta_accounts import AccountLedger
 from backend.meta_accounts import ACCOUNTS
-from backend.meta_experiments import ALLOCATIONS, REFERENCE_PRICES, ExperimentApproval, ExperimentQuote
+from backend.meta_experiments import ALLOCATIONS, REFERENCE_PRICES, REVIEWED_ALLOCATIONS, ExperimentApproval, ExperimentQuote
 from backend.meta_gateway import GitHubNotifier
 from backend.wonder_experiment import ApprovedCase, WonderExperimentLedger, WonderHydrationGateway, WonderMetaTransport
 from backend.wonder_trend_routes import KEY_NAMES
@@ -46,9 +49,13 @@ def prepare(scenario: str, question_id: str | None = None) -> dict:
     return {"preview": preview(scenario), "approved_case_template": template}
 
 
-def templates(account: str) -> dict:
-    """Descriptors to fill in from reviewed evidence; the limits are fixed per account."""
+def templates(account: str, allocation_id: str | None = None) -> dict:
+    """Descriptors to fill in from reviewed evidence; the limits are fixed per reviewed allocation."""
     allocation = ALLOCATIONS[account]
+    if allocation_id is not None:
+        if REVIEWED_ALLOCATIONS.get(allocation_id, (None,))[0] != account:
+            raise ValueError("That allocation is not reviewed for this account")
+        allocation = REVIEWED_ALLOCATIONS[allocation_id][1]
     return {"allocation": {"allocation_id": allocation.allocation_id, "account_id": account,
                            "hard_limit_micro_usd": allocation.hard_limit,
                            "spark_soft_target_micro_usd": allocation.soft_targets["muse-spark-1.3"],
@@ -104,12 +111,17 @@ def run(args: argparse.Namespace) -> dict:
     if args.command == "prepare":
         return prepare(args.scenario, args.question_id)
     if args.command == "templates":
-        return templates(args.account)
+        return templates(args.account, args.allocation)
     target = ledger(args.database)
     if args.command == "preview-schema":
         return target.preview_live_schema()
     if args.command == "migrate-schema":
         return target.migrate_live_schema(review_reference=args.reference)
+    if args.command == "set-limit":
+        dollars = Decimal(args.limit_usd)
+        if dollars * 1_000_000 != int(dollars * 1_000_000):
+            raise ValueError("Limit has more precision than one micro-USD")
+        return target.set_limit(int(dollars * 1_000_000), args.reference or "")
     raw = Path(args.descriptor).read_text(encoding="utf-8")
     if args.command == "run-case":
         return run_case(target, args, ExperimentQuote.model_validate_json(raw))
@@ -122,9 +134,11 @@ def run(args: argparse.Namespace) -> dict:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["templates", "prepare", "preview-schema", "migrate-schema", "record-allocation", "record-case", "run-case"])
+    parser.add_argument("command", choices=["templates", "prepare", "preview-schema", "migrate-schema", "record-allocation", "record-case", "set-limit", "run-case"])
     parser.add_argument("--scenario", choices=SCENARIOS, default="complete")
     parser.add_argument("--account", choices=ACCOUNTS, default=ACCOUNTS[0], help="templates: whose allocation")
+    parser.add_argument("--allocation", choices=sorted(REVIEWED_ALLOCATIONS),
+                        help="templates: a reviewed allocation other than the account's default")
     parser.add_argument("--database", type=Path)
     parser.add_argument("--reference")
     parser.add_argument("--descriptor", type=Path, help="JSON approval, case, or (run-case) quote")
@@ -133,6 +147,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--input-reference")
     parser.add_argument("--results-dir", type=Path)
     parser.add_argument("--confirm-billable", action="store_true")
+    parser.add_argument("--limit-usd", help="set-limit: the new limit in dollars, for example 30 or 25.50")
     args = parser.parse_args(argv)
     try:
         print(json.dumps(run(args), indent=2, sort_keys=True, allow_nan=False))
