@@ -223,7 +223,7 @@ def test_ticket_is_one_use_and_bound_to_credential_and_input_bound(tmp_path):
 
 
 @pytest.mark.parametrize("reply", [
-    selection_reply(model="muse-spark-1.3"), selection_reply(cached=10), selection_reply(identifier="not-a-response-id"),
+    selection_reply(model="muse-spark-1.3"), selection_reply(identifier="not-a-response-id"),
     ProviderReply(200, {"model": WONDER, "id": "resp_x", "usage": {"input_tokens": 1}}),
     ProviderReply(500, {"error": {"code": "server_error"}}),
 ])
@@ -235,6 +235,16 @@ def test_unverifiable_usage_freezes_and_keeps_reservation(tmp_path, reply):
     [(_, state, reserved, actual, _)] = attempt_rows(authority)
     assert state == "unresolved" and actual is None and reserved > 0
     assert frozen(authority)
+
+
+def test_cached_input_settles_at_the_full_input_price_without_freezing(tmp_path):
+    authority, ledger = setup(tmp_path)
+    case = approve(ledger)
+    gateway(ledger, FakeWonderTransport(selection_reply(inputs=900, cached=600))).explain(
+        "complete", case.case_id, quote(WONDER), case.input_approval_reference)
+    [(_, state, _, actual, _)] = attempt_rows(authority)
+    # 900 input tokens at $4/M (cached ones counted at full price) + 120 output at $20/M, rounded up.
+    assert (state, actual) == ("settled", 6000) and not frozen(authority)
 
 
 @pytest.mark.parametrize("usage", [{"inputs": 50_000}, {"outputs": 513}])
