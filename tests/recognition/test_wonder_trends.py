@@ -54,8 +54,8 @@ def trend_reply(f, value=None, **changes):
 
 
 def amine_approval(**changes):
-    values = dict(account_id=AMINE, allocation_id="wonder-amine-100usd", hard_limit_micro_usd=100_000_000,
-                  spark_soft_target_micro_usd=0, wonder_soft_target_micro_usd=100_000_000,
+    values = dict(account_id=AMINE, allocation_id="wonder-amine-20usd", hard_limit_micro_usd=20_000_000,
+                  spark_soft_target_micro_usd=0, wonder_soft_target_micro_usd=20_000_000,
                   key_sha256=evidence(AMINE).key_sha256, owner_authorization_reference="synthetic-amine-owner",
                   trend_dispatch_reference="synthetic-trend-dispatch")
     return approval(**(values | changes))
@@ -201,18 +201,23 @@ def test_goal_insight_and_placeholders_are_rejected_when_no_goal_is_set():
         validate_explanation({"summary": "Your goal is {goal}.", "insights": [{"id": "timing", "text": "Steady."}]}, f)
 
 
-# Accounts: Amine's $100 allocation, Georgio's unchanged $30, no switching.
+# Accounts: Amine's $20 allocation, Georgio's unchanged $30, no switching.
 
 def test_allocations_must_match_each_accounts_reviewed_limits(tmp_path):
     with pytest.raises(ValidationError):
         amine_approval(hard_limit_micro_usd=150_000_000).model_validate(amine_approval(hard_limit_micro_usd=150_000_000).model_dump())
+    with pytest.raises(ValidationError):  # the earlier $100 allocation is no longer accepted
+        amine_approval(allocation_id="wonder-amine-100usd", hard_limit_micro_usd=100_000_000,
+                       wonder_soft_target_micro_usd=100_000_000).model_validate(amine_approval(
+            allocation_id="wonder-amine-100usd", hard_limit_micro_usd=100_000_000,
+            wonder_soft_target_micro_usd=100_000_000).model_dump())
     with pytest.raises(ValidationError):
         approval(account_id=AMINE).model_validate(approval(account_id=AMINE).model_dump())
     with pytest.raises(ValidationError):  # Georgio cannot take Amine's limits.
         amine_approval(account_id=ACCOUNTS[0]).model_validate(amine_approval(account_id=ACCOUNTS[0]).model_dump())
     _, ledger = amine_setup(tmp_path)
     view = ledger.snapshot()
-    assert (view["account_id"], view["hard_limit_micro_usd"], view["account_cutoff_micro_usd"]) == (AMINE, 100_000_000, 100_000_000)
+    assert (view["account_id"], view["hard_limit_micro_usd"], view["account_cutoff_micro_usd"]) == (AMINE, 20_000_000, 100_000_000)
 
 
 def test_amine_account_explains_trends_once_and_settles_at_wonder_prices(tmp_path):
@@ -488,7 +493,7 @@ def test_georgio_key_is_never_used_for_amines_account(tmp_path, client_env):
 def test_admin_templates_and_key_follow_the_quote_account(tmp_path, monkeypatch):
     import scripts.wonder_admin as admin
     template = admin.templates(AMINE)
-    assert template["allocation"]["hard_limit_micro_usd"] == template["account_cutoff_micro_usd"] == 100_000_000
+    assert (template["allocation"]["hard_limit_micro_usd"], template["account_cutoff_micro_usd"]) == (20_000_000, 100_000_000)
     assert template["quote"]["account_id"] == AMINE and template["allocation"]["trend_dispatch_reference"].startswith("REQUIRED")
     keys = []
     monkeypatch.setattr(admin, "WonderMetaTransport", lambda key: keys.append(key) or amine_transport())
@@ -574,3 +579,42 @@ def test_allocations_without_trends_keep_their_recorded_bytes(tmp_path):
         stored = db.execute("SELECT approval FROM experiment_allocation").fetchone()[0]
     assert "trend_dispatch_reference" not in stored
     ledger.record_approval(original)  # identical re-record stays a no-op
+
+
+def test_amine_allocation_stops_at_20_dollars(tmp_path):
+    import json
+    from datetime import datetime, timedelta, timezone
+    from uuid import uuid4
+    from backend.meta_budget import BudgetDenied
+    from backend.meta_experiments import PROPOSED_SCHEMA, ExperimentBudget, ExperimentRequest
+    authority = AccountLedger(tmp_path / "amine-cap.sqlite3")
+    authority.initialize_accounts()
+    authority.attest_account(evidence(AMINE))
+    with authority.transaction() as db:
+        for sql in PROPOSED_SCHEMA:
+            db.execute(sql)
+    budget = ExperimentBudget(authority)
+    budget.record_approval(amine_approval())
+
+    def reserve():
+        budget.reserve_review_only(ExperimentRequest.model_validate({
+            "attempt_id": str(uuid4()), "case_id": str(uuid4()), "payload_sha256": "a" * 64, "input_bound": 1000,
+            "output_bound": 512, "maximum_micro_usd": 250_000, "input_approval_reference": "synthetic-consent",
+            "quote": amine_quote()}))
+
+    for _ in range(80):  # 80 x $0.25 reservations, each settled for 1 micro-USD with recorded finality
+        reserve()
+        now = datetime.now(timezone.utc)
+        with authority.transaction() as db:
+            attempt = db.execute("SELECT id FROM live_attempts WHERE actual IS NULL").fetchone()[0]
+            provider = "resp_fixture_" + attempt.replace("-", "")
+            db.execute("UPDATE live_attempts SET actual=1,provider_id=?,state='settled',dispatched_at=? WHERE id=?",
+                       (provider, (now - timedelta(seconds=1)).isoformat(), attempt))
+            db.execute("INSERT INTO live_finalities(attempt_id,evidence,recorded_at) VALUES(?,?,?)", (attempt, json.dumps({
+                "attempt_id": attempt, "account_id": AMINE, "provider_id": provider, "final_gross_micro_usd": 1,
+                "finalized_at": now.isoformat(), "provider_evidence_reference": "synthetic-invoice",
+                "georgio_review_reference": "synthetic-a", "amine_review_reference": "synthetic-b",
+                "provider_finality_verified": True}), now.isoformat()))
+    assert budget.snapshot()["aggregate_exposure_micro_usd"] == 20_000_000
+    with pytest.raises(BudgetDenied):
+        reserve()

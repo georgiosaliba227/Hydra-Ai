@@ -33,11 +33,11 @@ class Allocation:
 
 
 # Reviewed per-account limits. Georgio: $30 experiment within the $120 cutoff.
-# Amine (2026-10-29): $100 of his reported $150, so his account stops at $100.
+# Amine (2026-10-29): a $20 Wonder allocation for now; his account still stops at $100 of his reported $150.
 ALLOCATIONS = {
     ACCOUNT: Allocation(ALLOCATION_ID, HARD_LIMIT, dict(SOFT_TARGETS), 120 * USD),
-    "aminealichaouche": Allocation("wonder-amine-100usd", 100 * USD,
-                                   {"muse-spark-1.3": 0, "muse-wonder-1.0": 100 * USD}, 100 * USD),
+    "aminealichaouche": Allocation("wonder-amine-20usd", 20 * USD,
+                                   {"muse-spark-1.3": 0, "muse-wonder-1.0": 20 * USD}, 100 * USD),
 }
 Reference = Annotated[str, Field(strict=True, min_length=1, max_length=500)]
 Fingerprint = Annotated[str, Field(strict=True, pattern=r"^[a-f0-9]{64}$")]
