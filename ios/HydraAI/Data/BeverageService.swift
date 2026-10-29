@@ -10,6 +10,8 @@ protocol BeverageService: Sendable {
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
     func assistantQuestions() async throws -> [AssistantQuestion]
     func goalSettings() async throws -> GoalSettings
+    func exportData() async throws -> Data
+    func deleteAllData() async throws -> Int
     func updateGoal(_ milliliters: Int?) async throws -> GoalSettings
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
     /// Succeeds when the log is gone, including when it was already deleted.
@@ -112,6 +114,14 @@ extension BeverageService {
     }
 
     func goalSettings() async throws -> GoalSettings {
+        throw ServiceError.invalidResponse
+    }
+
+    func exportData() async throws -> Data {
+        throw ServiceError.invalidResponse
+    }
+
+    func deleteAllData() async throws -> Int {
         throw ServiceError.invalidResponse
     }
 

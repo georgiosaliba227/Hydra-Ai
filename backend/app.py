@@ -360,6 +360,21 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         return {"version": "settings-v1", "daily_beverage_goal_ml": stored.get("daily_beverage_goal_ml"),
                 "goal_basis": "user_confirmed", "updated_at": stored.get("updated_at")}
 
+    @app.get("/v1/export")
+    def export_data(request: Request):
+        """Everything stored for this owner, for the user to keep. No ledger or provider data."""
+        repository = request.app.state.repository
+        return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
+                "beverages": repository.list_all("local-demo"),
+                "settings": settings_view(repository.get_settings("local-demo"))}
+
+    @app.delete("/v1/data")
+    def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
+        # An explicit phrase guards against an accidental or replayed bulk deletion.
+        if confirm != "delete-all-my-data":
+            raise HTTPException(422, "invalid_request")
+        return {"deleted_beverages": request.app.state.repository.delete_all("local-demo"), "settings_cleared": True}
+
     @app.get("/v1/settings")
     def get_settings(request: Request):
         return settings_view(request.app.state.repository.get_settings("local-demo"))

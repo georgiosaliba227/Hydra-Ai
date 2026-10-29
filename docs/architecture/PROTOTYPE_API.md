@@ -33,6 +33,9 @@ Owner preferences. `GET` returns `{version:"settings-v1", daily_beverage_goal_ml
 
 When a goal is set, `/v1/summary` adds `goal: {daily_beverage_goal_ml, basis:"user_confirmed", remaining_ml (never negative), progress_ratio}`; otherwise `goal` is null. It compares beverage volume with a beverage goal only, never with a total dietary-water target.
 
+## GET /v1/export and DELETE /v1/data
+`GET /v1/export` returns `{version:"export-v1", exported_at, beverages:[live logs], settings}`: everything stored for the owner, with no ledger or provider data. `DELETE /v1/data?confirm=delete-all-my-data` erases every live log's content (tombstones keep only IDs and keys, so late create retries return 409) and the owner's settings, returning `{deleted_beverages, settings_cleared:true}`. Any other `confirm` value returns 422. The iPhone app offers both under Settings, Your data.
+
 ## Errors
 Every error has `{code,message,request_id,retryable}` without sensitive values. 401 unauthorized; 422 invalid_request; 409 idempotency_conflict; 503 storage_unavailable (retryable). Unexpected internal errors: 500 internal_error, no traceback/body echo. No request body/authorization logging. Request bodies <=16 KiB. No recognition or assistant route calls external inference; the assistant answers from local reviewed rules (ASSISTANT_API.md). Unsupported routes 404.
 

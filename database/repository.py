@@ -158,6 +158,24 @@ class BeverageRepository:
         except sqlite3.Error:
             raise StorageUnavailable() from None
 
+    def delete_all(self, owner: str) -> int:
+        """Erase every live log's content (keeping keys so retries cannot resurrect) and the owner's settings."""
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute("BEGIN IMMEDIATE")
+                rows = connection.execute("SELECT id, record_json FROM beverages WHERE owner=?", (owner,)).fetchall()
+                live = [beverage_id for beverage_id, raw in rows if not _decode(raw).get("deleted")]
+                for beverage_id in live:
+                    tombstone = json.dumps({"deleted": True, "id": beverage_id}, separators=(",", ":"), sort_keys=True)
+                    connection.execute(
+                        "UPDATE beverages SET consumed_at='', fingerprint='', record_json=? WHERE owner=? AND id=?",
+                        (tombstone, owner, beverage_id),
+                    )
+                connection.execute("DELETE FROM settings WHERE owner=?", (owner,))
+            return len(live)
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
     def get_settings(self, owner: str) -> dict | None:
         try:
             with closing(self._connect()) as connection:
