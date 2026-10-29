@@ -188,6 +188,15 @@ def rehearse() -> dict:
                         'unrecorded_wonder_answer_unavailable')
                 checks.append('assistant_reviewed_answers_and_urgent_escalation')
 
+                require(client.put('/v1/settings', json={'daily_beverage_goal_ml': 2000}, headers=auth).status_code == 200,
+                        'user_goal_saved')
+                goal = client.get('/v1/summary', params=summary_query, headers=auth).json()['goal']
+                require(goal['basis'] == 'user_confirmed' and goal['daily_beverage_goal_ml'] == 2000, 'user_goal_progress')
+                exported = client.get('/v1/export', headers=auth).json()
+                require(exported['version'] == 'export-v1' and len(exported['beverages']) == 3, 'export_all_logs')
+                require(client.delete('/v1/data', headers=auth).status_code == 422, 'bulk_delete_needs_phrase')
+                checks.append('user_goal_and_data_export')
+
             with closing(sqlite3.connect(database)) as connection:
                 tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 require(tables == {'beverages', 'settings'}, 'no_financial_or_calibration_tables')
