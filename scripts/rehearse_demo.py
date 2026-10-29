@@ -178,6 +178,16 @@ def rehearse() -> dict:
                 require(recorded.status_code == 404, 'unrecorded_wonder_replay_unavailable')
                 checks.append('wonder_mock_and_recorded_replay_without_dispatch')
 
+                answer = client.post('/v1/assistant', json={'question_id': 'creatine_water'}, headers=auth)
+                require(answer.status_code == 200 and answer.json()['topics'] == ['creatine']
+                        and answer.json()['provenance']['mode'] == 'local_rules', 'assistant_reviewed_answer')
+                urgent = client.post('/v1/assistant', json={'question': 'I fainted after my run'}, headers=auth).json()
+                require(urgent['escalation'] is True and urgent['topics'][0] == 'urgent', 'assistant_urgent_escalation')
+                recorded_answer = {'question_id': 'creatine_water', 'source': 'recorded_wonder'}
+                require(client.post('/v1/assistant', json=recorded_answer, headers=auth).status_code == 404,
+                        'unrecorded_wonder_answer_unavailable')
+                checks.append('assistant_reviewed_answers_and_urgent_escalation')
+
             with closing(sqlite3.connect(database)) as connection:
                 tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 require(tables == {'beverages'}, 'no_financial_or_calibration_tables')
