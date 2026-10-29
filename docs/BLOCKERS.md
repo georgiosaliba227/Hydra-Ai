@@ -13,6 +13,25 @@ After Georgio's first camera request, no further Meta request (including the
 Wonder demo recordings) can run until the developers decide how spending may
 resume.
 
+Independent read-only analysis of PR #14 (2026-10-29, merged tree 824 tests
+passed) confirms its controls hold and adds three facts:
+
+- After the PR #14 request, that ledger is frozen permanently; nothing sets
+  `frozen=0`, `spent=0` or removes attempts.
+- The Wonder experiment cannot use that ledger even if unfrozen: it reads
+  account evidence as `Evidence`, but PR #14 stores `RiskEvidence`, and
+  `attest_account` refuses to replace existing evidence. Conversely, any Wonder
+  attempt blocks `approve_risk_test`.
+- A timeout, or a reply with a provider ID but no usage, leaves the attempt
+  `unresolved` and permanently unreconcilable: `reconcile_risk_invoice` and
+  `record_invoice_finality` both reject it.
+
+So a real Wonder demo needs a human decision on one of: (a) a reviewed resume
+path plus Wonder support for `RiskEvidence` on the same ledger, or (b) a
+separate authoritative ledger for the Wonder experiment. (b) must still respect
+AGENTS.md: one authoritative ledger per account, never independent active
+copies, with the old ledger's history carried into the new account baseline.
+
 Proposed, not implemented: an explicit `resume_account(account, references)`
 operator command that succeeds only when every attempt on that account has
 recorded invoice finality, no attempt is unresolved or billing-pending, any
