@@ -3,7 +3,7 @@
 Status: implemented and tested on synthetic ledgers. PR #14's camera
 reconciliation is now on main. `tests/recognition/test_camera_recovery.py`
 covers the full path: camera request → `billing_pending` → reconcile → resume →
-Wonder schema → Amine's shared-backend case. A ledger written by PR #14's old
+Wonder schema → one synthetic Wonder case. A ledger written by PR #14's old
 commit was also replayed through the main commands. Nobody has run it on the real private ledger. Do that only after
 Georgio approves the exact approval and evidence files below.
 

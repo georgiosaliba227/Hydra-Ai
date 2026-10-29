@@ -1,7 +1,7 @@
 """Georgio's recovery after PR #14's camera request, end to end on synthetic data. No network.
 
 camera request (billing_pending, frozen) -> reconcile-risk-invoice -> resume template/preview/resume
--> Wonder schema -> $30 allocation with the standing synthetic approval -> Amine runs one case.
+-> Wonder schema -> $30 allocation with the standing synthetic approval -> one synthetic case.
 """
 from datetime import datetime, timedelta, timezone
 import json
@@ -21,7 +21,7 @@ from test_controlled_tests import permit as controlled_permit
 from test_first_camera_risk import gateway, image, no_network, risk_permit, setup_risk  # noqa: F401 (fixtures)
 from test_guarded_meta import HASH, evidence
 from test_meta_experiments import approval, quote
-from test_shared_backend import AMINE_AUTH, LIVE, OWNER, env, fake_live  # noqa: F401 (fixture)
+from test_wonder_live import LIVE, OWNER, OWNER_AUTH, env, fake_live  # noqa: F401 (fixture)
 from test_wonder_experiment import WONDER, FakeWonderTransport, selection_reply
 
 GEORGIO = ACCOUNTS[0]
@@ -73,7 +73,7 @@ def test_billing_pending_camera_attempt_must_be_reconciled_before_resume(setup_r
         ledger.record_invoice_finality(finality_from(template))
 
 
-def test_full_recovery_then_amine_runs_one_synthetic_case(setup_risk, env, tmp_path):
+def test_full_recovery_then_one_synthetic_case_runs(setup_risk, env, tmp_path):
     ledger, risk, attempt = camera_request(setup_risk)
     ledger.reconcile_risk_invoice(finality_from(approval_template(ledger, GEORGIO)))
     template = approval_template(ledger, GEORGIO)
@@ -112,7 +112,7 @@ def test_full_recovery_then_amine_runs_one_synthetic_case(setup_risk, env, tmp_p
     with TestClient(app) as client:
         transport = FakeWonderTransport(selection_reply())
         fake_live(app, wonder, transport)
-        response = client.post("/v1/wonder/live", json=LIVE, headers=AMINE_AUTH).json()
+        response = client.post("/v1/wonder/live", json=LIVE, headers=OWNER_AUTH).json()
         assert (response["replayed"], transport.calls) == (False, 1)
         assert response["result"]["provenance"]["account_id"] == GEORGIO
         assert wonder.snapshot()["hard_limit_micro_usd"] == 30_000_000
