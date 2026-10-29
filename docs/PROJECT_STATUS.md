@@ -4,8 +4,9 @@ Updated October 29, 2026. Shared current status for Georgio and Amine; historica
 
 ## Current state — October 29 (Amine)
 
-`main` includes PRs #18–#43. GitHub Actions runs the full pytest suite, the
-offline rehearsal and the starter tests on every PR (mock-only, no secrets).
+`main` includes PRs #18–#49. GitHub Actions runs the pytest suite on Python 3.13
+and 3.14, the offline rehearsal, the starter tests and, for iOS changes, the 64
+XCTest unit tests on every PR (mock-only, no secrets).
 One real Meta request has run: Georgio's single Muse Spark 1.3 camera request,
 recorded on unmerged PR #14; its invoice finality is pending, which blocks every
 new request project-wide. No Wonder request has run.
@@ -24,9 +25,9 @@ new request project-wide. No Wonder request has run.
 | CI | Merged | #32 | GitHub Actions: 774+ tests, rehearsal and starter tests pass on Linux |
 | Nutrition catalogue | Unchanged (one product) | — | Live camera results never map to catalogue products; deferred with camera work |
 
-Latest local verification on `main` (`069bf5e`): **794 pytest passed, 1 skipped,
-32 subtests**; offline rehearsal **10/10 groups**; **64 XCTest** and **8 UI tests
-passed** (4 opt-in physical/live cases skipped) on the iPhone 18 Pro Max
+Latest local verification on `main` (`b4dc4f3`): **795 pytest passed, 1 skipped,
+32 subtests**; offline rehearsal **10/10 groups**; starter **3 passed**; **64 XCTest**
+and **8 UI tests passed** (4 opt-in physical/live cases skipped) on the iPhone 18 Pro Max
 simulator against a local mock backend. Not verified: any physical iPhone run
 of the new screens, any live Wonder request, clinical or physiological validity.
 
