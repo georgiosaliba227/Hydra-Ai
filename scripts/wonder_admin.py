@@ -7,11 +7,14 @@ preview-schema   Read-only LIVE_SCHEMA compatibility check of an existing ledger
 migrate-schema   Add missing LIVE_SCHEMA objects to an existing ledger (needs --reference).
 record-allocation / record-case
                  Import a reviewed JSON descriptor into the existing ledger.
+set-limit        Change an adjustable allocation's limit (--limit-usd, --reference). Appends one
+                 audit event; never resets spending. No request is sent.
 run-case         BILLABLE. Send one approved case to Muse Wonder on the quote's account
                  (HYDRA_META_GEORGIO_API_KEY or HYDRA_META_AMINE_API_KEY), then save the
                  validated result for replay. Requires --confirm-billable and every ledger gate.
 """
 import argparse
+from decimal import Decimal
 import json
 import os
 from pathlib import Path
@@ -114,6 +117,11 @@ def run(args: argparse.Namespace) -> dict:
         return target.preview_live_schema()
     if args.command == "migrate-schema":
         return target.migrate_live_schema(review_reference=args.reference)
+    if args.command == "set-limit":
+        dollars = Decimal(args.limit_usd)
+        if dollars * 1_000_000 != int(dollars * 1_000_000):
+            raise ValueError("Limit has more precision than one micro-USD")
+        return target.set_limit(int(dollars * 1_000_000), args.reference or "")
     raw = Path(args.descriptor).read_text(encoding="utf-8")
     if args.command == "run-case":
         return run_case(target, args, ExperimentQuote.model_validate_json(raw))
@@ -126,7 +134,7 @@ def run(args: argparse.Namespace) -> dict:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["templates", "prepare", "preview-schema", "migrate-schema", "record-allocation", "record-case", "run-case"])
+    parser.add_argument("command", choices=["templates", "prepare", "preview-schema", "migrate-schema", "record-allocation", "record-case", "set-limit", "run-case"])
     parser.add_argument("--scenario", choices=SCENARIOS, default="complete")
     parser.add_argument("--account", choices=ACCOUNTS, default=ACCOUNTS[0], help="templates: whose allocation")
     parser.add_argument("--allocation", choices=sorted(REVIEWED_ALLOCATIONS),
@@ -139,6 +147,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--input-reference")
     parser.add_argument("--results-dir", type=Path)
     parser.add_argument("--confirm-billable", action="store_true")
+    parser.add_argument("--limit-usd", help="set-limit: the new limit in dollars, for example 30 or 25.50")
     args = parser.parse_args(argv)
     try:
         print(json.dumps(run(args), indent=2, sort_keys=True, allow_nan=False))

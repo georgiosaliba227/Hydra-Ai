@@ -664,3 +664,66 @@ def test_admin_templates_offer_the_georgio_key_allocation(tmp_path):
     assert admin.templates(GEORGIO)["allocation"]["hard_limit_micro_usd"] == 30_000_000  # default unchanged
     with pytest.raises(ValueError):
         admin.templates(AMINE, "wonder-georgio-key-amine-mac-20usd")
+
+
+def georgio_key_ledger(tmp_path):
+    authority = AccountLedger(tmp_path / "georgio-key-limit.sqlite3")
+    authority.initialize_accounts()
+    authority.attest_account(evidence(GEORGIO))
+    with authority.transaction() as db:
+        for sql in LIVE_SCHEMA:
+            db.execute(sql)
+    ledger = WonderExperimentLedger(authority)
+    ledger.record_approval(georgio_key_approval())
+    return authority, ledger
+
+
+def test_owner_can_raise_and_lower_the_adjustable_limit_with_an_audit_trail(tmp_path):
+    from backend.meta_budget import BudgetDenied
+    authority, ledger = georgio_key_ledger(tmp_path)
+    assert ledger.snapshot()["hard_limit_micro_usd"] == 20_000_000
+    assert ledger.snapshot()["limit_adjustable_up_to_micro_usd"] == 85_000_000
+    raised = ledger.set_limit(35_000_000, "amine-raise-to-35")
+    assert (raised["hard_limit_micro_usd"], raised["remaining_micro_usd"]) == (35_000_000, 35_000_000)
+    assert ledger.snapshot()["hard_limit_micro_usd"] == 35_000_000
+    f = facts()
+    transport = FakeWonderTransport(trend_reply(f))
+    WonderHydrationGateway(ledger, transport, FakeNotifier()).explain_trends(f, quote(WONDER), "in-app-consent:synthetic")
+    spent = ledger.snapshot()["aggregate_exposure_micro_usd"]
+    lowered = ledger.set_limit(1, "amine-pause")  # below what is spent: blocks further requests, keeps history
+    assert (lowered["aggregate_exposure_micro_usd"], lowered["remaining_micro_usd"]) == (spent, 0)
+    for bad in (0, 85_000_001, 20.5):
+        with pytest.raises(BudgetDenied):
+            ledger.set_limit(bad, "amine-bad")
+    with pytest.raises(BudgetDenied):
+        ledger.set_limit(30_000_000, " ")
+    with authority.transaction() as db:
+        changes = [json.loads(r)["limit_micro_usd"] for (r,) in
+                   db.execute("SELECT reference FROM live_events WHERE kind='experiment_limit_changed' ORDER BY id")]
+    assert changes == [35_000_000, 1]
+
+
+def test_lowered_limit_refuses_the_next_reservation(tmp_path):
+    authority, ledger = georgio_key_ledger(tmp_path)
+    ledger.set_limit(1, "amine-pause")
+    transport = FakeWonderTransport(trend_reply(facts()))
+    with pytest.raises(RecognitionUnavailable):
+        WonderHydrationGateway(ledger, transport, FakeNotifier()).explain_trends(facts(), quote(WONDER), "in-app-consent:x")
+    assert transport.calls == 0 and attempt_rows(authority) == []
+
+
+def test_fixed_allocations_cannot_change_their_limit(tmp_path):
+    from backend.meta_budget import BudgetDenied
+    _, ledger = amine_setup(tmp_path)
+    with pytest.raises(BudgetDenied):
+        ledger.set_limit(30_000_000, "amine-raise")
+    assert ledger.snapshot()["hard_limit_micro_usd"] == 20_000_000
+
+
+def test_admin_set_limit_command(tmp_path, capsys):
+    import scripts.wonder_admin as admin
+    authority, _ = georgio_key_ledger(tmp_path)
+    admin.main(["set-limit", "--database", str(authority.path), "--limit-usd", "25.50", "--reference", "amine-raise"])
+    assert json.loads(capsys.readouterr().out)["hard_limit_micro_usd"] == 25_500_000
+    with pytest.raises(SystemExit):
+        admin.main(["set-limit", "--database", str(authority.path), "--limit-usd", "86", "--reference", "amine-raise"])

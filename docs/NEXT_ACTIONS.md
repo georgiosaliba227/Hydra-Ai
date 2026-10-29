@@ -6,9 +6,10 @@ Owner override in AGENTS.md. Spending is recorded as Georgio's account.
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Georgio: keep his original ledger frozen and never resume it while Amine's ledger is in use | His confirmation |
+| 1 | ~~Georgio: agree to the shared key~~ (he may also resume his own $30 ledger; Amine's limit is capped at $85 so both stay under $120) | Done, relayed 2026-10-29 |
 | 2 | Amine: create the ledger for `georgiosaliba227` with `wonder-georgio-key-amine-mac-20usd`, both standing references; gross = dashboard + $1.312256 camera reservation | `preview-schema` is `already_current`; allocation recorded |
 | 3 | Amine: start the backend with `HYDRA_META_GEORGIO_API_KEY` (entered with `read -s`), run one case, then record its invoice finality | Saved result replays in the app |
+| 4 | Amine, any time: `wonder_admin set-limit --database ... --limit-usd <N> --reference <why>` (at most $85) | `experiment_limit_changed` event |
 
 ## Next actions — Wonder trends, October 29 (Amine)
 
