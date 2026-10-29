@@ -117,11 +117,13 @@ struct DashboardView: View {
                         .font(.title3.bold())
 
                     if todaysLogs.isEmpty {
-                        ContentUnavailableView(
-                            "No beverages logged today",
-                            systemImage: "drop",
-                            description: Text("Add a beverage after you have consumed it.")
-                        )
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("No beverages logged today", systemImage: "drop")
+                                .font(.headline)
+                            Text("Add a beverage after you have consumed it.")
+                                .font(.subheadline)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
                         ForEach(todaysLogs.prefix(5)) { log in
                             BeverageRow(log: log)

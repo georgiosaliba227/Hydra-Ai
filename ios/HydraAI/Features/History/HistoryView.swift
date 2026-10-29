@@ -32,11 +32,16 @@ struct HistoryView: View {
             }
 
             if days.isEmpty {
-                ContentUnavailableView(
-                    "No beverage history",
-                    systemImage: "clock.arrow.circlepath",
-                    description: Text("Confirmed beverages will appear here.")
-                )
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true)
+                        Text("No beverage history").fixedSize(horizontal: false, vertical: true)
+                    }
+                    .font(.headline)
+                    Text("Confirmed beverages will appear here.")
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             ForEach(days, id: \.self) { day in
