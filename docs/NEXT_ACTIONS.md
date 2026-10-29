@@ -1,14 +1,16 @@
 # Hydra AI next actions
 
-## One shared Wonder backend (shared backend PR)
+## Next actions — one shared Wonder backend (PRs #53, #54)
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Amine: merge the account resume PR (#53) and the shared backend PR | Merged; CI green |
-| 2 | Georgio: resume his account (ACCOUNT_RESUME.md), then migrate and record the $30 allocation with `synthetic_dispatch_reference` | `view` shows unfrozen; `preview-schema` is `already_current` |
-| 3 | Georgio: confirm that Meta's terms allow teammate use through his backend | Note in the PR |
-| 4 | Amine: send Georgio his token hash; Georgio adds it and serves the backend over Tailscale (SHARED_BACKEND.md) | `GET /v1/wonder/live` works with Amine's token |
-| 5 | Amine: run `complete` once; Georgio records its invoice finality; then the next case | Recorded result replays in the app |
+| 1 | ~~Amine: merge the account resume PR (#53) and the shared backend PR (#54)~~ | Done; CI green |
+| 2 | Georgio: stop the backend; `meta_account_resume template`, fill in `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)); `preview` until `would_resume: true` | Preview output |
+| 3 | Both: approve those exact files; Georgio runs `resume` | `account_resumed` event; `view` shows `frozen: false` |
+| 4 | Georgio: migrate the Wonder schema and record the $30 allocation with `synthetic_dispatch_reference`, valid through the hackathon | `preview-schema` is `already_current`; allocation recorded |
+| 5 | Georgio: confirm that Meta's terms allow teammate use through his backend | Note in the PR or issue |
+| 6 | Amine: send Georgio his token hash; Georgio adds it and serves the backend over Tailscale ([SHARED_BACKEND.md](architecture/SHARED_BACKEND.md)) | `GET /v1/wonder/live` works with Amine's token |
+| 7 | Amine or Georgio: run `complete` once; Georgio records its invoice finality; then the next case | Recorded result replays in the app |
 
 ## Next actions — Wonder trends, October 29 (Amine)
 

@@ -340,8 +340,16 @@ class AccountLedger(MetaBudget):
         with self.transaction() as db:
             if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute("SELECT 1 FROM controlled_permits").fetchone():
                 raise BudgetDenied("Project first-test permit already exists and cannot be reset")
+            self.verify_never_resumed(db)
             db.execute("INSERT INTO live_permit(id,permit) VALUES(1,?)", (permit.model_dump_json(),))
             self.event(db, permit.account_id, "first_test_approved", permit.spending_authority_reference)
+
+    @staticmethod
+    def verify_never_resumed(db: sqlite3.Connection) -> None:
+        # A resume (backend/meta_resume.py) restores reviewed experiment spending only;
+        # it must never reopen the one-request first-test or disabled dual-test policies.
+        if db.execute("SELECT 1 FROM live_events WHERE kind='account_resumed'").fetchone():
+            raise BudgetDenied("A resumed ledger never authorizes another first or controlled test")
 
     @staticmethod
     def verify_project_unfrozen(db: sqlite3.Connection) -> None:
@@ -406,6 +414,7 @@ class AccountLedger(MetaBudget):
             # Owners may approve independently, including the second owner later.
             # Never treat a reservation, ambiguous bill or frozen account as settled.
             self.verify_project_unfrozen(db)
+            self.verify_never_resumed(db)
             self.verify_prior_finalities(db)
             if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
                 raise BudgetDenied("Unresolved billing blocks another approval")
