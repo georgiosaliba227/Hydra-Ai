@@ -47,6 +47,12 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "request_too_large": "The request exceeds the size limit.",
         "recognition_unavailable": "Photo analysis is unavailable. Log manually or ask a developer to review the attempt.",
         "hydration_unavailable": "Hydration explanation is unavailable. Ask a developer to review the attempt.",
+        "wonder_unavailable": "Live Muse Wonder is not configured on this backend.",
+        "wonder_busy": "Another Muse Wonder request is in progress.",
+        "wonder_blocked": "Muse Wonder is paused by a spending safeguard. Nothing was sent or charged.",
+        "wonder_attempt_unresolved": "The Muse Wonder request failed after it was reserved. Do not retry; a developer must reconcile the attempt.",
+        "trends_preview_stale": "Your log changed since the preview. Review the new preview first.",
+        "trends_insufficient_data": "Log drinks in the last 14 days before asking for trends.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -174,9 +180,11 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     mode = os.getenv("HYDRA_AI_MODE", "mock")
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
     hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
-    if mode not in ("mock", "guarded_meta") or billable not in ("false", "true") or hydration_enabled not in ("false", "true"):
+    wonder_live = os.getenv("HYDRA_WONDER_LIVE", "false").lower()
+    if (mode not in ("mock", "guarded_meta") or billable not in ("false", "true")
+            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
-    live_feature = mode == "guarded_meta" or hydration_enabled == "true"
+    live_feature = mode == "guarded_meta" or hydration_enabled == "true" or wonder_live == "true"
     if (billable == "true") != live_feature:
         raise ValueError("Mode and billable gate conflict")
     token = api_token if api_token is not None else os.getenv("HYDRA_API_TOKEN", "")
@@ -364,16 +372,23 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     def export_data(request: Request):
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
+        results_dir = getattr(request.app.state, "wonder_results_dir", None)
+        from .wonder_results import saved_trends
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "beverages": repository.list_all("local-demo"),
-                "settings": settings_view(repository.get_settings("local-demo"))}
+                "settings": settings_view(repository.get_settings("local-demo")),
+                "wonder_trends": saved_trends(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
         # An explicit phrase guards against an accidental or replayed bulk deletion.
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
-        return {"deleted_beverages": request.app.state.repository.delete_all("local-demo"), "settings_cleared": True}
+        results_dir = getattr(request.app.state, "wonder_results_dir", None)
+        from .wonder_results import delete_trends
+        deleted = request.app.state.repository.delete_all("local-demo")
+        return {"deleted_beverages": deleted, "settings_cleared": True,
+                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0}
 
     @app.get("/v1/settings")
     def get_settings(request: Request):
@@ -395,4 +410,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_workout_forecast_routes(app)
     from .hydration_context_v2 import install_context_v2_routes
     install_context_v2_routes(app)
+    from .wonder_trend_routes import install_wonder_trend_routes
+    install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
     return app

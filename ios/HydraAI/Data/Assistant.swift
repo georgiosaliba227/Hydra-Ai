@@ -85,7 +85,7 @@ struct AssistantAnswer: Decodable, Sendable {
         if request.wantsRecordedWonder {
             guard provenance.mode == "meta_live", provenance.provider == "Meta", provenance.model == "muse-wonder-1.0",
                   provenance.answer_origin == "reviewed_text", provenance.topic_selection == "muse-wonder-1.0",
-                  provenance.account_id == "georgiosaliba227", let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
+                  provenance.account_id.map(MetaAccount.known.contains) == true, let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
                   !escalation, let observed = provider_observations,
                   Set(observed.keys) == Self.observationKeys.union(["billed_cost_usd"]), observed["billed_cost_usd"] == .some(nil),
                   Self.observationKeys.allSatisfy({ ((observed[$0] ?? nil) ?? -1) >= 0 }) else { throw ServiceError.invalidResponse }

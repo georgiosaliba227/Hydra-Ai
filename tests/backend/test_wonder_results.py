@@ -55,7 +55,7 @@ def test_valid_record_round_trips_and_is_write_once(results_dir):
     lambda r: r["systems"]["B"]["interpretation"]["reviewed_text"]["factors"].append("Drink 3 litres."),
     lambda r: r["provenance"].update(model="muse-spark-1.3"),
     lambda r: r["provenance"].update(mode="mock"),
-    lambda r: r["provenance"].update(account_id="aminealichaouche"),
+    lambda r: r["provenance"].update(account_id="someone-else"),
     lambda r: r["provenance"].update(attempt_id="not-a-uuid"),
     lambda r: r["provider_observations"].update(billed_cost_usd=0.01),
     lambda r: r["provider_observations"].update(input_tokens=-1),
@@ -137,7 +137,7 @@ def test_recorded_answer_round_trips_and_rejects_tampering(results_dir):
         lambda r: r.update(topics=["urgent"]),
         lambda r: r.update(escalation=True),
         lambda r: r["provenance"].update(topic_selection="muse-spark-1.3"),
-        lambda r: r["provenance"].update(account_id="aminealichaouche"),
+        lambda r: r["provenance"].update(account_id="someone-else"),
         lambda r: r["provider_observations"].update(billed_cost_usd=1),
         lambda r: r.update(question_id="free_text"),
     ]

@@ -2,23 +2,29 @@
 
 A recorded result is accepted only if rebuilding it from the deterministic
 scenario, its validated selection and its provenance reproduces it exactly.
+Trend explanations are re-checked against their own facts the same way.
 """
+from datetime import datetime
 import json
 import os
 from pathlib import Path
+import re
 import stat
 from uuid import UUID
 
 from ai.assistant import SUGGESTED
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result, validate_selection
-from .meta_experiments import ACCOUNT
+from .meta_accounts import ACCOUNTS
 from .wonder_assistant import ALLOWED, live_answer
 from .wonder_hydration import MODEL, live_comparison_provenance
+from .wonder_trends import trend_result, validate_explanation, validate_facts
 
 SELECTION_FIELDS = ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions",
                     "numerical_abstention")
 OBSERVATION_FIELDS = {"latency_ms", "input_tokens", "output_tokens", "usage_derived_cost_micro_usd", "billed_cost_usd"}
 MAX_RESULT_BYTES = 65_536
+MAX_TREND_RECORDS = 500
+TREND_NAME = re.compile(r"trends-[a-f0-9]{64}")
 
 
 def validate_recorded(result: dict) -> dict:
@@ -27,8 +33,8 @@ def validate_recorded(result: dict) -> dict:
         if scenario not in SCENARIOS:
             raise ValueError
         provenance, observations = result["provenance"], result["provider_observations"]
-        if (str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]
-                or provenance != live_comparison_provenance(provenance["attempt_id"])):
+        if (str(UUID(provenance["attempt_id"])) != provenance["attempt_id"] or provenance["account_id"] not in ACCOUNTS
+                or provenance != live_comparison_provenance(provenance["attempt_id"], provenance["account_id"])):
             raise ValueError
         if not _valid_observations(observations):
             raise ValueError
@@ -55,15 +61,37 @@ def validate_recorded_answer(result: dict) -> dict:
         provenance, observations = result["provenance"], result["provider_observations"]
         if question_id not in SUGGESTED or not _valid_observations(observations):
             raise ValueError
-        if (provenance["mode"], provenance["model"], provenance["topic_selection"], provenance["account_id"]) != (
-                "meta_live", MODEL, MODEL, ACCOUNT) or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]:
+        if ((provenance["mode"], provenance["model"], provenance["topic_selection"]) != ("meta_live", MODEL, MODEL)
+                or provenance["account_id"] not in ACCOUNTS or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]):
             raise ValueError
         if not set(topics) <= set(ALLOWED[question_id]) or not set(topics) & set(SUGGESTED[question_id][1]):
             raise ValueError
-        if live_answer(question_id, topics, attempt_id=provenance["attempt_id"], observations=observations) != result:
+        if live_answer(question_id, topics, attempt_id=provenance["attempt_id"], observations=observations,
+                       account=provenance["account_id"]) != result:
             raise ValueError
     except (KeyError, TypeError, ValueError, AttributeError):
         raise ValueError("Recorded Wonder answer failed validation") from None
+    return result
+
+
+def validate_recorded_trends(result: dict) -> dict:
+    """A recorded trend explanation: facts consistent, text re-checked, result rebuilt exactly."""
+    try:
+        facts, provenance, observations = validate_facts(result["facts"]), result["provenance"], result["provider_observations"]
+        if (provenance["account_id"] not in ACCOUNTS or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]
+                or not _valid_observations(observations)):
+            raise ValueError
+        generated = datetime.fromisoformat(result["generated_at"])
+        if generated.tzinfo is None or generated.utcoffset().total_seconds() != 0:
+            raise ValueError
+        explanation = validate_explanation({"summary": result["summary_template"],
+                                            "insights": [{"id": item["id"], "text": item["template"]}
+                                                         for item in result["insights"]]}, facts)
+        if trend_result(facts, explanation, account=provenance["account_id"], attempt_id=provenance["attempt_id"],
+                        observations=observations, generated_at=result["generated_at"]) != result:
+            raise ValueError
+    except (KeyError, TypeError, ValueError, AttributeError):
+        raise ValueError("Recorded Wonder trends failed validation") from None
     return result
 
 
@@ -84,6 +112,9 @@ def save_result(directory: Path, result: dict) -> Path:
     if "scenario" in result:
         validate_recorded(result)
         name = result["scenario"]
+    elif "facts" in result:
+        validate_recorded_trends(result)
+        name = "trends-" + result["payload_sha256"]
     else:
         validate_recorded_answer(result)
         name = "assistant-" + result["question_id"]
@@ -109,6 +140,56 @@ def load_recorded(directory: Path, scenario: str) -> dict | None:
         raise ValueError("Unknown scenario")
     raw = _read(directory, scenario)
     return None if raw is None else validate_recorded(raw)
+
+
+def load_trends(directory: Path, payload_sha256: str) -> dict | None:
+    """The saved explanation of exactly this payload, so the same data is never paid for twice."""
+    if not re.fullmatch(r"[a-f0-9]{64}", payload_sha256):
+        raise ValueError("Payload fingerprint required")
+    raw = _read(directory, "trends-" + payload_sha256)
+    if raw is None:
+        return None
+    if raw.get("payload_sha256") != payload_sha256:
+        raise ValueError("Recorded trends belong to another payload")
+    return validate_recorded_trends(raw)
+
+
+def latest_trends(directory: Path) -> dict | None:
+    """The most recent valid saved trend explanation; unreadable or tampered records are skipped."""
+    entries = [entry for entry in os.scandir(_private_directory(directory))
+               if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5])]
+    entries.sort(key=lambda entry: entry.stat(follow_symlinks=False).st_mtime_ns, reverse=True)
+    latest = None
+    for entry in entries[:MAX_TREND_RECORDS]:
+        try:
+            result = load_trends(directory, entry.name[len("trends-"):-5])
+        except (ValueError, TypeError, OSError):
+            continue
+        if latest is None or result["generated_at"] > latest["generated_at"]:
+            latest = result
+    return latest
+
+
+def saved_trends(directory: Path) -> list[dict]:
+    """Every valid saved trend explanation, for the user's data export."""
+    results = []
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]):
+            try:
+                results.append(load_trends(directory, entry.name[len("trends-"):-5]))
+            except (ValueError, TypeError, OSError):
+                continue
+    return sorted(results, key=lambda result: result["generated_at"])
+
+
+def delete_trends(directory: Path) -> int:
+    """Remove the user's saved trend explanations (delete-all). Synthetic demo results stay."""
+    removed = 0
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
+            os.unlink(entry.path)
+            removed += 1
+    return removed
 
 
 def _read(directory: Path, name: str) -> dict | None:

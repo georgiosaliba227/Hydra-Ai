@@ -1,11 +1,11 @@
-"""Live Muse Wonder hydration path on Georgio's $30 experiment allocation.
+"""Live Muse Wonder path, charged to the one account a ledger's allocation names.
 
+Georgio's $30 experiment or Amine's $100 allocation, each in its own ledger.
 Implemented and tested with fake transports only. A real request additionally
-needs the LIVE_SCHEMA installed by a reviewed migration, current Georgio account
-evidence, an immutable approved case (exact payload plus live-dispatch and
-spending references) and invoice finality for every earlier attempt. None of
-that exists in the private ledger, and no route, script or environment switch
-activates this module.
+needs the LIVE_SCHEMA installed by a reviewed migration, current account
+evidence, an approved case for the exact payload (a recorded case, or a trend
+case bound to the user's consent under the allocation's standing approval) and
+invoice finality for every earlier attempt.
 """
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,7 +20,7 @@ from pydantic import field_validator
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result
 from .meta_accounts import FINANCIAL_DDL, _canonical_schema, stamp
 from .meta_budget import BudgetDenied
-from .meta_experiments import (ACCOUNT, PROPOSED_SCHEMA, ExperimentApproval, ExperimentBudget, ExperimentQuote,
+from .meta_experiments import (PROPOSED_SCHEMA, ExperimentApproval, ExperimentBudget, ExperimentQuote,
                                ExperimentRequest, Fingerprint, Model, Reference, StrictDescriptor)
 from .meta_gateway import Notifier
 from .meta_policy import OUTPUT_LIMIT
@@ -29,6 +29,7 @@ from .recognition import RecognitionUnavailable
 from .wonder_assistant import assistant_payload, live_answer, parse_topics
 from .wonder_hydration import (MODEL, input_bound, live_comparison_provenance, parse_selection, payload_sha256,
                                wonder_payload)
+from .wonder_trends import facts_from_payload, parse_explanation, trend_result, trends_payload
 from ai.assistant import SUGGESTED
 
 # Reviewed additive DDL; installed only by tests until a separate migration is approved.
@@ -134,17 +135,44 @@ class WonderExperimentLedger(ExperimentBudget):
             case = ApprovedCase.model_validate(case.model_dump())
             if not db.execute("SELECT 1 FROM experiment_allocation WHERE id=1").fetchone():
                 raise BudgetDenied("Immutable reviewed allocation missing")
-            raw = case.model_dump_json()
-            existing = db.execute("SELECT approval FROM experiment_cases WHERE case_id=?", (case.case_id,)).fetchone()
+            account = json.loads(db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()[0])["account_id"]
+            self._insert_case(db, case, account)
+
+    def register_trend_case(self, payload: str, consent_reference: str) -> ApprovedCase:
+        """A case for one exact trend payload the user consented to, under the standing trend approval.
+
+        Reuses an unsent case for the same payload; a payload already sent is never approved again.
+        """
+        with self._transaction() as db:
+            allocation = self._allocation(db)
+            if allocation.trend_dispatch_reference is None:
+                raise BudgetDenied("No standing approval for trend explanations")
+            existing = db.execute("SELECT case_id FROM experiment_cases WHERE payload_sha256=?", (payload,)).fetchone()
             if existing:
-                if existing[0] == raw:
-                    return
-                raise BudgetDenied("Approved cases are immutable")
-            if db.execute("SELECT 1 FROM experiment_cases WHERE payload_sha256=?", (case.payload_sha256,)).fetchone():
-                raise BudgetDenied("One approved case per exact payload")
-            db.execute("INSERT INTO experiment_cases(case_id,model,payload_sha256,approval) VALUES(?,?,?,?)",
-                       (case.case_id, case.model, case.payload_sha256, raw))
-            self.authority.event(db, ACCOUNT, "experiment_case_approved", case.case_id)
+                case = self._case(db, existing[0])
+                if (case.live_dispatch_reference != allocation.trend_dispatch_reference
+                        or db.execute("SELECT 1 FROM experiment_attempts WHERE case_id=?", (case.case_id,)).fetchone()):
+                    raise BudgetDenied("This exact payload was already approved or sent")
+                return case
+            case = ApprovedCase(case_id=str(uuid4()), model=MODEL, payload_sha256=payload,
+                                valid_until=allocation.valid_until, input_approval_reference=consent_reference,
+                                live_dispatch_reference=allocation.trend_dispatch_reference,
+                                spending_approval_reference=allocation.spending_authority_reference)
+            self._insert_case(db, case, allocation.account_id)
+            return case
+
+    def _insert_case(self, db, case: ApprovedCase, account: str) -> None:
+        raw = case.model_dump_json()
+        existing = db.execute("SELECT approval FROM experiment_cases WHERE case_id=?", (case.case_id,)).fetchone()
+        if existing:
+            if existing[0] == raw:
+                return
+            raise BudgetDenied("Approved cases are immutable")
+        if db.execute("SELECT 1 FROM experiment_cases WHERE payload_sha256=?", (case.payload_sha256,)).fetchone():
+            raise BudgetDenied("One approved case per exact payload")
+        db.execute("INSERT INTO experiment_cases(case_id,model,payload_sha256,approval) VALUES(?,?,?,?)",
+                   (case.case_id, case.model, case.payload_sha256, raw))
+        self.authority.event(db, account, "experiment_case_approved", case.case_id)
 
     @staticmethod
     def _case(db, case_id: str) -> ApprovedCase:
@@ -172,57 +200,57 @@ class WonderExperimentLedger(ExperimentBudget):
         """Re-validate freeze, finality, allocation, evidence, quote and case inside the lock."""
         self.authority.verify_project_unfrozen(db)
         self.authority.verify_prior_finalities(db, excluding_attempt=attempt)
+        approval = self._allocation(db)
         row = db.execute("SELECT a.state,a.payload_sha256,a.ticket_nonce,a.input_bound,a.price,e.case_id "
                          "FROM live_attempts a JOIN experiment_attempts e ON e.attempt_id=a.id "
-                         "WHERE a.id=? AND a.account_id=?", (attempt, ACCOUNT)).fetchone()
+                         "WHERE a.id=? AND a.account_id=?", (attempt, approval.account_id)).fetchone()
         if not row:
             raise BudgetDenied("Unknown experiment attempt")
-        allocation = db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()
         try:
-            approval = ExperimentApproval.model_validate_json(allocation[0])
             ExperimentQuote.model_validate_json(row[4])
         except (TypeError, ValueError):
             raise BudgetDenied("Allocation or price evidence expired") from None
         evidence = self._evidence(db, approval)
         if self._case(db, row[5]).payload_sha256 != row[1]:
             raise BudgetDenied("Attempt no longer matches its approved case")
-        return row, evidence
+        return row, evidence, approval.account_id
 
     def mark_dispatched(self, attempt: str, payload: str) -> "ExperimentTicket":
         if not re.fullmatch(r"[a-f0-9]{64}", payload):
             raise BudgetDenied("Exact payload fingerprint required")
         nonce = str(uuid4())
         with self._transaction() as db:
-            row, _ = self._current(db, attempt)
+            row, _, account = self._current(db, attempt)
             if row[0] != "experiment_reserved" or row[1] != payload:
                 raise BudgetDenied("Attempt cannot dispatch twice or with another payload")
             if db.execute("SELECT 1 FROM live_notices WHERE delivered_at IS NULL").fetchone():
                 raise BudgetDenied("Both developers must receive pending notices")
             db.execute("UPDATE live_attempts SET state='experiment_dispatched',dispatched_at=?,ticket_nonce=? WHERE id=?",
                        (stamp(), nonce, attempt))
-            self.authority.event(db, ACCOUNT, "experiment_dispatched", attempt)
+            self.authority.event(db, account, "experiment_dispatched", attempt)
         return ExperimentTicket(self, attempt, nonce)
 
     def claim_send(self, attempt: str, nonce: str, payload: str, bound: int, credential_fingerprint: str) -> None:
         self.authority.verify_storage()
         with self._transaction() as db:
-            row, evidence = self._current(db, attempt)
+            row, evidence, account = self._current(db, attempt)
             if row[:3] != ("experiment_dispatched", payload, nonce):
                 raise BudgetDenied("No matching one-use network dispatch ticket")
             if evidence.key_sha256 != credential_fingerprint or type(bound) is not int or bound != row[3]:
                 raise BudgetDenied("Credential or input bound does not match the reservation")
             db.execute("UPDATE live_attempts SET state='experiment_sending',ticket_nonce=NULL WHERE id=?", (attempt,))
-            self.authority.event(db, ACCOUNT, "experiment_network_send_claimed", attempt)
+            self.authority.event(db, account, "experiment_network_send_claimed", attempt)
 
     def settle(self, attempt: str, reply: ProviderReply) -> int:
         """Usage-derived gross at the reserved quote's prices. Not invoice finality."""
         blocked, amount = False, 0
         with self._transaction() as db:
-            row = db.execute("SELECT a.price,a.reserved,a.state,a.input_bound,e.request FROM live_attempts a "
+            row = db.execute("SELECT a.price,a.reserved,a.state,a.input_bound,e.request,a.account_id FROM live_attempts a "
                              "JOIN experiment_attempts e ON e.attempt_id=a.id WHERE a.id=? AND a.actual IS NULL",
                              (attempt,)).fetchone()
             if not row or row[2] != "experiment_sending":
                 raise UsageRejected("No unsettled sending experiment attempt")
+            account = row[5]
             try:
                 quote, request = json.loads(row[0]), json.loads(row[4])
                 body = reply.body
@@ -234,10 +262,10 @@ class WonderExperimentLedger(ExperimentBudget):
                     raise ValueError
                 if any(type(x) is not int or x < 0 for x in (inputs, outputs, cached, total)) or cached > inputs or total != inputs + outputs:
                     raise ValueError
-                if db.execute("SELECT 1 FROM live_attempts WHERE account_id=? AND provider_id=?", (ACCOUNT, identifier)).fetchone():
+                if db.execute("SELECT 1 FROM live_attempts WHERE account_id=? AND provider_id=?", (account, identifier)).fetchone():
                     raise ValueError
                 recorded = json.dumps({"input_tokens": inputs, "output_tokens": outputs, "cached_tokens": cached, "total_tokens": total}, sort_keys=True)
-                evidence = json.loads(db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (ACCOUNT,)).fetchone()[0])
+                evidence = json.loads(db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (account,)).fetchone()[0])
                 # Cache discounts and extra categories cannot be priced from usage alone.
                 if cached or quote["extra_charge_bound_micro_usd"] or evidence["extra_charge_bound_micro_usd"]:
                     db.execute("UPDATE live_attempts SET provider_id=?,usage=? WHERE id=?", (identifier, recorded, attempt))
@@ -246,20 +274,41 @@ class WonderExperimentLedger(ExperimentBudget):
                 db.execute("UPDATE live_attempts SET actual=?,provider_id=?,usage=?,state='settled' WHERE id=?",
                            (amount, identifier, recorded, attempt))
                 exposure = evidence["gross_micro_usd"] + db.execute(
-                    "SELECT COALESCE(SUM(COALESCE(actual,reserved)),0) FROM live_attempts WHERE account_id=?", (ACCOUNT,)).fetchone()[0]
-                self.authority.queue_threshold_notices(db, ACCOUNT, exposure)
+                    "SELECT COALESCE(SUM(COALESCE(actual,reserved)),0) FROM live_attempts WHERE account_id=?", (account,)).fetchone()[0]
+                self.authority.queue_threshold_notices(db, account, exposure)
                 blocked = amount > row[1] or inputs > row[3] or outputs > request["output_bound"]
                 if blocked:
-                    db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (ACCOUNT,))
-                self.authority.event(db, ACCOUNT, "experiment_settled_over_bound" if blocked else "experiment_settled", attempt)
+                    db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (account,))
+                self.authority.event(db, account, "experiment_settled_over_bound" if blocked else "experiment_settled", attempt)
             except (ValueError, KeyError, TypeError, AttributeError):
                 db.execute("UPDATE live_attempts SET state='unresolved' WHERE id=?", (attempt,))
-                db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (ACCOUNT,))
-                self.authority.event(db, ACCOUNT, "experiment_usage_unverified", attempt)
+                db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (account,))
+                self.authority.event(db, account, "experiment_usage_unverified", attempt)
                 blocked = True
         if blocked:
             raise UsageRejected("Provider usage unresolved or exceeded reservation")
         return amount
+
+
+    def verify_identity(self, account: str, credential_fingerprint: str) -> None:
+        """Read-only: the key and account must be this ledger's, checked before anything is reserved."""
+        with self._transaction(write=False) as db:
+            row = db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()
+            if not row:
+                raise BudgetDenied("Immutable reviewed allocation missing")
+            allocated = json.loads(row[0])["account_id"]
+            evidence = db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (allocated,)).fetchone()
+            if (allocated != account or not evidence
+                    or json.loads(evidence[0])["key_sha256"] != credential_fingerprint):
+                raise BudgetDenied("Key or account does not belong to this ledger")
+
+    def record_rejected_output(self, attempt: str) -> None:
+        """Audit a settled attempt whose output failed validation; changes no amounts or freezes."""
+        with self._transaction() as db:
+            row = db.execute("SELECT account_id FROM live_attempts WHERE id=? AND state='settled'", (attempt,)).fetchone()
+            if not row:
+                raise BudgetDenied("Only a settled attempt can record rejected output")
+            self.authority.event(db, row[0], "experiment_output_rejected", attempt)
 
 
 @dataclass(frozen=True)
@@ -277,9 +326,10 @@ class WonderMetaTransport(OfficialMetaTransport):
     ticket_type = ExperimentTicket
 
     def validate_payload(self, payload: dict) -> None:
-        if not (any(payload == wonder_payload(name) for name in SCENARIOS)
+        if (any(payload == wonder_payload(name) for name in SCENARIOS)
                 or any(payload == assistant_payload(question_id) for question_id in SUGGESTED)):
-            raise ValueError
+            return
+        facts_from_payload(payload)  # Raises unless it is exactly a Hydra trend payload.
 
     def input_bound(self, payload: dict) -> int:
         self.validate_payload(payload)
@@ -293,6 +343,7 @@ class WonderHydrationGateway:
             raise ValueError("Wonder experiment ledger required")
         self.ledger, self.transport, self.notifier = ledger, transport, notifier
         self.last_attempt: str | None = None  # Lets operators find a reserved attempt after a failure.
+        self.account: str | None = None  # The account the last reservation charged.
 
     @staticmethod
     def _with_ledger_retries(operation):
@@ -315,16 +366,23 @@ class WonderHydrationGateway:
                     raise BudgetDenied("Notification lacks delivery receipt")
                 self.ledger.authority.notice_delivered(notice["id"], receipt)
 
-    def _run(self, payload: dict, case_id: str, quote: ExperimentQuote, input_approval_reference: str, parse):
-        """Reserve, notify, dispatch once, settle, then parse; any failure after reservation quarantines."""
-        attempt, replied, latency_ms = None, False, None
+    def _run(self, payload: dict, case_id: str, quote: ExperimentQuote, input_approval_reference: str, parse, *,
+             freeze_on_rejected_output: bool = True):
+        """Reserve, notify, dispatch once, settle, then parse; any failure after reservation quarantines.
+
+        With freeze_on_rejected_output=False, output rejected after a successful settlement is
+        recorded without freezing: its charge is already accounted from provider usage.
+        """
+        attempt, replied, latency_ms, settled = None, False, None, False
         try:
+            # A wrong key or account is refused here; after reservation it would freeze the ledger.
+            self.ledger.verify_identity(quote.account_id, self.transport.credential_fingerprint)
             bound = self.transport.input_bound(payload)
             request = ExperimentRequest(attempt_id=str(uuid4()), case_id=case_id, payload_sha256=payload_sha256(payload),
                                         input_bound=bound, output_bound=OUTPUT_LIMIT,
                                         maximum_micro_usd=quote.bound(bound, OUTPUT_LIMIT),
                                         input_approval_reference=input_approval_reference, quote=quote)
-            self.ledger.reserve_for_dispatch(request)
+            self.account = self.ledger.reserve_for_dispatch(request)["account_id"]
             attempt = self.last_attempt = request.attempt_id
             self.deliver_pending_notices()
             # Durable dispatch marker precedes the only network operation.
@@ -336,9 +394,15 @@ class WonderHydrationGateway:
                 latency_ms = max(0, (monotonic_ns() - started) // 1_000_000)
             replied = True
             cost = self._with_ledger_retries(lambda: self.ledger.settle(attempt, reply))
+            settled = True
             parsed = parse(reply)
         except Exception:
-            if attempt is not None:
+            if settled and not freeze_on_rejected_output:
+                try:
+                    self._with_ledger_retries(lambda: self.ledger.record_rejected_output(attempt))
+                except Exception:
+                    pass  # The settled charge is recorded; the event is informational.
+            elif attempt is not None:
                 try:
                     self._with_ledger_retries(lambda: self.ledger.authority.quarantine(attempt))
                 except Exception:
@@ -359,7 +423,8 @@ class WonderHydrationGateway:
         selection, attempt, observations = self._run(wonder_payload(scenario), case_id, quote, input_approval_reference,
                                                      lambda reply: parse_selection(reply, scenario))
         _, prediction = build_scenario(scenario)
-        return comparison_result(scenario, prediction, selection, live_comparison_provenance(attempt), observations)
+        return comparison_result(scenario, prediction, selection, live_comparison_provenance(attempt, self.account),
+                                 observations)
 
     def answer(self, question_id: str, case_id: str, quote: ExperimentQuote, input_approval_reference: str) -> dict:
         """Wonder selects allowed reviewed topics for one approved suggested question."""
@@ -367,4 +432,18 @@ class WonderHydrationGateway:
             raise RecognitionUnavailable()
         topics, attempt, observations = self._run(assistant_payload(question_id), case_id, quote, input_approval_reference,
                                                   lambda reply: parse_topics(reply, question_id))
-        return live_answer(question_id, topics, attempt_id=attempt, observations=observations)
+        return live_answer(question_id, topics, attempt_id=attempt, observations=observations, account=self.account)
+
+    def explain_trends(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
+        """Wonder explains the user's own trends; the case is bound to the exact payload they consented to."""
+        try:
+            payload = trends_payload(facts)
+            case = self.ledger.register_trend_case(payload_sha256(payload), consent_reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
+        # A reused unsent case keeps the consent reference it was first approved with.
+        explanation, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+                                                       lambda reply: parse_explanation(reply, facts),
+                                                       freeze_on_rejected_output=False)
+        return trend_result(facts, explanation, account=self.account, attempt_id=attempt, observations=observations,
+                            generated_at=stamp())

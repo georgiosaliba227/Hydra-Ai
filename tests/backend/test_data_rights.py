@@ -47,7 +47,7 @@ def test_delete_all_requires_the_phrase_and_erases_content(client, database):
         assert client.delete('/v1/data', params=bad, headers=AUTH).status_code == 422
     assert len(client.get('/v1/export', headers=AUTH).json()['beverages']) == 2
     response = client.delete('/v1/data', params={'confirm': 'delete-all-my-data'}, headers=AUTH)
-    assert response.json() == {'deleted_beverages': 2, 'settings_cleared': True}
+    assert response.json() == {'deleted_beverages': 2, 'settings_cleared': True, 'deleted_trend_explanations': 0}
     exported = client.get('/v1/export', headers=AUTH).json()
     assert exported['beverages'] == [] and exported['settings']['daily_beverage_goal_ml'] is None
     retry = client.post('/v1/beverages', json=dict(category='water', consumed_ml=250, consumed_at='2026-10-28T12:00:00Z',

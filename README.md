@@ -2,7 +2,7 @@
 
 Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. SwiftUI talks to a FastAPI and SQLite backend with deterministic accounting from `ai/hydration`; see the [project status](docs/PROJECT_STATUS.md).
 
-**What works today (mock or local, tested):** confirmed beverage logging with edit and delete, daily totals and an optional goal you set, 7-day history, camera recognition with confirmation, a workout sweat-loss range, the Ask Hydra assistant with reviewed, sourced answers, and Muse Wonder 1.0 hydration intelligence that chooses which reviewed explanations apply.
+**What works today (mock or local, tested):** confirmed beverage logging with edit and delete, daily totals and an optional goal you set, 7-day history, camera recognition with confirmation, a workout sweat-loss range, the Ask Hydra assistant with reviewed, sourced answers, Muse Wonder 1.0 hydration intelligence that chooses which reviewed explanations apply, and Muse Wonder explanations of your own 14-day trends, with every number filled in by Hydra from your log (live use needs the setup in docs/architecture/WONDER_TRENDS_API.md).
 
 **Meta models:** Muse Spark 1.3 for the camera and Muse Wonder 1.0 for hydration intelligence. One real Spark request has run; no Wonder request has. Every billable request goes through a guarded, per-account ledger and needs explicit approval ([Wonder contract](docs/architecture/WONDER_HYDRATION_API.md), [budget policy](docs/API_BUDGET.md)). The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) separates measured outcomes, research proxies, personal calibration and synthetic demonstrations.
 

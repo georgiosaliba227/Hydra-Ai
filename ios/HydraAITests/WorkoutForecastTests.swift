@@ -192,7 +192,7 @@ final class WorkoutForecastTests: XCTestCase {
         func observation(_ key: String, _ value: Any) -> [String: Any] {
             var body = valid; var item = body["provider_observations"] as! [String: Any]; item[key] = value; body["provider_observations"] = item; return body
         }
-        for tampered in [provenance("model", "muse-spark-1.3"), provenance("mode", "mock"), provenance("account_id", "aminealichaouche"),
+        for tampered in [provenance("model", "muse-spark-1.3"), provenance("mode", "mock"), provenance("account_id", "someone-else"),
                          provenance("attempt_id", "not-a-uuid"), provenance("model_identity_verified", false),
                          observation("billed_cost_usd", 0.01), observation("input_tokens", -1), observation("latency_ms", NSNull())] {
             XCTAssertThrowsError(try decodeComparison(tampered).validateRecorded())

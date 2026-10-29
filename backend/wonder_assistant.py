@@ -71,11 +71,12 @@ def parse_topics(reply: ProviderReply, question_id: str) -> tuple[str, ...]:
         raise RecognitionUnavailable() from None
 
 
-def live_answer(question_id: str, topics: tuple[str, ...], *, attempt_id: str, observations: dict) -> dict:
+def live_answer(question_id: str, topics: tuple[str, ...], *, attempt_id: str, observations: dict,
+                account: str = ACCOUNT) -> dict:
     return {"version": VERSION, "question_id": question_id, "topics": [a["topic"] for a in answers_for(topics)],
             "escalation": False, "answers": answers_for(topics), "intake_context": None,
             "provenance": {"mode": "meta_live", "provider": "Meta", "model": MODEL, "answer_origin": "reviewed_text",
-                           "topic_selection": MODEL, "account_id": ACCOUNT, "attempt_id": attempt_id},
+                           "topic_selection": MODEL, "account_id": account, "attempt_id": attempt_id},
             "provider_observations": observations,
             "limitations": ["Wellness information, not medical advice.",
                             "Muse Wonder chose which reviewed answers apply; it did not write them.",

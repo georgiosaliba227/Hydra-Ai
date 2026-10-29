@@ -1,8 +1,8 @@
 """Muse Wonder 1.0 hydration-context requests: payload, cost bounds and strict parsing.
 
 Mock-only (docs/architecture/WONDER_HYDRATION_API.md). This module holds no
-credential, transport, ledger or dispatch path. A live adapter is a separate,
-independently reviewed change charged to Georgio's $30 experiment allocation.
+credential, transport, ledger or dispatch path; backend/wonder_experiment.py
+sends approved payloads and charges the account its ledger names.
 """
 import hashlib
 import json
@@ -28,11 +28,11 @@ INPUT_BOUND_POLICY = "canonical-payload-bytes-v1"
 FRAMING_ALLOWANCE_TOKENS = 256
 
 
-def live_comparison_provenance(attempt_id: str) -> dict:
+def live_comparison_provenance(attempt_id: str, account: str = ACCOUNT) -> dict:
     """The only provenance a live Wonder comparison may carry."""
     return {"mode": "meta_live", "provider": "Meta", "model": MODEL, "candidate_model": MODEL,
             "candidate_tier": "Standard", "model_identity_verified": True, "live_dispatch_enabled": True,
-            "interpretation_origin": "meta_selection_and_reviewed_text", "account_id": ACCOUNT, "attempt_id": attempt_id}
+            "interpretation_origin": "meta_selection_and_reviewed_text", "account_id": account, "attempt_id": attempt_id}
 
 
 def canonical(value) -> str:
