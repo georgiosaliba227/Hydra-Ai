@@ -437,3 +437,44 @@ def test_run_case_records_a_replayable_validated_result(tmp_path, monkeypatch, c
     assert transport.calls == 1 and output["recorded_path"] == str(results / "complete.json")
     assert load_recorded(results, "complete") == output["result"]
     assert (results / "complete.json").stat().st_mode & 0o777 == 0o600
+
+
+def test_busy_ledger_at_settlement_still_records_provider_usage(tmp_path):
+    """Regression (review A): another writer holding the ledger must not lose the reply evidence."""
+    import threading
+    import time
+    authority, ledger = setup(tmp_path)
+    case = approve(ledger)
+    released = threading.Event()
+
+    class BusyAfterSend(FakeWonderTransport):
+        def generate(self, payload, ticket):
+            reply = super().generate(payload, ticket)
+            def hold():
+                connection = sqlite3.connect(authority.path, timeout=5)
+                connection.execute("BEGIN IMMEDIATE")
+                connection.execute("INSERT INTO live_events(at,account_id,kind,reference) VALUES('x',NULL,'test_hold','x')")
+                time.sleep(1.2)
+                connection.rollback(); connection.close(); released.set()
+            threading.Thread(target=hold).start()
+            time.sleep(0.2)  # the holder now owns the write lock and a journal exists
+            return reply
+
+    result = gateway(ledger, BusyAfterSend()).explain("complete", case.case_id, quote(WONDER), case.input_approval_reference)
+    assert released.wait(5)
+    [(_, state, _, actual, provider)] = attempt_rows(authority)
+    assert (state, actual) == ("settled", 6000) and provider.startswith("resp_")
+    assert result["provider_observations"]["usage_derived_cost_micro_usd"] == 6000
+
+
+def test_run_case_failure_message_never_claims_nothing_was_sent(tmp_path, monkeypatch, capsys):
+    """Regression (review B)."""
+    transport = FakeWonderTransport(fault=TimeoutError())
+    admin, authority, results, argv = run_case_setup(tmp_path, monkeypatch, transport)
+    with pytest.raises(SystemExit) as after_send:
+        admin.main(argv + ["--confirm-billable"])
+    [(attempt, *_)] = attempt_rows(authority)
+    assert "may already have been sent" in str(after_send.value) and attempt in str(after_send.value)
+    with pytest.raises(SystemExit) as before:
+        admin.main([*argv[:5], "--case-id", str(uuid4()), *argv[7:], "--confirm-billable"])
+    assert "No request was sent" in str(before.value) and transport.calls == 1

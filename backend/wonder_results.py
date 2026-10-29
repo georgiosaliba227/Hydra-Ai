@@ -13,7 +13,7 @@ from ai.assistant import SUGGESTED
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result, validate_selection
 from .meta_experiments import ACCOUNT
 from .wonder_assistant import ALLOWED, live_answer
-from .wonder_hydration import MODEL
+from .wonder_hydration import MODEL, live_comparison_provenance
 
 SELECTION_FIELDS = ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions",
                     "numerical_abstention")
@@ -27,8 +27,8 @@ def validate_recorded(result: dict) -> dict:
         if scenario not in SCENARIOS:
             raise ValueError
         provenance, observations = result["provenance"], result["provider_observations"]
-        if (provenance["mode"], provenance["model"], provenance["candidate_model"], provenance["account_id"]) != (
-                "meta_live", MODEL, MODEL, ACCOUNT) or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]:
+        if (str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]
+                or provenance != live_comparison_provenance(provenance["attempt_id"])):
             raise ValueError
         if not _valid_observations(observations):
             raise ValueError
@@ -114,11 +114,19 @@ def load_recorded(directory: Path, scenario: str) -> dict | None:
 def _read(directory: Path, name: str) -> dict | None:
     target = _private_directory(directory) / (name + ".json")
     try:
-        descriptor = os.open(target, os.O_RDONLY | os.O_NOFOLLOW)
+        descriptor = os.open(target, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     except FileNotFoundError:
         return None
     with os.fdopen(descriptor, "rb") as handle:
+        if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+            raise ValueError("Recorded result must be a regular file")
         raw = handle.read(MAX_RESULT_BYTES + 1)
     if len(raw) > MAX_RESULT_BYTES:
         raise ValueError("Recorded result too large")
-    return json.loads(raw)
+    try:
+        value = json.loads(raw)
+    except RecursionError:
+        raise ValueError("Recorded result nests too deeply") from None
+    if not isinstance(value, dict):
+        raise ValueError("Recorded result must be an object")
+    return value

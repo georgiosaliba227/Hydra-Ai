@@ -48,15 +48,24 @@ def ledger(path: Path) -> WonderExperimentLedger:
     return WonderExperimentLedger(AccountLedger(path))
 
 
+class RunCaseFailed(Exception):
+    def __init__(self, attempt: str | None) -> None:
+        super().__init__(attempt)
+        self.attempt = attempt
+
+
 def run_case(target: WonderExperimentLedger, args: argparse.Namespace, quote: ExperimentQuote) -> dict:
     if args.confirm_billable is not True or not args.results_dir or not args.results_dir.is_absolute():
         raise ValueError("Explicit billable confirmation and an absolute results directory are required")
     gateway = WonderHydrationGateway(target, WonderMetaTransport(os.environ.get("HYDRA_META_GEORGIO_API_KEY", "")),
                                      GitHubNotifier(os.environ.get("HYDRA_GITHUB_NOTIFICATION_TOKEN", "")))
-    if args.question_id:
-        result = gateway.answer(args.question_id, args.case_id, quote, args.input_reference)
-    else:
-        result = gateway.explain(args.scenario, args.case_id, quote, args.input_reference)
+    try:
+        if args.question_id:
+            result = gateway.answer(args.question_id, args.case_id, quote, args.input_reference)
+        else:
+            result = gateway.explain(args.scenario, args.case_id, quote, args.input_reference)
+    except Exception:
+        raise RunCaseFailed(gateway.last_attempt) from None
     try:
         recorded = str(save_result(args.results_dir, result))
     except (OSError, ValueError):
@@ -97,6 +106,12 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     try:
         print(json.dumps(run(args), indent=2, sort_keys=True, allow_nan=False))
+    except RunCaseFailed as failure:
+        if failure.attempt is None:
+            raise SystemExit("Wonder run-case refused before any reservation. No request was sent.") from None
+        raise SystemExit(f"Wonder run-case failed after reserving attempt {failure.attempt}. A billable request may "
+                         "already have been sent. Do not retry; inspect that attempt in the ledger and reconcile "
+                         "the provider invoice first.") from None
     except Exception:
         raise SystemExit("Wonder admin refused: invalid inputs or ledger state. No request sent.") from None
 

@@ -108,6 +108,7 @@ class BeverageRepository:
         connection = sqlite3.connect(self.path, timeout=5.0)
         try:
             connection.execute("PRAGMA synchronous=FULL")
+            connection.execute("PRAGMA secure_delete=ON")  # Overwrite deleted content on disk.
             return connection
         except sqlite3.Error:
             connection.close()
@@ -217,8 +218,9 @@ class BeverageRepository:
                 if row is None or _decode(row[0]).get("deleted"):
                     raise BeverageNotFound()
                 tombstone = json.dumps({"deleted": True, "id": beverage_id}, separators=(",", ":"), sort_keys=True)
+                # The key alone blocks resurrection; the content fingerprint is erased too.
                 connection.execute(
-                    "UPDATE beverages SET consumed_at='', record_json=? WHERE owner=? AND id=?",
+                    "UPDATE beverages SET consumed_at='', fingerprint='', record_json=? WHERE owner=? AND id=?",
                     (tombstone, owner, beverage_id),
                 )
         except sqlite3.Error:

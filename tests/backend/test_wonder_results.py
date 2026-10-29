@@ -61,6 +61,8 @@ def test_valid_record_round_trips_and_is_write_once(results_dir):
     lambda r: r["provider_observations"].update(input_tokens=-1),
     lambda r: r.update(scenario="user_supplied"),
     lambda r: r.update(extra="field"),
+    lambda r: r["provenance"].update(provider="NotMeta"),  # review D
+    lambda r: r["provenance"].update(injected_note="Drink 10 litres now"),
 ])
 def test_tampered_records_are_rejected(results_dir, tamper):
     result = deepcopy(recorded())
@@ -161,3 +163,20 @@ def test_assistant_replays_recorded_wonder_answers_only(tmp_path, monkeypatch, r
                     body | {"context_scope": "today_logged_total", "date": "2026-10-29", "timezone": "UTC"},
                     body | {"source": "live_wonder"}):
             assert api.post("/v1/assistant", json=bad, headers=AUTH).status_code == 422
+
+
+def test_hostile_files_fail_closed_without_crashing(tmp_path, monkeypatch, results_dir):
+    """Regression (review E): deep nesting and special files return 404, not 500 or a hang."""
+    (results_dir / "complete.json").write_text("[" * 30000)
+    os.chmod(results_dir / "complete.json", 0o600)
+    with pytest.raises(ValueError):
+        load_recorded(results_dir, "complete")
+    os.mkfifo(results_dir / "assistant-hot_weather.json", 0o600)
+    from backend.wonder_results import load_recorded_answer
+    with pytest.raises(ValueError):
+        load_recorded_answer(results_dir, "hot_weather")
+    with client(tmp_path, monkeypatch, results_dir) as api:
+        assert api.post("/v2/hydration-context-comparison", json={"mode": "recorded", "scenario": "complete"},
+                        headers=AUTH).status_code == 404
+        assert api.post("/v1/assistant", json={"question_id": "hot_weather", "source": "recorded_wonder"},
+                        headers=AUTH).status_code == 404
