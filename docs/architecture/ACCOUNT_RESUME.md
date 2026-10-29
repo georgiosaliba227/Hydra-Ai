@@ -28,7 +28,10 @@ request.
     **previous evidence verbatim** (for example PR #14's `RiskEvidence`), the
     previous anchor and the new evidence's hash.
 
-It never touches attempts, finalities, permits, notices or earlier events.
+It never touches attempts, finalities, permits, notices or earlier events. A resumed ledger also
+never approves another first-test or dual-test permit (`verify_never_resumed`), and the command refuses
+a ledger with any trigger beyond the reviewed Wonder immutability triggers. An overrun acknowledged in a
+resume no longer blocks Wonder for that exact attempt; any other overrun still blocks new admissions.
 A spent permit stays spent, so PR #14's one-time camera permit can never be
 reused. The $30 experiment allocation and its limits are unchanged.
 
@@ -36,6 +39,8 @@ reused. The $30 experiment allocation and its limits are unchanged.
 
 | Blocker | Meaning |
 | --- | --- |
+| `unspent_permit_would_reactivate` | A first-test or controlled permit is unspent; resuming would reopen it |
+| `key_changed_not_acknowledged` | The fresh evidence binds a different API key; reviewers must set `new_key_acknowledged` |
 | `account_not_frozen` | Nothing to resume. This also makes a repeat or concurrent resume a no-op refusal |
 | `attempt_not_finalized:<id>` | Some attempt in the ledger (any account) is not settled with matching invoice finality. A timeout or a reply without usage cannot be reconciled, so it blocks permanently |
 | `reconciled_attempts_do_not_match_ledger` | The approval must name every attempt on the account, with its exact provider ID and final charge |

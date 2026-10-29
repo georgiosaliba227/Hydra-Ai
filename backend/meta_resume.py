@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_
 
 from .meta_accounts import FINANCIAL_DDL, USD, AccountLedger, Evidence, InvoiceFinality, _canonical_schema, now, stamp
 from .meta_budget import BudgetDenied
+from .wonder_experiment import LIVE_SCHEMA
 
 RESUME_VERSION = "account-resume-v1"
 CUTOFF = 120 * USD
@@ -42,6 +43,7 @@ class ResumeApproval(BaseModel):
     account_id: Literal["georgiosaliba227", "aminealichaouche"]
     reconciled_attempts: list[ReconciledAttempt] = Field(max_length=1000)
     overrun_acknowledged: StrictBool = False
+    new_key_acknowledged: StrictBool = False
     provider_reconciliation_reference: Reference
     spending_approval_reference: Reference
     georgio_review_reference: Reference
@@ -73,6 +75,11 @@ def _verify_schema(db) -> None:
     for name, sql in FINANCIAL_DDL.items():
         if name not in objects or _canonical_schema(objects[name] or "") != _canonical_schema(sql):
             raise BudgetDenied("Finality-current financial schema required")
+    # Only the reviewed experiment immutability triggers may exist; any other could rewrite history.
+    reviewed = {_canonical_schema(sql) for sql in LIVE_SCHEMA if sql.split()[1] == "TRIGGER"}
+    for (sql,) in db.execute("SELECT sql FROM sqlite_master WHERE type='trigger'"):
+        if _canonical_schema(sql or "") not in reviewed:
+            raise BudgetDenied("Unknown trigger in the financial ledger")
 
 
 def _blockers(db, approval: ResumeApproval, evidence: Evidence) -> list[str]:
@@ -89,6 +96,12 @@ def _blockers(db, approval: ResumeApproval, evidence: Evidence) -> list[str]:
         problems.append("evidence_for_another_account")
     if evidence.provider_account_reference != previous.get("provider_account_reference"):
         problems.append("evidence_names_another_provider_account")
+    if evidence.key_sha256 != previous.get("key_sha256") and not approval.new_key_acknowledged:
+        problems.append("key_changed_not_acknowledged")
+    # A resume must not reactivate an unspent first-test or controlled permit.
+    if (db.execute("SELECT 1 FROM live_permit WHERE spent=0").fetchone()
+            or db.execute("SELECT 1 FROM controlled_permits WHERE spent=0").fetchone()):
+        problems.append("unspent_permit_would_reactivate")
     for (other,) in db.execute("SELECT evidence FROM live_accounts WHERE account_id!=?", (account,)):
         if json.loads(other).get("key_sha256") == evidence.key_sha256:
             problems.append("key_belongs_to_another_account")

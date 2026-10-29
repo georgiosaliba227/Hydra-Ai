@@ -240,3 +240,74 @@ def test_operator_script_requires_private_files_and_previews_read_only(tmp_path,
     assert rows(authority, "SELECT frozen FROM live_accounts")[0][0] == 1
     tool.main(["resume"] + args[1:])
     assert json.loads(capsys.readouterr().out)["resumed"] is True
+
+
+# Review findings (2026-10-29): each reproduced before its fix.
+
+def pr14_shaped(tmp_path, **kwargs):
+    """PR #14 stores the spent risk permit in controlled_permits and leaves live_permit empty."""
+    authority, attempt = frozen_ledger(tmp_path, **kwargs)
+    with authority.transaction() as db:
+        db.execute("DELETE FROM live_permit")
+        db.execute("INSERT INTO controlled_permits(account_id,permit,spent) VALUES(?,?,1)",
+                   (GEORGIO, json.dumps({"policy_version": "georgio-first-camera-risk-v1"})))
+    return authority, attempt
+
+
+def test_a_resume_never_reopens_the_first_test_or_dual_test_policies(tmp_path):
+    from test_controlled_tests import permit as controlled_permit
+    from test_guarded_meta import HASH
+    authority, attempt = pr14_shaped(tmp_path)
+    authority.attest_account(evidence(ACCOUNTS[1]))
+    resume_account(authority, resume_approval(attempt), fresh())
+    with pytest.raises(BudgetDenied):  # PR #14 adds its own guard with another message
+        authority.approve_controlled_test(controlled_permit(ACCOUNTS[1], HASH))
+    assert rows(authority, "SELECT account_id,spent FROM controlled_permits") == [(GEORGIO, 1)]
+
+
+def test_an_unspent_permit_blocks_the_resume(tmp_path):
+    authority, attempt = pr14_shaped(tmp_path)
+    with authority.transaction() as db:
+        db.execute("INSERT INTO controlled_permits(account_id,permit,spent) VALUES(?,?,0)", (ACCOUNTS[1], "{}"))
+    assert "unspent_permit_would_reactivate" in preview_resume(authority, resume_approval(attempt), fresh())["blockers"]
+
+
+def test_acknowledged_overrun_still_lets_wonder_run_and_unacknowledged_history_does_not(tmp_path):
+    authority, attempt = frozen_ledger(tmp_path, actual=2_500_000)  # above the 2,000,000 reservation
+    with authority.transaction() as db:
+        for sql in LIVE_SCHEMA:
+            db.execute(sql)
+    resume_account(authority, resume_approval(attempt, actual=2_500_000, overrun_acknowledged=True), fresh(2_500_000))
+    ledger = WonderExperimentLedger(authority)
+    ledger.record_approval(experiment_approval())
+    case = approve(ledger)
+    transport = FakeWonderTransport()
+    result = gateway(ledger, transport).explain("complete", case.case_id, quote(WONDER), case.input_approval_reference)
+    assert transport.calls == 1
+    # A later overrun that no resume acknowledged still blocks admission, even once finalized.
+    [(reserved,)] = rows(authority, "SELECT reserved FROM live_attempts WHERE id=?", result["provenance"]["attempt_id"])
+    finalize_fixture(authority, result["provenance"]["attempt_id"], actual=reserved + 1)
+    second = approve(ledger, "missing_measurements")
+    later = FakeWonderTransport()
+    with pytest.raises(Exception):
+        gateway(ledger, later).explain("missing_measurements", second.case_id, quote(WONDER), second.input_approval_reference)
+    assert later.calls == 0
+
+
+def test_unknown_triggers_block_the_resume(tmp_path):
+    authority, attempt = frozen_ledger(tmp_path)
+    with authority.transaction() as db:
+        db.execute("CREATE TRIGGER sneaky AFTER UPDATE ON live_accounts BEGIN UPDATE live_permit SET spent=0; END")
+    with pytest.raises(BudgetDenied):
+        preview_resume(authority, resume_approval(attempt), fresh())
+    with pytest.raises(BudgetDenied):
+        resume_account(authority, resume_approval(attempt), fresh())
+    assert rows(authority, "SELECT spent FROM live_permit") == [(1,)]
+    assert rows(authority, "SELECT frozen FROM live_accounts")[0][0] == 1
+
+
+def test_a_changed_key_must_be_acknowledged(tmp_path):
+    authority, attempt = frozen_ledger(tmp_path)
+    rotated = fresh(key_sha256="1" * 64)
+    assert preview_resume(authority, resume_approval(attempt), rotated)["blockers"] == ["key_changed_not_acknowledged"]
+    assert preview_resume(authority, resume_approval(attempt, new_key_acknowledged=True), rotated)["would_resume"]
