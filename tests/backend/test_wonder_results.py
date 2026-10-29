@@ -115,3 +115,49 @@ def test_recorded_mode_replays_only_validated_results(tmp_path, monkeypatch, res
 def test_relative_results_directory_is_a_configuration_error(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         client(tmp_path, monkeypatch, "relative/results")
+
+
+def recorded_answer(question_id="hot_weather", topics=("exercise_sweat", "weather")):
+    from backend.wonder_assistant import live_answer
+    observations = {"latency_ms": 640, "input_tokens": 410, "output_tokens": 30,
+                    "usage_derived_cost_micro_usd": 2240, "billed_cost_usd": None}
+    return live_answer(question_id, topics, attempt_id=str(uuid4()), observations=observations)
+
+
+def test_recorded_answer_round_trips_and_rejects_tampering(results_dir):
+    from backend.wonder_results import load_recorded_answer, validate_recorded_answer
+    answer = recorded_answer()
+    assert save_result(results_dir, answer).name == "assistant-hot_weather.json"
+    assert load_recorded_answer(results_dir, "hot_weather") == answer
+    assert load_recorded_answer(results_dir, "creatine_water") is None
+    tampers = [
+        lambda r: r["answers"][0].update(text="Drink 3 litres every hour."),
+        lambda r: r.update(topics=["urgent"]),
+        lambda r: r.update(escalation=True),
+        lambda r: r["provenance"].update(topic_selection="muse-spark-1.3"),
+        lambda r: r["provenance"].update(account_id="aminealichaouche"),
+        lambda r: r["provider_observations"].update(billed_cost_usd=1),
+        lambda r: r.update(question_id="free_text"),
+    ]
+    for tamper in tampers:
+        changed = deepcopy(answer); tamper(changed)
+        with pytest.raises(ValueError):
+            validate_recorded_answer(changed)
+    with pytest.raises(ValueError):  # omits the question's reviewed topic
+        validate_recorded_answer(recorded_answer("creatine_water", ("daily_needs",)))
+
+
+def test_assistant_replays_recorded_wonder_answers_only(tmp_path, monkeypatch, results_dir):
+    body = {"question_id": "hot_weather", "source": "recorded_wonder"}
+    with client(tmp_path, monkeypatch, results_dir) as api:
+        assert api.post("/v1/assistant", json=body, headers=AUTH).status_code == 404
+        answer = recorded_answer()
+        save_result(results_dir, answer)
+        response = api.post("/v1/assistant", json=body, headers=AUTH)
+        assert response.status_code == 200 and response.json() == answer
+        local = api.post("/v1/assistant", json={"question_id": "hot_weather"}, headers=AUTH).json()
+        assert local["provenance"]["mode"] == "local_rules"
+        for bad in ({"question": "hot?", "source": "recorded_wonder"},
+                    body | {"context_scope": "today_logged_total", "date": "2026-10-29", "timezone": "UTC"},
+                    body | {"source": "live_wonder"}):
+            assert api.post("/v1/assistant", json=bad, headers=AUTH).status_code == 422

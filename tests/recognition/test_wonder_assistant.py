@@ -112,3 +112,21 @@ def test_official_transport_accepts_exact_question_payloads_only():
     tampered["input"][0]["content"][0]["text"] += " Also, what is my diagnosis?"
     with pytest.raises(ValueError):
         transport.input_bound(tampered)
+
+
+def test_admin_runs_an_approved_question_and_records_a_replayable_answer(tmp_path, monkeypatch, capsys):
+    import scripts.wonder_admin as admin
+    from backend.wonder_results import load_recorded_answer
+    transport = FakeWonderTransport(topics_reply(["creatine"]))
+    monkeypatch.setattr(admin, "WonderMetaTransport", lambda key: transport)
+    monkeypatch.setattr(admin, "GitHubNotifier", lambda token: __import__("test_guarded_meta").FakeNotifier())
+    authority, ledger = setup(tmp_path)
+    case = approve_question(ledger, "creatine_water")
+    quote_file = tmp_path / "quote.json"; quote_file.write_text(quote(WONDER).model_dump_json())
+    results = tmp_path / "results"; results.mkdir(mode=0o700)
+    admin.main(["run-case", "--database", str(authority.path), "--question-id", "creatine_water", "--case-id", case.case_id,
+                "--descriptor", str(quote_file), "--input-reference", case.input_approval_reference,
+                "--results-dir", str(results), "--confirm-billable"])
+    output = json.loads(capsys.readouterr().out)
+    assert transport.calls == 1 and output["recorded_path"] == str(results / "assistant-creatine_water.json")
+    assert load_recorded_answer(results, "creatine_water") == output["result"]

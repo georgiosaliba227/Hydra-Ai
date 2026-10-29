@@ -77,6 +77,23 @@ quarantine on any failure. `WonderMetaTransport` accepts exact scenario or
 suggested-question payloads only. The /v1/assistant route still answers from
 local rules; nothing dispatches from HTTP.
 
+## Recording and replay
+
+`wonder_admin.py run-case --question-id <id> ... --confirm-billable` runs one
+approved question and writes `assistant-<id>.json` (write-once, 0600) into the
+private results directory. `POST /v1/assistant` with
+`{"question_id": "<id>", "source": "recorded_wonder"}` replays it when
+`HYDRA_WONDER_RESULTS_DIR` is set; it never dispatches. A record is served only
+if rebuilding it from the reviewed answers, its allowed topics and provenance
+reproduces it exactly; otherwise 404. `recorded_wonder` requires a suggested
+question and no intake context. `prepare --question-id <id>` prints the
+payload hash and cost bound for the case approval.
+
+On iPhone, Ask Hydra's "Use Muse Wonder's recorded selection" toggle sends
+`recorded_wonder` for suggested questions and shows the Wonder provenance,
+tokens and usage-derived cost. The client accepts a `meta_live` answer only
+when it asked for one, and a local-rules answer only otherwise.
+
 ## Not in v1
 
 No conversation memory, free-text generation, HealthKit context or

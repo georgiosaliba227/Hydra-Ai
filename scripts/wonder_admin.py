@@ -15,21 +15,30 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
+from ai.assistant import SUGGESTED
 from backend.hydration_context_v2 import SCENARIOS
 from backend.meta_accounts import AccountLedger
 from backend.meta_experiments import ExperimentApproval, ExperimentQuote
 from backend.meta_gateway import GitHubNotifier
 from backend.wonder_experiment import ApprovedCase, WonderExperimentLedger, WonderHydrationGateway, WonderMetaTransport
 from backend.wonder_results import save_result
-from backend.wonder_hydration import MODEL, payload_sha256, preview, wonder_payload
+from backend.wonder_assistant import assistant_payload
+from backend.wonder_hydration import MODEL, input_bound, payload_sha256, preview, wonder_payload, worst_case_micro_usd
 
 REQUIRED = "REQUIRED: replace with a reviewed reference"
 
 
-def prepare(scenario: str) -> dict:
-    template = {"case_id": str(uuid4()), "model": MODEL, "payload_sha256": payload_sha256(wonder_payload(scenario)),
+def prepare(scenario: str, question_id: str | None = None) -> dict:
+    payload = assistant_payload(question_id) if question_id else wonder_payload(scenario)
+    template = {"case_id": str(uuid4()), "model": MODEL, "payload_sha256": payload_sha256(payload),
                 "valid_until": REQUIRED, "input_approval_reference": REQUIRED,
                 "live_dispatch_reference": REQUIRED, "spending_approval_reference": REQUIRED}
+    if question_id:
+        bound = input_bound(payload)
+        summary = {"question_id": question_id, "model": MODEL, "payload_sha256": template["payload_sha256"],
+                   "input_bound_tokens": bound, "byte_bound_micro_usd": worst_case_micro_usd(bound),
+                   "dispatch_enabled": False, "billing_evidence": False}
+        return {"preview": summary, "approved_case_template": template}
     return {"preview": preview(scenario), "approved_case_template": template}
 
 
@@ -44,7 +53,10 @@ def run_case(target: WonderExperimentLedger, args: argparse.Namespace, quote: Ex
         raise ValueError("Explicit billable confirmation and an absolute results directory are required")
     gateway = WonderHydrationGateway(target, WonderMetaTransport(os.environ.get("HYDRA_META_GEORGIO_API_KEY", "")),
                                      GitHubNotifier(os.environ.get("HYDRA_GITHUB_NOTIFICATION_TOKEN", "")))
-    result = gateway.explain(args.scenario, args.case_id, quote, args.input_reference)
+    if args.question_id:
+        result = gateway.answer(args.question_id, args.case_id, quote, args.input_reference)
+    else:
+        result = gateway.explain(args.scenario, args.case_id, quote, args.input_reference)
     try:
         recorded = str(save_result(args.results_dir, result))
     except (OSError, ValueError):
@@ -54,7 +66,7 @@ def run_case(target: WonderExperimentLedger, args: argparse.Namespace, quote: Ex
 
 def run(args: argparse.Namespace) -> dict:
     if args.command == "prepare":
-        return prepare(args.scenario)
+        return prepare(args.scenario, args.question_id)
     target = ledger(args.database)
     if args.command == "preview-schema":
         return target.preview_live_schema()
@@ -77,6 +89,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--database", type=Path)
     parser.add_argument("--reference")
     parser.add_argument("--descriptor", type=Path, help="JSON approval, case, or (run-case) quote")
+    parser.add_argument("--question-id", choices=list(SUGGESTED), help="run-case/prepare: a suggested assistant question instead of a scenario")
     parser.add_argument("--case-id")
     parser.add_argument("--input-reference")
     parser.add_argument("--results-dir", type=Path)

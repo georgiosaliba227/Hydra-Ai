@@ -67,3 +67,41 @@ private actor UnavailableAssistant: BeverageService {
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog { throw ServiceError.invalidResponse }
     func dailySummary(date: String, timezone: String) async throws -> DailySummary { throw ServiceError.invalidResponse }
 }
+
+final class RecordedWonderAssistantTests: XCTestCase {
+    private func recorded(_ changes: (inout [String: Any]) -> Void = { _ in }) throws -> AssistantAnswer {
+        var body: [String: Any] = ["version": "assistant-v1", "question_id": "hot_weather", "topics": ["exercise_sweat", "weather"],
+            "escalation": false, "intake_context": NSNull(),
+            "answers": ["exercise_sweat", "weather"].map { ["topic": $0, "text": "Reviewed \($0).",
+                        "evidence": [["title": "NATA", "url": "https://pmc.ncbi.nlm.nih.gov/x", "kind": "research"]]] },
+            "provenance": ["mode": "meta_live", "provider": "Meta", "model": "muse-wonder-1.0", "answer_origin": "reviewed_text",
+                           "topic_selection": "muse-wonder-1.0", "account_id": "georgiosaliba227", "attempt_id": UUID().uuidString.lowercased()],
+            "provider_observations": ["latency_ms": 640, "input_tokens": 410, "output_tokens": 30,
+                                      "usage_derived_cost_micro_usd": 2240, "billed_cost_usd": NSNull()],
+            "limitations": ["Muse Wonder chose which reviewed answers apply; it did not write them."]]
+        changes(&body)
+        return try JSONDecoder().decode(AssistantAnswer.self, from: JSONSerialization.data(withJSONObject: body))
+    }
+
+    func testRecordedWonderAnswerIsAcceptedOnlyWhenRequested() throws {
+        let asked = AssistantRequest.recordedWonder(questionId: "hot_weather")
+        XCTAssertNoThrow(try asked.validate())
+        let answer = try recorded()
+        XCTAssertNoThrow(try answer.validate(request: asked)); XCTAssertTrue(answer.isRecordedWonder)
+        XCTAssertThrowsError(try answer.validate(request: .make(questionId: "hot_weather", includeToday: false)),
+                             "A live-labelled answer must never satisfy a local-rules request")
+        XCTAssertThrowsError(try AssistantRequest(question: "hot?", source: "recorded_wonder").validate())
+    }
+
+    func testTamperedRecordedWonderAnswersAreRejected() throws {
+        let asked = AssistantRequest.recordedWonder(questionId: "hot_weather")
+        let tampers: [(inout [String: Any]) -> Void] = [
+            { var p = $0["provenance"] as! [String: Any]; p["topic_selection"] = "muse-spark-1.3"; $0["provenance"] = p },
+            { var p = $0["provenance"] as! [String: Any]; p["account_id"] = "aminealichaouche"; $0["provenance"] = p },
+            { var o = $0["provider_observations"] as! [String: Any]; o["billed_cost_usd"] = 0.01; $0["provider_observations"] = o },
+            { $0["provider_observations"] = NSNull() },
+            { $0["escalation"] = true },
+        ]
+        for tamper in tampers { XCTAssertThrowsError(try recorded(tamper).validate(request: asked)) }
+    }
+}
