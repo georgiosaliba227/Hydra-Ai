@@ -32,7 +32,7 @@ never resets permits or history. Build it after PR #14 merges, since both touch
   but `LIVE_SCHEMA` is not migrated into the private ledger and no approved
   case, current evidence or spending approval exists. No HTTP route dispatches.
 - **Physical device.** New screens (edit/delete, Ask Hydra, goal, recorded
-  Wonder) are verified on the simulator only.
+  Wonder, export and delete-all) are verified on the simulator only.
 
 ## Current forecasting limits
 
