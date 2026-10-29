@@ -1,8 +1,10 @@
 # Resuming a frozen account
 
-Status: implemented and tested on synthetic ledgers, including PR #14's real
-camera flow in a scratch merge (approve → send → settle → reconcile → resume →
-Wonder case). Nobody has run it on the real private ledger. Do that only after
+Status: implemented and tested on synthetic ledgers. PR #14's camera
+reconciliation is now on main. `tests/recognition/test_camera_recovery.py`
+covers the full path: camera request → `billing_pending` → reconcile → resume →
+Wonder schema → Amine's shared-backend case. A ledger written by PR #14's old
+commit was also replayed through the main commands. Nobody has run it on the real private ledger. Do that only after
 Georgio approves the exact approval and evidence files below.
 
 ## Why it exists
@@ -75,9 +77,18 @@ Wonder ledger requires `all_charge_categories_verified: true` and an
 
 ## Steps for Georgio's account
 
-1. If the camera attempt is still `billing_pending`, run
-   `meta_budget_admin reconcile-risk-invoice` (PR #14) with its final invoice.
-   Georgio reports this is done.
+1. Reconcile the camera invoice. Georgio's template still shows the attempt as
+   `billing_pending` with `final_gross_micro_usd: null`, so this is not done
+   yet. The template's `_ledger_notes.reconcile_first` prints the command and a
+   finality file skeleton with the attempt and provider IDs filled in. Enter
+   the final charge (in micro-USD) and the time Meta finalized it, then save the
+   file as mode 0600 and run
+   `python -m scripts.meta_budget_admin --database /ABS/ledger --evidence-file /ABS/finality.json reconcile-risk-invoice`.
+   This only records the charge. It never unfreezes or grants spending, and a
+   recorded finality can't be changed. If the invoice shows only an account
+   total, the attempt's charge is the gross after the request minus the gross
+   in the camera evidence. If the template has no `provider_id` for the
+   attempt, stop: that attempt can't be reconciled this way.
 2. Write the two files. `python -m scripts.meta_account_resume template --database /ABS/ledger`
    prints the approval skeleton with each attempt's ID, provider ID and recorded charge. Check each
    against the final invoice, fill in every `REQUIRED` field, and delete `_ledger_notes`.

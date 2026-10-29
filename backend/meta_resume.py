@@ -155,7 +155,23 @@ def approval_template(ledger: AccountLedger, account: str) -> dict:
         attempts = db.execute("SELECT id,provider_id,actual,reserved,state FROM live_attempts WHERE account_id=? "
                               "ORDER BY created_at", (account,)).fetchall()
         frozen = db.execute("SELECT frozen FROM live_accounts WHERE account_id=?", (account,)).fetchone()
+        finalized = {attempt for (attempt,) in db.execute("SELECT attempt_id FROM live_finalities")}
     required = "REQUIRED: replace with a reviewed reference"
+    # A PR #14 camera attempt stays billing_pending until its final invoice is imported; resume can't pass before.
+    pending = [{"attempt_id": a, "account_id": account, "provider_id": p,
+                "final_gross_micro_usd": "REQUIRED: integer micro-USD from the final invoice",
+                "finalized_at": "REQUIRED: ISO time the provider finalized it", "provider_finality_verified": True,
+                "provider_evidence_reference": required, "georgio_review_reference": required,
+                "amine_review_reference": required}
+               for a, p, _, _, state in attempts if state == "billing_pending" and a not in finalized]
+    notes = {}
+    if pending:
+        notes["reconcile_first"] = {
+            "why": "Each billing_pending attempt needs its final charge before preview can pass.",
+            "command": "python -m scripts.meta_budget_admin --database /ABS/ledger.sqlite3 "
+                       "--evidence-file /ABS/finality.json reconcile-risk-invoice",
+            "finality_files": pending,
+            "then": "Run template again; final_gross_micro_usd is then filled from the ledger."}
     return {"version": RESUME_VERSION, "account_id": account,
             "reconciled_attempts": [{"attempt_id": a, "provider_id": p, "final_gross_micro_usd": actual}
                                     for a, p, actual, _, _ in attempts],
@@ -165,7 +181,7 @@ def approval_template(ledger: AccountLedger, account: str) -> dict:
             "georgio_review_reference": required, "amine_review_reference": required, "reason": required,
             "valid_until": "REQUIRED: ISO time within 24 hours",
             "_ledger_notes": {"frozen": None if frozen is None else bool(frozen[0]),
-                              "attempt_states": {a: state for a, _, _, _, state in attempts},
+                              "attempt_states": {a: state for a, _, _, _, state in attempts}, **notes,
                               "remove_this_key": "Delete _ledger_notes before preview; it is not part of the approval."}}
 
 

@@ -4,6 +4,12 @@ Updated October 29, 2026. Record each blocker once; revisit only when new eviden
 
 ## Top blocker: no way to lift an account freeze
 
+Update (PR #14 on main): Georgio's resume template shows the camera attempt is
+still `billing_pending` with no final charge. The earlier relayed report that
+its finality was recorded was therefore incorrect. `reconcile-risk-invoice` now
+ships on main, and the template prints the exact finality file to fill in
+(ACCOUNT_RESUME.md step 1). Reconciling comes before preview and resume.
+
 Update (account resume PR): a reviewed resume command now exists
 ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)). It lifts a freeze only
 after every attempt has matching invoice finality, and it keeps all history and

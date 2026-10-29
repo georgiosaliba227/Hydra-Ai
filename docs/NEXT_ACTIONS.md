@@ -5,6 +5,7 @@
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
 | 1 | ~~Amine: merge the account resume PR (#53) and the shared backend PR (#54)~~ | Done; CI green |
+| 1b | Georgio: `meta_account_resume template`; if `_ledger_notes.reconcile_first` appears, fill in that finality file from the final invoice and run `meta_budget_admin reconcile-risk-invoice` (ACCOUNT_RESUME.md step 1) | Template shows the camera attempt `settled` with its final charge |
 | 2 | Georgio: stop the backend; `meta_account_resume template`, fill in `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)); `preview` until `would_resume: true` | Preview output |
 | 3 | Both: approve those exact files; Georgio runs `resume` | `account_resumed` event; `view` shows `frozen: false` |
 | 4 | Georgio: migrate the Wonder schema and record the $30 allocation with `synthetic_dispatch_reference`, valid through the hackathon | `preview-schema` is `already_current`; allocation recorded |
