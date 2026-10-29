@@ -168,7 +168,11 @@ def test_ai_disabled_and_no_outbound_connections(client, monkeypatch):
     health = client.get('/health').json()
     assert health['ai_mode'] == 'mock'
     assert health['billable_requests_enabled'] is False
-    assert client.post('/v1/assistant', json={'question': 'hello'}, headers=AUTH).status_code == 404
+    # The assistant exists but answers from local reviewed rules, never a provider.
+    answer = client.post('/v1/assistant', json={'question': 'hello'}, headers=AUTH)
+    assert answer.status_code == 200
+    assert answer.json()['provenance'] == {'mode': 'local_rules', 'provider': None, 'model': None,
+                                           'answer_origin': 'reviewed_text'}
 
 
 @pytest.mark.parametrize('name,value', [('META_BILLABLE_REQUESTS_ENABLED','true'), ('HYDRA_AI_MODE','live')])
