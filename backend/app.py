@@ -1,7 +1,7 @@
 """Local single-user FastAPI adapter for durable, confirmed beverage accounting."""
 import base64
 from dataclasses import asdict
-from datetime import date, datetime
+from datetime import date, datetime, timezone as dt_timezone
 import hashlib
 import hmac
 import json
@@ -29,7 +29,7 @@ from .meta_accounts import AccountLedger, ACCOUNTS
 from .meta_gateway import GuardedMetaGateway, GitHubNotifier
 from .meta_provider import OfficialMetaTransport
 from .meta_budget import BudgetDenied
-from .schemas import CreateBeverageRequest, UpdateBeverageRequest, utc_string
+from .schemas import CreateBeverageRequest, SettingsUpdate, UpdateBeverageRequest, utc_string
 
 MAX_BODY_BYTES = 16 * 1024
 
@@ -346,8 +346,28 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             raise HTTPException(422, "invalid_request") from None
         records = request.app.state.repository.list_all("local-demo")
         summary = summarize_day([to_engine(r) for r in records], local_date, timezone)
+        goal_ml = (request.app.state.repository.get_settings("local-demo") or {}).get("daily_beverage_goal_ml")
+        goal = None if goal_ml is None else {
+            "daily_beverage_goal_ml": goal_ml, "basis": "user_confirmed",
+            "remaining_ml": max(goal_ml - summary.beverage_total_ml, 0.0),
+            "progress_ratio": round(summary.beverage_total_ml / goal_ml, 3)}
         return {**jsonable_encoder(asdict(summary)), "method_version": METHOD_VERSION,
-                "forecast_status": "insufficient_data"}
+                "forecast_status": "insufficient_data", "goal": goal}
+
+    def settings_view(stored: dict | None) -> dict:
+        stored = stored or {}
+        return {"version": "settings-v1", "daily_beverage_goal_ml": stored.get("daily_beverage_goal_ml"),
+                "goal_basis": "user_confirmed", "updated_at": stored.get("updated_at")}
+
+    @app.get("/v1/settings")
+    def get_settings(request: Request):
+        return settings_view(request.app.state.repository.get_settings("local-demo"))
+
+    @app.put("/v1/settings")
+    def put_settings(payload: SettingsUpdate, request: Request):
+        stored = {"daily_beverage_goal_ml": payload.daily_beverage_goal_ml,
+                  "updated_at": utc_string(datetime.now(dt_timezone.utc))}
+        return settings_view(request.app.state.repository.put_settings("local-demo", stored))
 
     from .hydration_routes import install_hydration_routes
     install_hydration_routes(app, enabled=hydration_enabled == "true", error_response=error_response)

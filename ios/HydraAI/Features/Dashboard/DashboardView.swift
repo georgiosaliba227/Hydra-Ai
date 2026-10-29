@@ -70,6 +70,17 @@ struct DashboardView: View {
                 )
 
                 .accessibilityIdentifier("dailyTotal")
+                if let goal = store.summary?.goal, goal.isValid {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ProgressView(value: min(goal.progressRatio, 1))
+                        Text("\(todayVolumeMl.formatted()) of \(goal.dailyBeverageGoalMl.formatted()) mL · your own goal")
+                            .font(.subheadline)
+                        Text("A goal you set, not a recommendation. Change it in Settings.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("goalProgress")
+                }
                 } else {
                     Text("Daily total unavailable until loaded.")
                 }

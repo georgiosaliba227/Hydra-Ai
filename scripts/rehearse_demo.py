@@ -190,7 +190,7 @@ def rehearse() -> dict:
 
             with closing(sqlite3.connect(database)) as connection:
                 tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-                require(tables == {'beverages'}, 'no_financial_or_calibration_tables')
+                require(tables == {'beverages', 'settings'}, 'no_financial_or_calibration_tables')
                 for (stored,) in connection.execute('SELECT record_json FROM beverages'):
                     require(image not in stored and 'pre_mass_kg' not in stored and 'synthetic-weighing' not in stored,
                             'no_photo_or_raw_calibration_persistence')

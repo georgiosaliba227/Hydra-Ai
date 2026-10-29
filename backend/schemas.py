@@ -92,6 +92,14 @@ class UpdateBeverageRequest(BaseModel):
         return self
 
 
+class SettingsUpdate(BaseModel):
+    """A goal the user chooses for logged beverage volume; null clears it. Not a recommendation."""
+    model_config = ConfigDict(extra="forbid")
+
+    # Input range for the UI field, not physiological guidance.
+    daily_beverage_goal_ml: StrictInt | None = Field(ge=100, le=10_000)
+
+
 def utc_string(value: datetime) -> str:
     # Fixed-width canonical representation keeps SQLite/keyset ordering correct.
     return value.astimezone(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")

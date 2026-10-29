@@ -94,6 +94,13 @@ class BeverageRepository:
                     CREATE INDEX IF NOT EXISTS beverages_owner_time
                     ON beverages(owner, consumed_at DESC, id DESC)
                 """)
+                # Owner preferences only (e.g. a user-chosen goal); no health records.
+                connection.execute("""
+                    CREATE TABLE IF NOT EXISTS settings (
+                        owner TEXT PRIMARY KEY NOT NULL,
+                        settings_json TEXT NOT NULL
+                    )
+                """)
         except (OSError, sqlite3.Error):
             raise StorageUnavailable() from None
 
@@ -147,6 +154,26 @@ class BeverageRepository:
                 ).fetchall()
             records = [_decode(row[0]) for row in rows]
             return [record for record in records if not record.get("deleted")]
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
+    def get_settings(self, owner: str) -> dict | None:
+        try:
+            with closing(self._connect()) as connection:
+                row = connection.execute("SELECT settings_json FROM settings WHERE owner=?", (owner,)).fetchone()
+            return _decode(row[0]) if row is not None else None
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
+    def put_settings(self, owner: str, settings: dict) -> dict:
+        payload = json.dumps(settings, ensure_ascii=False, allow_nan=False, separators=(",", ":"), sort_keys=True)
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute(
+                    "INSERT INTO settings (owner, settings_json) VALUES (?, ?) "
+                    "ON CONFLICT(owner) DO UPDATE SET settings_json=excluded.settings_json", (owner, payload),
+                )
+            return _decode(payload)
         except sqlite3.Error:
             raise StorageUnavailable() from None
 

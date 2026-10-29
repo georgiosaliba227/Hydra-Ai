@@ -6,11 +6,35 @@ struct DailySummary: Codable, Sendable {
     let beverageTotalMl: Double
     let estimatedWaterMl: Double?
     let forecastStatus: String
+    /// Progress toward a goal the user chose; never a recommendation.
+    var goal: Goal? = nil
+
+    struct Goal: Codable, Equatable, Sendable {
+        let dailyBeverageGoalMl: Int
+        let basis: String
+        let remainingMl: Double
+        let progressRatio: Double
+        enum CodingKeys: String, CodingKey {
+            case basis
+            case dailyBeverageGoalMl = "daily_beverage_goal_ml", remainingMl = "remaining_ml", progressRatio = "progress_ratio"
+        }
+        var isValid: Bool {
+            basis == "user_confirmed" && (100...10_000).contains(dailyBeverageGoalMl)
+                && remainingMl.isFinite && remainingMl >= 0 && progressRatio.isFinite && progressRatio >= 0
+        }
+    }
+
     enum CodingKeys: String, CodingKey {
-        case localDate = "local_date", timezone
+        case localDate = "local_date", timezone, goal
         case beverageTotalMl = "beverage_total_ml", estimatedWaterMl = "estimated_water_ml"
         case forecastStatus = "forecast_status"
     }
+}
+
+struct GoalSettings: Decodable, Equatable, Sendable {
+    let version: String
+    let daily_beverage_goal_ml: Int?
+    let goal_basis: String
 }
 
 enum ServiceError: LocalizedError {
@@ -214,6 +238,22 @@ actor HTTPBeverageService: BeverageService {
         let (_, status) = try await mutate("v1/beverages/\(id.uuidString.lowercased())", method: "DELETE", body: nil)
         // 404 after a lost response means the earlier delete already succeeded.
         guard status == 204 || status == 404 else { throw ServiceError.server(status) }
+    }
+
+    func goalSettings() async throws -> GoalSettings {
+        let settings: GoalSettings = try await send("v1/settings")
+        guard settings.version == "settings-v1", settings.goal_basis == "user_confirmed" else { throw ServiceError.invalidResponse }
+        return settings
+    }
+
+    func updateGoal(_ milliliters: Int?) async throws -> GoalSettings {
+        if let milliliters { guard (100...10_000).contains(milliliters) else { throw BeverageValidationError.invalidVolume } }
+        let body = try JSONSerialization.data(withJSONObject: ["daily_beverage_goal_ml": milliliters.map { $0 as Any } ?? NSNull()])
+        let (data, status) = try await mutate("v1/settings", method: "PUT", body: body)
+        guard status == 200 else { throw ServiceError.server(status) }
+        let settings = try JSONDecoder().decode(GoalSettings.self, from: data)
+        guard settings.daily_beverage_goal_ml == milliliters, settings.goal_basis == "user_confirmed" else { throw ServiceError.invalidResponse }
+        return settings
     }
 
     func assistantQuestions() async throws -> [AssistantQuestion] {

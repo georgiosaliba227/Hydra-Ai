@@ -28,6 +28,11 @@ Correct one owned log. JSON (extra fields forbidden): required `revision` (the r
 ## GET /v1/summary?date=YYYY-MM-DD&timezone=America/New_York
 Return `{local_date, timezone, beverage_total_ml, estimated_water_ml, log_revisions, provenance, uncertainty_reasons, method_version:"hydration-accounting-v1", forecast_status:"insufficient_data"}`. Use ai.hydration.summarize_day over complete owned snapshot (not a page); timezone calendar dates handle DST. Null physical-water estimate for any unknown composition. No personalized goal/remaining requirement or category multiplier. Dashboard uses this server total.
 
+## GET/PUT /v1/settings
+Owner preferences. `GET` returns `{version:"settings-v1", daily_beverage_goal_ml:int|null, goal_basis:"user_confirmed", updated_at}`. `PUT` requires exactly `{"daily_beverage_goal_ml": int 100..10000 | null}`; null clears it. The range bounds the input field and is not guidance. The goal is the user's own target for logged beverage volume, never a Hydra recommendation (HYDRATION_MODEL.md).
+
+When a goal is set, `/v1/summary` adds `goal: {daily_beverage_goal_ml, basis:"user_confirmed", remaining_ml (never negative), progress_ratio}`; otherwise `goal` is null. It compares beverage volume with a beverage goal only, never with a total dietary-water target.
+
 ## Errors
 Every error has `{code,message,request_id,retryable}` without sensitive values. 401 unauthorized; 422 invalid_request; 409 idempotency_conflict; 503 storage_unavailable (retryable). Unexpected internal errors: 500 internal_error, no traceback/body echo. No request body/authorization logging. Request bodies <=16 KiB. No recognition or assistant route calls external inference; the assistant answers from local reviewed rules (ASSISTANT_API.md). Unsupported routes 404.
 
