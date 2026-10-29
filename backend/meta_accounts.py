@@ -1,5 +1,5 @@
 """Account-isolated v2 financial ledger. No network, provider keys or image storage."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from contextlib import contextmanager
 from collections.abc import Iterator
@@ -17,7 +17,7 @@ import re
 from typing import Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
 from .meta_budget import MetaBudget, BudgetDenied
 from .recognition import MODEL
 from .meta_policy import MAX_INPUT_TOKENS, OUTPUT_LIMIT
@@ -26,6 +26,8 @@ ACCOUNTS = ("georgiosaliba227", "aminealichaouche")
 USD = 1_000_000
 CAP = 250_000
 PROPOSED_CAP = 2_000_000
+RISK_POLICY = "georgio-first-camera-risk-v1"
+APPROVED_CAMERA_SHA256 = "c7bbab98d7ee9a1c41e4f6cb5a2dc62b336a81f717893995ce8cc7cf9a33edd8"
 
 FINALITY_SCHEMA_VERSION = "account-ledger-finality-v1"
 # These are the shipped pre-finality tables, including every constraint/default.
@@ -54,7 +56,7 @@ def stamp() -> str:
     return now().isoformat()
 
 
-class Evidence(BaseModel):
+class AccountEvidence(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     account_id: Literal["georgiosaliba227", "aminealichaouche"]
     provider_account_reference: str = Field(min_length=1, max_length=200)
@@ -62,29 +64,83 @@ class Evidence(BaseModel):
     gross_micro_usd: StrictInt = Field(ge=0, le=9_000_000_000_000_000)
     credits_remaining_micro_usd: StrictInt = Field(ge=0, le=150_000_000)
     valid_until: datetime
-    credits_expire: datetime
     reference: str = Field(min_length=1, max_length=500)
     billing_verified: Literal[True]
-    hackathon_terms_verified: Literal[True]
     exclusive_gateway_key_verified: Literal[True]
     provider_limits_verified: Literal[True]
     retention_reviewed: Literal[True]
-    all_charge_categories_verified: Literal[True]
-    extra_charge_bound_micro_usd: StrictInt = Field(ge=0, le=PROPOSED_CAP)
 
-    @field_validator("billing_verified", "hackathon_terms_verified", "exclusive_gateway_key_verified", "provider_limits_verified", "retention_reviewed", "all_charge_categories_verified", mode="before")
+    @field_validator("billing_verified", "exclusive_gateway_key_verified", "provider_limits_verified", "retention_reviewed", mode="before")
     @classmethod
     def explicit_true(cls, value: object) -> bool:
         if value is not True:
             raise ValueError("Explicit independent human verification required")
         return True
 
-    @field_validator("valid_until", "credits_expire")
+    @field_validator("valid_until")
     @classmethod
     def future(cls, value: datetime) -> datetime:
         if value.tzinfo is None or value <= now():
             raise ValueError("Current dated evidence required")
         return value
+
+
+class Evidence(AccountEvidence):
+    hackathon_terms_verified: Literal[True]
+    credits_expire: datetime
+    all_charge_categories_verified: Literal[True]
+    extra_charge_bound_micro_usd: StrictInt = Field(ge=0, le=PROPOSED_CAP)
+
+    _charges_true = field_validator("all_charge_categories_verified", mode="before")(AccountEvidence.explicit_true.__func__)
+    _credit_expiry = field_validator("credits_expire")(AccountEvidence.future.__func__)
+    _grant_terms = field_validator("hackathon_terms_verified", mode="before")(AccountEvidence.explicit_true.__func__)
+
+
+class RiskEvidence(AccountEvidence):
+    """Verified account facts, with unknown extra charges explicitly unverified."""
+    policy_version: Literal["georgio-first-camera-risk-v1"]
+    account_id: Literal["georgiosaliba227"]
+    credits_expire: datetime | None = None
+    credit_terms_reviewed: Literal[True]
+    free_credit_disclosure_consent_reference: str = Field(min_length=1, max_length=500)
+    all_charge_categories_verified: Literal[False]
+    extra_charge_bound_micro_usd: None
+    known_pending_micro_usd: StrictInt = Field(ge=0, le=0)
+    billing_observed_at: datetime
+    account_key_binding_verified: Literal[True]
+    pending_usage_verified: Literal[True]
+    no_outstanding_requests_verified: Literal[True]
+    automatic_topups_disabled_verified: Literal[True]
+    notification_delivery_reference: str = Field(min_length=1, max_length=500)
+
+    _verified = field_validator("account_key_binding_verified", "pending_usage_verified", "no_outstanding_requests_verified", "automatic_topups_disabled_verified", "credit_terms_reviewed", mode="before")(AccountEvidence.explicit_true.__func__)
+
+    @field_validator("credits_expire")
+    @classmethod
+    def known_credit_expiry(cls, value: datetime | None) -> datetime | None:
+        return AccountEvidence.future(value) if value is not None else None
+
+    @field_validator("all_charge_categories_verified", mode="before")
+    @classmethod
+    def unknown_charges(cls, value: object) -> bool:
+        if value is not False:
+            raise ValueError("Unknown additional charges must remain explicitly unverified")
+        return False
+
+    @model_validator(mode="after")
+    def current_billing(self):
+        if (self.billing_observed_at.tzinfo is None
+                or not now() - timedelta(minutes=15) <= self.billing_observed_at <= now()
+                or self.valid_until > self.billing_observed_at + timedelta(minutes=15)
+                or not self.notification_delivery_reference.strip()
+                or not self.free_credit_disclosure_consent_reference.strip()):
+            raise ValueError("Fresh authenticated billing and notification evidence required")
+        return self
+
+
+def parse_evidence(raw: str) -> AccountEvidence:
+    kind = json.loads(raw).get("policy_version")
+    return RiskEvidence.model_validate_json(raw) if kind else Evidence.model_validate_json(raw)
 
 
 class Price(BaseModel):
@@ -132,6 +188,33 @@ class ControlledPermit(FirstPermit):
     maximum_micro_usd: StrictInt = Field(ge=1, le=PROPOSED_CAP)
 
 
+class RiskPermit(FirstPermit):
+    """One named image/account only; $2 is an intention, never a provider cap."""
+    policy_version: Literal["georgio-first-camera-risk-v1"]
+    account_id: Literal["georgiosaliba227"]
+    purpose: Literal["camera"]
+    maximum_micro_usd: StrictInt = Field(ge=PROPOSED_CAP, le=PROPOSED_CAP)
+    residual_provider_charge_risk_accepted: Literal[True]
+    risk_authorization_reference: str = Field(min_length=1, max_length=500)
+    account_evidence_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+    _accepted = field_validator("residual_provider_charge_risk_accepted", mode="before")(AccountEvidence.explicit_true.__func__)
+
+    @field_validator("image_sha256")
+    @classmethod
+    def approved_image(cls, value: str) -> str:
+        if value != APPROVED_CAMERA_SHA256:
+            raise ValueError("Risk exception is restricted to the approved illustration")
+        return value
+
+    @field_validator("risk_authorization_reference")
+    @classmethod
+    def explicit_reference(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Explicit risk authorization reference required")
+        return value
+
+
 class InvoiceFinality(BaseModel):
     """Private reviewed attestation; never an authenticated billing fetch."""
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -164,6 +247,8 @@ class InvoiceFinality(BaseModel):
 
 def parse_permit(raw: str) -> FirstPermit:
     kind = json.loads(raw).get("policy_version")
+    if kind == RISK_POLICY:
+        return RiskPermit.model_validate_json(raw)
     return ControlledPermit.model_validate_json(raw) if kind else FirstPermit.model_validate_json(raw)
 
 
@@ -309,9 +394,9 @@ class AccountLedger(MetaBudget):
             for recipient in ACCOUNTS:
                 db.execute("INSERT OR IGNORE INTO live_notices(id,account_id,recipient,threshold) VALUES(?,?,?,75)", (str(uuid4()), account, recipient))
 
-    def attest_account(self, evidence: Evidence) -> None:
+    def attest_account(self, evidence: AccountEvidence) -> None:
         # Private operator interface. A caller cannot submit evidence through iOS.
-        evidence = Evidence.model_validate(evidence.model_dump())
+        evidence = parse_evidence(evidence.model_dump_json())
         with self.transaction() as db:
             existing = db.execute("SELECT 1 FROM live_accounts WHERE account_id=?", (evidence.account_id,)).fetchone()
             if existing:
@@ -406,6 +491,9 @@ class AccountLedger(MetaBudget):
         if permit.purpose != expected:
             raise BudgetDenied("Account owner and test purpose mismatch")
         with self.transaction() as db:
+            if any(json.loads(raw).get("policy_version") == RISK_POLICY
+                   for (raw,) in db.execute("SELECT permit FROM controlled_permits")):
+                raise BudgetDenied("First-camera risk exception cannot authorize another test")
             if db.execute("SELECT 1 FROM live_permit").fetchone() or db.execute(
                 "SELECT 1 FROM live_attempts a LEFT JOIN controlled_permits p "
                 "ON p.account_id=a.account_id WHERE p.account_id IS NULL"
@@ -421,6 +509,37 @@ class AccountLedger(MetaBudget):
             db.execute("INSERT INTO controlled_permits(account_id,permit) VALUES(?,?)", (permit.account_id, permit.model_dump_json()))
             self.event(db, permit.account_id, "controlled_test_approved", permit.spending_authority_reference)
 
+    def approve_risk_test(self, permit: RiskPermit) -> None:
+        permit = RiskPermit.model_validate_json(permit.model_dump_json())
+        self.verify_storage()
+        with self.transaction() as db:
+            # This exception is first-ever and project-wide. Never upgrade a permit.
+            if any(db.execute("SELECT 1 FROM " + table).fetchone()
+                   for table in ("live_permit", "controlled_permits", "live_attempts")):
+                raise BudgetDenied("Risk exception requires an unused project")
+            self.verify_project_unfrozen(db)
+            self.verify_prior_finalities(db)
+            db.execute("INSERT INTO controlled_permits(account_id,permit) VALUES(?,?)",
+                       (permit.account_id, permit.model_dump_json()))
+            evidence, price, _ = self._policy(db, permit.account_id)
+            token_bound = price.cost(MAX_INPUT_TOKENS, OUTPUT_LIMIT)
+            self._risk_admission(evidence, permit)
+            if token_bound > permit.maximum_micro_usd:
+                raise BudgetDenied("Token reservation exceeds intended maximum")
+            self.event(db, permit.account_id, "first_camera_risk_approved", permit.model_dump_json())
+
+    @staticmethod
+    def _risk_admission(evidence: RiskEvidence, permit: RiskPermit) -> None:
+        # Preserve a $30 credit cushion as well as the gross $120 cutoff.
+        # Neither is a guarantee against the explicitly accepted unknown charges.
+        if evidence.credits_remaining_micro_usd < permit.maximum_micro_usd + 30 * USD:
+            raise BudgetDenied("Insufficient verified credits to preserve reserve")
+        proposed = evidence.gross_micro_usd + permit.maximum_micro_usd
+        if proposed >= 120 * USD:
+            raise BudgetDenied("Account operational cutoff reached")
+        if proposed >= 100 * USD and not permit.further_spend_approval_reference:
+            raise BudgetDenied("Account needs explicit $100 further-spend approval")
+
     @staticmethod
     def grant(db: sqlite3.Connection, account: str):
         controlled = db.execute("SELECT permit,spent FROM controlled_permits WHERE account_id=?", (account,)).fetchone()
@@ -434,13 +553,13 @@ class AccountLedger(MetaBudget):
             if not isinstance(permit, ControlledPermit) and purpose != "camera":
                 raise BudgetDenied("Legacy permit only covers camera")
 
-    def _policy(self, db: sqlite3.Connection, account: str) -> tuple[Evidence, Price, FirstPermit]:
+    def _policy(self, db: sqlite3.Connection, account: str) -> tuple[AccountEvidence, Price, FirstPermit]:
         row = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (account,)).fetchone()
         grant = self.grant(db, account)
         if not row or row[1] or not grant or grant[1]:
             raise BudgetDenied("Account approval unavailable, frozen or already spent")
         try:
-            evidence = Evidence.model_validate_json(row[0])
+            evidence = parse_evidence(row[0])
             permit = parse_permit(grant[0])
             if permit.account_id != account or evidence.account_id != account:
                 raise ValueError
@@ -450,6 +569,12 @@ class AccountLedger(MetaBudget):
             price = Price.model_validate_json(price_row[0])
             if price.version != permit.price_version:
                 raise ValueError
+            if isinstance(evidence, RiskEvidence) != isinstance(permit, RiskPermit):
+                raise ValueError
+            if isinstance(permit, RiskPermit):
+                if hashlib.sha256(evidence.model_dump_json().encode()).hexdigest() != permit.account_evidence_sha256:
+                    raise ValueError
+                self._risk_admission(evidence, permit)
             return evidence, price, permit
         except ValueError:
             raise BudgetDenied("Evidence or pricing is invalid or expired") from None
@@ -475,7 +600,9 @@ class AccountLedger(MetaBudget):
             raise BudgetDenied("Unknown input token bound")
         with self.transaction() as db:
             evidence, price, permit = self._policy(db, account)
-            maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
+            if isinstance(permit, RiskPermit) and input_bound != MAX_INPUT_TOKENS:
+                raise BudgetDenied("Risk exception requires the full model context reservation")
+            maximum = price.cost(input_bound, OUTPUT_LIMIT) + (0 if isinstance(permit, RiskPermit) else evidence.extra_charge_bound_micro_usd)
             if maximum > permit.maximum_micro_usd:
                 raise BudgetDenied("Verified maximum exceeds approved first-test ceiling")
             return price, maximum
@@ -487,29 +614,41 @@ class AccountLedger(MetaBudget):
             self.verify_project_unfrozen(db)
             self.verify_prior_finalities(db)
             evidence, price, permit = self._policy(db, account)
+            if isinstance(permit, RiskPermit) and input_bound != MAX_INPUT_TOKENS:
+                raise BudgetDenied("Risk exception requires the full model context reservation")
             if image_hash != permit.image_sha256:
                 raise BudgetDenied("Image does not match owner-approved permit")
             if type(input_bound) is not int or not 1 <= input_bound <= MAX_INPUT_TOKENS:
                 raise BudgetDenied("Unknown input bound")
-            maximum = price.cost(input_bound, OUTPUT_LIMIT) + evidence.extra_charge_bound_micro_usd
+            maximum = price.cost(input_bound, OUTPUT_LIMIT) + (0 if isinstance(permit, RiskPermit) else evidence.extra_charge_bound_micro_usd)
             if maximum > permit.maximum_micro_usd:
                 raise BudgetDenied("Verified maximum exceeds approved ceiling")
             if db.execute("SELECT 1 FROM live_attempts WHERE actual IS NULL").fetchone():
                 raise BudgetDenied("Prior billing unresolved; no second request")
             exposure = evidence.gross_micro_usd + db.execute("SELECT COALESCE(SUM(COALESCE(actual,reserved)),0) FROM live_attempts WHERE account_id=?", (account,)).fetchone()[0]
-            proposed = exposure + maximum
+            if isinstance(permit, RiskPermit) and db.execute("SELECT 1 FROM live_attempts").fetchone():
+                raise BudgetDenied("Risk exception permits only the first project attempt")
+            proposed = exposure + (permit.maximum_micro_usd if isinstance(permit, RiskPermit) else maximum)
             if proposed >= 150 * USD or proposed >= 120 * USD:
                 raise BudgetDenied("Account operational cutoff reached")
             if proposed >= 100 * USD and not permit.further_spend_approval_reference:
                 raise BudgetDenied("Account needs explicit $100 further-spend approval")
             if proposed - evidence.gross_micro_usd > evidence.credits_remaining_micro_usd:
                 raise BudgetDenied("Verified account credits exhausted")
-            if isinstance(permit, ControlledPermit):
+            if isinstance(permit, (ControlledPermit, RiskPermit)):
                 db.execute("UPDATE controlled_permits SET spent=1 WHERE account_id=?", (account,))
             else:
                 db.execute("UPDATE live_permit SET spent=1 WHERE id=1")
             db.execute("INSERT INTO live_attempts(id,account_id,price,reserved,state,created_at,input_bound) VALUES(?,?,?,?,?,?,?)", (attempt, account, price.model_dump_json(), maximum, "reserved", stamp(), input_bound))
             self.event(db, account, "reserved", attempt)
+            if isinstance(permit, RiskPermit):
+                self.event(db, account, "risk_reservation", json.dumps({
+                    "attempt_id": attempt, "policy_version": RISK_POLICY,
+                    "token_reservation_micro_usd": maximum,
+                    "intended_maximum_micro_usd": permit.maximum_micro_usd,
+                    "provider_total_bound_micro_usd": None,
+                    "unknown_additional_charges_accepted": True,
+                }, sort_keys=True))
             self.queue_threshold_notices(db, account, proposed)
             return attempt
 
@@ -527,7 +666,7 @@ class AccountLedger(MetaBudget):
             account = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (row[0],)).fetchone()
             permit = self.grant(db, row[0])
             try:
-                Evidence.model_validate_json(account[0]); Price.model_validate_json(row[1]); parse_permit(permit[0])
+                parse_evidence(account[0]); Price.model_validate_json(row[1]); parse_permit(permit[0])
             except (ValueError, TypeError):
                 raise BudgetDenied("Approval expired before dispatch") from None
             if account[1] or db.execute("SELECT 1 FROM live_notices WHERE delivered_at IS NULL").fetchone():
@@ -547,7 +686,7 @@ class AccountLedger(MetaBudget):
             account = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (row[0],)).fetchone()
             permit = self.grant(db, row[0])
             try:
-                current_account = Evidence.model_validate_json(account[0]); Price.model_validate_json(row[4]); parse_permit(permit[0])
+                current_account = parse_evidence(account[0]); Price.model_validate_json(row[4]); parse_permit(permit[0])
                 if current_account.key_sha256 != credential_fingerprint or type(input_bound) is not int or input_bound != row[5]:
                     raise ValueError
             except (ValueError, TypeError):
@@ -575,6 +714,10 @@ class AccountLedger(MetaBudget):
                 raise BudgetDenied("No unsettled dispatched attempt")
             try:
                 body = reply.body
+                identifier = body.get("id")
+                if (body.get("model") == MODEL and isinstance(identifier, str)
+                        and re.fullmatch(r"resp_[A-Za-z0-9_-]{1,180}", identifier)):
+                    db.execute("UPDATE live_attempts SET provider_id=? WHERE id=?", (identifier, attempt))
                 usage = body["usage"]
                 inputs, outputs = usage["input_tokens"], usage["output_tokens"]
                 cached = usage["input_tokens_details"]["cached_tokens"]
@@ -584,7 +727,7 @@ class AccountLedger(MetaBudget):
                     raise ValueError
                 if any(type(x) is not int or x < 0 for x in (inputs, outputs, cached, total)) or cached > inputs or total != inputs + outputs:
                     raise ValueError
-                if db.execute("SELECT 1 FROM live_attempts WHERE account_id=? AND provider_id=?", (row[0], identifier)).fetchone():
+                if db.execute("SELECT 1 FROM live_attempts WHERE account_id=? AND provider_id=? AND id!=?", (row[0], identifier, attempt)).fetchone():
                     raise ValueError
                 # Expiry blocks new dispatch, not accounting for an existing charge.
                 snapshot = json.loads(row[1])
@@ -592,6 +735,22 @@ class AccountLedger(MetaBudget):
                     raise ValueError
                 amount = ((inputs - cached) * snapshot["input_micro_per_million"] + cached * snapshot["cached_micro_per_million"] + outputs * snapshot["output_micro_per_million"] + 999999) // 1000000
                 evidence = json.loads(db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (row[0],)).fetchone()[0])
+                if evidence.get("policy_version") == RISK_POLICY:
+                    # Usage is evidence of token cost only. Keep all money held,
+                    # freeze further admission, but allow a valid recognition.
+                    usage_record = json.dumps({"input_tokens": inputs, "output_tokens": outputs,
+                                               "cached_tokens": cached, "total_tokens": total}, sort_keys=True)
+                    db.execute("UPDATE live_attempts SET provider_id=?,usage=?,state='billing_pending',reserved=? WHERE id=?",
+                               (identifier, usage_record, max(row[2], amount), attempt))
+                    db.execute("UPDATE live_accounts SET frozen=1 WHERE account_id=?", (row[0],))
+                    self.queue_threshold_notices(db, row[0], evidence["gross_micro_usd"] + max(row[2], amount))
+                    self.event(db, row[0], "risk_token_usage_recorded", json.dumps({
+                        "attempt_id": attempt, "token_cost_micro_usd": amount,
+                        "total_provider_charge_micro_usd": None,
+                    }, sort_keys=True))
+                    if amount > row[2] or inputs > row[4] or outputs > OUTPUT_LIMIT:
+                        raise ValueError
+                    return
                 # Extra categories cannot be guessed from usage. Nonzero overhead
                 # requires reconciliation instead of optimistic zero settlement.
                 if evidence["extra_charge_bound_micro_usd"] != 0:
@@ -614,15 +773,50 @@ class AccountLedger(MetaBudget):
 
     def mark_recognized(self, attempt: str) -> None:
         with self.transaction() as db:
-            if db.execute("UPDATE live_attempts SET recognized=1 WHERE id=? AND state='settled'", (attempt,)).rowcount != 1:
+            if db.execute("UPDATE live_attempts SET recognized=1 WHERE id=? AND state IN ('settled','billing_pending')", (attempt,)).rowcount != 1:
                 raise BudgetDenied("Recognition lacks settled usage")
 
     def receipt(self, attempt: str) -> dict:
         with self.transaction() as db:
-            row = db.execute("SELECT account_id,provider_id FROM live_attempts WHERE id=? AND state='settled' AND recognized=1", (attempt,)).fetchone()
+            row = db.execute("SELECT account_id,provider_id FROM live_attempts WHERE id=? AND state IN ('settled','billing_pending') AND recognized=1", (attempt,)).fetchone()
             if not row:
                 raise BudgetDenied("No verified successful recognition receipt")
             return {"account_id": row[0], "provider_id": row[1], "model": MODEL}
+
+    def reconcile_risk_invoice(self, finality: InvoiceFinality) -> None:
+        """Import verified final charges, never infer them from response tokens.
+
+        This does not unfreeze the project or grant any new spending authority.
+        Charges beyond approval/credits must still be recorded truthfully.
+        """
+        finality = InvoiceFinality.model_validate(finality.model_dump())
+        with self.transaction() as db:
+            row = db.execute("SELECT account_id,provider_id,state,dispatched_at,usage,price FROM live_attempts WHERE id=?",
+                             (finality.attempt_id,)).fetchone()
+            grant = self.grant(db, finality.account_id)
+            if (not row or row[:2] != (finality.account_id, finality.provider_id)
+                    or not grant or json.loads(grant[0]).get("policy_version") != RISK_POLICY
+                    or row[3] is None or finality.finalized_at < datetime.fromisoformat(row[3])):
+                raise BudgetDenied("Finality does not match the risk-authorized dispatch")
+            existing = db.execute("SELECT evidence FROM live_finalities WHERE attempt_id=?", (finality.attempt_id,)).fetchone()
+            if existing:
+                if existing[0] == finality.model_dump_json():
+                    return
+                raise BudgetDenied("Provider finality evidence is immutable")
+            if row[2] not in ("billing_pending", "unresolved") or row[4] is None:
+                raise BudgetDenied("Verified response usage required for this reconciliation path")
+            db.execute("UPDATE live_attempts SET actual=?,state='settled' WHERE id=?",
+                       (finality.final_gross_micro_usd, finality.attempt_id))
+            db.execute("INSERT INTO live_finalities VALUES(?,?,?)",
+                       (finality.attempt_id, finality.model_dump_json(), stamp()))
+            evidence = json.loads(db.execute("SELECT evidence FROM live_accounts WHERE account_id=?",
+                                            (finality.account_id,)).fetchone()[0])
+            self.queue_threshold_notices(db, finality.account_id, evidence["gross_micro_usd"] + finality.final_gross_micro_usd)
+            self.event(db, finality.account_id, "risk_invoice_reconciled", finality.attempt_id)
+            if finality.final_gross_micro_usd > PROPOSED_CAP:
+                self.event(db, finality.account_id, "risk_intended_maximum_exceeded", finality.attempt_id)
+            if finality.final_gross_micro_usd > evidence["credits_remaining_micro_usd"]:
+                self.event(db, finality.account_id, "risk_verified_credits_exceeded", finality.attempt_id)
 
     def notices(self) -> list[dict]:
         with self.transaction() as db:
