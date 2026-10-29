@@ -29,6 +29,6 @@ Updated user report: each developer has a separate $150 allocation, independentl
 - [Startup compliance and human checks](docs/HACKATHON_COMPLIANCE.md)
 - [Issue proposals](docs/ISSUE_PROPOSALS.md)
 
-Human PR review is required; no automatic merges. Startup participant eligibility, account credit terms and production readiness remain separate verification tasks.
+Agents may merge their own tested PRs under the AGENTS.md merge policy (2026-10-28); other developers' PRs need human review. Startup participant eligibility, account credit terms and production readiness remain separate verification tasks.
 
 V2 review work and live gates: [design](docs/HYDRATION_V2_PLAN.md), [aggregate experiment controls](docs/META_EXPERIMENT_BUDGET_V2.md), and [longitudinal evidence](docs/FORECAST_V2_EVALUATION.md). The $20 Spark / $10 Wonder split is a soft planning target within one $30 ceiling. All live experiment dispatch remains disabled; actual provider quality, latency, usage and billing have not been measured.

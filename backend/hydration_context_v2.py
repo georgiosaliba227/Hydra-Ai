@@ -14,7 +14,8 @@ from ai.hydration.workout import estimate_workout_loss
 from .workout_forecasts import WorkoutForecastInput
 
 SCENARIOS = ("complete", "missing_measurements", "contradictory_mass", "changing_conditions", "biometrics_and_supplements")
-CANDIDATES = ("muse-spark-1.3", "muse-wonder-1.0")
+# Muse Wonder is the sole hydration-intelligence model (WONDER_HYDRATION_API.md).
+CANDIDATES = ("muse-wonder-1.0",)
 Factor = Literal["workout_duration", "environment_reported", "personal_calibration", "intake_logged", "thirst_reported", "heart_rate_context", "supplement_context"]
 Missing = Literal["calibration_measurements", "measurement_error_bounds", "environmental_context", "intake_completeness", "electrolyte_composition"]
 Contradiction = Literal["negative_mass_balance", "incompatible_conditions"]
@@ -77,7 +78,7 @@ class ComparisonInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     mode: Literal["mock"]
     scenario: Literal["complete", "missing_measurements", "contradictory_mass", "changing_conditions", "biometrics_and_supplements"]
-    candidate_model: Literal["muse-spark-1.3", "muse-wonder-1.0"] = "muse-spark-1.3"
+    candidate_model: Literal["muse-wonder-1.0"] = "muse-wonder-1.0"
 
 
 def build_scenario(name: str, *, generated_at: datetime | None = None) -> tuple[dict, dict]:
@@ -166,23 +167,31 @@ def validate_selection(value: dict, context: dict, prediction: dict) -> dict:
     return selection
 
 
-def compare_context(scenario: str, candidate_model: str = "muse-spark-1.3", *, generated_at: datetime | None = None) -> dict:
-    if candidate_model not in CANDIDATES:
-        raise ValueError("Unverified candidate")
-    context, prediction = build_scenario(scenario, generated_at=generated_at)
-    selection = validate_selection(mock_selection(context, prediction), context, prediction)
+MOCK_PROVENANCE = {"mode": "mock", "provider": None, "model": None,
+    "candidate_model": "muse-wonder-1.0", "candidate_tier": "Standard", "model_identity_verified": False,
+    "live_dispatch_enabled": False, "interpretation_origin": "local_rules_and_reviewed_text"}
+NO_OBSERVATIONS = {"latency_ms": None, "input_tokens": None, "output_tokens": None, "billed_cost_usd": None}
+
+
+def comparison_result(scenario: str, prediction: dict, selection: dict, provenance: dict, observations: dict) -> dict:
+    """A/B/C view of an already validated selection; A and C share the engine's numbers."""
     interpretation = selection | {"reviewed_text": {name: [TEXT[code] for code in selection[name]]
         for name in ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions")}}
     return {"version": "hydration-context-comparison-v2", "scenario": scenario, "synthetic": True,
-        "provenance": {"mode": "mock", "provider": None, "model": None,
-            "candidate_model": candidate_model, "candidate_tier": "Standard", "model_identity_verified": False,
-            "live_dispatch_enabled": False, "interpretation_origin": "local_rules_and_reviewed_text"},
-        "provider_observations": {"latency_ms": None, "input_tokens": None, "output_tokens": None, "billed_cost_usd": None},
+        "provenance": deepcopy(provenance), "provider_observations": deepcopy(observations),
         "systems": {"A": {"prediction": deepcopy(prediction), "interpretation": None},
                     "B": {"prediction": None, "interpretation": deepcopy(interpretation)},
                     "C": {"prediction": deepcopy(prediction), "interpretation": deepcopy(interpretation)}},
         "limitations": ["Mock fixture checks do not measure Meta model quality.", "Context does not change numerical forecasts.",
                         "Future candidate identity, tier, terms, access and prices require verification before separately approved live use."]}
+
+
+def compare_context(scenario: str, candidate_model: str = "muse-wonder-1.0", *, generated_at: datetime | None = None) -> dict:
+    if candidate_model not in CANDIDATES:
+        raise ValueError("Unverified candidate")
+    context, prediction = build_scenario(scenario, generated_at=generated_at)
+    selection = validate_selection(mock_selection(context, prediction), context, prediction)
+    return comparison_result(scenario, prediction, selection, MOCK_PROVENANCE | {"candidate_model": candidate_model}, NO_OBSERVATIONS)
 
 
 # Handwritten expected software labels, independent of the rule-selection function.
@@ -254,7 +263,7 @@ def benchmark_context() -> dict:
                     "B": {"contextual_metrics": metrics, "numerical_metrics": None},
                     "C": {"contextual_metrics": deepcopy(metrics), "numerical_metrics": None,
                           "numerical_equal_to_A": all(r["hybrid_numerical_equal"] for r in rows)}},
-        "limitations": ["No ranking of Spark and Wonder is possible from shared local mocks.",
+        "limitations": ["Rule-based mock selections do not measure Muse Wonder quality.",
                         "No provider latency, token usage or billed cost was observed.",
                         "Handwritten fixture labels are not physiological ground truth."]}
 

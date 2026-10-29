@@ -19,7 +19,8 @@ accepted through the numerical endpoint.
 `POST /v2/hydration-context-comparison` accepts only `mode:"mock"`, a server-owned
 scenario ID (`complete`, `missing_measurements`, `contradictory_mass`,
 `changing_conditions`, or `biometrics_and_supplements`) and an optional
-`candidate_model` (`muse-spark-1.3` default, or `muse-wonder-1.0`). Unknown fields,
+`candidate_model` (only `muse-wonder-1.0`, the default; Spark is rejected since
+the Wonder-only decision in [WONDER_HYDRATION_API.md](WONDER_HYDRATION_API.md)). Unknown fields,
 raw records, prompts, account selectors, numerical goals and live modes are rejected.
 This endpoint uses the existing 16 KiB bound. All v2 routes require the development
 session and return `Cache-Control:no-store` with redacted errors.
