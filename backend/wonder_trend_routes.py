@@ -75,7 +75,9 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
     app.state.wonder_trends_gateway = (lambda: WonderHydrationGateway(
         config.ledger, WonderMetaTransport(config.key), GitHubNotifier(config.notification_token))) if config else None
     app.state.wonder_results_dir = results_dir  # Data export and delete-all include saved trends.
-    in_flight = threading.Lock()
+    app.state.wonder_live_config = config
+    # One Wonder request in flight per backend, shared by trends and synthetic runs.
+    in_flight = app.state.wonder_lock = threading.Lock()
 
     def facts_for(request: Request, timezone: str) -> dict:
         try:

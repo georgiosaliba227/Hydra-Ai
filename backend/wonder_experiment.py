@@ -46,6 +46,12 @@ LEDGER_RETRIES = 20
 LEDGER_RETRY_SECONDS = 0.25
 
 
+def synthetic_payload_hashes() -> set[str]:
+    """Every fixed synthetic payload Hydra builds: the scenarios and the suggested questions."""
+    return ({payload_sha256(wonder_payload(name)) for name in SCENARIOS}
+            | {payload_sha256(assistant_payload(question_id)) for question_id in SUGGESTED})
+
+
 class UsageRejected(BudgetDenied):
     """Settlement reached a final outcome (recorded or frozen); retrying cannot help."""
 
@@ -139,27 +145,41 @@ class WonderExperimentLedger(ExperimentBudget):
             self._insert_case(db, case, account)
 
     def register_trend_case(self, payload: str, consent_reference: str) -> ApprovedCase:
-        """A case for one exact trend payload the user consented to, under the standing trend approval.
+        """A case for one exact trend payload the user consented to, under the standing trend approval."""
+        return self._register_standing_case(payload, consent_reference, "trend_dispatch_reference")
 
-        Reuses an unsent case for the same payload; a payload already sent is never approved again.
-        """
+    def register_synthetic_case(self, payload: str, request_reference: str) -> ApprovedCase:
+        """A case for one fixed server-built synthetic payload, under the standing synthetic approval."""
+        if payload not in synthetic_payload_hashes():
+            raise BudgetDenied("Only Hydra's fixed synthetic payloads use the standing approval")
+        return self._register_standing_case(payload, request_reference, "synthetic_dispatch_reference")
+
+    def _register_standing_case(self, payload: str, reference: str, standing: str) -> ApprovedCase:
+        """Reuses an unsent case for the same payload; a payload already sent is never approved again."""
         with self._transaction() as db:
             allocation = self._allocation(db)
-            if allocation.trend_dispatch_reference is None:
-                raise BudgetDenied("No standing approval for trend explanations")
-            existing = db.execute("SELECT case_id FROM experiment_cases WHERE payload_sha256=?", (payload,)).fetchone()
-            if existing:
-                case = self._case(db, existing[0])
-                if (case.live_dispatch_reference != allocation.trend_dispatch_reference
-                        or db.execute("SELECT 1 FROM experiment_attempts WHERE case_id=?", (case.case_id,)).fetchone()):
-                    raise BudgetDenied("This exact payload was already approved or sent")
-                return case
-            case = ApprovedCase(case_id=str(uuid4()), model=MODEL, payload_sha256=payload,
-                                valid_until=allocation.valid_until, input_approval_reference=consent_reference,
-                                live_dispatch_reference=allocation.trend_dispatch_reference,
-                                spending_approval_reference=allocation.spending_authority_reference)
-            self._insert_case(db, case, allocation.account_id)
+            dispatch_reference = getattr(allocation, standing)
+            if dispatch_reference is None:
+                raise BudgetDenied("No standing approval for this kind of request")
+            case = self._standing_case_in(db, allocation, payload, reference, dispatch_reference)
+            # Every request is audited with who asked, including when an unsent case is reused.
+            self.authority.event(db, allocation.account_id, "experiment_case_requested", case.case_id + ":" + reference)
             return case
+
+    def _standing_case_in(self, db, allocation, payload: str, reference: str, dispatch_reference: str) -> ApprovedCase:
+        existing = db.execute("SELECT case_id FROM experiment_cases WHERE payload_sha256=?", (payload,)).fetchone()
+        if existing:
+            case = self._case(db, existing[0])
+            if (case.live_dispatch_reference != dispatch_reference
+                    or db.execute("SELECT 1 FROM experiment_attempts WHERE case_id=?", (case.case_id,)).fetchone()):
+                raise BudgetDenied("This exact payload was already approved or sent")
+            return case
+        case = ApprovedCase(case_id=str(uuid4()), model=MODEL, payload_sha256=payload,
+                            valid_until=allocation.valid_until, input_approval_reference=reference,
+                            live_dispatch_reference=dispatch_reference,
+                            spending_approval_reference=allocation.spending_authority_reference)
+        self._insert_case(db, case, allocation.account_id)
+        return case
 
     def _insert_case(self, db, case: ApprovedCase, account: str) -> None:
         raw = case.model_dump_json()
@@ -433,6 +453,34 @@ class WonderHydrationGateway:
         topics, attempt, observations = self._run(assistant_payload(question_id), case_id, quote, input_approval_reference,
                                                   lambda reply: parse_topics(reply, question_id))
         return live_answer(question_id, topics, attempt_id=attempt, observations=observations, account=self.account)
+
+    def explain_synthetic(self, scenario: str, quote: ExperimentQuote, request_reference: str) -> dict:
+        """One synthetic scenario under the standing approval; sent at most once, never retried."""
+        payload = wonder_payload(scenario)
+        case = self._standing_case(payload, request_reference)
+        selection, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+                                                     lambda reply: parse_selection(reply, scenario),
+                                                     freeze_on_rejected_output=False)
+        _, prediction = build_scenario(scenario)
+        return comparison_result(scenario, prediction, selection, live_comparison_provenance(attempt, self.account),
+                                 observations)
+
+    def answer_synthetic(self, question_id: str, quote: ExperimentQuote, request_reference: str) -> dict:
+        """One suggested question under the standing approval; sent at most once, never retried."""
+        if question_id not in SUGGESTED:
+            raise RecognitionUnavailable()
+        payload = assistant_payload(question_id)
+        case = self._standing_case(payload, request_reference)
+        topics, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+                                                  lambda reply: parse_topics(reply, question_id),
+                                                  freeze_on_rejected_output=False)
+        return live_answer(question_id, topics, attempt_id=attempt, observations=observations, account=self.account)
+
+    def _standing_case(self, payload: dict, reference: str) -> ApprovedCase:
+        try:
+            return self.ledger.register_synthetic_case(payload_sha256(payload), reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
 
     def explain_trends(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
         """Wonder explains the user's own trends; the case is bound to the exact payload they consented to."""

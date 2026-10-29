@@ -1,12 +1,16 @@
 # Hydra AI next actions
 
-## Restoring Georgio's account (account resume PR)
+## Next actions — one shared Wonder backend (PRs #53, #54)
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Amine: review and merge the account resume PR | Merged PR; CI green |
-| 2 | Georgio: stop the backend, write `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)), run `preview` | `would_resume: true` |
+| 1 | ~~Amine: merge the account resume PR (#53) and the shared backend PR (#54)~~ | Done; CI green |
+| 2 | Georgio: stop the backend; `meta_account_resume template`, fill in `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)); `preview` until `would_resume: true` | Preview output |
 | 3 | Both: approve those exact files; Georgio runs `resume` | `account_resumed` event; `view` shows `frozen: false` |
+| 4 | Georgio: migrate the Wonder schema and record the $30 allocation with `synthetic_dispatch_reference`, valid through the hackathon | `preview-schema` is `already_current`; allocation recorded |
+| 5 | Georgio: confirm that Meta's terms allow teammate use through his backend | Note in the PR or issue |
+| 6 | Amine: send Georgio his token hash; Georgio adds it and serves the backend over Tailscale ([SHARED_BACKEND.md](architecture/SHARED_BACKEND.md)) | `GET /v1/wonder/live` works with Amine's token |
+| 7 | Amine or Georgio: run `complete` once; Georgio records its invoice finality; then the next case | Recorded result replays in the app |
 
 ## Next actions — Wonder trends, October 29 (Amine)
 

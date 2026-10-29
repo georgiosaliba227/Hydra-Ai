@@ -88,6 +88,9 @@ class ExperimentApproval(StrictDescriptor):
     # Standing approval for Wonder trend explanations of the owner's own data;
     # each request is then bound to the exact payload the user saw and consented to.
     trend_dispatch_reference: Reference | None = None
+    # Standing approval for the fixed, server-built synthetic Wonder payloads (scenarios and
+    # suggested questions); each is sent at most once, so total spend is bounded and counted.
+    synthetic_dispatch_reference: Reference | None = None
 
     @model_validator(mode="after")
     def reviewed_allocation(self):
@@ -211,8 +214,9 @@ class ExperimentBudget:
             approval = ExperimentApproval.model_validate(approval.model_dump())
             self._evidence(db, approval)
             self.authority.verify_prior_finalities(db)
-            # Without a trend approval, keep the byte layout of allocations recorded before that field existed.
-            raw = approval.model_dump_json(exclude={"trend_dispatch_reference"} if approval.trend_dispatch_reference is None else None)
+            # Unused standing approvals are left out, keeping the byte layout of allocations recorded before them.
+            raw = approval.model_dump_json(exclude={name for name in ("trend_dispatch_reference", "synthetic_dispatch_reference")
+                                                    if getattr(approval, name) is None})
             existing = db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()
             if existing:
                 if existing[0] == raw:
