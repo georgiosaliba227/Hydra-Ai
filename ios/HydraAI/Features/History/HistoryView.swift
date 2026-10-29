@@ -2,6 +2,9 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject private var store: BeverageStore
+    @State private var editing: BeverageLog?
+    @State private var pendingDeletion: BeverageLog?
+    @State private var actionError: String?
 
     private var sortedLogs: [BeverageLog] {
         store.logs.sorted { $0.consumedAt > $1.consumedAt }
@@ -19,6 +22,9 @@ struct HistoryView: View {
         List {
             if case .failed(let message) = store.state {
                 Text(message).foregroundStyle(.red)
+            }
+            if let actionError {
+                Text(actionError).foregroundStyle(.red).accessibilityIdentifier("historyActionError")
             }
             Section {
                 WeeklyVolumeView(logs: store.logs)
@@ -38,6 +44,12 @@ struct HistoryView: View {
                 Section {
                     ForEach(dayLogs) { log in
                         BeverageRow(log: log)
+                            .swipeActions(edge: .trailing) {
+                                Button("Delete", role: .destructive) { pendingDeletion = log }
+                                    .disabled(!store.canLog)
+                                Button("Edit") { actionError = nil; editing = log }
+                                    .disabled(!store.canLog)
+                            }
                     }
                 } header: {
                     HStack {
@@ -49,9 +61,31 @@ struct HistoryView: View {
             }
         }
         .refreshable { await store.refresh() }
+        .sheet(item: $editing) { log in
+            NavigationStack { EditBeverageView(log: log) }
+        }
+        .confirmationDialog("Delete this beverage?", isPresented: Binding(
+            get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } }
+        ), titleVisibility: .visible, presenting: pendingDeletion) { log in
+            Button("Delete \(log.consumedMl.formatted()) mL \(log.category)", role: .destructive) {
+                Task { await delete(log) }
+            }
+        } message: { _ in
+            Text("It is removed from history and daily totals. Its details are erased from the backend.")
+        }
         .navigationTitle("History")
         .task {
             await store.refresh()
+        }
+    }
+
+    @MainActor
+    private func delete(_ log: BeverageLog) async {
+        actionError = nil
+        do {
+            try await store.delete(log)
+        } catch {
+            actionError = "Could not delete the beverage. \(error.localizedDescription)"
         }
     }
 }

@@ -36,9 +36,13 @@ final class WorkoutForecastUITests: XCTestCase {
             app.swipeUp()
         }
         XCTAssertTrue(comparison.waitForExistence(timeout: 10)); comparison.tap()
-        XCTAssertTrue(app.staticTexts["A · Existing numerical estimate"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["B · Contextual mock; no numerical prediction"].exists)
-        XCTAssertTrue(app.staticTexts["C · Same estimate plus contextual mock"].exists)
+        // List rows below the fold are created lazily; scroll until each appears.
+        for label in ["A · Existing numerical estimate", "B · Contextual mock; no numerical prediction",
+                      "C · Same estimate plus contextual mock"] {
+            let row = app.staticTexts[label]
+            for _ in 0..<4 where !row.waitForExistence(timeout: 2) { app.swipeUp() }
+            XCTAssertTrue(row.exists, label)
+        }
         let contextAttachment = XCTAttachment(screenshot: app.screenshot())
         contextAttachment.name = "A B C contextual comparison with explicit mock provenance"; contextAttachment.lifetime = .keepAlways
         add(contextAttachment)

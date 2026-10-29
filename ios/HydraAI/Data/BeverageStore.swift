@@ -5,6 +5,13 @@ enum LoadState: Equatable {
     case failed(String)
 }
 
+enum BeverageEditError: LocalizedError {
+    case changedElsewhere
+    var errorDescription: String? {
+        "This beverage changed since it was loaded. The latest version is shown; review it and edit again."
+    }
+}
+
 struct PendingBeverage: Codable {
     let key: UUID
     let request: CreateBeverageRequest
@@ -124,6 +131,31 @@ final class BeverageStore: ObservableObject {
         } catch { throw ServiceError.storage }
         pending = item
         try await retryPending()
+    }
+
+    /// Corrections and deletions wait for any pending creation so ordering stays unambiguous.
+    func update(_ log: BeverageLog, category: String, consumedMl: Int, at: Date) async throws {
+        guard canLog, let service else { throw ServiceError.pending }
+        let request = UpdateBeverageRequest(correcting: log, category: category, consumedMl: consumedMl, consumedAt: at)
+        guard request.hasChanges else { return }
+        try request.validate()
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            _ = try await service.updateBeverage(id: log.id, request)
+        } catch ServiceError.server(409) {
+            await refresh()
+            throw BeverageEditError.changedElsewhere
+        }
+        await refresh()
+    }
+
+    func delete(_ log: BeverageLog) async throws {
+        guard canLog, let service else { throw ServiceError.pending }
+        isSaving = true
+        defer { isSaving = false }
+        try await service.deleteBeverage(id: log.id)
+        await refresh()
     }
 
     func retryPending() async throws {
