@@ -26,7 +26,9 @@ from .meta_gateway import Notifier
 from .meta_policy import OUTPUT_LIMIT
 from .meta_provider import OfficialMetaTransport, ProviderReply
 from .recognition import RecognitionUnavailable
+from .wonder_assistant import assistant_payload, live_answer, parse_topics
 from .wonder_hydration import MODEL, input_bound, parse_selection, payload_sha256, wonder_payload
+from ai.assistant import SUGGESTED
 
 # Reviewed additive DDL; installed only by tests until a separate migration is approved.
 LIVE_SCHEMA = PROPOSED_SCHEMA + (
@@ -262,11 +264,12 @@ class ExperimentTicket:
 
 
 class WonderMetaTransport(OfficialMetaTransport):
-    """Same fixed-origin, no-retry sender; accepts only exact Wonder scenario payloads."""
+    """Same fixed-origin, no-retry sender; accepts only exact Wonder scenario or suggested-question payloads."""
     ticket_type = ExperimentTicket
 
     def validate_payload(self, payload: dict) -> None:
-        if not any(payload == wonder_payload(name) for name in SCENARIOS):
+        if not (any(payload == wonder_payload(name) for name in SCENARIOS)
+                or any(payload == assistant_payload(question_id) for question_id in SUGGESTED)):
             raise ValueError
 
     def input_bound(self, payload: dict) -> int:
@@ -289,10 +292,10 @@ class WonderHydrationGateway:
                     raise BudgetDenied("Notification lacks delivery receipt")
                 self.ledger.authority.notice_delivered(notice["id"], receipt)
 
-    def explain(self, scenario: str, case_id: str, quote: ExperimentQuote, input_approval_reference: str) -> dict:
+    def _run(self, payload: dict, case_id: str, quote: ExperimentQuote, input_approval_reference: str, parse):
+        """Reserve, notify, dispatch once, settle, then parse; any failure after reservation quarantines."""
         attempt, replied, latency_ms = None, False, None
         try:
-            payload = wonder_payload(scenario)
             bound = self.transport.input_bound(payload)
             request = ExperimentRequest(attempt_id=str(uuid4()), case_id=case_id, payload_sha256=payload_sha256(payload),
                                         input_bound=bound, output_bound=OUTPUT_LIMIT,
@@ -310,7 +313,7 @@ class WonderHydrationGateway:
                 latency_ms = max(0, (monotonic_ns() - started) // 1_000_000)
             replied = True
             cost = self.ledger.settle(attempt, reply)
-            selection = parse_selection(reply, scenario)
+            parsed = parse(reply)
         except Exception:
             if attempt is not None:
                 try:
@@ -323,13 +326,26 @@ class WonderHydrationGateway:
                     except Exception:
                         pass
             raise RecognitionUnavailable() from None
-        _, prediction = build_scenario(scenario)
         usage = reply.body["usage"]
+        observations = {"latency_ms": latency_ms, "input_tokens": usage["input_tokens"],
+                        "output_tokens": usage["output_tokens"], "usage_derived_cost_micro_usd": cost,
+                        "billed_cost_usd": None}
+        return parsed, attempt, observations
+
+    def explain(self, scenario: str, case_id: str, quote: ExperimentQuote, input_approval_reference: str) -> dict:
+        selection, attempt, observations = self._run(wonder_payload(scenario), case_id, quote, input_approval_reference,
+                                                     lambda reply: parse_selection(reply, scenario))
+        _, prediction = build_scenario(scenario)
         provenance = {"mode": "meta_live", "provider": "Meta", "model": MODEL, "candidate_model": MODEL,
                       "candidate_tier": "Standard", "model_identity_verified": True, "live_dispatch_enabled": True,
                       "interpretation_origin": "meta_selection_and_reviewed_text",
                       "account_id": ACCOUNT, "attempt_id": attempt}
-        observations = {"latency_ms": latency_ms, "input_tokens": usage["input_tokens"],
-                        "output_tokens": usage["output_tokens"], "usage_derived_cost_micro_usd": cost,
-                        "billed_cost_usd": None}
         return comparison_result(scenario, prediction, selection, provenance, observations)
+
+    def answer(self, question_id: str, case_id: str, quote: ExperimentQuote, input_approval_reference: str) -> dict:
+        """Wonder selects allowed reviewed topics for one approved suggested question."""
+        if question_id not in SUGGESTED:
+            raise RecognitionUnavailable()
+        topics, attempt, observations = self._run(assistant_payload(question_id), case_id, quote, input_approval_reference,
+                                                  lambda reply: parse_topics(reply, question_id))
+        return live_answer(question_id, topics, attempt_id=attempt, observations=observations)
