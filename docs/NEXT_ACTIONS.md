@@ -1,5 +1,13 @@
 # Hydra AI next actions
 
+## Restoring Georgio's account (account resume PR)
+
+| Order | Action / owner | Completion evidence |
+| --- | --- | --- |
+| 1 | Amine: review and merge the account resume PR | Merged PR; CI green |
+| 2 | Georgio: stop the backend, write `resume-approval.json` and `fresh-evidence.json` ([ACCOUNT_RESUME.md](architecture/ACCOUNT_RESUME.md)), run `preview` | `would_resume: true` |
+| 3 | Both: approve those exact files; Georgio runs `resume` | `account_resumed` event; `view` shows `frozen: false` |
+
 ## Next actions — Wonder trends, October 29 (Amine)
 
 Wonder can now explain the user's own 14-day trends on either account

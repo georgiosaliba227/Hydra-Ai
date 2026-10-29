@@ -256,6 +256,19 @@ class ExperimentBudget:
             raise BudgetDenied("Unattributed experiment reservation")
         return sum(totals.values()), totals
 
+    @staticmethod
+    def _acknowledged_overruns(db, account: str) -> dict[str, int]:
+        """Attempts whose final charge a reviewed resume acknowledged as above their reservation."""
+        acknowledged = {}
+        for (raw,) in db.execute("SELECT reference FROM live_events WHERE kind='account_resumed' AND account_id=?", (account,)):
+            try:
+                approval = json.loads(raw)["approval"]
+                if approval["overrun_acknowledged"] is True and approval["account_id"] == account:
+                    acknowledged |= {item["attempt_id"]: item["final_gross_micro_usd"] for item in approval["reconciled_attempts"]}
+            except (ValueError, KeyError, TypeError):
+                raise BudgetDenied("Unreadable resume record") from None
+        return acknowledged
+
     def reserve_review_only(self, request: ExperimentRequest) -> dict:
         return self._reserve(request, "experiment_review_only")
 
@@ -293,9 +306,10 @@ class ExperimentBudget:
             if aggregate + request.maximum_micro_usd > allocation.hard_limit:
                 raise BudgetDenied("Aggregate experimental allocation exhausted")
             account_spend = 0
-            for reserved,actual in db.execute("SELECT reserved,actual FROM live_attempts WHERE account_id=?", (account,)):
+            acknowledged = self._acknowledged_overruns(db, account)
+            for attempt_id,reserved,actual in db.execute("SELECT id,reserved,actual FROM live_attempts WHERE account_id=?", (account,)):
                 if (type(reserved) is not int or reserved <= 0 or type(actual) is not int or actual < 0
-                        or actual > reserved):
+                        or (actual > reserved and acknowledged.get(attempt_id) != actual)):
                     raise BudgetDenied("Corrupt or over-bound account history requires reconciliation")
                 account_spend += actual
             proposed = evidence.gross_micro_usd + account_spend + request.maximum_micro_usd
