@@ -229,7 +229,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc):
-        code = {404: "not_found", 405: "method_not_allowed", 401: "unauthorized"}.get(exc.status_code, "invalid_request")
+        code = {404: "not_found", 405: "method_not_allowed", 401: "unauthorized", 403: "forbidden"}.get(exc.status_code, "invalid_request")
         return error_response(code, exc.status_code, request.state.request_id)
 
     @app.exception_handler(IdempotencyConflict)

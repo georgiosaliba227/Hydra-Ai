@@ -100,7 +100,7 @@ def test_amine_reaches_synthetic_wonder_routes_and_the_owner_keeps_full_access(t
         assert asked.status_code == 200
         today = client.post("/v1/assistant", json={"question_id": "coffee_counts", "context_scope": "today_logged_total",
                                                    "date": "2026-10-29", "timezone": "UTC"}, headers=AMINE_AUTH)
-        assert today.status_code == 403  # the owner's logged total is never read for Amine
+        assert today.status_code == 403 and today.json()["code"] == "forbidden"  # never reads the owner's total
         assert client.get("/v1/beverages", headers=OWNER_AUTH).status_code == 200
 
 
@@ -148,7 +148,10 @@ def test_amine_runs_a_synthetic_scenario_once_on_georgios_allocation(tmp_path, e
         assert (again["replayed"], again["result"], transport.calls) == (True, first["result"], 1)
         status = client.get("/v1/wonder/live", headers=AMINE_AUTH).json()
         assert status["account_id"] == ACCOUNTS[0] and status["allocation"]["hard_limit_micro_usd"] == 30_000_000
-        assert status["allocation"]["aggregate_exposure_micro_usd"] > 0
+        assert status["allocation"]["remaining_micro_usd"] < 30_000_000
+        assert "model_exposure_micro_usd" not in status["allocation"]  # owner-only spending detail
+        owner_view = client.get("/v1/wonder/live", headers=OWNER_AUTH).json()["allocation"]
+        assert owner_view["aggregate_exposure_micro_usd"] > 0
         assert [i["recorded"] for i in status["items"] if i["id"] == "complete"] == [True]
         # The app's recorded mode now replays it without another request.
         replay = client.post("/v2/hydration-context-comparison", json={"mode": "recorded", "scenario": "complete",
@@ -223,3 +226,13 @@ def test_rejected_synthetic_output_is_recorded_without_freezing(tmp_path, env):
         assert response.status_code == 502 and response.json()["attempt_id"]
         [(_, state, _, actual, _)] = attempt_rows(authority)
         assert state == "settled" and actual > 0 and not frozen(authority)
+
+
+def test_every_standing_request_is_audited_with_who_asked(tmp_path, env):
+    authority, ledger = georgio_live(env, tmp_path)
+    digest = payload_sha256(__import__("backend.wonder_hydration", fromlist=["x"]).wonder_payload("complete"))
+    first = ledger.register_synthetic_case(digest, "developer:aminealichaouche:req-1")
+    assert ledger.register_synthetic_case(digest, "owner:req-2") == first  # unsent case reused
+    with authority.transaction() as db:
+        asked = [r for (r,) in db.execute("SELECT reference FROM live_events WHERE kind='experiment_case_requested'")]
+    assert asked == [first.case_id + ":developer:aminealichaouche:req-1", first.case_id + ":owner:req-2"]

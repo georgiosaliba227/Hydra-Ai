@@ -24,8 +24,10 @@ has run. Policy: AGENTS.md, October 29 shared backend paragraph.
   on every request, so no restart is needed. A malformed, shared or missing
   file grants nothing, while the owner token keeps working.
 - **Spending.** Amine's requests count against Georgio's existing $30
-  experiment allocation. Each ledger case records which credential asked
-  (`developer:aminealichaouche:<request id>`).
+  experiment allocation. Every request appends an `experiment_case_requested`
+  ledger event naming the credential that asked
+  (`developer:aminealichaouche:<request id>`). Amine's status view shows only
+  the allocation's remaining amount; per-model spending is for the owner.
 
 ## Standing synthetic authorization
 
@@ -69,7 +71,10 @@ Errors follow WONDER_TRENDS_API.md (`wonder_blocked`, `wonder_busy`,
    allocation with `synthetic_dispatch_reference` filled in and a
    `valid_until` through the hackathon (for example 2026-11-05). Leave
    `trend_dispatch_reference` empty unless you want trends of your own data.
-   An allocation is immutable, so choose its validity once.
+   An allocation is immutable, so choose its validity and standing references
+   once. It also can't gain `synthetic_dispatch_reference` later, so record it
+   with this field from the start. As far as the docs show, no allocation
+   exists in his ledger yet.
 3. Save a Wonder quote file (from the same templates output).
 4. Create `developers.json` (mode 0600) with the hash Amine sends:
 

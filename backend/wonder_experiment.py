@@ -161,19 +161,25 @@ class WonderExperimentLedger(ExperimentBudget):
             dispatch_reference = getattr(allocation, standing)
             if dispatch_reference is None:
                 raise BudgetDenied("No standing approval for this kind of request")
-            existing = db.execute("SELECT case_id FROM experiment_cases WHERE payload_sha256=?", (payload,)).fetchone()
-            if existing:
-                case = self._case(db, existing[0])
-                if (case.live_dispatch_reference != dispatch_reference
-                        or db.execute("SELECT 1 FROM experiment_attempts WHERE case_id=?", (case.case_id,)).fetchone()):
-                    raise BudgetDenied("This exact payload was already approved or sent")
-                return case
-            case = ApprovedCase(case_id=str(uuid4()), model=MODEL, payload_sha256=payload,
-                                valid_until=allocation.valid_until, input_approval_reference=reference,
-                                live_dispatch_reference=dispatch_reference,
-                                spending_approval_reference=allocation.spending_authority_reference)
-            self._insert_case(db, case, allocation.account_id)
+            case = self._standing_case_in(db, allocation, payload, reference, dispatch_reference)
+            # Every request is audited with who asked, including when an unsent case is reused.
+            self.authority.event(db, allocation.account_id, "experiment_case_requested", case.case_id + ":" + reference)
             return case
+
+    def _standing_case_in(self, db, allocation, payload: str, reference: str, dispatch_reference: str) -> ApprovedCase:
+        existing = db.execute("SELECT case_id FROM experiment_cases WHERE payload_sha256=?", (payload,)).fetchone()
+        if existing:
+            case = self._case(db, existing[0])
+            if (case.live_dispatch_reference != dispatch_reference
+                    or db.execute("SELECT 1 FROM experiment_attempts WHERE case_id=?", (case.case_id,)).fetchone()):
+                raise BudgetDenied("This exact payload was already approved or sent")
+            return case
+        case = ApprovedCase(case_id=str(uuid4()), model=MODEL, payload_sha256=payload,
+                            valid_until=allocation.valid_until, input_approval_reference=reference,
+                            live_dispatch_reference=dispatch_reference,
+                            spending_approval_reference=allocation.spending_authority_reference)
+        self._insert_case(db, case, allocation.account_id)
+        return case
 
     def _insert_case(self, db, case: ApprovedCase, account: str) -> None:
         raw = case.model_dump_json()
