@@ -1,6 +1,6 @@
 """Live Muse Wonder path, charged to the one account a ledger's allocation names.
 
-Georgio's $30 experiment or Amine's $100 allocation, each in its own ledger.
+Georgio's $30 experiment or Amine's $20 allocation, each in its own ledger.
 Implemented and tested with fake transports only. A real request additionally
 needs the LIVE_SCHEMA installed by a reviewed migration, current account
 evidence, an approved case for the exact payload (a recorded case, or a trend

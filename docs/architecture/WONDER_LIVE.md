@@ -16,7 +16,7 @@ $0.30 in the worst case.
 It runs on whichever account the backend is started with
 (`HYDRA_WONDER_ACCOUNT`). Each account uses its own single ledger:
 
-- Amine's ledger, with the $100 cap,
+- Amine's ledger, with the $20 allocation (account cutoff $100),
 - or Georgio's ledger, with the $30 allocation.
 
 Only the backend's own `HYDRA_API_TOKEN` is accepted. There is no shared or
