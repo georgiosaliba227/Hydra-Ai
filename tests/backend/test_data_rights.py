@@ -55,7 +55,8 @@ def test_delete_all_requires_the_phrase_and_erases_content(client, database):
     assert retry.status_code == 409  # a late retry cannot resurrect deleted data
     with sqlite3.connect(database) as connection:
         dump = '\n'.join(connection.iterdump())
-    assert '777' not in dump and '"water"' not in dump
+    # Look for the stored fields, not bare digits that can occur inside random UUIDs.
+    assert '"consumed_ml":777' not in dump and '"category":"water"' not in dump
     again = client.delete('/v1/data', params={'confirm': 'delete-all-my-data'}, headers=AUTH)
     assert again.json()['deleted_beverages'] == 0
 
