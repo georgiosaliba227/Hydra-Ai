@@ -145,6 +145,30 @@ def _parse(approval: ResumeApproval, evidence: Evidence) -> tuple[ResumeApproval
     return ResumeApproval.model_validate(approval.model_dump()), Evidence.model_validate(evidence.model_dump())
 
 
+def approval_template(ledger: AccountLedger, account: str) -> dict:
+    """Read-only: an approval skeleton naming every attempt on the account as the ledger records it.
+
+    The reviewers still compare each provider ID and charge with the final invoice and fill in every reference.
+    """
+    with ledger._existing_migration_database(write=False) as db:
+        _verify_schema(db)
+        attempts = db.execute("SELECT id,provider_id,actual,reserved,state FROM live_attempts WHERE account_id=? "
+                              "ORDER BY created_at", (account,)).fetchall()
+        frozen = db.execute("SELECT frozen FROM live_accounts WHERE account_id=?", (account,)).fetchone()
+    required = "REQUIRED: replace with a reviewed reference"
+    return {"version": RESUME_VERSION, "account_id": account,
+            "reconciled_attempts": [{"attempt_id": a, "provider_id": p, "final_gross_micro_usd": actual}
+                                    for a, p, actual, _, _ in attempts],
+            "overrun_acknowledged": any(actual is not None and actual > reserved for _, _, actual, reserved, _ in attempts),
+            "new_key_acknowledged": False,
+            "provider_reconciliation_reference": required, "spending_approval_reference": required,
+            "georgio_review_reference": required, "amine_review_reference": required, "reason": required,
+            "valid_until": "REQUIRED: ISO time within 24 hours",
+            "_ledger_notes": {"frozen": None if frozen is None else bool(frozen[0]),
+                              "attempt_states": {a: state for a, _, _, _, state in attempts},
+                              "remove_this_key": "Delete _ledger_notes before preview; it is not part of the approval."}}
+
+
 def preview_resume(ledger: AccountLedger, approval: ResumeApproval, evidence: Evidence) -> dict:
     """Read-only: what would block this exact resume. Changes nothing."""
     with ledger._existing_migration_database(write=False) as db:

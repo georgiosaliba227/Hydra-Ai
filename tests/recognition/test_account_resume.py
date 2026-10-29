@@ -306,6 +306,19 @@ def test_unknown_triggers_block_the_resume(tmp_path):
     assert rows(authority, "SELECT frozen FROM live_accounts")[0][0] == 1
 
 
+def test_template_lists_the_ledgers_attempts_read_only(tmp_path):
+    from backend.meta_resume import approval_template
+    authority, attempt = frozen_ledger(tmp_path)
+    template = approval_template(authority, GEORGIO)
+    assert template["reconciled_attempts"] == [{"attempt_id": attempt, "final_gross_micro_usd": CAMERA_COST,
+                                                "provider_id": "resp_fixture_" + attempt.replace("-", "")}]
+    assert template["_ledger_notes"]["frozen"] is True and template["georgio_review_reference"].startswith("REQUIRED")
+    filled = {k: v for k, v in template.items() if k != "_ledger_notes"} | {
+        k: "synthetic" for k, v in template.items() if isinstance(v, str) and v.startswith("REQUIRED")}
+    filled["valid_until"] = datetime.now(timezone.utc) + timedelta(hours=1)
+    assert preview_resume(authority, ResumeApproval.model_validate(filled), fresh())["would_resume"]
+
+
 def test_a_changed_key_must_be_acknowledged(tmp_path):
     authority, attempt = frozen_ledger(tmp_path)
     rotated = fresh(key_sha256="1" * 64)

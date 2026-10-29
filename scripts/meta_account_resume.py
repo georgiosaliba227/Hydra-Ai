@@ -3,6 +3,7 @@
 Usage: python -m scripts.meta_account_resume --database /ABS/ledger.sqlite3 \
            --approval /ABS/resume-approval.json --evidence /ABS/fresh-evidence.json {preview,resume}
 
+template Read-only: prints an approval skeleton listing the account's attempts (needs --account only).
 preview  Read-only: lists every blocker for this exact approval and evidence.
 resume   Lifts the freeze only if preview would pass; one audit event, no history changes.
 
@@ -19,7 +20,7 @@ from pydantic import ValidationError
 
 from backend.meta_accounts import AccountLedger, Evidence
 from backend.meta_budget import BudgetDenied
-from backend.meta_resume import ResumeApproval, preview_resume, resume_account
+from backend.meta_resume import ResumeApproval, approval_template, preview_resume, resume_account
 
 
 def private_json(path: str) -> str:
@@ -32,16 +33,22 @@ def private_json(path: str) -> str:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["preview", "resume"])
+    parser.add_argument("command", choices=["template", "preview", "resume"])
     parser.add_argument("--database", required=True)
-    parser.add_argument("--approval", required=True)
-    parser.add_argument("--evidence", required=True)
+    parser.add_argument("--account", choices=["georgiosaliba227", "aminealichaouche"], default="georgiosaliba227")
+    parser.add_argument("--approval")
+    parser.add_argument("--evidence")
     args = parser.parse_args(argv)
     try:
         path = Path(args.database)
         if not path.is_absolute():
             raise ValueError
         ledger = AccountLedger(path)
+        if args.command == "template":
+            print(json.dumps(approval_template(ledger, args.account), indent=2, sort_keys=True))
+            return
+        if not args.approval or not args.evidence:
+            raise ValueError
         approval = ResumeApproval.model_validate_json(private_json(args.approval))
         evidence = Evidence.model_validate_json(private_json(args.evidence))
         result = (preview_resume if args.command == "preview" else resume_account)(ledger, approval, evidence)

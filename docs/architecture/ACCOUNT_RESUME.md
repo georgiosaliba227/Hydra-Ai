@@ -78,8 +78,9 @@ Wonder ledger requires `all_charge_categories_verified: true` and an
 1. If the camera attempt is still `billing_pending`, run
    `meta_budget_admin reconcile-risk-invoice` (PR #14) with its final invoice.
    Georgio reports this is done.
-2. Write the two files. Get the attempt ID, provider ID and final charge from
-   `meta_budget_admin view` or the reconciliation record.
+2. Write the two files. `python -m scripts.meta_account_resume template --database /ABS/ledger`
+   prints the approval skeleton with each attempt's ID, provider ID and recorded charge. Check each
+   against the final invoice, fill in every `REQUIRED` field, and delete `_ledger_notes`.
 3. Stop the backend, so the ledger has no `-wal` or `-journal` file; the command
    refuses to open a ledger that has one. Then run
    `python -m scripts.meta_account_resume preview --database /ABS/ledger --approval ... --evidence ...`
