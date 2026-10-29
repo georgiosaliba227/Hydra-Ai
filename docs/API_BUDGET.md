@@ -1,6 +1,6 @@
 # Account-specific Meta budget architecture (v2)
 
-> Current restriction: one project-wide named-account/exact-image first test at <=$0.25, still disabled. The `dual-test-v1` <=$2/account path is an unapproved proposal; adopting it requires an explicit human policy decision in addition to account/input/spending approvals. See [decision log](DECISION_LOG.md).
+> October 28 owner exception: the [first-camera risk policy](architecture/FIRST_CAMERA_RISK_POLICY.md) separates the $1.312256 token reservation, $2 intended spend and accepted unknown provider charges. It preserves the account checkpoints and one-use ledger and requires current verified account/billing evidence. It never claims a $2 provider hard cap. The earlier policies below apply outside this single exception.
 
 Updated 2026-10-27. This supersedes the earlier single shared-$150 assumption. The user reports two individual allocations; neither has been independently verified. This update authorizes NO spending and NO automatic key/account rotation.
 

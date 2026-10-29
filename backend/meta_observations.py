@@ -68,7 +68,7 @@ def record_observation(ledger: AccountLedger, attempt_id: str, *, purpose: str,
     ledger.verify_storage()
     with ledger.transaction() as db:
         row = db.execute("SELECT account_id,state,recognized FROM live_attempts WHERE id=?", (attempt_id,)).fetchone()
-        if not row or (outcome == "success" and (row[1] != "settled" or (purpose == "camera" and row[2] != 1))):
+        if not row or (outcome == "success" and (row[1] not in ("settled", "billing_pending") or (purpose == "camera" and row[2] != 1))):
             raise BudgetDenied("Successful observation requires settled parsed output")
         if db.execute("SELECT 1 FROM live_events WHERE kind=? AND substr(reference,1,36)=?", (EVENT, attempt_id)).fetchone():
             raise BudgetDenied("Attempt observation is immutable")
@@ -112,7 +112,7 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
         if payload_hash is not None and (not isinstance(payload_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", payload_hash)):
             raise ValueError
         observation = Observation.model_validate_json(reference[37:])
-        if observation.outcome == "success" and (state != "settled" or observation.result_sha256 is None
+        if observation.outcome == "success" and (state not in ("settled", "billing_pending") or observation.result_sha256 is None
                                                  or (observation.purpose == "camera" and recognized != 1)):
             raise ValueError
         if observation.outcome != "success" and observation.result_sha256 is not None:
@@ -138,6 +138,9 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
                 raise ValueError
             if usage["cached_tokens"] > usage["input_tokens"] or usage["total_tokens"] != usage["input_tokens"] + usage["output_tokens"]:
                 raise ValueError
+        usage_cost = None
+        if usage is not None:
+            usage_cost = ((usage["input_tokens"] - usage["cached_tokens"]) * 1250000 + usage["cached_tokens"] * 150000 + usage["output_tokens"] * 4250000 + 999999) // 1000000
         if actual is not None:
             price = json.loads(raw_price)
             if state != "settled" or usage is None or type(actual) is not int or actual < 0 or provider_id is None:
@@ -145,7 +148,7 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
             if (price["model"], price["input_micro_per_million"], price["cached_micro_per_million"], price["output_micro_per_million"]) != (MODEL, 1250000, 150000, 4250000):
                 raise ValueError
             expected = ((usage["input_tokens"] - usage["cached_tokens"]) * 1250000 + usage["cached_tokens"] * 150000 + usage["output_tokens"] * 4250000 + 999999) // 1000000
-            if actual != expected:
+            if actual != expected and permit.get("policy_version") != "georgio-first-camera-risk-v1":
                 raise ValueError
         finality_row = connection.execute("SELECT evidence FROM live_finalities WHERE attempt_id=?", (attempt_id,)).fetchone()
         final_amount = None
@@ -154,14 +157,17 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
             if (finality.attempt_id, finality.account_id, finality.provider_id, finality.final_gross_micro_usd) != (attempt_id, account, provider_id, actual):
                 raise ValueError
             final_amount = finality.final_gross_micro_usd
+        if actual is not None and permit.get("policy_version") == "georgio-first-camera-risk-v1" and final_amount is None:
+            raise ValueError
         if type(reserved) is not int or reserved < 0:
             raise ValueError
         return {"version": "meta-observation-v1", "attempt_id": attempt_id, "account_id": account,
                 "model": MODEL, "provider_id": provider_id, "input_sha256": input_hash,
                 "payload_sha256": payload_hash, "observed_at": observed_at,
-                **observation.model_dump(), "usage": usage, "usage_cost_micro_usd": actual,
+                **observation.model_dump(), "usage": usage, "usage_cost_micro_usd": usage_cost if permit.get("policy_version") == "georgio-first-camera-risk-v1" else actual,
                 "reserved_micro_usd": reserved, "final_gross_micro_usd": final_amount,
                 "billing_status": ("invoice_verified" if final_amount is not None else
+                                   "usage_recorded_invoice_pending" if state == "billing_pending" else
                                    "usage_settled_invoice_pending" if actual is not None else "unresolved"),
                 "evidence_source": "gateway_ledger_record"}
     except (ValueError, TypeError, KeyError, AttributeError, OSError, sqlite3.Error):

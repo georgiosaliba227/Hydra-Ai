@@ -26,7 +26,14 @@ class GitHubNotifier:
     def deliver(self, notice: dict) -> str:
         if notice["recipient"] not in ACCOUNTS or notice["account_id"] not in ACCOUNTS:
             raise BudgetDenied("Unknown notification recipient")
-        body = {"body": f"@{notice['recipient']} Hydra Meta account {notice['account_id']} reached its $75 gross-exposure checkpoint. Review the authoritative gateway ledger. Credits are account-specific and not transferable."}
+        return self._comment(f"@{notice['recipient']} Hydra Meta account {notice['account_id']} reached its $75 gross-exposure checkpoint. Review the authoritative gateway ledger. Credits are account-specific and not transferable.")
+
+    def verify_delivery(self) -> str:
+        """Explicit operator check; never called automatically by admission."""
+        return self._comment("@georgiosaliba227 @aminealichaouche Hydra budget notification delivery check for the owner-authorized single camera test. This is a delivery check only; no spend threshold has been crossed and this message does not authorize inference.")
+
+    def _comment(self, message: str) -> str:
+        body = {"body": message}
         connection = http.client.HTTPSConnection("api.github.com", timeout=10)
         try:
             connection.request("POST", "/repos/georgiosaliba227/Hydra-Ai/issues/6/comments", body=json.dumps(body).encode(), headers={"Authorization": "Bearer " + self._token, "Content-Type": "application/json", "User-Agent": "Hydra-Budget-Notifier", "Accept": "application/vnd.github+json"})

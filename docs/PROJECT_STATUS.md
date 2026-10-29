@@ -8,10 +8,10 @@ Updated October 29, 2026. Shared current status for Georgio and Amine; historica
 and 3.14, the offline rehearsal, the starter tests and, for iOS changes, the 64
 XCTest unit tests on every PR (mock-only, no secrets).
 One real Meta request has run: Georgio's single Muse Spark 1.3 camera request,
-recorded on unmerged PR #14. Georgio reports he recorded its invoice finality
-(relayed by Amine, 2026-10-29; his ledger is private, so this is his report,
-not an independent check). Until then it blocked every
-new request project-wide. No Wonder request has run.
+recorded with PR #14's code. His resume template shows that attempt is still
+`billing_pending` without a final charge, so its invoice is not reconciled yet
+and his account stays frozen. PR #14's reconciliation now ships on main with
+the resume and shared backend. No Wonder request has run.
 
 | Area | Status | PRs | Evidence (local unless noted) |
 | --- | --- | --- | --- |
@@ -25,6 +25,7 @@ new request project-wide. No Wonder request has run.
 | Wonder hydration explanations | Code merged, not run live | #18–#23 | Mock and fake-transport tests; 2 deliberate safeguard breaks caught |
 | Wonder assistant topic selection | Code merged, not run live | #29, #30 | 21 + 4 tests; replay validated against reviewed answers |
 | Shared backend: Amine's restricted token on Georgio's ledger | Merged, not run live | #54 | 25 tests: scopes (owner data forbidden), immediate revocation, standing synthetic cases sent once, every request audited by credential, replay, finality wait, no freeze on rejected output; independent review: nothing serious, 3 minor fixes |
+| First camera risk policy + invoice reconciliation | Integrated with main (PR #14 + #53/#54), not run on the real ledger | #14, this PR | 4 end-to-end tests (billing_pending blocks resume and the ordinary finality path; reconcile → resume → Wonder schema → Amine's synthetic case; overrun needs acknowledgement; operator CLI, immutable finality); a ledger written by PR #14's old commit replayed through the main CLI |
 | Reviewed account resume (unfreeze) | Merged, not run on the real ledger | #53 | 30 synthetic-ledger tests (success, missing finality, unresolved billing, wrong provider ID or charge, duplicate and concurrent resumes, cutoff, identity, notices, overrun, no reopened permits, triggers, key change, template); PR #14 scratch merge: 935 tests incl. camera → reconcile → resume → Wonder |
 | Wonder explains your trends, either account | Merged, not run live | #51 | 80 tests (facts, placeholder text checks, Amine $100 cutoff, wrong key or account refused before reservation, route, replay, delete-all); 5 XCTest; UI test; setup dry run on a scratch ledger; independent review findings fixed |
 | CI | Merged | #32 | GitHub Actions: 774+ tests, rehearsal and starter tests pass on Linux |
