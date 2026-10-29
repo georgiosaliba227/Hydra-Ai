@@ -5,7 +5,7 @@
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
 | 1 | Georgio: push any unpublished Wonder work, if any | Nothing unpublished, or a reconciled branch |
-| 2 | Amine: operator tooling — read-only Wonder approval package and an explicit existing-only `LIVE_SCHEMA` migration with preview | Scripts and tests; private ledger untouched until a human runs them |
+| 2 | Done (PR #20): `scripts/wonder_admin.py` approval package, existing-only `LIVE_SCHEMA` preview/migration, allocation and case import | 9 new tests; private ledger untouched until a human runs them |
 | 3 | Georgio: update iOS copy that still names Spark as a hydration candidate, and show live Wonder provenance when present | `WorkoutForecastView.swift` text; XCTest/UI run |
 | 4 | Georgio + provider: camera invoice finality for the PR #14 request | Reconciled billing evidence; unblocks any further request |
 | 5 | Both: approve one Wonder case (exact payload hash, spending and live-dispatch references) on Georgio's account | Recorded `ApprovedCase`; explicit spending approval within the $30 allocation |

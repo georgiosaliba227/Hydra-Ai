@@ -17,7 +17,7 @@ Spark or Wonder, has run.
 | Task | Owner | Status | Branch / PR | Completion criteria | Test evidence | Remaining blockers |
 | --- | --- | --- | --- | --- | --- | --- |
 | Wonder-only hydration intelligence, mock layer | Amine | Merged | PR #18 (`9cbb3cc`) | Deterministic Wonder payload, cost preview, strict parser; V2 comparison Wonder-only | 643 pytest + 32 subtests passed, 1 skipped | — |
-| Wonder live adapter on the $30 experiment allocation | Amine | Implemented, mock-tested | `codex/wonder-live-adapter` | Approved-case manifest, dispatchable experiment states, one-use ticket, settlement at Wonder prices, gateway | 665 pytest + 32 subtests passed, 1 skipped; 22 adapter tests; two deliberate safeguard breaks were caught | Ledger migration, approved case, current evidence, PR #14 finality, spending approval |
+| Wonder live adapter on the $30 experiment allocation | Amine | Merged; operator tooling in PR #20 | PR #19 (`5ab76d3`), PR #20 | Approved-case manifest, dispatchable experiment states, one-use ticket, settlement at Wonder prices, gateway | 665 pytest + 32 subtests passed, 1 skipped; 22 adapter tests; two deliberate safeguard breaks were caught | Ledger migration, approved case, current evidence, PR #14 finality, spending approval |
 | Review PR #14 | Amine | Pending | PR #14 | Submitted GitHub review on `b3eda64` | — | Amine's own review |
 
 ## V2 review branch — October 28

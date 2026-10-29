@@ -130,10 +130,29 @@ Implemented and tested with fake transports only.
   Georgio's account, the attempt ID, latency, tokens and the usage-derived cost;
   `billed_cost_usd` stays null until invoice finality.
 
+## Operator procedure (`scripts/wonder_admin.py`)
+
+None of these sends a Meta request. Every ledger command opens an existing
+owned 0600 ledger only, with the same checks as the finality migration.
+
+1. `prepare --scenario <name>` prints the cost preview and an `ApprovedCase`
+   template with the exact payload hash. Humans fill in expiry and references.
+2. Run the existing finality migration first (`meta_budget_admin.py
+   migrate-finality-schema`); it refuses ledgers that already have triggers.
+3. `preview-schema --database <abs path>`, then `migrate-schema --database
+   <abs path> --reference <review>` adds only missing `LIVE_SCHEMA` objects
+   (version `experiment-live-v1`) and one audit event. Unknown triggers,
+   indexes, `experiment_*` objects, altered DDL or an old financial schema are
+   refused. Repeats report `already_current`.
+4. `record-allocation --descriptor approval.json` imports the immutable $30
+   `ExperimentApproval`; `record-case --descriptor case.json` imports one
+   `ApprovedCase`.
+
 ## Still not implemented
 
-- No HTTP route, operator script or environment switch calls the gateway.
-- No migration of the private ledger, approved case, quote or spending approval.
+- No HTTP route, operator command or environment switch calls the gateway.
+- No private ledger has been migrated; no approved case, quote or spending
+  approval exists.
 - No ranking or quality claim. Mock selections are rule-based fixtures.
 - No iOS change. The client already accepts `muse-wonder-1.0` as the candidate
   label; its explanatory copy still mentions Spark and is Georgio's to update.
