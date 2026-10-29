@@ -15,20 +15,21 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ai.hydration import BeverageLog, calculate_contribution, summarize_day
 from ai.hydration.models import Composition, METHOD_VERSION
-from database.repository import BeverageRepository, IdempotencyConflict, StorageUnavailable
+from database.repository import (BeverageNotFound, BeverageRepository, IdempotencyConflict, RevisionConflict,
+                                 StorageUnavailable)
 from .recognition import AnalysisRequest, AnalysisResult, MockMetaRecognizer, RecognitionUnavailable
 from .nutrition import lookup
 from .meta_accounts import AccountLedger, ACCOUNTS
 from .meta_gateway import GuardedMetaGateway, GitHubNotifier
 from .meta_provider import OfficialMetaTransport
 from .meta_budget import BudgetDenied
-from .schemas import CreateBeverageRequest, utc_string
+from .schemas import CreateBeverageRequest, UpdateBeverageRequest, utc_string
 
 MAX_BODY_BYTES = 16 * 1024
 
@@ -38,6 +39,7 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "unauthorized": "A valid development session is required.",
         "invalid_request": "The request is invalid.",
         "idempotency_conflict": "This request key was already used for different data.",
+        "revision_conflict": "This beverage changed since it was loaded. Reload it and try again.",
         "storage_unavailable": "Storage is temporarily unavailable.",
         "internal_error": "The request could not be completed.",
         "not_found": "The requested resource does not exist.",
@@ -211,6 +213,14 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     async def conflict(request: Request, exc):
         return error_response("idempotency_conflict", 409, request.state.request_id)
 
+    @app.exception_handler(RevisionConflict)
+    async def revision_conflict(request: Request, exc):
+        return error_response("revision_conflict", 409, request.state.request_id)
+
+    @app.exception_handler(BeverageNotFound)
+    async def beverage_not_found(request: Request, exc):
+        return error_response("not_found", 404, request.state.request_id)
+
     @app.exception_handler(StorageUnavailable)
     async def storage_error(request: Request, exc):
         return error_response("storage_unavailable", 503, request.state.request_id, retryable=True)
@@ -281,6 +291,40 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         record["contribution"] = jsonable_encoder(asdict(calculate_contribution(to_engine(record))))
         stored, created = request.app.state.repository.create("local-demo", str(idempotency_key), fingerprint, record)
         return JSONResponse(stored, status_code=201 if created else 200)
+
+    @app.patch("/v1/beverages/{beverage_id}")
+    def update_beverage(beverage_id: UUID, payload: UpdateBeverageRequest, request: Request):
+        changes = {name: getattr(payload, name) for name in payload.model_fields_set - {"revision"}}
+        if "consumed_at" in changes:
+            changes["consumed_at"] = utc_string(changes["consumed_at"])
+
+        def corrected(current: dict) -> dict:
+            # A photo-confirmed category is tied to its product nutrition; only manual logs rename.
+            if "category" in changes and current["source"] != "manual":
+                raise ValueError("category of a confirmed recognition is fixed")
+            record = {**current, **changes, "revision": current["revision"] + 1}
+            if record.get("container_ml") is not None and record["consumed_ml"] > record["container_ml"]:
+                raise ValueError("consumed amount exceeds the confirmed container")
+            if "user_corrected" not in record["provenance"]:
+                record["provenance"] = [*record["provenance"], "user_corrected"]
+            record["contribution"] = jsonable_encoder(asdict(calculate_contribution(to_engine(record))))
+            return record
+
+        try:
+            return request.app.state.repository.update("local-demo", str(beverage_id), payload.revision, corrected)
+        except RevisionConflict as conflict:
+            current = conflict.current
+            # Retrying an applied correction (e.g. after a lost response) replays the result.
+            if current["revision"] == payload.revision + 1 and all(current.get(k) == v for k, v in changes.items()):
+                return current
+            raise
+        except ValueError:
+            raise HTTPException(422, "invalid_request") from None
+
+    @app.delete("/v1/beverages/{beverage_id}", status_code=204)
+    def delete_beverage(beverage_id: UUID, request: Request):
+        request.app.state.repository.delete("local-demo", str(beverage_id))
+        return Response(status_code=204)
 
     @app.get("/v1/beverages")
     def list_beverages(request: Request, limit: Annotated[int, Query(ge=1, le=200)] = 100,
