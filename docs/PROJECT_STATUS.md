@@ -8,7 +8,9 @@ Updated October 29, 2026. Shared current status for Georgio and Amine; historica
 and 3.14, the offline rehearsal, the starter tests and, for iOS changes, the 64
 XCTest unit tests on every PR (mock-only, no secrets).
 One real Meta request has run: Georgio's single Muse Spark 1.3 camera request,
-recorded on unmerged PR #14; its invoice finality is pending, which blocks every
+recorded on unmerged PR #14. Georgio reports he recorded its invoice finality
+(relayed by Amine, 2026-10-29; his ledger is private, so this is his report,
+not an independent check). Until then it blocked every
 new request project-wide. No Wonder request has run.
 
 | Area | Status | PRs | Evidence (local unless noted) |
@@ -22,7 +24,7 @@ new request project-wide. No Wonder request has run.
 | Ask Hydra assistant (MVP 7) | Merged, local rules | #26–#28, #31 | 35 API tests incl. urgent escalation and no question storage; UI test |
 | Wonder hydration explanations | Code merged, not run live | #18–#23 | Mock and fake-transport tests; 2 deliberate safeguard breaks caught |
 | Wonder assistant topic selection | Code merged, not run live | #29, #30 | 21 + 4 tests; replay validated against reviewed answers |
-| Wonder explains your trends, either account | PR open, not run live | this PR | 80 tests (facts, placeholder text checks, Amine $100 cutoff, wrong key or account refused before reservation, route, replay, delete-all); 5 XCTest; UI test; setup dry run on a scratch ledger; independent review findings fixed |
+| Wonder explains your trends, either account | Merged, not run live | #51 | 80 tests (facts, placeholder text checks, Amine $100 cutoff, wrong key or account refused before reservation, route, replay, delete-all); 5 XCTest; UI test; setup dry run on a scratch ledger; independent review findings fixed |
 | CI | Merged | #32 | GitHub Actions: 774+ tests, rehearsal and starter tests pass on Linux |
 | Nutrition catalogue | Unchanged (one product) | — | Live camera results never map to catalogue products; deferred with camera work |
 
