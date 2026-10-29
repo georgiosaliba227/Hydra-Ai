@@ -172,5 +172,15 @@ tokens, latency and usage-derived cost; `billed_cost_usd` stays null.
 - No private ledger has been migrated; no approved case, quote or spending
   approval exists, and no real Wonder request has run.
 - No ranking or quality claim. Mock selections are rule-based fixtures.
-- No iOS change. The client already accepts `muse-wonder-1.0` as the candidate
-  label; its explanatory copy still mentions Spark and is Georgio's to update.
+
+## iPhone client
+
+The Workout forecast screen has a "Muse Wonder · recorded live result" section.
+Its button calls `recordedWonderComparison`, which posts `mode: "recorded"` and
+never asks the backend to dispatch. `validateRecorded()` requires `meta_live`
+Wonder provenance on Georgio's account with a UUID attempt, all four observation
+values present and nonnegative, null `billed_cost_usd`, identical A/C numbers, a
+null B prediction and the existing strict interpretation checks. A 404 shows
+"No recorded Muse Wonder result is available yet." Connection changes and
+leaving the screen discard late replies. The mock A/B/C copy now names Wonder
+as the hydration model.

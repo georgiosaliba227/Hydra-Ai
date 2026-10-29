@@ -39,7 +39,7 @@ TEXT = {
     "electrolyte_composition": "Verified electrolyte composition is unavailable.",
     "negative_mass_balance": "The synthetic weighing/intake observations imply inconsistent negative loss; review the inputs.",
     "incompatible_conditions": "Historical and planned conditions differ; a comparable-rate projection is unsupported.",
-    "synthetic_evidence_only": "This interpretation uses a synthetic fixture and reviewed local mock text, not a Meta response.",
+    "synthetic_evidence_only": "This interpretation describes a server-owned synthetic scenario, not your measurements.",
     "not_daily_requirement": "Exercise loss is not a daily fluid requirement or a drinking recommendation.",
     "insufficient_measurements": "The numerical method abstained; contextual interpretation cannot fill in the missing value.",
     "environment_context_not_numeric_effect": "Weather context does not authorize an unvalidated numerical adjustment.",

@@ -89,6 +89,8 @@ struct HydrationContextComparison: Decodable, Sendable {
         let model_identity_verified: Bool
         let live_dispatch_enabled: Bool
         let interpretation_origin: String
+        let account_id: String?
+        let attempt_id: String?
     }
     let version: String
     let scenario: String
@@ -101,6 +103,7 @@ struct HydrationContextComparison: Decodable, Sendable {
     func validate(forecast: WorkoutForecast) throws {
         guard version == "hydration-context-comparison-v2", scenario == "complete", synthetic, forecast.synthetic,
               provenance.mode == "mock", provenance.provider == nil, provenance.model == nil,
+              provenance.account_id == nil, provenance.attempt_id == nil,
               ["muse-spark-1.3", "muse-wonder-1.0"].contains(provenance.candidate_model),
               provenance.candidate_tier == "Standard", !provenance.model_identity_verified, !provenance.live_dispatch_enabled,
               provenance.interpretation_origin == "local_rules_and_reviewed_text",
@@ -111,6 +114,55 @@ struct HydrationContextComparison: Decodable, Sendable {
               a.interpretation == nil, b.prediction == nil, let interpretation = b.interpretation,
               interpretation == c.interpretation, !limitations.isEmpty, limitations.count <= 16 else { throw ServiceError.invalidResponse }
         try interpretation.validate(abstention: forecast.status != "estimated")
+    }
+
+    static let recordedObservationKeys: Set<String> = ["latency_ms", "input_tokens", "output_tokens", "usage_derived_cost_micro_usd"]
+
+    /// A recorded, already-settled Muse Wonder result. Replaying it never sends a Meta request.
+    func validateRecorded() throws {
+        guard version == "hydration-context-comparison-v2", scenario == "complete", synthetic,
+              provenance.mode == "meta_live", provenance.provider == "Meta",
+              provenance.model == "muse-wonder-1.0", provenance.candidate_model == "muse-wonder-1.0",
+              provenance.candidate_tier == "Standard", provenance.model_identity_verified, provenance.live_dispatch_enabled,
+              provenance.interpretation_origin == "meta_selection_and_reviewed_text",
+              provenance.account_id == "georgiosaliba227", let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
+              Set(provider_observations.keys) == Self.recordedObservationKeys.union(["billed_cost_usd"]),
+              provider_observations["billed_cost_usd"] == .some(nil),
+              Self.recordedObservationKeys.allSatisfy({ ((provider_observations[$0] ?? nil) ?? -1) >= 0 }),
+              Set(systems.keys) == ["A", "B", "C"], let a = systems["A"], let b = systems["B"], let c = systems["C"],
+              let prediction = a.prediction, prediction.synthetic, prediction == c.prediction,
+              a.interpretation == nil, b.prediction == nil, let interpretation = b.interpretation,
+              interpretation == c.interpretation, !limitations.isEmpty, limitations.count <= 16 else { throw ServiceError.invalidResponse }
+        try interpretation.validate(abstention: prediction.status != "estimated")
+    }
+}
+
+/// Replays the recorded Muse Wonder result. Connection changes and leaving the screen discard late replies.
+@MainActor final class RecordedWonderController: ObservableObject {
+    @Published private(set) var result: HydrationContextComparison?
+    @Published private(set) var state: LoadState = .idle
+    private var generation = UUID()
+
+    func invalidate() {
+        generation = UUID(); result = nil; state = .idle
+    }
+
+    func load(service: any BeverageService) async {
+        invalidate()
+        let current = generation
+        state = .loading
+        do {
+            let result = try await service.recordedWonderComparison(scenario: "complete")
+            try result.validateRecorded()
+            guard current == generation, !Task.isCancelled else { return }
+            self.result = result; state = .loaded
+        } catch ServiceError.server(let code) where code == 404 {
+            guard current == generation, !Task.isCancelled else { return }
+            state = .failed("No recorded Muse Wonder result is available yet.")
+        } catch {
+            guard current == generation, !Task.isCancelled else { return }
+            state = .failed("Recorded Muse Wonder result unavailable or failed validation.")
+        }
     }
 }
 

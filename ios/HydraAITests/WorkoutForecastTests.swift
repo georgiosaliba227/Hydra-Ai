@@ -159,6 +159,64 @@ final class WorkoutForecastTests: XCTestCase {
         XCTAssertThrowsError(try validate(body))
     }
 
+    private func recordedWonder() throws -> [String: Any] {
+        let outer = try XCTUnwrap(JSONSerialization.jsonObject(with: workoutJSON()) as? [String: Any])
+        let numericKeys: Set<String> = ["version", "status", "model_version", "quantity", "units", "value_ml", "lower_ml", "upper_ml", "interval_kind", "sample_count", "synthetic"]
+        let prediction = outer.filter { numericKeys.contains($0.key) }
+        let interpretation: [String: Any] = ["factors": ["workout_duration"], "missing_information": [], "contradictions": [],
+            "uncertainty": ["synthetic_evidence_only", "not_daily_requirement"], "measurement_suggestions": [], "numerical_abstention": false,
+            "reviewed_text": ["factors": ["Workout duration provides context."], "missing_information": [], "contradictions": [],
+                              "uncertainty": ["Synthetic scenario.", "Not a daily requirement."], "measurement_suggestions": []]]
+        return ["version": "hydration-context-comparison-v2", "scenario": "complete", "synthetic": true,
+            "provenance": ["mode": "meta_live", "provider": "Meta", "model": "muse-wonder-1.0", "candidate_model": "muse-wonder-1.0",
+                           "candidate_tier": "Standard", "model_identity_verified": true, "live_dispatch_enabled": true,
+                           "interpretation_origin": "meta_selection_and_reviewed_text", "account_id": "georgiosaliba227",
+                           "attempt_id": UUID().uuidString.lowercased()],
+            "provider_observations": ["latency_ms": 812, "input_tokens": 900, "output_tokens": 120,
+                                      "usage_derived_cost_micro_usd": 6000, "billed_cost_usd": NSNull()],
+            "systems": ["A": ["prediction": prediction, "interpretation": NSNull()],
+                        "B": ["prediction": NSNull(), "interpretation": interpretation],
+                        "C": ["prediction": prediction, "interpretation": interpretation]], "limitations": ["Recorded result."]]
+    }
+
+    private func decodeComparison(_ body: [String: Any]) throws -> HydrationContextComparison {
+        try JSONDecoder().decode(HydrationContextComparison.self, from: JSONSerialization.data(withJSONObject: body))
+    }
+
+    func testRecordedWonderResultValidatesAndRejectsTampering() throws {
+        let valid = try recordedWonder()
+        XCTAssertNoThrow(try decodeComparison(valid).validateRecorded())
+        func provenance(_ key: String, _ value: Any) -> [String: Any] {
+            var body = valid; var item = body["provenance"] as! [String: Any]; item[key] = value; body["provenance"] = item; return body
+        }
+        func observation(_ key: String, _ value: Any) -> [String: Any] {
+            var body = valid; var item = body["provider_observations"] as! [String: Any]; item[key] = value; body["provider_observations"] = item; return body
+        }
+        for tampered in [provenance("model", "muse-spark-1.3"), provenance("mode", "mock"), provenance("account_id", "aminealichaouche"),
+                         provenance("attempt_id", "not-a-uuid"), provenance("model_identity_verified", false),
+                         observation("billed_cost_usd", 0.01), observation("input_tokens", -1), observation("latency_ms", NSNull())] {
+            XCTAssertThrowsError(try decodeComparison(tampered).validateRecorded())
+        }
+        var changedNumbers = valid
+        var systems = valid["systems"] as! [String: Any]
+        var c = systems["C"] as! [String: Any]; var cPrediction = c["prediction"] as! [String: Any]
+        cPrediction["value_ml"] = 9999; c["prediction"] = cPrediction; systems["C"] = c; changedNumbers["systems"] = systems
+        XCTAssertThrowsError(try decodeComparison(changedNumbers).validateRecorded(), "Wonder must never change the numbers")
+    }
+
+    @MainActor func testRecordedWonderControllerReportsMissingRecordAndLoadsValidResult() async throws {
+        let controller = RecordedWonderController()
+        await controller.load(service: RecordedWonderService(result: .failure(ServiceError.server(404))))
+        XCTAssertNil(controller.result)
+        XCTAssertEqual(controller.state, .failed("No recorded Muse Wonder result is available yet."))
+        let valid = try decodeComparison(try recordedWonder())
+        await controller.load(service: RecordedWonderService(result: .success(valid)))
+        XCTAssertEqual(controller.state, .loaded)
+        XCTAssertEqual(controller.result?.provenance.model, "muse-wonder-1.0")
+        controller.invalidate()
+        XCTAssertNil(controller.result); XCTAssertEqual(controller.state, .idle)
+    }
+
     @MainActor func testInvalidationDiscardsLateForecastAndClearsLoadedResult() async throws {
         let controller = WorkoutForecastController()
         let service = DelayedWorkoutService()
@@ -195,6 +253,15 @@ private actor DelayedWorkoutService: BeverageService {
 }
 
 private actor UnsupportedWorkoutService: BeverageService {
+    func listBeverages() async throws -> [BeverageLog] { [] }
+    func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog { throw ServiceError.invalidResponse }
+    func dailySummary(date: String, timezone: String) async throws -> DailySummary { throw ServiceError.invalidResponse }
+}
+
+private actor RecordedWonderService: BeverageService {
+    let result: Result<HydrationContextComparison, Error>
+    init(result: Result<HydrationContextComparison, Error>) { self.result = result }
+    func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison { try result.get() }
     func listBeverages() async throws -> [BeverageLog] { [] }
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog { throw ServiceError.invalidResponse }
     func dailySummary(date: String, timezone: String) async throws -> DailySummary { throw ServiceError.invalidResponse }

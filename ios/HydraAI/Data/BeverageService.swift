@@ -6,6 +6,7 @@ protocol BeverageService: Sendable {
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
+    func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
 }
 
 /// Offline stand-in for GET and POST /v1/beverages. It round-trips the same
@@ -59,6 +60,10 @@ extension BeverageService {
     }
 
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast {
+        throw ServiceError.invalidResponse
+    }
+
+    func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison {
         throw ServiceError.invalidResponse
     }
 
