@@ -96,6 +96,7 @@ The ledger's single allocation names the only account it may charge:
 | --- | --- | --- |
 | `georgiosaliba227` | `hydration-v2-georgio-30usd`, $30 | $120 |
 | `aminealichaouche` | `wonder-amine-20usd`, $20 | $100 (of the reported $150) |
+| `georgiosaliba227` (owner override: Georgio's key on Amine's Mac) | `wonder-georgio-key-amine-mac-20usd`, $20 | $120 |
 
 The quote and the API key must belong to that same account, or the request is
 refused before anything is reserved.

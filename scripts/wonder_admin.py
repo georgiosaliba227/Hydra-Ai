@@ -21,7 +21,7 @@ from ai.assistant import SUGGESTED
 from backend.hydration_context_v2 import SCENARIOS
 from backend.meta_accounts import AccountLedger
 from backend.meta_accounts import ACCOUNTS
-from backend.meta_experiments import ALLOCATIONS, REFERENCE_PRICES, ExperimentApproval, ExperimentQuote
+from backend.meta_experiments import ALLOCATIONS, REFERENCE_PRICES, REVIEWED_ALLOCATIONS, ExperimentApproval, ExperimentQuote
 from backend.meta_gateway import GitHubNotifier
 from backend.wonder_experiment import ApprovedCase, WonderExperimentLedger, WonderHydrationGateway, WonderMetaTransport
 from backend.wonder_trend_routes import KEY_NAMES
@@ -46,9 +46,13 @@ def prepare(scenario: str, question_id: str | None = None) -> dict:
     return {"preview": preview(scenario), "approved_case_template": template}
 
 
-def templates(account: str) -> dict:
-    """Descriptors to fill in from reviewed evidence; the limits are fixed per account."""
+def templates(account: str, allocation_id: str | None = None) -> dict:
+    """Descriptors to fill in from reviewed evidence; the limits are fixed per reviewed allocation."""
     allocation = ALLOCATIONS[account]
+    if allocation_id is not None:
+        if REVIEWED_ALLOCATIONS.get(allocation_id, (None,))[0] != account:
+            raise ValueError("That allocation is not reviewed for this account")
+        allocation = REVIEWED_ALLOCATIONS[allocation_id][1]
     return {"allocation": {"allocation_id": allocation.allocation_id, "account_id": account,
                            "hard_limit_micro_usd": allocation.hard_limit,
                            "spark_soft_target_micro_usd": allocation.soft_targets["muse-spark-1.3"],
@@ -104,7 +108,7 @@ def run(args: argparse.Namespace) -> dict:
     if args.command == "prepare":
         return prepare(args.scenario, args.question_id)
     if args.command == "templates":
-        return templates(args.account)
+        return templates(args.account, args.allocation)
     target = ledger(args.database)
     if args.command == "preview-schema":
         return target.preview_live_schema()
@@ -125,6 +129,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("command", choices=["templates", "prepare", "preview-schema", "migrate-schema", "record-allocation", "record-case", "run-case"])
     parser.add_argument("--scenario", choices=SCENARIOS, default="complete")
     parser.add_argument("--account", choices=ACCOUNTS, default=ACCOUNTS[0], help="templates: whose allocation")
+    parser.add_argument("--allocation", choices=sorted(REVIEWED_ALLOCATIONS),
+                        help="templates: a reviewed allocation other than the account's default")
     parser.add_argument("--database", type=Path)
     parser.add_argument("--reference")
     parser.add_argument("--descriptor", type=Path, help="JSON approval, case, or (run-case) quote")

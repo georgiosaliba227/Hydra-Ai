@@ -581,26 +581,36 @@ def test_allocations_without_trends_keep_their_recorded_bytes(tmp_path):
     ledger.record_approval(original)  # identical re-record stays a no-op
 
 
-def test_amine_allocation_stops_at_20_dollars(tmp_path):
-    import json
-    from datetime import datetime, timedelta, timezone
-    from uuid import uuid4
+GEORGIO = ACCOUNTS[0]
+
+
+def georgio_key_approval(**changes):
+    """The owner-override ledger on Amine's Mac: Georgio's key and account, $20 of Wonder."""
+    values = dict(account_id=GEORGIO, allocation_id="wonder-georgio-key-amine-mac-20usd", hard_limit_micro_usd=20_000_000,
+                  spark_soft_target_micro_usd=0, wonder_soft_target_micro_usd=20_000_000,
+                  key_sha256=evidence(GEORGIO).key_sha256, owner_authorization_reference="synthetic-georgio-owner",
+                  trend_dispatch_reference="synthetic-trend-dispatch")
+    return approval(**(values | changes))
+
+
+@pytest.mark.parametrize("account,make", [(AMINE, lambda: amine_approval()), (GEORGIO, lambda: georgio_key_approval())])
+def test_twenty_dollar_allocations_stop_at_20_dollars(tmp_path, account, make):
     from backend.meta_budget import BudgetDenied
     from backend.meta_experiments import PROPOSED_SCHEMA, ExperimentBudget, ExperimentRequest
-    authority = AccountLedger(tmp_path / "amine-cap.sqlite3")
+    authority = AccountLedger(tmp_path / "cap.sqlite3")
     authority.initialize_accounts()
-    authority.attest_account(evidence(AMINE))
+    authority.attest_account(evidence(account))
     with authority.transaction() as db:
         for sql in PROPOSED_SCHEMA:
             db.execute(sql)
     budget = ExperimentBudget(authority)
-    budget.record_approval(amine_approval())
+    budget.record_approval(make())
 
     def reserve():
         budget.reserve_review_only(ExperimentRequest.model_validate({
             "attempt_id": str(uuid4()), "case_id": str(uuid4()), "payload_sha256": "a" * 64, "input_bound": 1000,
             "output_bound": 512, "maximum_micro_usd": 250_000, "input_approval_reference": "synthetic-consent",
-            "quote": amine_quote()}))
+            "quote": quote(WONDER, account_id=account)}))
 
     for _ in range(80):  # 80 x $0.25 reservations, each settled for 1 micro-USD with recorded finality
         reserve()
@@ -611,10 +621,46 @@ def test_amine_allocation_stops_at_20_dollars(tmp_path):
             db.execute("UPDATE live_attempts SET actual=1,provider_id=?,state='settled',dispatched_at=? WHERE id=?",
                        (provider, (now - timedelta(seconds=1)).isoformat(), attempt))
             db.execute("INSERT INTO live_finalities(attempt_id,evidence,recorded_at) VALUES(?,?,?)", (attempt, json.dumps({
-                "attempt_id": attempt, "account_id": AMINE, "provider_id": provider, "final_gross_micro_usd": 1,
+                "attempt_id": attempt, "account_id": account, "provider_id": provider, "final_gross_micro_usd": 1,
                 "finalized_at": now.isoformat(), "provider_evidence_reference": "synthetic-invoice",
                 "georgio_review_reference": "synthetic-a", "amine_review_reference": "synthetic-b",
                 "provider_finality_verified": True}), now.isoformat()))
-    assert budget.snapshot()["aggregate_exposure_micro_usd"] == 20_000_000
+    view = budget.snapshot()
+    assert (view["account_id"], view["aggregate_exposure_micro_usd"], view["remaining_micro_usd"]) == (account, 20_000_000, 0)
     with pytest.raises(BudgetDenied):
         reserve()
+
+
+def test_georgio_key_allocation_is_georgios_own_and_keeps_his_120_cutoff(tmp_path):
+    with pytest.raises(ValidationError):  # never recorded as Amine's account
+        georgio_key_approval(account_id=AMINE).model_validate(georgio_key_approval(account_id=AMINE).model_dump())
+    with pytest.raises(ValidationError):  # the limit is fixed at $20
+        georgio_key_approval(hard_limit_micro_usd=30_000_000).model_validate(
+            georgio_key_approval(hard_limit_micro_usd=30_000_000).model_dump())
+    authority = AccountLedger(tmp_path / "georgio-key.sqlite3")
+    authority.initialize_accounts()
+    authority.attest_account(evidence(GEORGIO))
+    with authority.transaction() as db:
+        for sql in LIVE_SCHEMA:
+            db.execute(sql)
+    ledger = WonderExperimentLedger(authority)
+    ledger.record_approval(georgio_key_approval())
+    view = ledger.snapshot()
+    assert (view["allocation_id"], view["hard_limit_micro_usd"], view["account_cutoff_micro_usd"]) == (
+        "wonder-georgio-key-amine-mac-20usd", 20_000_000, 120_000_000)
+    f = facts()
+    transport = FakeWonderTransport(trend_reply(f))
+    result = WonderHydrationGateway(ledger, transport, FakeNotifier()).explain_trends(
+        f, quote(WONDER), "in-app-consent:synthetic")
+    assert transport.calls == 1 and result["provenance"]["account_id"] == GEORGIO
+    assert ledger.snapshot()["remaining_micro_usd"] < 20_000_000
+
+
+def test_admin_templates_offer_the_georgio_key_allocation(tmp_path):
+    import scripts.wonder_admin as admin
+    template = admin.templates(GEORGIO, "wonder-georgio-key-amine-mac-20usd")
+    assert (template["allocation"]["hard_limit_micro_usd"], template["account_cutoff_micro_usd"]) == (20_000_000, 120_000_000)
+    assert template["quote"]["account_id"] == GEORGIO
+    assert admin.templates(GEORGIO)["allocation"]["hard_limit_micro_usd"] == 30_000_000  # default unchanged
+    with pytest.raises(ValueError):
+        admin.templates(AMINE, "wonder-georgio-key-amine-mac-20usd")

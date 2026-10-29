@@ -39,6 +39,20 @@ ALLOCATIONS = {
     "aminealichaouche": Allocation("wonder-amine-20usd", 20 * USD,
                                    {"muse-spark-1.3": 0, "muse-wonder-1.0": 20 * USD}, 100 * USD),
 }
+# Owner override (2026-10-29, Amine with Georgio's agreement): Georgio's key in a second ledger on Amine's
+# Mac, $20 of Wonder within Georgio's $120 cutoff. Georgio's original ledger stays frozen while it is used.
+GEORGIO_ON_AMINE_MAC = Allocation("wonder-georgio-key-amine-mac-20usd", 20 * USD,
+                                  {"muse-spark-1.3": 0, "muse-wonder-1.0": 20 * USD}, 120 * USD)
+# Every reviewed allocation by ID, with the account it belongs to.
+REVIEWED_ALLOCATIONS = {allocation.allocation_id: (account, allocation) for account, allocation in
+                        [*ALLOCATIONS.items(), (ACCOUNT, GEORGIO_ON_AMINE_MAC)]}
+
+
+def allocation_for(allocation_id: str, account: str) -> Allocation:
+    reviewed = REVIEWED_ALLOCATIONS.get(allocation_id)
+    if reviewed is None or reviewed[0] != account:
+        raise BudgetDenied("Allocation names an unknown account or limit")
+    return reviewed[1]
 Reference = Annotated[str, Field(strict=True, min_length=1, max_length=500)]
 Fingerprint = Annotated[str, Field(strict=True, pattern=r"^[a-f0-9]{64}$")]
 
@@ -94,7 +108,10 @@ class ExperimentApproval(StrictDescriptor):
 
     @model_validator(mode="after")
     def reviewed_allocation(self):
-        allocation = ALLOCATIONS[self.account_id]
+        reviewed = REVIEWED_ALLOCATIONS.get(self.allocation_id)
+        if reviewed is None or reviewed[0] != self.account_id:
+            raise ValueError("Allocation does not match the reviewed account limits")
+        allocation = reviewed[1]
         if (self.allocation_id, self.hard_limit_micro_usd, self.spark_soft_target_micro_usd,
                 self.wonder_soft_target_micro_usd) != (allocation.allocation_id, allocation.hard_limit,
                                                        allocation.soft_targets["muse-spark-1.3"],
@@ -285,7 +302,7 @@ class ExperimentBudget:
             # Evidence can expire while waiting for the authoritative write lock.
             request = ExperimentRequest.model_validate(request.model_dump())
             approval = self._allocation(db)
-            account, allocation = approval.account_id, ALLOCATIONS[approval.account_id]
+            account, allocation = approval.account_id, allocation_for(approval.allocation_id, approval.account_id)
             if request.quote.account_id != account:
                 raise BudgetDenied("Quote is for another account; no account switching")
             evidence = self._evidence(db, approval)
@@ -331,11 +348,10 @@ class ExperimentBudget:
             self.authority.event(db, account, "experiment_review_only_reserved", request.attempt_id)
             self.authority.queue_threshold_notices(db, account, proposed)
             totals[request.quote.model] += request.maximum_micro_usd
-            return self._view(aggregate + request.maximum_micro_usd, totals, account)
+            return self._view(aggregate + request.maximum_micro_usd, totals, account, allocation)
 
     @staticmethod
-    def _view(aggregate: int, totals: dict[str, int], account: str) -> dict:
-        allocation = ALLOCATIONS[account]
+    def _view(aggregate: int, totals: dict[str, int], account: str, allocation: Allocation) -> dict:
         return {"allocation_id": allocation.allocation_id, "account_id": account, "dispatch_enabled": False,
                 "state": "review_only_no_live_adapter", "hard_limit_micro_usd": allocation.hard_limit,
                 "account_cutoff_micro_usd": allocation.cutoff,
@@ -349,7 +365,7 @@ class ExperimentBudget:
             if not db.execute("SELECT 1 FROM experiment_allocation WHERE id=1").fetchone():
                 raise BudgetDenied("Reviewed allocation missing")
             # Reporting still works after the approval expires; only admission needs it current.
-            account = json.loads(db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()[0])["account_id"]
-            if account not in ALLOCATIONS:
-                raise BudgetDenied("Allocation names an unknown account")
-            return self._view(*self._exposure(db, account), account)
+            recorded = json.loads(db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()[0])
+            account = recorded["account_id"]
+            allocation = allocation_for(recorded.get("allocation_id"), account)
+            return self._view(*self._exposure(db, account), account, allocation)
