@@ -75,6 +75,10 @@ device, and never sends a free-text question to an AI provider.
 
 ## Demo script (about 2 minutes)
 
+Before recording, run `scripts/seed_demo.py` against the local backend for a
+synthetic week of drinks and a goal (see PROTOTYPE_SETUP.md), and say on camera
+that the history is demo data.
+
 1. **Today (10 s).** Show logged total and goal progress: "your own goal, not
    a recommendation."
 2. **Log by photo (25 s).** Camera → suggested drink → confirm 330 mL → total

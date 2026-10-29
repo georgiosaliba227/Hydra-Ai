@@ -86,6 +86,19 @@ a suggested question (`assistant-<id>.json` in the same directory) through its
 "Use Muse Wonder's recorded selection" toggle. See
 [ASSISTANT_API.md](architecture/ASSISTANT_API.md).
 
+## Recording the demo
+
+With the local backend running, fill it with a synthetic week of drinks and a
+2,000 mL goal so Today, History and the 7-day card have content:
+
+```sh
+HYDRA_API_TOKEN=<local token> python scripts/seed_demo.py --timezone Europe/Paris
+```
+
+Use the phone's timezone. The script only talks to a loopback backend, never
+creates future-dated logs, and is safe to rerun (stable request keys). The data
+is synthetic; say so in the video.
+
 ## Offline mock rehearsal
 
 From the maintained backend environment, run:
