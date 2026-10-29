@@ -165,6 +165,17 @@ provenance reproduces it exactly; otherwise, or when nothing is recorded, the
 response is 404. Replays carry the original `meta_live` provenance, attempt ID,
 tokens, latency and usage-derived cost; `billed_cost_usd` stays null.
 
+## Review hardening (2026-10-29)
+
+An independent review found no double-send, missing-reservation or
+under-counting path. Fixed from its findings: a busy ledger at settlement now
+retries the local write (never the network request) so the provider's reply ID
+and usage are recorded and failures still quarantine; `run-case` failures name
+the reserved attempt and never claim nothing was sent; recorded comparisons
+must carry exactly the live provenance; result files must be regular, bounded
+JSON objects. Known and accepted: the payload hash covers sorted-key JSON while
+the transport sends the same content unsorted (same bytes length and content).
+
 ## Still not implemented
 
 - No HTTP route or environment switch dispatches; only the operator `run-case`

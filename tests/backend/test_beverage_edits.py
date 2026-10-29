@@ -136,8 +136,8 @@ def test_deletion_erases_stored_content(client, database):
     log = create(client, manual(category='private-brand-xyz', consumed_ml=777))
     client.delete(f"/v1/beverages/{log['id']}", headers=AUTH)
     with sqlite3.connect(database) as connection:
-        rows = connection.execute('SELECT consumed_at, record_json FROM beverages').fetchall()
-    assert rows == [('', '{"deleted":true,"id":"%s"}' % log['id'])]
+        rows = connection.execute('SELECT consumed_at, fingerprint, record_json FROM beverages').fetchall()
+    assert rows == [('', '', '{"deleted":true,"id":"%s"}' % log['id'])]
 
 
 def test_edit_and_delete_require_auth_and_known_ids(client):

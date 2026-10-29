@@ -12,7 +12,7 @@ from datetime import datetime
 import hashlib
 import json
 import re
-from time import monotonic_ns
+from time import monotonic_ns, sleep
 from uuid import uuid4
 
 from pydantic import field_validator
@@ -27,7 +27,8 @@ from .meta_policy import OUTPUT_LIMIT
 from .meta_provider import OfficialMetaTransport, ProviderReply
 from .recognition import RecognitionUnavailable
 from .wonder_assistant import assistant_payload, live_answer, parse_topics
-from .wonder_hydration import MODEL, input_bound, parse_selection, payload_sha256, wonder_payload
+from .wonder_hydration import (MODEL, input_bound, live_comparison_provenance, parse_selection, payload_sha256,
+                               wonder_payload)
 from ai.assistant import SUGGESTED
 
 # Reviewed additive DDL; installed only by tests until a separate migration is approved.
@@ -38,6 +39,14 @@ LIVE_SCHEMA = PROPOSED_SCHEMA + (
 )
 LIVE_SCHEMA_VERSION = "experiment-live-v1"
 RESPONSE_ID = re.compile(r"resp_[A-Za-z0-9_-]{1,180}")
+# A busy ledger (another writer) must not lose the provider's reply: retry the
+# local write, never the network request.
+LEDGER_RETRIES = 20
+LEDGER_RETRY_SECONDS = 0.25
+
+
+class UsageRejected(BudgetDenied):
+    """Settlement reached a final outcome (recorded or frozen); retrying cannot help."""
 
 
 def _object_name(sql: str) -> str:
@@ -213,7 +222,7 @@ class WonderExperimentLedger(ExperimentBudget):
                              "JOIN experiment_attempts e ON e.attempt_id=a.id WHERE a.id=? AND a.actual IS NULL",
                              (attempt,)).fetchone()
             if not row or row[2] != "experiment_sending":
-                raise BudgetDenied("No unsettled sending experiment attempt")
+                raise UsageRejected("No unsettled sending experiment attempt")
             try:
                 quote, request = json.loads(row[0]), json.loads(row[4])
                 body = reply.body
@@ -249,7 +258,7 @@ class WonderExperimentLedger(ExperimentBudget):
                 self.authority.event(db, ACCOUNT, "experiment_usage_unverified", attempt)
                 blocked = True
         if blocked:
-            raise BudgetDenied("Provider usage unresolved or exceeded reservation")
+            raise UsageRejected("Provider usage unresolved or exceeded reservation")
         return amount
 
 
@@ -283,6 +292,20 @@ class WonderHydrationGateway:
         if type(ledger) is not WonderExperimentLedger:
             raise ValueError("Wonder experiment ledger required")
         self.ledger, self.transport, self.notifier = ledger, transport, notifier
+        self.last_attempt: str | None = None  # Lets operators find a reserved attempt after a failure.
+
+    @staticmethod
+    def _with_ledger_retries(operation):
+        """Repeat a local ledger write while storage is busy; final outcomes are not retried."""
+        for remaining in range(LEDGER_RETRIES, 0, -1):
+            try:
+                return operation()
+            except UsageRejected:
+                raise
+            except BudgetDenied:
+                if remaining == 1:
+                    raise
+                sleep(LEDGER_RETRY_SECONDS)
 
     def deliver_pending_notices(self) -> None:
         for notice in self.ledger.authority.notices():
@@ -302,7 +325,7 @@ class WonderHydrationGateway:
                                         maximum_micro_usd=quote.bound(bound, OUTPUT_LIMIT),
                                         input_approval_reference=input_approval_reference, quote=quote)
             self.ledger.reserve_for_dispatch(request)
-            attempt = request.attempt_id
+            attempt = self.last_attempt = request.attempt_id
             self.deliver_pending_notices()
             # Durable dispatch marker precedes the only network operation.
             ticket = self.ledger.mark_dispatched(attempt, request.payload_sha256)
@@ -312,12 +335,12 @@ class WonderHydrationGateway:
             finally:
                 latency_ms = max(0, (monotonic_ns() - started) // 1_000_000)
             replied = True
-            cost = self.ledger.settle(attempt, reply)
+            cost = self._with_ledger_retries(lambda: self.ledger.settle(attempt, reply))
             parsed = parse(reply)
         except Exception:
             if attempt is not None:
                 try:
-                    self.ledger.authority.quarantine(attempt)
+                    self._with_ledger_retries(lambda: self.ledger.authority.quarantine(attempt))
                 except Exception:
                     pass  # Durable reservation remains; unavailable storage fails closed.
                 if replied:
@@ -336,11 +359,7 @@ class WonderHydrationGateway:
         selection, attempt, observations = self._run(wonder_payload(scenario), case_id, quote, input_approval_reference,
                                                      lambda reply: parse_selection(reply, scenario))
         _, prediction = build_scenario(scenario)
-        provenance = {"mode": "meta_live", "provider": "Meta", "model": MODEL, "candidate_model": MODEL,
-                      "candidate_tier": "Standard", "model_identity_verified": True, "live_dispatch_enabled": True,
-                      "interpretation_origin": "meta_selection_and_reviewed_text",
-                      "account_id": ACCOUNT, "attempt_id": attempt}
-        return comparison_result(scenario, prediction, selection, provenance, observations)
+        return comparison_result(scenario, prediction, selection, live_comparison_provenance(attempt), observations)
 
     def answer(self, question_id: str, case_id: str, quote: ExperimentQuote, input_approval_reference: str) -> dict:
         """Wonder selects allowed reviewed topics for one approved suggested question."""

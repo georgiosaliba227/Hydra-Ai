@@ -28,6 +28,13 @@ INPUT_BOUND_POLICY = "canonical-payload-bytes-v1"
 FRAMING_ALLOWANCE_TOKENS = 256
 
 
+def live_comparison_provenance(attempt_id: str) -> dict:
+    """The only provenance a live Wonder comparison may carry."""
+    return {"mode": "meta_live", "provider": "Meta", "model": MODEL, "candidate_model": MODEL,
+            "candidate_tier": "Standard", "model_identity_verified": True, "live_dispatch_enabled": True,
+            "interpretation_origin": "meta_selection_and_reviewed_text", "account_id": ACCOUNT, "attempt_id": attempt_id}
+
+
 def canonical(value) -> str:
     return json.dumps(jsonable_encoder(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
 
