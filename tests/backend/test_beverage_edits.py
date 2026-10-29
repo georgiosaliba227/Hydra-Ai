@@ -156,3 +156,13 @@ def test_corrections_persist_across_restart(database):
     with TestClient(create_app(db_path=database, api_token=TOKEN)) as second:
         [stored] = second.get('/v1/beverages', headers=AUTH).json()['items']
         assert (stored['consumed_ml'], stored['revision']) == (320, 2)
+
+
+def test_delete_with_a_stale_revision_is_rejected(client):
+    log = create(client)
+    patch(client, log, consumed_ml=300)
+    stale = client.delete(f"/v1/beverages/{log['id']}", params={'revision': 1}, headers=AUTH)
+    assert stale.status_code == 409 and stale.json()['code'] == 'revision_conflict'
+    assert client.get('/v1/beverages', headers=AUTH).json()['items'][0]['consumed_ml'] == 300
+    assert client.delete(f"/v1/beverages/{log['id']}", params={'revision': 2}, headers=AUTH).status_code == 204
+    assert client.delete(f"/v1/beverages/{uuid4()}", params={'revision': 0}, headers=AUTH).status_code == 422

@@ -13,7 +13,7 @@ protocol BeverageService: Sendable {
     func updateGoal(_ milliliters: Int?) async throws -> GoalSettings
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
     /// Succeeds when the log is gone, including when it was already deleted.
-    func deleteBeverage(id: UUID) async throws
+    func deleteBeverage(id: UUID, revision: Int) async throws
 }
 
 /// Offline stand-in for GET and POST /v1/beverages. It round-trips the same
@@ -73,8 +73,10 @@ actor MockBeverageService: BeverageService {
         return updated
     }
 
-    func deleteBeverage(id: UUID) throws {
-        try save(listBeverages().filter { $0.id != id })
+    func deleteBeverage(id: UUID, revision: Int) throws {
+        let logs = try listBeverages()
+        if let current = logs.first(where: { $0.id == id }), current.revision != revision { throw ServiceError.server(409) }
+        try save(logs.filter { $0.id != id })
     }
 
     private func save(_ logs: [BeverageLog]) throws {
@@ -101,7 +103,7 @@ extension BeverageService {
         throw ServiceError.invalidResponse
     }
 
-    func deleteBeverage(id: UUID) async throws {
+    func deleteBeverage(id: UUID, revision: Int) async throws {
         throw ServiceError.invalidResponse
     }
 

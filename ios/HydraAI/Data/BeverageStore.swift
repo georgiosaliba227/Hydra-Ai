@@ -167,7 +167,12 @@ final class BeverageStore: ObservableObject {
         guard canLog, let service else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
-        try await service.deleteBeverage(id: log.id)
+        do {
+            try await service.deleteBeverage(id: log.id, revision: log.revision)
+        } catch ServiceError.server(409) {
+            await refresh()
+            throw BeverageEditError.changedElsewhere
+        }
         await refresh()
     }
 

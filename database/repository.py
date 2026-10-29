@@ -207,16 +207,22 @@ class BeverageRepository:
         except sqlite3.Error:
             raise StorageUnavailable() from None
 
-    def delete(self, owner: str, beverage_id: str) -> None:
-        """Erase the record's content, keeping only its ID and idempotency identity."""
+    def delete(self, owner: str, beverage_id: str, revision: int | None = None) -> None:
+        """Erase the record's content, keeping only its ID and idempotency identity.
+
+        With `revision`, a stale caller cannot delete a newer correction.
+        """
         try:
             with closing(self._connect()) as connection, connection:
                 connection.execute("BEGIN IMMEDIATE")
                 row = connection.execute(
                     "SELECT record_json FROM beverages WHERE owner=? AND id=?", (owner, beverage_id),
                 ).fetchone()
-                if row is None or _decode(row[0]).get("deleted"):
+                current = _decode(row[0]) if row is not None else None
+                if current is None or current.get("deleted"):
                     raise BeverageNotFound()
+                if revision is not None and current["revision"] != revision:
+                    raise RevisionConflict(current)
                 tombstone = json.dumps({"deleted": True, "id": beverage_id}, separators=(",", ":"), sort_keys=True)
                 # The key alone blocks resurrection; the content fingerprint is erased too.
                 connection.execute(
