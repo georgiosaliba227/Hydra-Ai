@@ -372,16 +372,23 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     def export_data(request: Request):
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
+        results_dir = getattr(request.app.state, "wonder_results_dir", None)
+        from .wonder_results import saved_trends
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "beverages": repository.list_all("local-demo"),
-                "settings": settings_view(repository.get_settings("local-demo"))}
+                "settings": settings_view(repository.get_settings("local-demo")),
+                "wonder_trends": saved_trends(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
         # An explicit phrase guards against an accidental or replayed bulk deletion.
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
-        return {"deleted_beverages": request.app.state.repository.delete_all("local-demo"), "settings_cleared": True}
+        results_dir = getattr(request.app.state, "wonder_results_dir", None)
+        from .wonder_results import delete_trends
+        deleted = request.app.state.repository.delete_all("local-demo")
+        return {"deleted_beverages": deleted, "settings_cleared": True,
+                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0}
 
     @app.get("/v1/settings")
     def get_settings(request: Request):

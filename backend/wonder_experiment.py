@@ -290,6 +290,18 @@ class WonderExperimentLedger(ExperimentBudget):
         return amount
 
 
+    def verify_identity(self, account: str, credential_fingerprint: str) -> None:
+        """Read-only: the key and account must be this ledger's, checked before anything is reserved."""
+        with self._transaction(write=False) as db:
+            row = db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()
+            if not row:
+                raise BudgetDenied("Immutable reviewed allocation missing")
+            allocated = json.loads(row[0])["account_id"]
+            evidence = db.execute("SELECT evidence FROM live_accounts WHERE account_id=?", (allocated,)).fetchone()
+            if (allocated != account or not evidence
+                    or json.loads(evidence[0])["key_sha256"] != credential_fingerprint):
+                raise BudgetDenied("Key or account does not belong to this ledger")
+
     def record_rejected_output(self, attempt: str) -> None:
         """Audit a settled attempt whose output failed validation; changes no amounts or freezes."""
         with self._transaction() as db:
@@ -363,6 +375,8 @@ class WonderHydrationGateway:
         """
         attempt, replied, latency_ms, settled = None, False, None, False
         try:
+            # A wrong key or account is refused here; after reservation it would freeze the ledger.
+            self.ledger.verify_identity(quote.account_id, self.transport.credential_fingerprint)
             bound = self.transport.input_bound(payload)
             request = ExperimentRequest(attempt_id=str(uuid4()), case_id=case_id, payload_sha256=payload_sha256(payload),
                                         input_bound=bound, output_bound=OUTPUT_LIMIT,

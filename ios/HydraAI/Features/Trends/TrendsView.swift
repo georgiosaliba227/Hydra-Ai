@@ -12,7 +12,7 @@ struct TrendsView: View {
     var body: some View {
         Form {
             Section {
-                Text("Muse Wonder 1.0 explains patterns in your last 14 days. Hydra computes every number; Wonder picks what matters and writes it up, and Hydra rejects any number that isn't in your log. Wellness information, not medical advice.")
+                Text("Muse Wonder 1.0 explains patterns in your last 14 days. Wonder picks what matters and writes the wording; Hydra fills in every number from your log and rejects advice or medical claims. Wellness information, not medical advice.")
                     .font(.footnote)
                 if !connected { Text("Connect to your local backend in Settings to see trends.") }
             }
@@ -43,7 +43,7 @@ struct TrendsView: View {
             }
         }
         Section("How this was made") {
-            Text("Written by Muse Wonder 1.0. Hydra checked every number against your log.").font(.caption)
+            Text("Wording by Muse Wonder 1.0. Every number was filled in by Hydra from your log.").font(.caption)
             if let input = result.inputTokens, let output = result.outputTokens {
                 Text("\(input) input · \(output) output tokens").font(.caption)
             }

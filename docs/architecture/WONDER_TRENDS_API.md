@@ -20,16 +20,26 @@ until the user turns on the consent toggle and taps **Explain my trends**.
 Muse Wonder 1.0 then chooses 1 to 3 insights that apply and writes one or two
 sentences for each, plus a one-sentence summary.
 
-The server rejects the whole reply, without repair or retry, if any of these is
-true:
+Wonder cannot write numbers. It writes placeholders such as `{week_total}`,
+`{weekly_change}` or `{goal_met_days}`, and Hydra fills in the exact values,
+for example "You logged {week_total}, {weekly_change}." becomes "You logged
+13600 mL, 21% more than the week before." Direction and quantity come from
+Hydra too, so Wonder can't misstate them.
 
-- a number in the text does not appear in the facts (mL values may also be
-  written in liters);
-- the text uses diagnostic, medical or prescriptive wording, for example
-  "dehydrated", "diagnose", "doctor", "recommend", "aim for" or "should drink";
-- it names an insight the facts don't support, such as a goal insight with no
-  goal set;
-- the text is too long, or has extra fields, line breaks or links.
+The server rejects the whole reply, without repair or retry, if the wording
+contains any of these:
+
+- a digit or a number word ("three", "double", "half"), or a unit;
+- a comparison or quantity word ("more", "fell", "most", "every", "never");
+- diagnostic, medical, judging or prescriptive wording ("hydrated", "symptom",
+  "diabetes", "headache", "cause", "should", "try", "consider", "recommend",
+  "good", "bad");
+- an unknown placeholder, or a goal placeholder when no goal is set;
+- an insight the facts don't support;
+- too much text, extra fields, line breaks or links.
+
+The stored result keeps both Wonder's template and Hydra's rendered text.
+Replay re-checks the template and renders it again.
 
 ## API
 
@@ -52,7 +62,9 @@ The response is `{replayed, saved, result}`:
 - Otherwise the backend sends one request and stores the validated result
   write-once as `trends-<payload_sha256>.json`.
 
-The same data is never paid for twice. Errors:
+The same data is never paid for twice. Saved trend results are included in
+`GET /v1/export` and removed by `DELETE /v1/data`; the ledger keeps only
+payload hashes and amounts. Errors:
 
 | Status | Code | Meaning |
 | --- | --- | --- |
@@ -71,6 +83,9 @@ Every request goes through `WonderExperimentLedger` in one private ledger file:
 - one request in flight,
 - invoice finality for every earlier attempt before the next one,
 - a $75 notice to both developers,
+- a key and account that match the ledger's allocation and evidence, checked
+  at startup and again before each reservation, so a wrong key is refused
+  without reserving or freezing anything,
 - unresolved-billing and frozen-account blocks,
 - settlement from Meta's reported usage,
 - no retries.

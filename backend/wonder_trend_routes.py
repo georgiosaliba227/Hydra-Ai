@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .meta_accounts import ACCOUNTS, AccountLedger
 from .meta_experiments import ExperimentQuote
+from .meta_budget import BudgetDenied
 from .meta_gateway import GitHubNotifier
 from .recognition import RecognitionUnavailable
 from .wonder_experiment import WonderExperimentLedger, WonderHydrationGateway, WonderMetaTransport
@@ -53,8 +54,14 @@ class LiveConfig:
         if not (ledger.is_absolute() and ledger.is_file() and quote.is_absolute() and quote.is_file()):
             raise ValueError("HYDRA_WONDER_LEDGER and HYDRA_WONDER_QUOTE must be absolute paths to existing files")
         key, token = env.get(KEY_NAMES[account], ""), env.get("HYDRA_GITHUB_NOTIFICATION_TOKEN", "")
-        WonderMetaTransport(key), GitHubNotifier(token)  # Both raise when missing or malformed.
-        return cls(account, WonderExperimentLedger(AccountLedger(ledger)), quote, key, token)
+        transport = WonderMetaTransport(key)  # Raises when missing or malformed, as does the notifier.
+        GitHubNotifier(token)
+        authority = WonderExperimentLedger(AccountLedger(ledger))
+        try:
+            authority.verify_identity(account, transport.credential_fingerprint)
+        except BudgetDenied:
+            raise ValueError("The key and HYDRA_WONDER_ACCOUNT must match the ledger's allocation and evidence") from None
+        return cls(account, authority, quote, key, token)
 
 
 def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
@@ -67,6 +74,7 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
         raise ValueError("Live Wonder trends need HYDRA_WONDER_RESULTS_DIR to keep each paid result")
     app.state.wonder_trends_gateway = (lambda: WonderHydrationGateway(
         config.ledger, WonderMetaTransport(config.key), GitHubNotifier(config.notification_token))) if config else None
+    app.state.wonder_results_dir = results_dir  # Data export and delete-all include saved trends.
     in_flight = threading.Lock()
 
     def facts_for(request: Request, timezone: str) -> dict:
@@ -76,7 +84,10 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
             raise HTTPException(422, "invalid_request") from None
         repository = request.app.state.repository
         goal = (repository.get_settings("local-demo") or {}).get("daily_beverage_goal_ml")
-        return build_facts(repository.list_all("local-demo"), goal, timezone, today)
+        try:
+            return build_facts(repository.list_all("local-demo"), goal, timezone, today)
+        except ValueError:
+            raise HTTPException(422, "invalid_request") from None
 
     def saved(payload_sha256: str | None) -> dict | None:
         try:

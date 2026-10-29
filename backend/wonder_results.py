@@ -84,8 +84,8 @@ def validate_recorded_trends(result: dict) -> dict:
         generated = datetime.fromisoformat(result["generated_at"])
         if generated.tzinfo is None or generated.utcoffset().total_seconds() != 0:
             raise ValueError
-        explanation = validate_explanation({"summary": result["summary"],
-                                            "insights": [{"id": item["id"], "text": item["text"]}
+        explanation = validate_explanation({"summary": result["summary_template"],
+                                            "insights": [{"id": item["id"], "text": item["template"]}
                                                          for item in result["insights"]]}, facts)
         if trend_result(facts, explanation, account=provenance["account_id"], attempt_id=provenance["attempt_id"],
                         observations=observations, generated_at=result["generated_at"]) != result:
@@ -147,22 +147,49 @@ def load_trends(directory: Path, payload_sha256: str) -> dict | None:
     if not re.fullmatch(r"[a-f0-9]{64}", payload_sha256):
         raise ValueError("Payload fingerprint required")
     raw = _read(directory, "trends-" + payload_sha256)
-    return None if raw is None else validate_recorded_trends(raw)
+    if raw is None:
+        return None
+    if raw.get("payload_sha256") != payload_sha256:
+        raise ValueError("Recorded trends belong to another payload")
+    return validate_recorded_trends(raw)
 
 
 def latest_trends(directory: Path) -> dict | None:
     """The most recent valid saved trend explanation; unreadable or tampered records are skipped."""
-    names = sorted(entry.name[:-5] for entry in os.scandir(_private_directory(directory))
-                   if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]))
+    entries = [entry for entry in os.scandir(_private_directory(directory))
+               if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5])]
+    entries.sort(key=lambda entry: entry.stat(follow_symlinks=False).st_mtime_ns, reverse=True)
     latest = None
-    for name in names[:MAX_TREND_RECORDS]:
+    for entry in entries[:MAX_TREND_RECORDS]:
         try:
-            result = validate_recorded_trends(_read(directory, name))
+            result = load_trends(directory, entry.name[len("trends-"):-5])
         except (ValueError, TypeError, OSError):
             continue
         if latest is None or result["generated_at"] > latest["generated_at"]:
             latest = result
     return latest
+
+
+def saved_trends(directory: Path) -> list[dict]:
+    """Every valid saved trend explanation, for the user's data export."""
+    results = []
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]):
+            try:
+                results.append(load_trends(directory, entry.name[len("trends-"):-5]))
+            except (ValueError, TypeError, OSError):
+                continue
+    return sorted(results, key=lambda result: result["generated_at"])
+
+
+def delete_trends(directory: Path) -> int:
+    """Remove the user's saved trend explanations (delete-all). Synthetic demo results stay."""
+    removed = 0
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
+            os.unlink(entry.path)
+            removed += 1
+    return removed
 
 
 def _read(directory: Path, name: str) -> dict | None:

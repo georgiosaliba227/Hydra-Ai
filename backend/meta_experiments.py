@@ -211,7 +211,8 @@ class ExperimentBudget:
             approval = ExperimentApproval.model_validate(approval.model_dump())
             self._evidence(db, approval)
             self.authority.verify_prior_finalities(db)
-            raw = approval.model_dump_json()
+            # Without a trend approval, keep the byte layout of allocations recorded before that field existed.
+            raw = approval.model_dump_json(exclude={"trend_dispatch_reference"} if approval.trend_dispatch_reference is None else None)
             existing = db.execute("SELECT approval FROM experiment_allocation WHERE id=1").fetchone()
             if existing:
                 if existing[0] == raw:

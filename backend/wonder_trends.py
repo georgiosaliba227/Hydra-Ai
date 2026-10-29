@@ -1,9 +1,11 @@
 """Muse Wonder explanations of the user's own logged-drink trends.
 
 Hydra's tested code computes every number (TrendFacts). Wonder chooses which
-insights matter and writes short explanations; the server rejects any text
-with a number that is not in the facts, medical or prescriptive language, or
-an insight the facts do not support. No repair, retry or fallback text.
+insights matter and writes the wording, but it cannot write a number: it uses
+placeholders such as {weekly_change}, which Hydra fills in from the facts. Any
+digit, number word, comparison word, medical or prescriptive wording, unknown
+placeholder or unsupported insight rejects the whole reply. No repair, retry
+or fallback text.
 Policy: AGENTS.md (2026-10-29) and docs/architecture/WONDER_TRENDS_API.md.
 """
 from datetime import date, datetime, timedelta
@@ -32,22 +34,53 @@ INSIGHTS = {
     "beverage_mix": "What you drink",
     "timing": "When you drink",
 }
-PROMPT = ("You explain trends in one person's own logged drinks. Hydra's tested code computed the facts below; "
-          "treat them as exact. Choose 1 to 3 insight IDs from the schema that matter most for this person, most "
-          "important first, and write one or two plain sentences for each, plus a one-sentence summary. Use only "
-          "numbers that appear in the facts, written the same way (for example 1850 mL or 12%). Describe what the "
-          "log shows. Do not diagnose, mention dehydration or medical conditions, recommend an amount to drink, or "
-          "add disclaimers. Logged volume is not a measurement of hydration status. No tools.")
+PLACEHOLDERS = {
+    "week_total": "total logged in the last 7 days, e.g. 13600 mL",
+    "week_average": "daily average for the last 7 days, e.g. 1943 mL a day",
+    "previous_week_total": "total logged in the 7 days before that",
+    "weekly_change": "the change from the week before, e.g. 21% more than the week before",
+    "week_logged_days": "days with a log in the last 7, e.g. 6 of the last 7 days",
+    "days_without_logs": "days without a log in the 14-day window",
+    "goal": "the person's own daily goal, e.g. 2000 mL",
+    "goal_met_days": "days the goal was reached in the last 7",
+    "top_drink": "the drink type logged most, with its share",
+    "peak_time": "the time of day with the most volume, with its share",
+}
+PROMPT = ("You describe trends in one person's own logged drinks. Hydra's tested code computed the facts below. "
+          "Choose 1 to 3 insight IDs from the schema that matter most for this person, most important first, and "
+          "write one or two plain sentences for each, plus a one-sentence summary. Never write a number, a number "
+          "word, a unit or a comparison word (more, less, higher, lower, most, every, never) yourself: write a "
+          "placeholder in braces instead and Hydra fills in the exact value. Placeholders: "
+          + "; ".join(f"{{{name}}} = {meaning}" for name, meaning in PLACEHOLDERS.items())
+          + ". Use goal placeholders only when goal_ml is set. Describe only what the log shows. Do not give advice, "
+          "judge the amounts, mention hydration, health or any medical condition, or add disclaimers. No tools.")
 FACTS_MARKER = " Facts: "
 LIMITATIONS = ["Wellness information, not medical advice.",
-               "Muse Wonder wrote these explanations; Hydra checked every number against your log.",
+               "Muse Wonder wrote the wording; every number was filled in by Hydra from your log.",
                "Logged volume is not a measurement of hydration status."]
-# Medical, diagnostic or prescriptive wording is outside what Hydra may say.
-BLOCKED = re.compile(r"dehydrat|diagnos|disease|disorder|kidney|medic|doctor|prescri|supplement|recommend|"
-                     r"should drink|need to drink|aim for|https?:|www\.", re.IGNORECASE)
-NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+# Wonder may not state amounts, directions or quantities itself; placeholders carry them.
+NUMERIC = re.compile(r"\d|\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
+                     r"fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|"
+                     r"ninety|hundred|thousand|million|dozen|half|halves|double[ds]?|twice|triple[ds]?|quarter|"
+                     r"percent\w*|liters?|litres?|ml|millilit\w*|ounces?|oz|cups?|glass(?:es)?|bottles?)\b",
+                     re.IGNORECASE)
+COMPARATIVE = re.compile(r"\b(?:more|less|fewer|higher|lower|bigger|smaller|increas\w*|decreas\w*|rose|rises?|rising|"
+                         r"fell|falls?|falling|drop\w*|declin\w*|grew|grow\w*|up|down|most|least|majority|minority|"
+                         r"largest|smallest|biggest|greatest|highest|lowest|top|bottom|"
+                         r"all|every|each|none|never|always|only|usually|mostly)\b", re.IGNORECASE)
+# Diagnostic, medical, judging or prescriptive wording is outside what Hydra may say.
+BLOCKED = re.compile(r"\b(?:\w*hydrat\w*|diagnos\w*|diseas\w*|disorder\w*|condition\w*|symptom\w*|syndrome\w*|"
+                     r"diabet\w*|hyponat\w*|kidney\w*|heart\w*|blood|pressure|headache\w*|fatigue\w*|tired\w*|"
+                     r"dizz\w*|cramp\w*|faint\w*|ill|illness\w*|sick\w*|pain\w*|risk\w*|danger\w*|harm\w*|"
+                     r"unsafe|safe\w*|health\w*|medic\w*|doctor\w*|physician\w*|clinic\w*|prescri\w*|"
+                     r"supplement\w*|recommend\w*|advi[cs]e\w*|should|must|need\w*|ought|try\w*|consider\w*|"
+                     r"aim\w*|target\w*|enough|sufficien\w*|insufficien\w*|adequate\w*|optimal\w*|ideal\w*|"
+                     r"deficien\w*|excess\w*|caus\w*|lead\w*|result\w*|because|improv\w*|better|worse|bad|"
+                     r"poor\w*|good|great|concern\w*|worr\w*|warn\w*|caution\w*|careful\w*)\b|https?:|www\.|@",
+                     re.IGNORECASE)
+PLACEHOLDER = re.compile(r"\{([a-z_]+)\}")
 
-Ml = Annotated[int, Field(strict=True, ge=0, le=1_000_000)]
+Ml = Annotated[int, Field(strict=True, ge=0, le=1_000_000_000)]
 Day = Annotated[str, Field(strict=True, pattern=r"^\d{4}-\d{2}-\d{2}$")]
 
 
@@ -88,7 +121,7 @@ class TrendFacts(Strict):
     days: list[DayTotal] = Field(min_length=WINDOW_DAYS, max_length=WINDOW_DAYS)
     last_7_days: Week
     previous_7_days: Week
-    change_pct: StrictInt | None = Field(ge=-100_000, le=100_000)
+    change_pct: StrictInt | None = Field(ge=-100, le=10**12)
     goal_ml: StrictInt | None = Field(ge=100, le=10_000)
     goal_met_days_last_7: StrictInt | None = Field(ge=0, le=7)
     categories: list[CategoryTotal] = Field(max_length=MAX_CATEGORIES)
@@ -224,33 +257,50 @@ def preview(facts: dict) -> dict:
             "input_bound_tokens": bound, "worst_case_micro_usd": worst_case_micro_usd(bound)}
 
 
-def _allowed_numbers(facts: dict) -> set[str]:
-    allowed = {_number(token) for token in NUMBER.findall(canonical(facts))}
-    for token in list(allowed):
-        if token.isdigit():
-            liters = int(token) / 1000
-            allowed |= {f"{liters:g}", f"{round(liters, 1):g}"}
-    return allowed
+def placeholder_values(facts: dict) -> dict[str, str]:
+    """Every value Wonder may refer to, formatted by Hydra; absent facts have no placeholder."""
+    last, previous = facts["last_7_days"], facts["previous_7_days"]
+    window = sum(day["total_ml"] for day in facts["days"])
+    values = {"week_total": f"{last['total_ml']} mL", "week_average": f"{last['average_ml']} mL a day",
+              "week_logged_days": f"{last['logged_days']} of the last 7 days",
+              "days_without_logs": f"{sum(day['drinks'] == 0 for day in facts['days'])} of the last 14 days"}
+    if previous["logged_days"]:
+        values["previous_week_total"] = f"{previous['total_ml']} mL"
+    change = facts["change_pct"]
+    if change is not None:
+        values["weekly_change"] = (f"{change}% more than the week before" if change > 0 else
+                                   f"{-change}% less than the week before" if change < 0 else
+                                   "the same amount as the week before")
+    if facts["goal_ml"] is not None:
+        values["goal"] = f"{facts['goal_ml']} mL"
+        values["goal_met_days"] = f"{facts['goal_met_days_last_7']} of the last 7 days"
+    if facts["categories"]:
+        top = facts["categories"][0]
+        values["top_drink"] = f"{top['category']} ({top['share_pct']}% of what you logged)"
+    if window:
+        name, volume = max(facts["time_of_day_ml"].items(), key=lambda item: item[1])
+        values["peak_time"] = f"the {name.removesuffix('_ml')} ({round(100 * volume / window)}% of what you logged)"
+    return values
 
 
-def _number(token: str) -> str:
-    value = token.replace(",", "")
-    return value[:-2] if value.endswith(".0") else value
-
-
-def _checked_text(value, limit: int, allowed: set[str]) -> str:
-    if (not isinstance(value, str) or value != value.strip() or not 1 <= len(value) <= limit
-            or any(ord(char) < 32 for char in value) or BLOCKED.search(value)
-            or any(_number(token) not in allowed for token in NUMBER.findall(value))):
+def _render(template, limit: int, values: dict[str, str]) -> str:
+    """One checked template to display text; raises on anything Wonder may not say itself."""
+    if (not isinstance(template, str) or template != template.strip() or not 1 <= len(template) <= limit
+            or any(ord(char) < 32 for char in template)):
         raise ValueError
-    return value
+    names = PLACEHOLDER.findall(template)
+    prose = PLACEHOLDER.sub(" ", template)
+    if (any(name not in values for name in names) or "{" in prose or "}" in prose
+            or NUMERIC.search(prose) or COMPARATIVE.search(prose) or BLOCKED.search(prose)):
+        raise ValueError
+    return PLACEHOLDER.sub(lambda match: values[match.group(1)], template)
 
 
 def validate_explanation(value, facts: dict) -> dict:
-    """Wonder's JSON to a checked explanation; any ungrounded number or claim rejects it whole."""
+    """Wonder's JSON to checked templates and rendered text; any violation rejects it whole."""
     if not isinstance(value, dict) or set(value) != {"summary", "insights"}:
         raise ValueError
-    allowed = _allowed_numbers(facts)
+    values = placeholder_values(facts)
     insights = value["insights"]
     if not isinstance(insights, list) or not 1 <= len(insights) <= min(MAX_INSIGHTS, len(facts["applicable_insights"])):
         raise ValueError
@@ -258,10 +308,12 @@ def validate_explanation(value, facts: dict) -> dict:
     for item in insights:
         if not isinstance(item, dict) or set(item) != {"id", "text"} or item["id"] not in facts["applicable_insights"]:
             raise ValueError
-        checked.append({"id": item["id"], "text": _checked_text(item["text"], INSIGHT_CHARS, allowed)})
+        checked.append({"id": item["id"], "template": item["text"],
+                        "text": _render(item["text"], INSIGHT_CHARS, values)})
     if len({item["id"] for item in checked}) != len(checked):
         raise ValueError
-    return {"summary": _checked_text(value["summary"], SUMMARY_CHARS, allowed), "insights": checked}
+    return {"summary_template": value["summary"], "summary": _render(value["summary"], SUMMARY_CHARS, values),
+            "insights": checked}
 
 
 def parse_explanation(reply: ProviderReply, facts: dict) -> dict:
@@ -285,9 +337,9 @@ def parse_explanation(reply: ProviderReply, facts: dict) -> dict:
 def trend_result(facts: dict, explanation: dict, *, account: str, attempt_id: str, observations: dict,
                  generated_at: str) -> dict:
     return {"version": VERSION, "facts": facts, "payload_sha256": payload_sha256(trends_payload(facts)),
-            "summary": explanation["summary"],
-            "insights": [{"id": item["id"], "title": INSIGHTS[item["id"]], "text": item["text"]}
-                         for item in explanation["insights"]],
+            "summary": explanation["summary"], "summary_template": explanation["summary_template"],
+            "insights": [{"id": item["id"], "title": INSIGHTS[item["id"]], "template": item["template"],
+                          "text": item["text"]} for item in explanation["insights"]],
             "generated_at": generated_at,
             "provenance": {"mode": "meta_live", "provider": "Meta", "model": MODEL, "account_id": account,
                            "attempt_id": attempt_id, "text_origin": "muse_wonder_checked",
