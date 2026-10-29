@@ -9,6 +9,8 @@ protocol BeverageService: Sendable {
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
     func assistantQuestions() async throws -> [AssistantQuestion]
+    func goalSettings() async throws -> GoalSettings
+    func updateGoal(_ milliliters: Int?) async throws -> GoalSettings
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
     /// Succeeds when the log is gone, including when it was already deleted.
     func deleteBeverage(id: UUID) async throws
@@ -104,6 +106,14 @@ extension BeverageService {
     }
 
     func assistantQuestions() async throws -> [AssistantQuestion] {
+        throw ServiceError.invalidResponse
+    }
+
+    func goalSettings() async throws -> GoalSettings {
+        throw ServiceError.invalidResponse
+    }
+
+    func updateGoal(_ milliliters: Int?) async throws -> GoalSettings {
         throw ServiceError.invalidResponse
     }
 

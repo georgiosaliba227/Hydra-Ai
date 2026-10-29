@@ -86,7 +86,8 @@ final class BeverageStore: ObservableObject {
             let nextLogs = try await service.listBeverages()
             let nextSummary = try await service.dailySummary(date: date, timezone: zone)
             guard version == refreshVersion else { return }
-            guard nextSummary.beverageTotalMl.isFinite, nextSummary.beverageTotalMl >= 0 else { throw ServiceError.invalidResponse }
+            guard nextSummary.beverageTotalMl.isFinite, nextSummary.beverageTotalMl >= 0,
+                  nextSummary.goal?.isValid ?? true else { throw ServiceError.invalidResponse }
             logs = nextLogs; summary = nextSummary; state = .loaded
             if !isOffline && pending == nil {
                 intakeHistoryState = .loading
@@ -147,6 +148,18 @@ final class BeverageStore: ObservableObject {
             await refresh()
             throw BeverageEditError.changedElsewhere
         }
+        await refresh()
+    }
+
+    func currentGoal() async throws -> Int? {
+        guard let service else { throw ServiceError.configuration }
+        return try await service.goalSettings().daily_beverage_goal_ml
+    }
+
+    /// Saves a goal the user chose (nil clears it), then reloads today's progress.
+    func setGoal(_ milliliters: Int?) async throws {
+        guard let service else { throw ServiceError.configuration }
+        _ = try await service.updateGoal(milliliters)
         await refresh()
     }
 
