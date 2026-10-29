@@ -74,7 +74,8 @@ def test_full_context_bound_is_not_admissible_under_the_per_attempt_cap():
     result = preview("complete")
     assert result["full_context_bound_micro_usd"] == worst_case_micro_usd(MAX_INPUT_TOKENS) > CAP
     assert result["admissible_under_cap"] is False
-    assert result["unreviewed_byte_bound_micro_usd"] < CAP
+    assert result["byte_bound_micro_usd"] < CAP
+    assert result["input_bound_tokens"] == result["payload_bytes"] + 256
     assert result["dispatch_enabled"] is False and result["billing_evidence"] is False
     assert result["account_id"] == "georgiosaliba227"
 

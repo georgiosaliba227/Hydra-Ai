@@ -4,12 +4,12 @@
 
 | Order | Action / owner | Completion evidence |
 | --- | --- | --- |
-| 1 | Georgio: push any unpublished Wonder work, confirm the Wonder-only and $30-account decisions, and say whether the $20 Spark target still applies | Reply on the Wonder PR; DECISION_LOG row confirmed or corrected |
-| 2 | Both: review `codex/wonder-hydration-intelligence` (contract, payload, parser, Wonder-only V2) | GitHub review on the exact commit |
-| 3 | Both: choose how a live Wonder request's input size is bounded (provider token count or reviewed byte bound) | Decision recorded; current full-context bound is $4.20 per request and cannot be admitted |
-| 4 | Amine: implement the Wonder live adapter through `ExperimentBudget`, mock-only | Dispatch, settlement and observation tests with fake transports; no private ledger touched |
-| 5 | Georgio: update iOS copy that still names Spark as a hydration candidate | `WorkoutForecastView.swift` text; XCTest/UI run |
-| 6 | Georgio + provider: camera invoice finality for the PR #14 request | Reconciled billing evidence; unblocks any further request |
+| 1 | Georgio: push any unpublished Wonder work, if any | Nothing unpublished, or a reconciled branch |
+| 2 | Amine: operator tooling — read-only Wonder approval package and an explicit existing-only `LIVE_SCHEMA` migration with preview | Scripts and tests; private ledger untouched until a human runs them |
+| 3 | Georgio: update iOS copy that still names Spark as a hydration candidate, and show live Wonder provenance when present | `WorkoutForecastView.swift` text; XCTest/UI run |
+| 4 | Georgio + provider: camera invoice finality for the PR #14 request | Reconciled billing evidence; unblocks any further request |
+| 5 | Both: approve one Wonder case (exact payload hash, spending and live-dispatch references) on Georgio's account | Recorded `ApprovedCase`; explicit spending approval within the $30 allocation |
+| 6 | Operator: run one approved Wonder case, then record invoice finality | Settled attempt, observation, finality; demo evidence |
 
 ## Current forecasting assignment — October 28
 

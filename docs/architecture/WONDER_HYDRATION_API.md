@@ -90,14 +90,50 @@ therefore cannot be admitted under current rules.** Unblocking it needs one of:
    a fixed template allowance. This assumes no tokenizer emits more tokens than
    bytes and must be independently reviewed before it is used for admission.
 
-`preview` reports both the full-context bound and this byte-based figure, clearly
-labeled, so reviewers can decide. Neither figure is billing evidence.
+**Adopted (2026-10-28, both developers via Amine):** option 2 as policy
+`canonical-payload-bytes-v1`. The bound is the byte length of the canonical
+payload JSON (the same serialization the dispatch ticket hashes, which already
+includes schema, keys and quoting) plus 256 tokens for provider framing. The
+five scenarios bound at 3,623–4,144 tokens, about $0.025–$0.027 per request
+including 512 output tokens. Settlement freezes the account if the provider
+reports more input tokens than the bound, so a wrong assumption stops spending
+after one request. `preview` still reports the full-context figure.
 
-## Not implemented here
+## Live adapter (`backend/wonder_experiment.py`)
 
-- No live transport, ledger reservation, dispatch ticket, settlement or route.
-  The $30 experiment module stays review-only; its live adapter is a separate,
-  independently reviewed change.
+Implemented and tested with fake transports only.
+
+- `LIVE_SCHEMA` adds an immutable `experiment_cases` manifest to the proposed
+  experiment DDL. It is installed only by tests; the private ledger needs a
+  separate reviewed migration.
+- `ApprovedCase` binds one case UUID to one exact payload hash and model, with
+  input-consent, live-dispatch and spending references and an expiry. One case
+  per payload; no update or delete.
+- `WonderExperimentLedger` reuses every `ExperimentBudget` admission check ($30
+  aggregate, $0.25 per attempt, $75/$100/$120, credits, freeze, prior finality,
+  one in flight) and additionally requires the approved case. States:
+  `experiment_reserved` → `experiment_dispatched` (one-use nonce) →
+  `experiment_sending` → `settled`, or `unresolved` with the account frozen.
+  Legacy camera dispatch, send and settlement accept none of these states, and
+  review-only reservations cannot be dispatched.
+- Settlement prices usage at the reserved quote. Cached tokens, a nonzero extra
+  charge bound, a wrong model, a malformed ID or usage are recorded as unresolved
+  and freeze the account. Usage above the reserved bounds settles and freezes.
+  Settlement ends in `settled`, so the existing invoice-finality gate applies
+  before any next request.
+- `WonderMetaTransport` reuses the fixed-origin, no-retry official sender but
+  accepts only exact Wonder scenario payloads and experiment tickets.
+- `WonderHydrationGateway.explain(scenario, case_id, quote, input_reference)`
+  reserves, delivers pending $75 notices, dispatches, settles, then validates the
+  selection. Any failure after reservation quarantines the attempt; there is no
+  retry or mock fallback. Results carry `mode: meta_live`, the Wonder model,
+  Georgio's account, the attempt ID, latency, tokens and the usage-derived cost;
+  `billed_cost_usd` stays null until invoice finality.
+
+## Still not implemented
+
+- No HTTP route, operator script or environment switch calls the gateway.
+- No migration of the private ledger, approved case, quote or spending approval.
 - No ranking or quality claim. Mock selections are rule-based fixtures.
 - No iOS change. The client already accepts `muse-wonder-1.0` as the candidate
   label; its explanatory copy still mentions Spark and is Georgio's to update.
