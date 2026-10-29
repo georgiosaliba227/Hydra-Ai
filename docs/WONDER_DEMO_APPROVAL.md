@@ -8,7 +8,7 @@ alter these payloads, so the hashes below always match what would be sent.
 
 | Case | Payload SHA-256 | Input bound (tokens) | Output limit | Worst-case cost |
 | --- | --- | ---: | ---: | ---: |
-| scenario `complete` | `c2125b019bc3f4193f5df9a60114d6bf1979004d816206d3947eb4f68d9885fd` | 4,127 | 512 | $0.026748 |
+| scenario `complete` | `6ce5c5f491fa1b7cddec15df346faeeeef2cef37cedc44768dc3a2bb8e777005` | 3,480 | 512 | $0.024160 |
 | question `hot_weather` | `c92712ed5fa28a3bf165d756a29852905df136408ebded8ecee2a7b9e159bba9` | 1,050 | 512 | $0.014440 |
 
 Worst case for both: about **$0.04**, well inside the $10 Wonder target and the

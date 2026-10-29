@@ -9,7 +9,7 @@ import json
 
 from fastapi.encoders import jsonable_encoder
 
-from .hydration_context_v2 import PROMPT, SCENARIOS, Selection, build_scenario, validate_selection
+from .hydration_context_v2 import SCENARIOS, Selection, build_scenario, supported_selection, validate_selection
 from .meta_accounts import CAP
 from .meta_experiments import ACCOUNT, REFERENCE_PRICES
 from .meta_policy import MAX_INPUT_TOKENS, OUTPUT_LIMIT
@@ -18,6 +18,15 @@ from .recognition import RecognitionUnavailable
 
 MODEL = "muse-wonder-1.0"
 VERSION = "wonder-hydration-context-v1"
+# Wonder chooses only among the codes a scenario supports. Hydra fixes the required uncertainty notes,
+# contradictions and numerical abstention itself: live replies repeated codes, invented a factor and
+# dropped required caveats when the schema allowed every code (2026-10-29).
+CHOSEN = ("factors", "missing_information", "measurement_suggestions")
+PROMPT = ("From the enum IDs offered, select those relevant to this synthetic context, each at most once, most relevant "
+          "first. Hydra adds the required uncertainty notes, contradictions and numerical abstention itself. The supplied "
+          "numerical prediction is authoritative: do not change it, create goals or percentages, diagnose dehydration, "
+          "infer it from HR/HRV, or apply caffeine/creatine adjustments. Return only the structured selection schema. "
+          "No free-text advice, numerical output, tools or external data.")
 # Micro-USD per million uncached input / output tokens; no cache discount is assumed.
 INPUT_PRICE, OUTPUT_PRICE = REFERENCE_PRICES[MODEL]
 # Input bound policy: at most one input token per byte of the canonical payload
@@ -53,13 +62,22 @@ def selection_schema() -> dict:
     return compact(Selection.model_json_schema())
 
 
+def scenario_schema(scenario: str) -> dict:
+    """Strict json_schema offering only this scenario's supported codes for the fields Wonder chooses."""
+    supported = supported_selection(*build_scenario(scenario))
+    properties = {name: {"type": "array", "maxItems": len(supported[name]),
+                         "items": {"type": "string", "enum": list(supported[name])}}
+                  for name in CHOSEN if supported[name]}
+    return {"type": "object", "additionalProperties": False, "required": list(properties), "properties": properties}
+
+
 def wonder_payload(scenario: str) -> dict:
     """Server-owned synthetic scenario only; no caller context reaches the payload."""
     context, prediction = build_scenario(scenario)
     return {"model": MODEL, "store": False, "stream": False, "background": False,
             "max_output_tokens": OUTPUT_LIMIT, "reasoning": {"effort": "minimal"},
             "text": {"format": {"type": "json_schema", "name": "hydration_context_selection", "strict": True,
-                                "schema": selection_schema()}},
+                                "schema": scenario_schema(scenario)}},
             "input": [{"role": "user", "content": [{"type": "input_text",
                 "text": PROMPT + " Context: " + canonical({"context": context, "prediction": prediction})}]}]}
 
@@ -115,7 +133,18 @@ def parse_selection(reply: ProviderReply, scenario: str) -> dict:
             raise ValueError
         if not isinstance(parts[0]["text"], str) or len(parts[0]["text"]) > 4096:
             raise ValueError
-        return validate_selection(strict_json(parts[0]["text"]), context, prediction)
+        chosen = strict_json(parts[0]["text"])
+        supported = supported_selection(context, prediction)
+        if not isinstance(chosen, dict) or set(chosen) != set(scenario_schema(scenario)["properties"]):
+            raise ValueError
+        selection = {name: list(supported[name]) for name in ("contradictions", "uncertainty")}
+        selection["numerical_abstention"] = supported["numerical_abstention"]
+        for name in CHOSEN:
+            value = chosen.get(name, [])
+            if not isinstance(value, list) or not all(isinstance(code, str) for code in value):
+                raise ValueError
+            selection[name] = list(dict.fromkeys(value))  # a repeated code adds nothing; order is kept
+        return validate_selection(selection, context, prediction)
     except (ValueError, KeyError, TypeError, AttributeError):
         raise RecognitionUnavailable() from None
 

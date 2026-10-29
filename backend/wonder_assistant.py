@@ -62,8 +62,10 @@ def parse_topics(reply: ProviderReply, question_id: str) -> tuple[str, ...]:
             raise ValueError
         value = strict_json(parts[0]["text"])
         topics = value["topics"] if isinstance(value, dict) and set(value) == {"topics"} else None
-        if (not isinstance(topics, list) or not topics or len(topics) != len(set(topics))
-                or not all(isinstance(t, str) for t in topics) or not set(topics) <= set(ALLOWED[question_id])
+        if not isinstance(topics, list) or not all(isinstance(t, str) for t in topics):
+            raise ValueError
+        topics = list(dict.fromkeys(topics))  # a repeated topic adds nothing; order is kept
+        if (not topics or not set(topics) <= set(ALLOWED[question_id])
                 or not set(topics) & set(SUGGESTED[question_id][1])):
             raise ValueError
         return tuple(topics)

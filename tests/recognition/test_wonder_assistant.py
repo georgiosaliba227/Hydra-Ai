@@ -54,7 +54,7 @@ def test_allowed_selection_including_the_reviewed_topic_parses(question_id):
 
 
 @pytest.mark.parametrize("text", [
-    json.dumps({"topics": ["urgent"]}), json.dumps({"topics": ["creatine", "creatine"]}), json.dumps({"topics": []}),
+    json.dumps({"topics": ["urgent"]}), json.dumps({"topics": []}),
     json.dumps({"topics": ["daily_needs"]}),  # omits the reviewed creatine topic
     json.dumps({"topics": ["creatine"], "advice": "drink 3 L"}), json.dumps(["creatine"]), "creatine",
 ])
@@ -130,3 +130,7 @@ def test_admin_runs_an_approved_question_and_records_a_replayable_answer(tmp_pat
     output = json.loads(capsys.readouterr().out)
     assert transport.calls == 1 and output["recorded_path"] == str(results / "assistant-creatine_water.json")
     assert load_recorded_answer(results, "creatine_water") == output["result"]
+
+
+def test_a_repeated_topic_counts_once():
+    assert parse_topics(selection_reply(text=json.dumps({"topics": ["creatine", "creatine"]})), "creatine_water") == ("creatine",)
