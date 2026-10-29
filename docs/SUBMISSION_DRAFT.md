@@ -78,7 +78,8 @@ device, and never sends a free-text question to an AI provider.
 1. **Today (10 s).** Show logged total and goal progress: "your own goal, not
    a recommendation."
 2. **Log by photo (25 s).** Camera → suggested drink → confirm 330 mL → total
-   updates. Point out that nothing is logged without confirmation.
+   updates. Point out that nothing is logged without confirmation. This uses
+   mock recognition unless another live Spark request is approved **[pending]**.
 3. **Fix a mistake (10 s).** History → swipe → Edit to 250 mL; total updates.
 4. **Ask Hydra (25 s).** "Does coffee count?" → reviewed answer with source.
    Then type "I fainted after my run" → "seek urgent care" first.
