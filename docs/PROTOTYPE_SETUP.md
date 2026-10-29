@@ -81,6 +81,11 @@ migration, `wonder_admin.py migrate-schema`, allocation and case import, then on
 `run-case --confirm-billable` on Georgio's account after invoice finality for
 every earlier request. No recording exists yet.
 
+The Ask Hydra screen can likewise replay a recorded Wonder topic selection for
+a suggested question (`assistant-<id>.json` in the same directory) through its
+"Use Muse Wonder's recorded selection" toggle. See
+[ASSISTANT_API.md](architecture/ASSISTANT_API.md).
+
 ## Offline mock rehearsal
 
 From the maintained backend environment, run:

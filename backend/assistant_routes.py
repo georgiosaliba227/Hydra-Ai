@@ -1,5 +1,7 @@
 """Hydration assistant boundary (ASSISTANT_API.md). Local rules only; questions are never stored or sent out."""
 from datetime import date
+import os
+from pathlib import Path
 from typing import Literal, Self
 
 from fastapi import HTTPException, Request
@@ -21,6 +23,8 @@ class AssistantRequest(BaseModel):
     question: str | None = Field(default=None, max_length=1000, strict=True)
     question_id: QuestionId | None = None
     context_scope: Literal["none", "today_logged_total"] = "none"
+    # recorded_wonder replays a saved, already-settled Wonder selection; it never dispatches.
+    source: Literal["local_rules", "recorded_wonder"] = "local_rules"
     date: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     timezone: str | None = Field(default=None, min_length=1, max_length=128, strict=True)
 
@@ -41,16 +45,32 @@ class AssistantRequest(BaseModel):
             raise ValueError("date and timezone are required exactly when consenting to intake context")
         if self.context_scope == "none" and (self.date is not None or self.timezone is not None):
             raise ValueError("date and timezone are only accepted with intake context")
+        if self.source == "recorded_wonder" and (self.question_id is None or self.context_scope != "none"):
+            raise ValueError("recorded Wonder answers exist only for suggested questions without context")
         return self
 
 
 def install_assistant_routes(app, to_engine) -> None:
+    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "")
+    results_dir = Path(configured) if configured else None
+    if results_dir is not None and not results_dir.is_absolute():
+        raise ValueError("HYDRA_WONDER_RESULTS_DIR must be absolute")
+
     @app.get("/v1/assistant/questions")
     def suggested_questions():
         return {"version": VERSION, "questions": [{"id": key, "text": text} for key, (text, _) in SUGGESTED.items()]}
 
     @app.post("/v1/assistant")
     def ask(payload: AssistantRequest, request: Request):
+        if payload.source == "recorded_wonder":
+            from backend.wonder_results import load_recorded_answer
+            try:
+                recorded = load_recorded_answer(results_dir, payload.question_id) if results_dir else None
+            except (OSError, ValueError):
+                recorded = None
+            if recorded is None:
+                raise HTTPException(404, "not_found")
+            return recorded
         topics = suggested_topics(payload.question_id) if payload.question_id else match_topics(payload.question)
         intake = None
         if payload.context_scope == "today_logged_total":

@@ -11,6 +11,14 @@ struct AssistantRequest: Encodable, Sendable {
     var context_scope = "none"
     var date: String?
     var timezone: String?
+    /// "recorded_wonder" replays a saved Muse Wonder selection; omitted means local rules.
+    var source: String?
+
+    var wantsRecordedWonder: Bool { source == "recorded_wonder" }
+
+    static func recordedWonder(questionId: String) -> AssistantRequest {
+        AssistantRequest(question_id: questionId, source: "recorded_wonder")
+    }
 
     /// Today's logged total is sent back only with explicit consent.
     static func make(question: String? = nil, questionId: String? = nil, includeToday: Bool,
@@ -25,7 +33,8 @@ struct AssistantRequest: Encodable, Sendable {
     }
 
     func validate() throws {
-        guard (question == nil) != (question_id == nil) else { throw ServiceError.invalidResponse }
+        guard (question == nil) != (question_id == nil), source == nil || source == "recorded_wonder",
+              !wantsRecordedWonder || (question_id != nil && context_scope == "none") else { throw ServiceError.invalidResponse }
         if let question { guard (1...300).contains(question.count) else { throw ServiceError.invalidResponse } }
     }
 }
@@ -54,7 +63,11 @@ struct AssistantAnswer: Decodable, Sendable {
         let provider: String?
         let model: String?
         let answer_origin: String
+        var topic_selection: String? = nil
+        var account_id: String? = nil
+        var attempt_id: String? = nil
     }
+    static let observationKeys: Set<String> = ["latency_ms", "input_tokens", "output_tokens", "usage_derived_cost_micro_usd"]
     let version: String
     let question_id: String?
     let topics: [String]
@@ -62,11 +75,25 @@ struct AssistantAnswer: Decodable, Sendable {
     let answers: [Item]
     let intake_context: IntakeContext?
     let provenance: Provenance
+    let provider_observations: [String: Double?]?
     let limitations: [String]
 
+    /// Muse Wonder chose the reviewed answers; text and safety handling stayed local.
+    var isRecordedWonder: Bool { provenance.mode == "meta_live" }
+
     func validate(request: AssistantRequest) throws {
+        if request.wantsRecordedWonder {
+            guard provenance.mode == "meta_live", provenance.provider == "Meta", provenance.model == "muse-wonder-1.0",
+                  provenance.answer_origin == "reviewed_text", provenance.topic_selection == "muse-wonder-1.0",
+                  provenance.account_id == "georgiosaliba227", let attempt = provenance.attempt_id, UUID(uuidString: attempt) != nil,
+                  !escalation, let observed = provider_observations,
+                  Set(observed.keys) == Self.observationKeys.union(["billed_cost_usd"]), observed["billed_cost_usd"] == .some(nil),
+                  Self.observationKeys.allSatisfy({ ((observed[$0] ?? nil) ?? -1) >= 0 }) else { throw ServiceError.invalidResponse }
+        } else {
+            guard provenance == .init(mode: "local_rules", provider: nil, model: nil, answer_origin: "reviewed_text"),
+                  provider_observations == nil else { throw ServiceError.invalidResponse }
+        }
         guard version == "assistant-v1", question_id == request.question_id,
-              provenance == .init(mode: "local_rules", provider: nil, model: nil, answer_origin: "reviewed_text"),
               (1...4).contains(answers.count), answers.map(\.topic) == topics, Set(topics).count == topics.count,
               escalation == topics.contains("urgent"), !escalation || topics.first == "urgent",
               answers.allSatisfy({ !$0.text.isEmpty && $0.text.count <= 1_000 && !$0.evidence.isEmpty }),
@@ -106,6 +133,9 @@ struct AssistantAnswer: Decodable, Sendable {
             try answer.validate(request: request)
             guard current == generation, !Task.isCancelled else { return }
             self.answer = answer; state = .loaded
+        } catch ServiceError.server(let code) where code == 404 && request.wantsRecordedWonder {
+            guard current == generation, !Task.isCancelled else { return }
+            state = .failed("No recorded Muse Wonder selection exists for this question yet.")
         } catch {
             guard current == generation, !Task.isCancelled else { return }
             state = .failed("The assistant is unavailable. Logging still works.")

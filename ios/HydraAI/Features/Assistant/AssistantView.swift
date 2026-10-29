@@ -6,6 +6,7 @@ struct AssistantView: View {
     @StateObject private var controller = AssistantController()
     @State private var question = ""
     @State private var includeToday = false
+    @State private var recordedWonder = false
     @State private var task: Task<Void, Never>?
 
     private var connected: Bool { store.isConfigured && !store.isOffline }
@@ -30,8 +31,17 @@ struct AssistantView: View {
             }
             if !controller.questions.isEmpty {
                 Section("Suggested questions") {
+                    Toggle("Use Muse Wonder's recorded selection", isOn: $recordedWonder)
+                        .accessibilityIdentifier("assistantRecordedWonder")
+                    if recordedWonder {
+                        Text("Replays answers Muse Wonder 1.0 chose earlier from the reviewed set. Nothing is sent to Meta, and today's total is not included.")
+                            .font(.footnote)
+                    }
                     ForEach(controller.questions) { suggestion in
-                        Button(suggestion.text) { ask(.make(questionId: suggestion.id, includeToday: includeToday)) }
+                        Button(suggestion.text) {
+                            ask(recordedWonder ? .recordedWonder(questionId: suggestion.id)
+                                               : .make(questionId: suggestion.id, includeToday: includeToday))
+                        }
                             .disabled(!connected || controller.state == .loading)
                             .accessibilityIdentifier("suggested-\(suggestion.id)")
                     }
@@ -48,6 +58,7 @@ struct AssistantView: View {
         }
         .onChange(of: question) { _, _ in invalidate() }
         .onChange(of: includeToday) { _, _ in invalidate() }
+        .onChange(of: recordedWonder) { _, _ in invalidate() }
         .onChange(of: store.configurationGeneration) { _, _ in invalidate() }
         .onDisappear { invalidate() }
     }
@@ -75,6 +86,18 @@ struct AssistantView: View {
                     .accessibilityIdentifier("assistantIntakeContext")
                 Text(context.note).font(.footnote)
             }
+        }
+        if answer.isRecordedWonder, let observed = answer.provider_observations {
+            Section("Selected by Muse Wonder 1.0") {
+                let tokens = [(observed["input_tokens"] ?? nil), (observed["output_tokens"] ?? nil)].compactMap { $0 }.map { Int($0) }
+                if tokens.count == 2 { Text("\(tokens[0]) input · \(tokens[1]) output tokens").font(.caption) }
+                if let cost = observed["usage_derived_cost_micro_usd"] ?? nil {
+                    Text("Usage-derived cost $\((cost / 1_000_000).formatted(.number.precision(.fractionLength(4)))); final billing pending.")
+                        .font(.caption)
+                }
+                Text("Attempt \(answer.provenance.attempt_id ?? "")").font(.caption2)
+            }
+            .accessibilityIdentifier("assistantWonderProvenance")
         }
         Section {
             ForEach(Array(answer.limitations.enumerated()), id: \.offset) { _, limitation in

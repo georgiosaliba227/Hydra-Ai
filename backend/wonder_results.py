@@ -9,8 +9,10 @@ from pathlib import Path
 import stat
 from uuid import UUID
 
+from ai.assistant import SUGGESTED
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result, validate_selection
 from .meta_experiments import ACCOUNT
+from .wonder_assistant import ALLOWED, live_answer
 from .wonder_hydration import MODEL
 
 SELECTION_FIELDS = ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions",
@@ -28,9 +30,7 @@ def validate_recorded(result: dict) -> dict:
         if (provenance["mode"], provenance["model"], provenance["candidate_model"], provenance["account_id"]) != (
                 "meta_live", MODEL, MODEL, ACCOUNT) or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]:
             raise ValueError
-        if set(observations) != OBSERVATION_FIELDS or observations["billed_cost_usd"] is not None or any(
-                type(observations[name]) is not int or observations[name] < 0
-                for name in OBSERVATION_FIELDS - {"billed_cost_usd"}):
+        if not _valid_observations(observations):
             raise ValueError
         context, prediction = build_scenario(scenario)
         interpretation = result["systems"]["B"]["interpretation"]
@@ -39,6 +39,31 @@ def validate_recorded(result: dict) -> dict:
             raise ValueError
     except (KeyError, TypeError, ValueError, AttributeError):
         raise ValueError("Recorded Wonder result failed validation") from None
+    return result
+
+
+def _valid_observations(observations: dict) -> bool:
+    return (set(observations) == OBSERVATION_FIELDS and observations["billed_cost_usd"] is None
+            and all(type(observations[name]) is int and observations[name] >= 0
+                    for name in OBSERVATION_FIELDS - {"billed_cost_usd"}))
+
+
+def validate_recorded_answer(result: dict) -> dict:
+    """A recorded Wonder topic selection for one suggested question, rebuilt exactly."""
+    try:
+        question_id, topics = result["question_id"], tuple(result["topics"])
+        provenance, observations = result["provenance"], result["provider_observations"]
+        if question_id not in SUGGESTED or not _valid_observations(observations):
+            raise ValueError
+        if (provenance["mode"], provenance["model"], provenance["topic_selection"], provenance["account_id"]) != (
+                "meta_live", MODEL, MODEL, ACCOUNT) or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]:
+            raise ValueError
+        if not set(topics) <= set(ALLOWED[question_id]) or not set(topics) & set(SUGGESTED[question_id][1]):
+            raise ValueError
+        if live_answer(question_id, topics, attempt_id=provenance["attempt_id"], observations=observations) != result:
+            raise ValueError
+    except (KeyError, TypeError, ValueError, AttributeError):
+        raise ValueError("Recorded Wonder answer failed validation") from None
     return result
 
 
@@ -55,9 +80,14 @@ def _private_directory(directory: Path) -> Path:
 
 
 def save_result(directory: Path, result: dict) -> Path:
-    """Write once; an existing record for the scenario is never replaced."""
-    validate_recorded(result)
-    target = _private_directory(directory) / (result["scenario"] + ".json")
+    """Write once; an existing record for the scenario or question is never replaced."""
+    if "scenario" in result:
+        validate_recorded(result)
+        name = result["scenario"]
+    else:
+        validate_recorded_answer(result)
+        name = "assistant-" + result["question_id"]
+    target = _private_directory(directory) / (name + ".json")
     raw = json.dumps(result, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "wb") as handle:
@@ -67,10 +97,22 @@ def save_result(directory: Path, result: dict) -> Path:
     return target
 
 
+def load_recorded_answer(directory: Path, question_id: str) -> dict | None:
+    if question_id not in SUGGESTED:
+        raise ValueError("Unknown suggested question")
+    raw = _read(directory, "assistant-" + question_id)
+    return None if raw is None else validate_recorded_answer(raw)
+
+
 def load_recorded(directory: Path, scenario: str) -> dict | None:
     if scenario not in SCENARIOS:
         raise ValueError("Unknown scenario")
-    target = _private_directory(directory) / (scenario + ".json")
+    raw = _read(directory, scenario)
+    return None if raw is None else validate_recorded(raw)
+
+
+def _read(directory: Path, name: str) -> dict | None:
+    target = _private_directory(directory) / (name + ".json")
     try:
         descriptor = os.open(target, os.O_RDONLY | os.O_NOFOLLOW)
     except FileNotFoundError:
@@ -79,4 +121,4 @@ def load_recorded(directory: Path, scenario: str) -> dict | None:
         raw = handle.read(MAX_RESULT_BYTES + 1)
     if len(raw) > MAX_RESULT_BYTES:
         raise ValueError("Recorded result too large")
-    return validate_recorded(json.loads(raw))
+    return json.loads(raw)
