@@ -216,6 +216,23 @@ actor HTTPBeverageService: BeverageService {
         guard status == 204 || status == 404 else { throw ServiceError.server(status) }
     }
 
+    func assistantQuestions() async throws -> [AssistantQuestion] {
+        struct List: Decodable { let version: String; let questions: [AssistantQuestion] }
+        let list: List = try await send("v1/assistant/questions")
+        guard list.version == "assistant-v1" else { throw ServiceError.invalidResponse }
+        return list.questions
+    }
+
+    /// The question goes only to the configured backend, which answers with local reviewed rules.
+    func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer {
+        try request.validate()
+        let (data, status) = try await mutate("v1/assistant", method: "POST", body: try JSONEncoder().encode(request))
+        guard status == 200 else { throw ServiceError.server(status) }
+        let answer = try JSONDecoder().decode(AssistantAnswer.self, from: data)
+        try answer.validate(request: request)
+        return answer
+    }
+
     private func mutate(_ path: String, method: String, body: Data?) async throws -> (Data, Int) {
         var request = URLRequest(url: baseURL.appendingPathComponent(path))
         request.httpMethod = method

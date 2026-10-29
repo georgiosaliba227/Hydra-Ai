@@ -96,6 +96,11 @@ struct DashboardView: View {
                 }
                 .accessibilityIdentifier("workoutForecast")
 
+                NavigationLink { AssistantView() } label: {
+                    Label("Ask Hydra · reviewed answers", systemImage: "questionmark.bubble")
+                }
+                .accessibilityIdentifier("askAssistant")
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Recent today")
                         .font(.title3.bold())

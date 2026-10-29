@@ -8,6 +8,8 @@ protocol BeverageService: Sendable {
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
+    func assistantQuestions() async throws -> [AssistantQuestion]
+    func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
     /// Succeeds when the log is gone, including when it was already deleted.
     func deleteBeverage(id: UUID) async throws
 }
@@ -98,6 +100,14 @@ extension BeverageService {
     }
 
     func deleteBeverage(id: UUID) async throws {
+        throw ServiceError.invalidResponse
+    }
+
+    func assistantQuestions() async throws -> [AssistantQuestion] {
+        throw ServiceError.invalidResponse
+    }
+
+    func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer {
         throw ServiceError.invalidResponse
     }
 
