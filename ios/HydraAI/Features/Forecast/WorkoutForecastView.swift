@@ -57,6 +57,8 @@ private struct WorkoutDraft: Equatable {
 struct WorkoutForecastView: View {
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = WorkoutForecastController()
+    @StateObject private var wonder = RecordedWonderController()
+    @State private var wonderTask: Task<Void, Never>?
     @State private var draft = WorkoutDraft()
     @State private var samples: [WorkoutForecastRequest.Sample] = []
     @State private var inputError: String?
@@ -85,6 +87,18 @@ struct WorkoutForecastView: View {
                 .accessibilityIdentifier("runWorkoutDemo")
             }
             if let result = controller.result { resultSection(result) }
+            Section("Muse Wonder · recorded live result") {
+                Text("Replays one real Muse Wonder 1.0 response about the simulated workout, recorded earlier. Loading it sends nothing to Meta. The numbers come from the existing model; Wonder only selected which reviewed explanations apply.")
+                    .font(.footnote)
+                Button("Show recorded Wonder interpretation") { loadWonder() }
+                    .disabled(!connected || wonder.state == .loading)
+                    .accessibilityIdentifier("loadRecordedWonder")
+                if let recorded = wonder.result, let interpretation = recorded.systems["B"]?.interpretation {
+                    recordedWonderContent(recorded, interpretation)
+                }
+                if wonder.state == .loading { ProgressView() }
+                if case .failed(let message) = wonder.state { Text(message).foregroundStyle(.secondary) }
+            }
             Section("Planned workout · manually entered") {
                 Picker("Activity", selection: $draft.activity) {
                     ForEach(["running", "cycling", "walking", "strength", "other"], id: \.self) { Text($0.capitalized).tag($0) }
@@ -150,9 +164,9 @@ struct WorkoutForecastView: View {
         } }
         .onChange(of: draft) { _, _ in invalidate(); inputError = nil }
         .onChange(of: store.configurationGeneration) { _, _ in
-            invalidate(); draft.consent = false; samples = []; inputError = nil
+            invalidate(); invalidateWonder(); draft.consent = false; samples = []; inputError = nil
         }
-        .onDisappear { invalidate(); samples = []; draft = WorkoutDraft() }
+        .onDisappear { invalidate(); invalidateWonder(); samples = []; draft = WorkoutDraft() }
     }
 
     private func numberField(_ title: String, text: Binding<String>, signed: Bool = false) -> some View {
@@ -173,6 +187,36 @@ struct WorkoutForecastView: View {
 
     private func invalidate() {
         requestTask?.cancel(); requestTask = nil; controller.invalidate()
+    }
+
+    private func invalidateWonder() {
+        wonderTask?.cancel(); wonderTask = nil; wonder.invalidate()
+    }
+
+    private func loadWonder() {
+        guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        wonderTask?.cancel()
+        wonderTask = Task { await wonder.load(service: service) }
+    }
+
+    @ViewBuilder private func recordedWonderContent(_ recorded: HydrationContextComparison,
+                                                    _ interpretation: HydrationContextComparison.Interpretation) -> some View {
+        ForEach(["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"], id: \.self) { category in
+            if let texts = interpretation.reviewed_text[category], !texts.isEmpty {
+                Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
+                ForEach(Array(texts.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
+            }
+        }
+        let observed = recorded.provider_observations
+        if let input = observed["input_tokens"] ?? nil, let output = observed["output_tokens"] ?? nil,
+           let latency = observed["latency_ms"] ?? nil, let cost = observed["usage_derived_cost_micro_usd"] ?? nil {
+            Text("\(Int(input)) input · \(Int(output)) output tokens · \(Int(latency)) ms")
+                .font(.caption).accessibilityIdentifier("recordedWonderUsage")
+            Text("Usage-derived cost $\((cost / 1_000_000).formatted(.number.precision(.fractionLength(4)))); final billing pending.")
+                .font(.caption)
+        }
+        Text("Muse Wonder 1.0 · Georgio's experiment account · attempt \(recorded.provenance.attempt_id ?? "")")
+            .font(.caption2)
     }
 
     private func submit(_ request: WorkoutForecastRequest) {
@@ -216,7 +260,7 @@ struct WorkoutForecastView: View {
                     Text("A · Existing numerical estimate")
                     Text("B · Contextual mock; no numerical prediction")
                     Text("C · Same estimate plus contextual mock")
-                    Text("No Meta response or billed request was observed. Spark and Wonder are unverified future experiment candidates, not models used for this result.")
+                    Text("No Meta response or billed request was observed. Hydration intelligence uses Muse Wonder 1.0; this mock cannot measure its quality.")
                         .font(.footnote)
                     ForEach(["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"], id: \.self) { category in
                         if let texts = interpretation.reviewed_text[category], !texts.isEmpty {

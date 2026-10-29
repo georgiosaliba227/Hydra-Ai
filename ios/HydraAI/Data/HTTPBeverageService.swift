@@ -156,6 +156,23 @@ actor HTTPBeverageService: BeverageService {
         return result
     }
 
+    /// Replays a recorded, already-settled Wonder result; the backend never dispatches for this call.
+    func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison {
+        var request = URLRequest(url: baseURL.appendingPathComponent("v2/hydration-context-comparison"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = try JSONEncoder().encode(["mode": "recorded", "scenario": scenario])
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        let result = try JSONDecoder().decode(HydrationContextComparison.self, from: data)
+        try result.validateRecorded()
+        return result
+    }
+
     func recognitionCapabilities() async throws -> RecognitionCapabilities {
         let result: RecognitionCapabilities = try await send("v1/recognition-capabilities")
         try result.validate()
