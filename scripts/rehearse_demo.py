@@ -167,6 +167,17 @@ def rehearse() -> dict:
                         and forecast['prediction_validated'] is False, 'no_unapproved_daily_requirement')
                 checks.append('descriptive_history_and_conditional_exercise_loss')
 
+                comparison = '/v2/hydration-context-comparison'
+                mock = client.post(comparison, json={'mode': 'mock', 'scenario': 'complete'}, headers=auth)
+                require(mock.status_code == 200 and mock.json()['provenance']['candidate_model'] == 'muse-wonder-1.0'
+                        and mock.json()['provenance']['mode'] == 'mock', 'wonder_only_mock_comparison')
+                spark = {'mode': 'mock', 'scenario': 'complete', 'candidate_model': 'muse-spark-1.3'}
+                require(client.post(comparison, json=spark, headers=auth).status_code == 422, 'spark_hydration_candidate_refused')
+                # No results directory is configured here, so replay must find nothing and never dispatch.
+                recorded = client.post(comparison, json={'mode': 'recorded', 'scenario': 'complete'}, headers=auth)
+                require(recorded.status_code == 404, 'unrecorded_wonder_replay_unavailable')
+                checks.append('wonder_mock_and_recorded_replay_without_dispatch')
+
             with closing(sqlite3.connect(database)) as connection:
                 tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 require(tables == {'beverages'}, 'no_financial_or_calibration_tables')
