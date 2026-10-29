@@ -1,8 +1,10 @@
 # Hydra AI
 
-Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. Manual beverage logging connects SwiftUI to FastAPI and SQLite, with deterministic accounting from `ai/hydration`. The existing integration is merged through PR #13 (`700fe6d`); see the [project status](docs/PROJECT_STATUS.md).
+Native iPhone wellness prototype for the Meta Global AI Developer Hackathon 2026 **Startup** track. SwiftUI talks to a FastAPI and SQLite backend with deterministic accounting from `ai/hydration`; see the [project status](docs/PROJECT_STATUS.md).
 
-**Current engineering priority: V2 contextual/hybrid hydration research, supplied longitudinal calibration histories, and a guarded $30 Georgio-only experimental budget.** Camera development is paused; existing camera behavior is preserved. All live Meta requests remain disabled for this phase. The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) distinguishes measured outcomes, research proxy targets, personal calibration, and synthetic demonstrations. The earlier [Meta activation handoff](docs/META_FIRST_DELIVERY.md) remains a separate gated workstream.
+**What works today (mock or local, tested):** confirmed beverage logging with edit and delete, daily totals and an optional goal you set, 7-day history, camera recognition with confirmation, a workout sweat-loss range, the Ask Hydra assistant with reviewed, sourced answers, and Muse Wonder 1.0 hydration intelligence that chooses which reviewed explanations apply.
+
+**Meta models:** Muse Spark 1.3 for the camera and Muse Wonder 1.0 for hydration intelligence. One real Spark request has run; no Wonder request has. Every billable request goes through a guarded, per-account ledger and needs explicit approval ([Wonder contract](docs/architecture/WONDER_HYDRATION_API.md), [budget policy](docs/API_BUDGET.md)). The [workout model contract](docs/architecture/WORKOUT_MODEL_API.md) separates measured outcomes, research proxies, personal calibration and synthetic demonstrations.
 
 ## Run the prototype
 

@@ -1,24 +1,30 @@
 # Hydra AI project status
 
-Updated October 28, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
+Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
-## Current state — October 28 (Amine)
+## Current state — October 29 (Amine)
 
-`main` is `07ee4a3`: forecasting (`codex/hydration-forecast-ml`) and V2
-(`codex/hydration-intelligence-v2`) are **merged through PR #17**. The sections
-below that call them unmerged or PR-blocked are historical.
+`main` includes PRs #18–#33. GitHub Actions runs the full pytest suite, the
+offline rehearsal and the starter tests on every PR (mock-only, no secrets).
+One real Meta request has run: Georgio's single Muse Spark 1.3 camera request,
+recorded on unmerged PR #14; its invoice finality is pending, which blocks every
+new request project-wide. No Wonder request has run.
 
-One real Meta request has run: a single owner-authorized Muse Spark 1.3 Standard
-camera request (HTTP 200, synthetic water illustration), recorded on unmerged
-PR #14 (`codex/first-camera-risk-policy`). Its invoice finality is pending, so the
-project stays frozen for every new request. No hydration-intelligence request,
-Spark or Wonder, has run.
+| Area | Status | PRs | Evidence (local unless noted) |
+| --- | --- | --- | --- |
+| Edit and delete logs (MVP 1) | Merged | #24, #25 | 23 API tests; UI test logs 137 mL, edits to 211 mL, deletes, checking server totals |
+| User-chosen daily goal | Merged | #33 | 10 API tests; UI test shows progress on Today |
+| Ask Hydra assistant (MVP 7) | Merged, local rules | #26–#28, #31 | 35 API tests incl. urgent escalation and no question storage; UI test |
+| Wonder hydration explanations | Code merged, not run live | #18–#23 | Mock and fake-transport tests; 2 deliberate safeguard breaks caught |
+| Wonder assistant topic selection | Code merged, not run live | #29, #30 | 21 + 4 tests; replay validated against reviewed answers |
+| CI | Merged | #32 | GitHub Actions: 774+ tests, rehearsal and starter tests pass on Linux |
+| Nutrition catalogue | Unchanged (one product) | — | Live camera results never map to catalogue products; deferred with camera work |
 
-| Task | Owner | Status | Branch / PR | Completion criteria | Test evidence | Remaining blockers |
-| --- | --- | --- | --- | --- | --- | --- |
-| Wonder-only hydration intelligence, mock layer | Amine | Merged | PR #18 (`9cbb3cc`) | Deterministic Wonder payload, cost preview, strict parser; V2 comparison Wonder-only | 643 pytest + 32 subtests passed, 1 skipped | — |
-| Wonder live adapter on the $30 experiment allocation | Amine | Merged; operator tooling in PR #20 | PR #19 (`5ab76d3`), PR #20 | Approved-case manifest, dispatchable experiment states, one-use ticket, settlement at Wonder prices, gateway | 665 pytest + 32 subtests passed, 1 skipped; 22 adapter tests; two deliberate safeguard breaks were caught | Ledger migration, approved case, current evidence, PR #14 finality, spending approval |
-| Review PR #14 | Amine | Pending | PR #14 | Submitted GitHub review on `b3eda64` | — | Amine's own review |
+Latest local verification on `main` (`6df2346`): **784 pytest passed, 1 skipped,
+32 subtests**; offline rehearsal **9/9 groups**; **64 XCTest** and **6 UI tests
+passed** (4 opt-in physical/live cases skipped) on the iPhone 18 Pro Max
+simulator against a local mock backend. Not verified: any physical iPhone run
+of the new screens, any live Wonder request, clinical or physiological validity.
 
 ## V2 review branch — October 28
 
