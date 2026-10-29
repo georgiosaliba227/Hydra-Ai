@@ -365,6 +365,7 @@ class WonderHydrationGateway:
         self.ledger, self.transport, self.notifier = ledger, transport, notifier
         self.last_attempt: str | None = None  # Lets operators find a reserved attempt after a failure.
         self.account: str | None = None  # The account the last reservation charged.
+        self.rejected_reply: dict | None = None  # Body of a settled reply that failed validation, for diagnosis.
 
     @staticmethod
     def _with_ledger_retries(operation):
@@ -418,6 +419,8 @@ class WonderHydrationGateway:
             settled = True
             parsed = parse(reply)
         except Exception:
+            if settled:
+                self.rejected_reply = reply.body
             if settled and not freeze_on_rejected_output:
                 try:
                     self._with_ledger_retries(lambda: self.ledger.record_rejected_output(attempt))

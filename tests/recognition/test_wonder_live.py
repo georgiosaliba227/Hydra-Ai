@@ -176,8 +176,15 @@ def test_rejected_synthetic_output_is_recorded_without_freezing(tmp_path, env):
         fake_live(app, ledger, FakeWonderTransport(selection_reply(text="not json")))
         response = client.post("/v1/wonder/live", json=LIVE, headers=OWNER_AUTH)
         assert response.status_code == 502 and response.json()["attempt_id"]
-        [(_, state, _, actual, _)] = attempt_rows(authority)
+        # The declared length matches the body (a mismatch broke the reply under uvicorn).
+        assert response.headers["content-length"] == str(len(response.content))
+        [(attempt, state, _, actual, _)] = attempt_rows(authority)
         assert state == "settled" and actual > 0 and not frozen(authority)
+        # The rejected synthetic reply is kept privately for diagnosis, and is never replayed as a result.
+        [kept] = (tmp_path / "results").glob("rejected-*.json")
+        assert kept.name == f"rejected-scenario-complete-{attempt}.json" and oct(kept.stat().st_mode & 0o777) == "0o600"
+        assert json.loads(kept.read_text())["model"] == WONDER
+        assert client.get("/v1/wonder/live", headers=OWNER_AUTH).json()["items"][0]["recorded"] is False
 
 
 def test_every_standing_request_is_audited(tmp_path, env):
