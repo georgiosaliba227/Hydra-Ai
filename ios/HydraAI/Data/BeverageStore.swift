@@ -151,6 +151,21 @@ final class BeverageStore: ObservableObject {
         await refresh()
     }
 
+    func exportData() async throws -> Data {
+        guard let service, !isOffline else { throw ServiceError.configuration }
+        return try await service.exportData()
+    }
+
+    /// Erases every log and the goal on the backend; blocked while a creation is pending.
+    func deleteAllData() async throws -> Int {
+        guard canLog, let service, !isOffline else { throw ServiceError.pending }
+        isSaving = true
+        defer { isSaving = false }
+        let count = try await service.deleteAllData()
+        await refresh()
+        return count
+    }
+
     func currentGoal() async throws -> Int? {
         guard let service else { throw ServiceError.configuration }
         return try await service.goalSettings().daily_beverage_goal_ml

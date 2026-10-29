@@ -241,6 +241,25 @@ actor HTTPBeverageService: BeverageService {
         guard status == 204 || status == 404 else { throw ServiceError.server(status) }
     }
 
+    /// The raw export, checked to be the expected format before the user saves it.
+    func exportData() async throws -> Data {
+        let (data, status) = try await mutate("v1/export", method: "GET", body: nil)
+        guard status == 200,
+              let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              object["version"] as? String == "export-v1", object["beverages"] is [Any] else { throw ServiceError.invalidResponse }
+        return data
+    }
+
+    func deleteAllData() async throws -> Int {
+        struct Result: Decodable { let deleted_beverages: Int; let settings_cleared: Bool }
+        let (data, status) = try await mutate("v1/data", method: "DELETE", body: nil,
+                                              query: [URLQueryItem(name: "confirm", value: "delete-all-my-data")])
+        guard status == 200 else { throw ServiceError.server(status) }
+        let result = try JSONDecoder().decode(Result.self, from: data)
+        guard result.settings_cleared, result.deleted_beverages >= 0 else { throw ServiceError.invalidResponse }
+        return result.deleted_beverages
+    }
+
     func goalSettings() async throws -> GoalSettings {
         let settings: GoalSettings = try await send("v1/settings")
         guard settings.version == "settings-v1", settings.goal_basis == "user_confirmed" else { throw ServiceError.invalidResponse }

@@ -25,6 +25,7 @@ struct BeverageRow: View {
                 .font(.body.monospacedDigit().weight(.semibold))
         }
         .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier("beverageRow")
         .accessibilityLabel("\(log.category.capitalized), \(log.consumedMl) milliliters, \(log.consumedAt.formatted(date: .omitted, time: .shortened))")
     }
 }

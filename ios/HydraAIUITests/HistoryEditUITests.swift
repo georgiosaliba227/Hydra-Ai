@@ -26,8 +26,9 @@ final class HistoryEditUITests: XCTestCase {
         }
         func row(_ milliliters: Int) -> XCUIElement {
             app.tabBars.buttons["History"].tap()
+            // Match the row, not the weekly chart bar, which can carry the same amount in its label.
             let match = app.descendants(matching: .any)
-                .matching(NSPredicate(format: "label CONTAINS %@", "\(milliliters) milliliters")).firstMatch
+                .matching(NSPredicate(format: "identifier == 'beverageRow' AND label CONTAINS %@", "\(milliliters) milliliters")).firstMatch
             XCTAssertTrue(match.waitForExistence(timeout: 15), "History must show the \(milliliters) mL log")
             return match
         }

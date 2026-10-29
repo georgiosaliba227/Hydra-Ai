@@ -1,4 +1,13 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+struct ExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    let data: Data
+    init(data: Data) { self.data = data }
+    init(configuration: ReadConfiguration) throws { data = configuration.file.regularFileContents ?? Data() }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper { FileWrapper(regularFileWithContents: data) }
+}
 
 struct BackendSettingsView: View {
     @EnvironmentObject private var store: BeverageStore
@@ -9,6 +18,9 @@ struct BackendSettingsView: View {
     @State private var goalText = ""
     @State private var goalMessage: String?
     @FocusState private var goalFocused: Bool
+    @State private var export: ExportDocument?
+    @State private var confirmingDeleteAll = false
+    @State private var dataMessage: String?
 
     var body: some View {
         Form {
@@ -52,9 +64,30 @@ struct BackendSettingsView: View {
                     if let goalMessage { Text(goalMessage).font(.footnote).accessibilityIdentifier("goalMessage") }
                 }
             }
+            if !store.isOffline && store.isConfigured {
+                Section("Your data") {
+                    Button("Export my data (JSON)") { Task { await exportData() } }
+                        .accessibilityIdentifier("exportData")
+                    Button("Delete all my data", role: .destructive) { confirmingDeleteAll = true }
+                        .disabled(!store.canLog)
+                        .accessibilityIdentifier("deleteAllData")
+                    Text("Export includes your logged drinks and goal. Deleting erases them from your backend; it cannot be undone.")
+                        .font(.footnote)
+                    if let dataMessage { Text(dataMessage).font(.footnote).accessibilityIdentifier("dataMessage") }
+                }
+            }
             Section("AI") { Text("Camera verifies the backend mode before analysis. Mock responses are synthetic. Meta mode sends the photo to Meta only with separate consent and a server-approved budget permit. Suggestions always require confirmation; zero retention is not promised.") }
         }
         .navigationTitle("Settings")
+        .fileExporter(isPresented: Binding(get: { export != nil }, set: { if !$0 { export = nil } }),
+                      document: export, contentType: .json, defaultFilename: "hydra-export") { result in
+            if case .failure = result { dataMessage = "Export was not saved." }
+        }
+        .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
+            Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
+        } message: {
+            Text("Every logged drink and your goal are erased from the backend. This cannot be undone.")
+        }
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { goalFocused = false }
         } }
@@ -72,6 +105,23 @@ struct BackendSettingsView: View {
             goalMessage = milliliters == nil ? "Goal cleared." : "Goal saved."
         } catch {
             goalMessage = "Could not save the goal. \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    private func exportData() async {
+        do { export = ExportDocument(data: try await store.exportData()); dataMessage = nil }
+        catch { dataMessage = "Could not export. \(error.localizedDescription)" }
+    }
+
+    @MainActor
+    private func deleteAll() async {
+        do {
+            let count = try await store.deleteAllData()
+            goalText = ""
+            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal."
+        } catch {
+            dataMessage = "Could not delete your data. \(error.localizedDescription)"
         }
     }
 }
