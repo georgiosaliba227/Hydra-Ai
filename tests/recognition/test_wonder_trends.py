@@ -135,7 +135,7 @@ def test_payload_is_exact_bounded_and_recoverable():
     payload = trends_payload(f)
     assert facts_from_payload(payload) == f and payload["model"] == WONDER and payload["store"] is False
     view = preview(f)
-    assert view["payload_sha256"] == payload_sha256(payload) and view["worst_case_micro_usd"] < 40_000 < CAP
+    assert view["payload_sha256"] == payload_sha256(payload) and view["worst_case_micro_usd"] < 60_000 < CAP
     transport = WonderMetaTransport("synthetic-amine-key")
     assert transport.input_bound(payload) == input_bound(payload)
     for tamper in (lambda p: p["input"][0]["content"][0].update(text=p["input"][0]["content"][0]["text"] + " Also diagnose me."),
@@ -374,8 +374,10 @@ AUTH = {"Authorization": f"Bearer {TOKEN}"}
 
 def seed(client, days=10):
     now = datetime.now(timezone.utc).replace(microsecond=0)
+    # An hour ago, but never before today's UTC midnight, so each drink stays on its own day.
+    recent = max(now - timedelta(hours=1), now.replace(hour=0, minute=0, second=0))
     for offset in range(days):
-        body = dict(category="water", consumed_ml=1500 + 50 * offset, consumed_at=(now - timedelta(days=offset, hours=1))
+        body = dict(category="water", consumed_ml=1500 + 50 * offset, consumed_at=(recent - timedelta(days=offset))
                     .isoformat().replace("+00:00", "Z"), timezone="UTC", source="manual")
         assert client.post("/v1/beverages", json=body, headers=AUTH | {"Idempotency-Key": str(uuid4())}).status_code == 201
     assert client.put("/v1/settings", json={"daily_beverage_goal_ml": 2000}, headers=AUTH).status_code == 200
@@ -728,3 +730,13 @@ def test_admin_set_limit_command(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out)["hard_limit_micro_usd"] == 25_500_000
     with pytest.raises(SystemExit):
         admin.main(["set-limit", "--database", str(authority.path), "--limit-usd", "86", "--reference", "amine-raise"])
+
+
+def test_trend_explanations_get_room_for_reasoning_and_settle_long_replies(tmp_path):
+    from backend.wonder_hydration import wonder_payload
+    f = facts()
+    assert trends_payload(f)["max_output_tokens"] == 2048 and wonder_payload("complete")["max_output_tokens"] == 512
+    authority, ledger = amine_setup(tmp_path)
+    transport = amine_transport(trend_reply(f, outputs=1500))  # the live reply ran past 512 and was cut off
+    result = WonderHydrationGateway(ledger, transport, FakeNotifier()).explain_trends(f, amine_quote(), "in-app-consent:x")
+    assert result["provider_observations"]["output_tokens"] == 1500 and not frozen(authority)

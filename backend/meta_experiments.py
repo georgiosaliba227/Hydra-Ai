@@ -165,7 +165,8 @@ class ExperimentRequest(StrictDescriptor):
     case_id: str
     payload_sha256: Fingerprint
     input_bound: StrictInt = Field(ge=1, le=1_000_000)
-    output_bound: StrictInt = Field(ge=1, le=512)
+    # 512 for every request except Wonder trend explanations (TREND_OUTPUT_LIMIT); CAP still bounds the cost.
+    output_bound: StrictInt = Field(ge=1, le=2048)
     maximum_micro_usd: StrictInt = Field(ge=1, le=CAP)
     input_approval_reference: Reference
     quote: ExperimentQuote

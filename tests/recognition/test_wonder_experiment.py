@@ -80,7 +80,8 @@ class FakeWonderTransport:
     def generate(self, payload, ticket):
         ticket.claim(payload, input_bound=self.input_bound(payload), credential_fingerprint=self.credential_fingerprint)
         self.calls += 1
-        assert payload["model"] == WONDER and payload["max_output_tokens"] == 512
+        trend = payload["text"]["format"]["name"] == "hydration_trend_explanations"
+        assert payload["model"] == WONDER and payload["max_output_tokens"] == (2048 if trend else 512)
         assert payload["store"] is False and "tools" not in payload
         if self.fault:
             raise self.fault

@@ -174,7 +174,7 @@ def test_unknown_price_cost_or_access_fail_closed(changes):
 
 
 @pytest.mark.parametrize("changes",[{"maximum_micro_usd":250001},{"maximum_micro_usd":True},
-    {"input_bound":0},{"input_bound":True},{"output_bound":513},{"payload_sha256":"bad"},
+    {"input_bound":0},{"input_bound":True},{"output_bound":2049},{"payload_sha256":"bad"},
     {"input_approval_reference":" "}])
 def test_request_bound_validation(changes):
     with pytest.raises(ValidationError):request(**changes)
