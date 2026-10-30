@@ -2,7 +2,7 @@
 
 A recorded result is accepted only if rebuilding it from the deterministic
 scenario, its validated selection and its provenance reproduces it exactly.
-Trend explanations are re-checked against their own facts the same way.
+Trend and planned-workout explanations are re-checked against their own facts the same way.
 """
 from datetime import datetime
 import json
@@ -18,6 +18,7 @@ from .meta_accounts import ACCOUNTS
 from .wonder_assistant import ALLOWED, live_answer
 from .wonder_hydration import MODEL, live_comparison_provenance
 from .wonder_trends import trend_result, validate_explanation, validate_facts
+from . import wonder_workout
 
 SELECTION_FIELDS = ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions",
                     "numerical_abstention")
@@ -25,6 +26,7 @@ OBSERVATION_FIELDS = {"latency_ms", "input_tokens", "output_tokens", "usage_deri
 MAX_RESULT_BYTES = 65_536
 MAX_TREND_RECORDS = 500
 TREND_NAME = re.compile(r"trends-[a-f0-9]{64}")
+WORKOUT_NAME = re.compile(r"workout-[a-f0-9]{64}")
 
 
 def validate_recorded(result: dict) -> dict:
@@ -95,6 +97,29 @@ def validate_recorded_trends(result: dict) -> dict:
     return result
 
 
+def validate_recorded_workout(result: dict) -> dict:
+    """A recorded planned-workout explanation: facts consistent, text re-checked, result rebuilt exactly."""
+    try:
+        facts = wonder_workout.validate_facts(result["facts"])
+        provenance, observations = result["provenance"], result["provider_observations"]
+        if (provenance["account_id"] not in ACCOUNTS or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]
+                or not _valid_observations(observations)):
+            raise ValueError
+        generated = datetime.fromisoformat(result["generated_at"])
+        if generated.tzinfo is None or generated.utcoffset().total_seconds() != 0:
+            raise ValueError
+        explanation = wonder_workout.validate_explanation(
+            {"summary": result["summary_template"],
+             "insights": [{"id": item["id"], "text": item["template"]} for item in result["insights"]]}, facts)
+        if wonder_workout.workout_result(facts, explanation, account=provenance["account_id"],
+                                         attempt_id=provenance["attempt_id"], observations=observations,
+                                         generated_at=result["generated_at"]) != result:
+            raise ValueError
+    except (KeyError, TypeError, ValueError, AttributeError):
+        raise ValueError("Recorded Wonder workout explanation failed validation") from None
+    return result
+
+
 def _private_directory(directory: Path) -> Path:
     try:
         if not directory.is_absolute():
@@ -112,6 +137,9 @@ def save_result(directory: Path, result: dict) -> Path:
     if "scenario" in result:
         validate_recorded(result)
         name = result["scenario"]
+    elif result.get("version") == wonder_workout.VERSION:
+        validate_recorded_workout(result)
+        name = "workout-" + result["payload_sha256"]
     elif "facts" in result:
         validate_recorded_trends(result)
         name = "trends-" + result["payload_sha256"]
@@ -187,6 +215,40 @@ def delete_trends(directory: Path) -> int:
     removed = 0
     for entry in os.scandir(_private_directory(directory)):
         if entry.name.endswith(".json") and TREND_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
+            os.unlink(entry.path)
+            removed += 1
+    return removed
+
+
+def load_workout(directory: Path, payload_sha256: str) -> dict | None:
+    """The saved explanation of exactly this planned-workout payload; the same data is never paid for twice."""
+    if not re.fullmatch(r"[a-f0-9]{64}", payload_sha256):
+        raise ValueError("Payload fingerprint required")
+    raw = _read(directory, "workout-" + payload_sha256)
+    if raw is None:
+        return None
+    if raw.get("payload_sha256") != payload_sha256:
+        raise ValueError("Recorded workout explanation belongs to another payload")
+    return validate_recorded_workout(raw)
+
+
+def saved_workouts(directory: Path) -> list[dict]:
+    """Every valid saved planned-workout explanation, for the user's data export."""
+    results = []
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and WORKOUT_NAME.fullmatch(entry.name[:-5]):
+            try:
+                results.append(load_workout(directory, entry.name[len("workout-"):-5]))
+            except (ValueError, TypeError, OSError):
+                continue
+    return sorted(results, key=lambda result: result["generated_at"])
+
+
+def delete_workouts(directory: Path) -> int:
+    """Remove the user's saved planned-workout explanations (delete-all)."""
+    removed = 0
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and WORKOUT_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
             os.unlink(entry.path)
             removed += 1
     return removed

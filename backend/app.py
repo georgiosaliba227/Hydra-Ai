@@ -53,6 +53,8 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "wonder_attempt_unresolved": "The Muse Wonder request failed after it was reserved. Do not retry; a developer must reconcile the attempt.",
         "trends_preview_stale": "Your log changed since the preview. Review the new preview first.",
         "trends_insufficient_data": "Log drinks in the last 14 days before asking for trends.",
+        "workout_preview_stale": "Your planned workout or history changed since the preview. Review the new preview first.",
+        "workout_insufficient_history": "Add at least one previous session of this activity before asking for an explanation.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -83,7 +85,8 @@ class RequestGuard:
                 return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
-        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts"):
+        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/wonder/workout/preview",
+                               "/v1/wonder/workout"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
             body_limit = MAX_BODY_BYTES
@@ -373,11 +376,12 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import saved_trends
+        from .wonder_results import saved_trends, saved_workouts
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
-                "wonder_trends": saved_trends(results_dir) if results_dir else []}
+                "wonder_trends": saved_trends(results_dir) if results_dir else [],
+                "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
@@ -385,10 +389,11 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import delete_trends
+        from .wonder_results import delete_trends, delete_workouts
         deleted = request.app.state.repository.delete_all("local-demo")
         return {"deleted_beverages": deleted, "settings_cleared": True,
-                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0}
+                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
+                "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0}
 
     @app.get("/v1/settings")
     def get_settings(request: Request):
@@ -412,6 +417,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_context_v2_routes(app)
     from .wonder_trend_routes import install_wonder_trend_routes
     install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
+    from .wonder_workout_routes import install_wonder_workout_routes
+    install_wonder_workout_routes(app, error_response=error_response)  # shares the trend config and lock
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
     return app

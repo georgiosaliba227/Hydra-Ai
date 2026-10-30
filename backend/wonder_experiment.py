@@ -4,8 +4,8 @@ Georgio's $30 experiment or Amine's $20 allocation, each in its own ledger.
 Implemented and tested with fake transports only. A real request additionally
 needs the LIVE_SCHEMA installed by a reviewed migration, current account
 evidence, an approved case for the exact payload (a recorded case, or a trend
-case bound to the user's consent under the allocation's standing approval) and
-invoice finality for every earlier attempt.
+or planned-workout case bound to the user's consent under the allocation's
+standing trend approval) and invoice finality for every earlier attempt.
 """
 from dataclasses import dataclass
 from datetime import datetime
@@ -30,6 +30,7 @@ from .wonder_assistant import assistant_payload, live_answer, parse_topics
 from .wonder_hydration import (MODEL, input_bound, live_comparison_provenance, parse_selection, payload_sha256,
                                wonder_payload)
 from .wonder_trends import facts_from_payload, parse_explanation, trend_result, trends_payload
+from . import wonder_workout
 from ai.assistant import SUGGESTED
 
 # Reviewed additive DDL; installed only by tests until a separate migration is approved.
@@ -146,6 +147,14 @@ class WonderExperimentLedger(ExperimentBudget):
 
     def register_trend_case(self, payload: str, consent_reference: str) -> ApprovedCase:
         """A case for one exact trend payload the user consented to, under the standing trend approval."""
+        return self._register_standing_case(payload, consent_reference, "trend_dispatch_reference")
+
+    def register_workout_case(self, payload: str, consent_reference: str) -> ApprovedCase:
+        """A case for one exact planned-workout payload the user consented to.
+
+        The standing trend approval covers Wonder explanations of the owner's own data, each bound
+        to the exact payload hash the user previewed and consented to (WONDER_WORKOUT_API.md).
+        """
         return self._register_standing_case(payload, consent_reference, "trend_dispatch_reference")
 
     def register_synthetic_case(self, payload: str, request_reference: str) -> ApprovedCase:
@@ -343,14 +352,20 @@ class ExperimentTicket:
 
 
 class WonderMetaTransport(OfficialMetaTransport):
-    """Same fixed-origin, no-retry sender; accepts only exact Wonder scenario or suggested-question payloads."""
+    """Same fixed-origin, no-retry sender; accepts only exact payloads Hydra builds.
+
+    Those are the synthetic scenarios and suggested questions, trend payloads and planned-workout payloads.
+    """
     ticket_type = ExperimentTicket
 
     def validate_payload(self, payload: dict) -> None:
         if (any(payload == wonder_payload(name) for name in SCENARIOS)
                 or any(payload == assistant_payload(question_id) for question_id in SUGGESTED)):
             return
-        facts_from_payload(payload)  # Raises unless it is exactly a Hydra trend payload.
+        try:
+            facts_from_payload(payload)  # Exactly a Hydra trend payload,
+        except ValueError:
+            wonder_workout.facts_from_payload(payload)  # or a planned-workout payload; raises otherwise.
 
     def input_bound(self, payload: dict) -> int:
         self.validate_payload(payload)
@@ -499,3 +514,17 @@ class WonderHydrationGateway:
                                                        freeze_on_rejected_output=False)
         return trend_result(facts, explanation, account=self.account, attempt_id=attempt, observations=observations,
                             generated_at=stamp())
+
+    def explain_workout(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
+        """Wonder explains a planned workout against the user's own history; bound to the consented payload."""
+        try:
+            payload = wonder_workout.workout_payload(facts)
+            case = self.ledger.register_workout_case(payload_sha256(payload), consent_reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
+        # A reused unsent case keeps the consent reference it was first approved with.
+        explanation, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+                                                       lambda reply: wonder_workout.parse_explanation(reply, facts),
+                                                       freeze_on_rejected_output=False)
+        return wonder_workout.workout_result(facts, explanation, account=self.account, attempt_id=attempt,
+                                             observations=observations, generated_at=stamp())
