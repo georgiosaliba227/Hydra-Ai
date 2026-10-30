@@ -93,6 +93,9 @@ final class WonderWorkoutTests: XCTestCase {
         XCTAssertEqual(WorkoutForecastView.plannedText(preview.facts.planned),
                        "75 min of high-intensity running in the evening · 31 °C · 60% humidity · conditions not confirmed as matching")
         XCTAssertEqual(WorkoutForecastView.typicalText(preview.facts.history), "45 min · 22 °C · 55% humidity")
+        let night = WorkoutFacts.Planned(activity: "strength", intensity: nil, time_of_day: "night", duration_minutes: 30,
+                                         temperature_c: nil, humidity_percent: nil, conditions_confirmed: true)
+        XCTAssertEqual(WorkoutForecastView.plannedText(night), "30 min of strength training at night · conditions confirmed as matching")
     }
 
     func testPreviewMustMatchTheRequestAndBeConsistent() throws {
@@ -497,10 +500,16 @@ final class WonderWorkoutTests: XCTestCase {
         XCTAssertNotNil(applied.typicalSessions)
         // Heart rate and energy are display only: the request has no such fields.
         draft.temperature = "20"; draft.humidity = "50"
-        let request = String(decoding: try JSONEncoder().encode(draft.personalRequest(samples: [])), as: UTF8.self)
-        XCTAssertFalse(request.contains("148"))
-        XCTAssertFalse(request.contains("480"))
-        XCTAssertTrue(request.contains(#""duration_source":"manual""#))
+        let encoded = try JSONEncoder().encode(draft.personalRequest(samples: []))
+        let request = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        let exercise = try XCTUnwrap(request["exercise"] as? [String: Any])
+        XCTAssertEqual(Set(request.keys), ["mode", "timezone", "exercise", "samples", "calibration_processing_consent"])
+        XCTAssertEqual(Set(exercise.keys), ["event_id", "starts_at", "duration_minutes", "conditions",
+                                            "comparable_conditions_confirmed", "duration_source"])
+        XCTAssertEqual(Set((exercise["conditions"] as? [String: Any] ?? [:]).keys),
+                       ["activity", "intensity", "temperature_c", "humidity_percent"])
+        XCTAssertEqual(exercise["duration_source"] as? String, "manual")
+        XCTAssertEqual(exercise["duration_minutes"] as? Double, 45)
         // Editing the suggestion removes its provenance.
         draft.duration = "50"
         XCTAssertNil(draft.lastWorkout)

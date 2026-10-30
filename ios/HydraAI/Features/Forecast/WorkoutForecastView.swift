@@ -627,7 +627,8 @@ struct WorkoutForecastView: View {
     nonisolated static func plannedText(_ planned: WorkoutFacts.Planned) -> String {
         let activity = ["strength": "strength training", "other": "exercise"][planned.activity] ?? planned.activity
         let intensity = planned.intensity.map { "\($0)-intensity " } ?? ""
-        var parts = ["\(planned.duration_minutes) min of \(intensity)\(activity) in the \(planned.time_of_day)"]
+        let when = planned.time_of_day == "night" ? "at night" : "in the \(planned.time_of_day)"
+        var parts = ["\(planned.duration_minutes) min of \(intensity)\(activity) \(when)"]
         if let temperature = planned.temperature_c { parts.append("\(temperature) °C") }
         if let humidity = planned.humidity_percent { parts.append("\(humidity)% humidity") }
         parts.append(planned.conditions_confirmed ? "conditions confirmed as matching" : "conditions not confirmed as matching")
