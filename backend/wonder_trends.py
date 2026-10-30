@@ -16,7 +16,6 @@ from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
-from .meta_policy import OUTPUT_LIMIT
 from .meta_provider import ProviderReply, strict_json
 from .recognition import RecognitionUnavailable
 from .wonder_hydration import MODEL, canonical, input_bound, payload_sha256, worst_case_micro_usd
@@ -25,6 +24,9 @@ VERSION = "wonder-trends-v1"
 FACTS_VERSION = "wonder-trends-facts-v1"
 WINDOW_DAYS = 14
 MAX_CATEGORIES = 12
+# The live 2026-10-29 trend reply hit 512 output tokens (reasoning included) and was cut off.
+# Worst case at 2048 stays far below the $0.25 per-request cap.
+TREND_OUTPUT_LIMIT = 2048
 MAX_INSIGHTS = 3
 SUMMARY_CHARS, INSIGHT_CHARS = 240, 300
 INSIGHTS = {
@@ -225,7 +227,7 @@ def trends_payload(facts: dict) -> dict:
     if not facts["applicable_insights"]:
         raise ValueError("No logged drinks in the window")
     return {"model": MODEL, "store": False, "stream": False, "background": False,
-            "max_output_tokens": OUTPUT_LIMIT, "reasoning": {"effort": "minimal"},
+            "max_output_tokens": TREND_OUTPUT_LIMIT, "reasoning": {"effort": "minimal"},
             "text": {"format": {"type": "json_schema", "name": "hydration_trend_explanations", "strict": True,
                                 "schema": trend_schema(facts["applicable_insights"])}},
             "input": [{"role": "user", "content": [{"type": "input_text",
@@ -254,7 +256,7 @@ def preview(facts: dict) -> dict:
     payload = trends_payload(facts)
     bound = input_bound(payload)
     return {"version": VERSION, "facts": facts, "explainable": True, "payload_sha256": payload_sha256(payload),
-            "input_bound_tokens": bound, "worst_case_micro_usd": worst_case_micro_usd(bound)}
+            "input_bound_tokens": bound, "worst_case_micro_usd": worst_case_micro_usd(bound, TREND_OUTPUT_LIMIT)}
 
 
 def placeholder_values(facts: dict) -> dict[str, str]:

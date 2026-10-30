@@ -401,8 +401,8 @@ class WonderHydrationGateway:
             self.ledger.verify_identity(quote.account_id, self.transport.credential_fingerprint)
             bound = self.transport.input_bound(payload)
             request = ExperimentRequest(attempt_id=str(uuid4()), case_id=case_id, payload_sha256=payload_sha256(payload),
-                                        input_bound=bound, output_bound=OUTPUT_LIMIT,
-                                        maximum_micro_usd=quote.bound(bound, OUTPUT_LIMIT),
+                                        input_bound=bound, output_bound=payload["max_output_tokens"],
+                                        maximum_micro_usd=quote.bound(bound, payload["max_output_tokens"]),
                                         input_approval_reference=input_approval_reference, quote=quote)
             self.account = self.ledger.reserve_for_dispatch(request)["account_id"]
             attempt = self.last_attempt = request.attempt_id
