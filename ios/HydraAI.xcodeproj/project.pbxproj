@@ -124,7 +124,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Add one synthetic beverage fixture for opt-in physical-device picker testing. Existing photos are not read.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "When you choose, read your step totals and recent workouts (type, start, duration, active energy and average heart rate) on this device to fill in your workout plan. Heart rate is shown for context only and is never used to judge hydration. Raw Health records are not sent off your iPhone.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If you turn on weather fill-in, your approximate location, rounded to about 1 km, is sent to the Open-Meteo weather service to look up temperature and humidity for your planned workout. It is not stored or sent to Hydra or Meta.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos in the selected backend mode and save confirmed beverages.";
                 INFOPLIST_FILE = Configuration/Info.plist;
@@ -151,7 +152,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Read selected activity totals on this device when you choose to connect Health.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "When you choose, read your step totals and recent workouts (type, start, duration, active energy and average heart rate) on this device to fill in your workout plan. Heart rate is shown for context only and is never used to judge hydration. Raw Health records are not sent off your iPhone.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "If you turn on weather fill-in, your approximate location, rounded to about 1 km, is sent to the Open-Meteo weather service to look up temperature and humidity for your planned workout. It is not stored or sent to Hydra or Meta.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a beverage photo for review. A resized copy goes to your backend after consent. Meta analysis requires separate consent to send the photo to Meta.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Connect to your Hydra backend to analyze consented photos in the selected backend mode and save confirmed beverages.";
                 INFOPLIST_FILE = Configuration/Info.plist;
