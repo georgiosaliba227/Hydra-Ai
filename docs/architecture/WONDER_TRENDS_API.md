@@ -103,7 +103,9 @@ refused before anything is reserved.
 
 Trend requests need a standing approval: `trend_dispatch_reference` on the
 allocation. Each request then records its own case, bound to the exact payload
-the user consented to.
+the user consented to. Planned-workout explanations of the owner's own data use
+the same standing approval and controls; see
+[WONDER_WORKOUT_API.md](WONDER_WORKOUT_API.md).
 
 A reply rejected *after* settlement is recorded as `experiment_output_rejected`
 and does not freeze the account, because its charge is already known from
