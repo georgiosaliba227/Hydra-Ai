@@ -5,18 +5,19 @@ struct BeverageRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "drop.fill")
-                .foregroundStyle(.cyan)
-                .frame(width: 32, height: 32)
-                .background(.cyan.opacity(0.12), in: RoundedRectangle(cornerRadius: 9))
-                .accessibilityHidden(true)
+            IconBadge(systemName: BeverageStyle.symbol(for: log.category))
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(log.category.capitalized)
                     .font(.body.weight(.medium))
-                Text(log.consumedAt, format: .dateTime.hour().minute())
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text(log.consumedAt, format: .dateTime.hour().minute())
+                    if log.source != "manual" {
+                        Text("· from photo")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -24,6 +25,7 @@ struct BeverageRow: View {
             Text("\(log.consumedMl.formatted()) mL")
                 .font(.body.monospacedDigit().weight(.semibold))
         }
+        .frame(minHeight: 44)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("beverageRow")
         .accessibilityLabel("\(log.category.capitalized), \(log.consumedMl) milliliters, \(log.consumedAt.formatted(date: .omitted, time: .shortened))")
