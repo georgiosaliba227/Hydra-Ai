@@ -1,21 +1,19 @@
 import SwiftUI
 
 // MARK: - Integration hooks
-// Placeholder spots in the guided flow. The Apple Health workout reader, the weather autofill and the
-// "Wonder explains this workout" request are built separately (see WorkoutContextProvider,
-// HealthWorkoutClient, WeatherAutofill and docs/architecture/WONDER_WORKOUT_API.md). Wire them into
-// `useLastWorkout()`, `fillWeather()` and `wonderExplanationSection`, then flip these flags.
-// Until then each spot stays hidden.
+// Spots in the guided flow, wired to WorkoutContextProvider (Apple Health workouts read on device, weather
+// from Open-Meteo only with consent) and the "Wonder explains this workout" endpoints
+// (docs/architecture/WONDER_WORKOUT_API.md). Turn a flag off to hide its spot.
 enum WorkoutFlowHooks {
     /// Shows "Use my last workout (Apple Health)" in step 1.
-    static let lastWorkoutEnabled = false
-    /// Shows "Fill in the weather" in step 2.
-    static let weatherEnabled = false
+    static let lastWorkoutEnabled = true
+    /// Shows the weather consent toggle and "Fill in the weather" in step 2.
+    static let weatherEnabled = true
     /// Shows the "Wonder explains this workout" card in step 3, below the personal estimate.
-    static let wonderExplanationEnabled = false
+    static let wonderExplanationEnabled = true
 }
 
-private struct WorkoutDraft: Equatable {
+struct WorkoutDraft: Equatable {
     var activity = "running"
     var intensity = "moderate"
     var duration = ""
@@ -35,25 +33,94 @@ private struct WorkoutDraft: Equatable {
     var urineError = ""
     var durationError = ""
     var protocolConfirmed = false
+    /// What "Use my last workout" filled in. Its provenance shows only while those values are unchanged.
+    var appliedWorkout: AppliedWorkout?
+    /// What "Fill in the weather" filled in. Its provenance shows only while those values are unchanged.
+    var appliedWeather: AppliedWeather?
+
+    struct AppliedWorkout: Equatable {
+        let activity: String
+        let duration: String
+        let provenance: String
+        var activityNote: String?
+        /// Display only: never sent and never used to judge hydration.
+        var averageHeartRateBPM: Int?
+        /// Display only: never sent.
+        var activeEnergyKilocalories: Int?
+        var typicalSessions: String?
+    }
+
+    struct AppliedWeather: Equatable {
+        let temperature: String
+        let humidity: String
+        let provenance: String
+    }
 
     static let activities = ["running", "cycling", "walking", "strength", "other"]
     static let intensities = ["low", "moderate", "high"]
+
+    /// The Apple Health suggestion, while the form still shows its activity and duration.
+    var lastWorkout: AppliedWorkout? {
+        guard let appliedWorkout, appliedWorkout.activity == activity, appliedWorkout.duration == duration else { return nil }
+        return appliedWorkout
+    }
+
+    /// The Open-Meteo provenance, while the form still shows its temperature and humidity.
+    var weatherProvenance: String? {
+        guard let appliedWeather, appliedWeather.temperature == temperature, appliedWeather.humidity == humidity else { return nil }
+        return appliedWeather.provenance
+    }
 
     /// Fills step 1 from a workout the user picked (e.g. their last Apple Health workout).
     mutating func applyWorkout(activity: String, intensity: String?, durationMinutes: Double) {
         if Self.activities.contains(activity) { self.activity = activity }
         if let intensity, Self.intensities.contains(intensity) { self.intensity = intensity }
-        duration = durationMinutes.formatted(.number.precision(.fractionLength(0...1)).grouping(.never))
+        duration = Self.plain(durationMinutes, maximumFraction: 1)
     }
 
     /// Fills step 2 from a weather reading the user asked for.
     mutating func applyWeather(temperatureC: Double, humidityPercent: Double) {
-        temperature = temperatureC.formatted(.number.precision(.fractionLength(0...1)).grouping(.never))
-        humidity = humidityPercent.formatted(.number.precision(.fractionLength(0)).grouping(.never))
+        temperature = Self.plain(temperatureC, maximumFraction: 1)
+        humidity = Self.plain(humidityPercent, maximumFraction: 0)
+    }
+
+    /// "Use my last workout": activity, whole-minute duration and the suggested start (the next occurrence of
+    /// that workout's time of day). Intensity is never prefilled; heart rate and energy are display only.
+    mutating func applyLastWorkout(_ suggestion: WorkoutContextDraft) {
+        guard let suggested = suggestion.activity, let minutes = suggestion.durationMinutes,
+              let provenance = suggestion.workoutProvenance else { return }
+        applyWorkout(activity: suggested, intensity: nil, durationMinutes: minutes)
+        if let start = suggestion.startsAt, start > .now { startsAt = start }
+        appliedWorkout = AppliedWorkout(activity: activity, duration: duration, provenance: provenance,
+                                        activityNote: suggestion.activityNote,
+                                        averageHeartRateBPM: suggestion.averageHeartRate.map { Int($0.rounded()) },
+                                        activeEnergyKilocalories: suggestion.activeEnergyKilocalories.map { Int($0.rounded()) },
+                                        typicalSessions: suggestion.typicalSessions?.displayText)
+    }
+
+    /// "Fill in the weather": temperature and humidity from Open-Meteo.
+    mutating func applyWeatherSuggestion(_ suggestion: WorkoutContextDraft) {
+        guard let temperatureC = suggestion.temperatureC, let humidityPercent = suggestion.humidityPercent,
+              let provenance = suggestion.weatherProvenance else { return }
+        applyWeather(temperatureC: temperatureC, humidityPercent: humidityPercent)
+        appliedWeather = AppliedWeather(temperature: temperature, humidity: humidity, provenance: provenance)
+    }
+
+    /// Weather consent withdrawn: clear values that still came from Open-Meteo; keep anything the user typed.
+    mutating func clearAppliedWeather() {
+        if weatherProvenance != nil { temperature = ""; humidity = "" }
+        appliedWeather = nil
+    }
+
+    /// Text the form's parser reads back in any locale: no grouping, "." decimals.
+    private static func plain(_ value: Double, maximumFraction: Int) -> String {
+        value.formatted(.number.precision(.fractionLength(0...maximumFraction)).grouping(.never)
+            .locale(Locale(identifier: "en_US_POSIX")))
     }
 
     private func number(_ text: String, minimum: Double = 0, maximum: Double) throws -> Double {
-        guard let value = Double(text), value.isFinite, value >= minimum, value <= maximum else {
+        let normalized = text.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(normalized), value.isFinite, value >= minimum, value <= maximum else {
             throw ServiceError.invalidResponse
         }
         return value
@@ -83,6 +150,36 @@ private struct WorkoutDraft: Equatable {
                 consumed_ml: number(intakeError, maximum: 50000), urine_ml: number(urineError, maximum: 50000),
                 duration_minutes: durationBound))
     }
+
+    /// The one personal request this screen builds. "Estimate my workout" sends it, and the Wonder preview and
+    /// explanation reuse the same value, so all three describe exactly the same workout and measurements.
+    func personalRequest(samples: [WorkoutForecastRequest.Sample],
+                         timezone: String = TimeZone.current.identifier) throws -> WorkoutForecastRequest {
+        let request = try WorkoutForecastRequest(mode: "personal", timezone: timezone, exercise: exercise(),
+                                                 samples: samples, calibration_processing_consent: consent)
+        try request.validate()
+        return request
+    }
+}
+
+extension WorkoutContextProvider {
+    /// Gate for "Fill in the weather": offered only after the user turned on location consent.
+    var canFillWeather: Bool { isWeatherConsentGranted && weatherState != .loading }
+
+    /// "Fill in the weather" for the form. Without consent nothing is looked up and nil is returned;
+    /// a failure leaves its message in `weatherState` and returns nil.
+    func weatherSuggestion(startsAt: Date) async -> WorkoutContextDraft? {
+        guard isWeatherConsentGranted else { return nil }
+        let suggestion = await fillInWeather(startsAt: startsAt)
+        guard weatherState == .loaded, isWeatherConsentGranted else { return nil }
+        return suggestion
+    }
+
+    /// "Use my last workout" for the form; nil on failure (the message is in `workoutState`).
+    func lastWorkoutSuggestion() async -> WorkoutContextDraft? {
+        let suggestion = await useLastWorkout()
+        return workoutState == .loaded ? suggestion : nil
+    }
 }
 
 /// Guided flow: try the demo, or 1. your workout → 2. conditions → 3. your estimate.
@@ -99,6 +196,14 @@ struct WorkoutForecastView: View {
     /// Which button started the current request, so progress and errors show next to it.
     @State private var lastRequestWasDemo = true
     @FocusState private var focusedField: String?
+    /// Apple Health workouts (on device) and, with consent, Open-Meteo weather.
+    @StateObject private var context = WorkoutContextProvider.live()
+    @State private var workoutTask: Task<Void, Never>?
+    @State private var weatherTask: Task<Void, Never>?
+    /// "Wonder explains this workout": preview at the user's backend, then one consented request.
+    @StateObject private var explainer = WonderWorkoutController()
+    @State private var explainerTask: Task<Void, Never>?
+    @State private var wonderConsent = false
 
     private var connected: Bool { store.isConfigured && !store.isOffline }
     private var loading: Bool { controller.state == .loading }
@@ -131,7 +236,10 @@ struct WorkoutForecastView: View {
         .onChange(of: store.configurationGeneration) { _, _ in
             invalidate(); invalidateWonder(); draft.consent = false; samples = []; inputError = nil
         }
-        .onDisappear { invalidate(); invalidateWonder(); samples = []; draft = WorkoutDraft() }
+        .onDisappear {
+            invalidate(); invalidateWonder(); samples = []; draft = WorkoutDraft()
+            workoutTask?.cancel(); weatherTask?.cancel(); context.clear()
+        }
     }
 
     // MARK: - Sections
@@ -196,12 +304,20 @@ struct WorkoutForecastView: View {
 
     private var workoutSection: some View {
         Section {
-            // Autofill hook: wired later to the Apple Health workout reader.
             if WorkoutFlowHooks.lastWorkoutEnabled {
                 Button { useLastWorkout() } label: {
-                    Label("Use my last workout (Apple Health)", systemImage: "heart.text.square")
+                    HStack {
+                        Label("Use my last workout (Apple Health)", systemImage: "heart.text.square")
+                        if context.workoutState == .loading { Spacer(); ProgressView() }
+                    }
                 }
+                .disabled(context.workoutState == .loading)
                 .accessibilityIdentifier("useLastWorkout")
+                if case .failed(let message) = context.workoutState {
+                    Text(message).font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("lastWorkoutError")
+                }
+                if let applied = draft.lastWorkout { lastWorkoutDetails(applied) }
             }
             Picker("Activity", selection: $draft.activity) {
                 ForEach(WorkoutDraft.activities, id: \.self) { Text($0.capitalized).tag($0) }
@@ -218,12 +334,32 @@ struct WorkoutForecastView: View {
 
     private var conditionsSection: some View {
         Section {
-            // Autofill hook: wired later to the weather service.
             if WorkoutFlowHooks.weatherEnabled {
-                Button { fillWeather() } label: {
-                    Label("Fill in the weather", systemImage: "cloud.sun")
+                Toggle(isOn: Binding(get: { context.isWeatherConsentGranted }, set: setWeatherConsent)) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Use my location to fill in the weather")
+                        Text("Your approximate location (rounded to about 1 km) goes to Open-Meteo, only when you tap Fill in the weather.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+                .accessibilityIdentifier("weatherConsent")
+                Button { fillWeather() } label: {
+                    HStack {
+                        Label("Fill in the weather", systemImage: "cloud.sun")
+                        if context.weatherState == .loading { Spacer(); ProgressView() }
+                    }
+                }
+                .disabled(!context.canFillWeather)
                 .accessibilityIdentifier("fillWeather")
+                if case .failed(let message) = context.weatherState {
+                    Text(message).font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("weatherError")
+                }
+                if let provenance = draft.weatherProvenance {
+                    Text(provenance).font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("weatherProvenance")
+                }
             }
             numberField("Temperature", unit: "°C", text: $draft.temperature, signed: true)
             numberField("Humidity", unit: "%", text: $draft.humidity)
@@ -260,7 +396,7 @@ struct WorkoutForecastView: View {
             }
             if !samples.isEmpty {
                 Button("Remove all session measurements", role: .destructive) {
-                    samples = []; controller.invalidate(); draft.consent = false
+                    samples = []; controller.invalidate(); invalidateExplainer(); draft.consent = false
                 }
             }
         } header: {
@@ -275,9 +411,7 @@ struct WorkoutForecastView: View {
             Button {
                 lastRequestWasDemo = false
                 do {
-                    let request = try WorkoutForecastRequest(mode: "personal", timezone: TimeZone.current.identifier,
-                        exercise: draft.exercise(), samples: samples, calibration_processing_consent: draft.consent)
-                    try request.validate(); submit(request)
+                    submit(try draft.personalRequest(samples: samples))
                 } catch { inputError = "Fill in every workout and condition field (and consent, if you added measurements)." }
             } label: {
                 Text("Estimate my workout")
@@ -321,29 +455,242 @@ struct WorkoutForecastView: View {
         }
     }
 
-    /// Placeholder for "Wonder explains this workout". Follow the Trends pattern: show exactly what would be
-    /// sent, a consent toggle, an explain button, then headline + insight cards + a collapsed
-    /// "How this was made". Nothing is requested from here yet.
+    @ViewBuilder private func lastWorkoutDetails(_ applied: WorkoutDraft.AppliedWorkout) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(applied.provenance)
+                .font(.footnote.weight(.medium))
+                .accessibilityIdentifier("workoutProvenance")
+            Text("Filled in the activity, duration and start time. Pick the intensity yourself.")
+                .font(.caption).foregroundStyle(.secondary)
+            if let note = applied.activityNote {
+                Text(note).font(.caption).foregroundStyle(.secondary)
+            }
+            if let typical = applied.typicalSessions {
+                Text(typical).font(.caption).foregroundStyle(.secondary)
+            }
+            if let heartRate = applied.averageHeartRateBPM {
+                let energy = applied.activeEnergyKilocalories.map { " · \($0) kcal active energy" } ?? ""
+                Text("That workout: average heart rate \(heartRate) bpm\(energy)")
+                    .font(.caption).foregroundStyle(.secondary)
+                InfoNote(WorkoutContextProvider.heartRateContextNote, systemImage: "heart")
+                    .accessibilityIdentifier("heartRateContextNote")
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    // MARK: - Wonder explains this workout
+
+    /// Follows the Trends pattern: exactly what would be sent, a consent toggle, one explain button, then the
+    /// summary, insight cards and a collapsed "How this was made". The preview is computed by the user's own
+    /// backend from the same request as the estimate; nothing goes to Meta without consent.
     private var wonderExplanationSection: some View {
         Section {
             Label("Muse Wonder can explain this workout against your own history.", systemImage: "sparkles")
                 .font(.subheadline)
                 .accessibilityIdentifier("workoutWonderPlaceholder")
+            if explainer.preview == nil, explainer.state == .idle {
+                Text("Estimate your workout first. You'll then see exactly what would be sent before anything goes to Meta.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            if explainer.state == .loading { ProgressView("Preparing the summary on your backend…") }
+            if case .failed(let message) = explainer.state {
+                Text(message).font(.subheadline).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("workoutWonderError")
+            }
+            if let result = explainer.result { wonderResult(result) }
+            if let preview = explainer.preview { wonderPreview(preview) }
         } header: {
             Text("Wonder explains this workout")
+        } footer: {
+            Text("Muse Wonder 1.0 writes the wording. Hydra computes every number and rejects advice or medical claims before you see it.")
+        }
+        .id("workoutWonder")
+    }
+
+    @ViewBuilder private func wonderResult(_ result: WonderWorkout) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Muse Wonder 1.0", systemImage: "sparkles")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.hydraTint)
+            Text(result.summary)
+                .font(.title3.weight(.semibold))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("workoutWonderSummary")
+        }
+        .padding(.vertical, 4)
+        ForEach(result.insights) { insight in
+            HStack(alignment: .top, spacing: 12) {
+                IconBadge(systemName: Self.insightSymbol(insight.id))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(insight.title).font(.headline)
+                    Text(insight.text)
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("workoutWonderInsight-\(insight.id)")
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        HydraDisclosure(title: "How this was made", systemImage: "gearshape.2", identifier: "workoutWonderProvenance") {
+            Text("Wording by Muse Wonder 1.0. Every number was computed and filled in by Hydra from your entries.")
+            ProvenanceLine(label: "Model", value: "\(result.provenance.provider) · \(result.provenance.model)")
+            if let input = result.inputTokens, let output = result.outputTokens {
+                ProvenanceLine(label: "Tokens", value: "\(input) in · \(output) out")
+            }
+            if let cost = result.costUSD {
+                ProvenanceLine(label: "Cost (usage-based)", value: "$\(cost.formatted(.number.precision(.fractionLength(4))))")
+                ProvenanceLine(label: "Account", value: result.provenance.account_id)
+                Text("Final billing pending.")
+            }
+            ProvenanceLine(label: "Attempt", value: result.provenance.attempt_id)
+            ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in
+                Text("• \(limitation)")
+            }
         }
     }
 
-    // MARK: - Autofill actions (placeholders)
-
-    private func useLastWorkout() {
-        // TODO(Health agent): read the user's most recent workout on device after they tap, then call
-        // draft.applyWorkout(activity:intensity:durationMinutes:). Nothing is read until then.
+    @ViewBuilder private func wonderPreview(_ preview: WorkoutWonderPreview) -> some View {
+        let facts = preview.facts
+        VStack(alignment: .leading, spacing: 8) {
+            Text("What would be sent to Meta").font(.headline)
+            factRow("Planned workout", Self.plannedText(facts.planned))
+            factRow("Your previous sessions", Self.historyText(facts.history, activity: facts.planned.activity))
+            if let typical = Self.typicalText(facts.history) { factRow("Your typical session", typical) }
+            if let loss = facts.history.measured_loss_ml {
+                factRow("Measured loss", "\(HydraFormat.milliliters(Double(loss))) mL (median of your weigh-ins)")
+            }
+            factRow("Hydra's estimate", Self.estimateText(facts.estimate))
+            Text("Only these counts, medians and Hydra's rounded estimate. No dates, body weights, drinks, urine or Apple Health records.")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("workoutWonderPreview")
+        if !preview.live_available {
+            Label("Live Muse Wonder isn't set up on this backend, so nothing can be sent from here.", systemImage: "info.circle")
+                .font(.subheadline).foregroundStyle(.secondary)
+                .accessibilityIdentifier("workoutWonderUnavailable")
+        }
+        if !preview.explainable {
+            Label("Log a previous session of this activity first: add a measured workout under \"Your own measurements\", then estimate again.",
+                  systemImage: "figure.run")
+                .font(.subheadline).foregroundStyle(.secondary)
+                .accessibilityIdentifier("workoutWonderInsufficient")
+        } else if explainer.alreadyExplained {
+            Label(explainer.replayed
+                  ? "This workout was already explained. Showing the saved result; nothing new was sent or charged."
+                  : "Explained. This exact summary won't be sent again.",
+                  systemImage: "checkmark.seal")
+                .font(.subheadline).foregroundStyle(.secondary)
+                .accessibilityIdentifier("workoutWonderReplay")
+        } else if explainer.canOffer, let account = preview.account_id {
+            Toggle("Send this summary to Meta's Muse Wonder", isOn: $wonderConsent)
+                .font(.body.weight(.medium))
+                .accessibilityIdentifier("workoutWonderConsent")
+            Button {
+                explainWorkout()
+            } label: {
+                HStack {
+                    if explainer.explaining { ProgressView().tint(.white) }
+                    Label("Explain this workout", systemImage: "sparkles")
+                }
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: 30)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!wonderConsent || !connected || explainer.explaining)
+            .accessibilityIdentifier("workoutWonderExplain")
+            if explainer.explaining { ProgressView("Asking Muse Wonder…") }
+            if let worst = preview.worst_case_micro_usd {
+                Text("One request, charged to \(account). Worst case \(HydraFormat.usd(micro: Double(worst))). Never retried automatically.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        if let message = explainer.explainError {
+            Text(message).font(.subheadline).foregroundStyle(.orange)
+                .accessibilityIdentifier("workoutWonderExplainError")
+        }
     }
 
+    private func factRow(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.footnote).foregroundStyle(.secondary)
+            Text(value).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    nonisolated static func plannedText(_ planned: WorkoutFacts.Planned) -> String {
+        let activity = ["strength": "strength training", "other": "exercise"][planned.activity] ?? planned.activity
+        let intensity = planned.intensity.map { "\($0)-intensity " } ?? ""
+        var parts = ["\(planned.duration_minutes) min of \(intensity)\(activity) in the \(planned.time_of_day)"]
+        if let temperature = planned.temperature_c { parts.append("\(temperature) °C") }
+        if let humidity = planned.humidity_percent { parts.append("\(humidity)% humidity") }
+        parts.append(planned.conditions_confirmed ? "conditions confirmed as matching" : "conditions not confirmed as matching")
+        return parts.joined(separator: " · ")
+    }
+
+    nonisolated static func historyText(_ history: WorkoutFacts.History, activity: String) -> String {
+        let total = history.sessions == 1 ? "1 previous session" : "\(history.sessions) previous sessions"
+        return "\(total); \(history.activity_sessions) of this activity, \(history.matching_sessions) at the same intensity, temperature and humidity, \(history.weigh_in_sessions) with a before-and-after weigh-in"
+    }
+
+    nonisolated static func typicalText(_ history: WorkoutFacts.History) -> String? {
+        var parts: [String] = []
+        if let minutes = history.typical_duration_minutes { parts.append("\(minutes) min") }
+        if let temperature = history.typical_temperature_c { parts.append("\(temperature) °C") }
+        if let humidity = history.typical_humidity_percent { parts.append("\(humidity)% humidity") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    nonisolated static func estimateText(_ estimate: WorkoutFacts.Estimate) -> String {
+        guard estimate.status == "estimated", let lower = estimate.lower_ml, let upper = estimate.upper_ml else {
+            return "No estimate yet"
+        }
+        return HydraFormat.milliliterRange(Double(lower), Double(upper)) + " of fluid loss (not a drinking target)"
+    }
+
+    private static func insightSymbol(_ id: String) -> String {
+        switch id {
+        case "duration_vs_typical": "timer"
+        case "weather_vs_typical": "cloud.sun"
+        case "comparable_history": "clock.arrow.circlepath"
+        case "estimate": "drop"
+        case "estimate_vs_previous": "scalemass"
+        case "missing_information": "questionmark.circle"
+        case "refine_estimate": "plus.circle"
+        default: "sparkles"
+        }
+    }
+
+    // MARK: - Autofill actions
+
+    /// Reads the most recent workout on device only after the tap; nothing is uploaded.
+    private func useLastWorkout() {
+        workoutTask?.cancel()
+        workoutTask = Task {
+            guard let suggestion = await context.lastWorkoutSuggestion(), !Task.isCancelled else { return }
+            draft.applyLastWorkout(suggestion)
+        }
+    }
+
+    /// Looks up the weather only with consent, for the hour nearest the planned start.
     private func fillWeather() {
-        // TODO(Weather agent): fetch current conditions after the tap, then call
-        // draft.applyWeather(temperatureC:humidityPercent:).
+        guard context.canFillWeather else { return }
+        weatherTask?.cancel()
+        weatherTask = Task {
+            guard let suggestion = await context.weatherSuggestion(startsAt: draft.startsAt), !Task.isCancelled else { return }
+            draft.applyWeatherSuggestion(suggestion)
+        }
+    }
+
+    private func setWeatherConsent(_ granted: Bool) {
+        context.setWeatherConsent(granted)
+        if !granted { draft.clearAppliedWeather() }
     }
 
     // MARK: - Actions
@@ -355,12 +702,34 @@ struct WorkoutForecastView: View {
             guard !samples.contains(where: { $0.observed_at == sample.observed_at }) else {
                 inputError = "A measurement at that completion time is already in this session."; return
             }
-            samples.append(sample); controller.invalidate(); inputError = nil; showingCalibration = false
+            samples.append(sample); controller.invalidate(); invalidateExplainer(); inputError = nil; showingCalibration = false
         } catch { inputError = "Complete all measurement and error-bound fields and confirm the weighing protocol." }
     }
 
     private func invalidate() {
-        requestTask?.cancel(); requestTask = nil; controller.invalidate()
+        requestTask?.cancel(); requestTask = nil; controller.invalidate(); invalidateExplainer()
+    }
+
+    /// The Wonder preview describes one exact request; any change to the workout or measurements drops it.
+    private func invalidateExplainer() {
+        explainerTask?.cancel(); explainerTask = nil; explainer.invalidate(); wonderConsent = false
+    }
+
+    /// Not billable: the user's own backend computes the summary from the request just estimated.
+    private func loadExplainerPreview(_ request: WorkoutForecastRequest) {
+        guard WorkoutFlowHooks.wonderExplanationEnabled, connected,
+              let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        explainerTask?.cancel()
+        wonderConsent = false
+        explainerTask = Task { await explainer.loadPreview(request, service: service) }
+    }
+
+    /// The only billable action on this screen: one request, only after the consent toggle is on.
+    private func explainWorkout() {
+        guard wonderConsent, connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        wonderConsent = false
+        explainerTask?.cancel()
+        explainerTask = Task { await explainer.explain(consent: true, service: service) }
     }
 
     private func invalidateWonder() {
@@ -377,7 +746,12 @@ struct WorkoutForecastView: View {
         inputError = nil; focusedField = nil
         guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
         requestTask?.cancel()
-        requestTask = Task { await controller.load(request, service: service) }
+        if request.mode == "personal" { invalidateExplainer() }
+        requestTask = Task {
+            await controller.load(request, service: service)
+            // The Wonder preview reuses exactly the request just estimated.
+            if request.mode == "personal", controller.result != nil, !Task.isCancelled { loadExplainerPreview(request) }
+        }
     }
 
     // MARK: - Results
@@ -415,6 +789,23 @@ struct WorkoutForecastView: View {
         .foregroundStyle(.secondary)
     }
 
+    /// Millilitre factors as whole mL; everything else as the backend reported it.
+    nonisolated static func factorText(key: String, _ factor: WorkoutForecast.Factor) -> String {
+        if case .number(let value) = factor, key.hasSuffix("_ml") { return "\(HydraFormat.milliliters(value)) mL" }
+        return factor.display
+    }
+
+    /// A backend UTC timestamp shown as a local date and time; the raw text if it can't be read.
+    nonisolated static func dateText(_ timestamp: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = formatter.date(from: timestamp) ?? {
+            formatter.formatOptions = [.withInternetDateTime]
+            return formatter.date(from: timestamp)
+        }()
+        return date?.formatted(date: .abbreviated, time: .shortened) ?? timestamp
+    }
+
     @ViewBuilder private func resultSections(_ result: WorkoutForecast) -> some View {
         Section {
             if let value = result.valueMl, let lower = result.lowerMl, let upper = result.upperMl {
@@ -424,7 +815,8 @@ struct WorkoutForecastView: View {
                         .foregroundStyle(Color.hydraTint)
                         .accessibilityLabel("Estimated exercise sweat loss: \(HydraFormat.milliliters(value)) mL")
                         .accessibilityIdentifier("workoutPrediction")
-                    Text("estimated sweat loss · likely \(HydraFormat.milliliters(lower))–\(HydraFormat.milliliters(upper)) mL")
+                    Text("estimated sweat loss · likely \(HydraFormat.milliliterRange(lower, upper))")
+                        .accessibilityIdentifier("workoutPredictionRange")
                         .font(.subheadline)
                     Text(result.synthetic
                         ? "Range checked only on simulated data; it doesn't show accuracy for you."
@@ -445,7 +837,7 @@ struct WorkoutForecastView: View {
                         .font(.subheadline)
                         .accessibilityIdentifier("longitudinalHistory")
                     if let first = history.first_observed_at, let last = history.last_observed_at {
-                        Text("Observation window (UTC): \(first) to \(last)").font(.caption)
+                        Text("Observation window: \(Self.dateText(first)) to \(Self.dateText(last))").font(.caption)
                     }
                     Text("History is held for this session only. Recent-workout adaptation is experimental; its range is not a calibrated prediction interval.")
                         .font(.footnote).foregroundStyle(.secondary)
@@ -458,7 +850,8 @@ struct WorkoutForecastView: View {
                 LabeledContent("Measurements used", value: result.sampleCount.formatted())
                 LabeledContent("Model", value: result.modelVersion)
                 ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
-                    LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized, value: result.inputFactors[key]!.display)
+                    LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized,
+                                   value: Self.factorText(key: key, result.inputFactors[key]!))
                 }
                 ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source).font(.caption) }
                 ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in

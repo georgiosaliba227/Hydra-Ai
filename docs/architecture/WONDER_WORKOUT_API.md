@@ -423,6 +423,35 @@ The transport sends only payloads Hydra builds: `facts_from_payload` rebuilds
 the payload from its embedded facts and refuses any difference (another
 prompt, schema, token limit, tool or inconsistent facts).
 
+## iOS integration
+
+Implemented in the "Plan a workout" screen (`ios/HydraAI/Features/Forecast/WorkoutForecastView.swift`,
+models and controller in `ios/HydraAI/Data/WonderWorkout.swift`, service methods
+`wonderWorkoutPreview` / `explainWorkout` in `HTTPBeverageService`). Unit-tested against this
+document's JSON examples and a stub service; UI-tested against a local mock backend only. No live
+request has been made from the app.
+
+- **Same request as the estimate.** "Estimate my workout" builds one `WorkoutForecastRequest`
+  (`WorkoutDraft.personalRequest(samples:)`). After the estimate returns, the app posts that exact
+  value to `/preview`; "Explain this workout" posts it again unchanged plus `payload_sha256` and
+  `consent_to_send: true`. Any edit to the workout or the session measurements drops the preview.
+- **History is the session's manual measurements.** The app sends only the weigh-ins the user
+  added under "Your own measurements" on this screen. Apple Health workouts are not sent as
+  history, so with no added measurement the preview is not explainable and the app says "Log a
+  previous session of this activity first".
+- **Gating.** The consent toggle and button appear only when the preview is explainable,
+  `live_available` is true with an account, the payload was not already explained (saved result
+  or explained this visit), and no attempt for it failed after reservation. The button stays
+  disabled until the toggle is on; the toggle resets after each tap and whenever the preview
+  changes. On a mock backend the section shows the preview and "Live Muse Wonder isn't set up on
+  this backend".
+- **Errors.** Each code above maps to its own message. `workout_preview_stale` re-runs the
+  (non-billable) preview and asks for consent again; `wonder_attempt_unresolved` shows the attempt
+  id and never offers that payload again during the visit. Nothing is retried automatically.
+- **Display.** `summary` as the headline, one card per insight with Hydra's `title`, and a
+  collapsed "How this was made" with model, tokens, usage-based cost, account, attempt and every
+  `limitations` line. `template` fields are never decoded for display.
+
 ## Privacy
 
 Sent to Meta: the aggregated `facts` above (no event IDs, timestamps, body
