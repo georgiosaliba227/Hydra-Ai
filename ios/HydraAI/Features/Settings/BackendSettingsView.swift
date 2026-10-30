@@ -24,7 +24,12 @@ struct BackendSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Connection") {
+            Section {
+                LabeledContent {
+                    Text(statusText).foregroundStyle(.secondary)
+                } label: {
+                    Label("Status", systemImage: statusSymbol)
+                }
                 Toggle("Offline demo (separate local data)", isOn: $offline)
                     .accessibilityIdentifier("offlineMode")
                 if !offline {
@@ -43,40 +48,67 @@ struct BackendSettingsView: View {
                     } catch { self.error = error.localizedDescription }
                 }
                 .accessibilityIdentifier("saveConnection")
-                Text(offline ? "Offline demo records stay on this device and are not uploaded." : "Use your local Hydra backend access token, not a Meta API key. The token is stored in Keychain. Backend mode sends confirmed beverage entries. Photos are sent to this backend only after consent and Analyze; Meta mode requires separate consent before sending photos to Meta. HealthKit records stay on device.")
-                    .font(.footnote)
-                Text("For simulator: 127.0.0.1 reaches this Mac. For an iPhone: use the Mac's private LAN address on a trusted network. Public connections require HTTPS.")
-                    .font(.footnote)
+                if let error { Text(error).foregroundStyle(.red) }
+            } header: {
+                Text("Connection")
+            } footer: {
+                Text(offline ? "Offline demo records stay on this iPhone and are not uploaded."
+                             : "Use your Hydra backend access token, not a Meta API key. It's stored in the Keychain.")
             }
-            if let error { Text(error).foregroundStyle(.red) }
             if !store.isOffline && store.isConfigured {
-                Section("Daily beverage goal (optional)") {
-                    TextField("Goal in mL, e.g. 2000", text: $goalText)
-                        .keyboardType(.numberPad)
-                        .focused($goalFocused)
-                        .accessibilityIdentifier("goalField")
+                Section {
+                    HStack {
+                        TextField("e.g. 2000", text: $goalText)
+                            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
+                            .keyboardType(.numberPad)
+                            .focused($goalFocused)
+                            .accessibilityLabel("Daily goal in milliliters")
+                            .accessibilityIdentifier("goalField")
+                        Text("mL").foregroundStyle(.secondary).accessibilityHidden(true)
+                    }
                     Button("Save goal") { goalFocused = false; Task { await saveGoal(Int(goalText)) } }
                         .disabled(Int(goalText).map { !(100...10_000).contains($0) } ?? true)
                         .accessibilityIdentifier("saveGoal")
                     Button("Clear goal", role: .destructive) { Task { await saveGoal(nil) } }
-                    Text("A goal you choose for logged beverage volume. Hydra does not recommend an amount; daily needs vary and include water from food.")
-                        .font(.footnote)
                     if let goalMessage { Text(goalMessage).font(.footnote).accessibilityIdentifier("goalMessage") }
+                } header: {
+                    Text("Daily goal (optional)")
+                } footer: {
+                    Text("A goal you choose for logged drinks. Hydra doesn't recommend an amount; daily needs vary and include water from food.")
                 }
             }
+            Section {
+                NavigationLink { HealthActivityPermissionView() } label: {
+                    Label("Apple Health", systemImage: "heart.text.square")
+                }
+            } footer: {
+                Text("Optional. Reads today's steps on this iPhone; Health records aren't sent anywhere.")
+            }
             if !store.isOffline && store.isConfigured {
-                Section("Your data") {
+                Section {
                     Button("Export my data (JSON)") { Task { await exportData() } }
                         .accessibilityIdentifier("exportData")
                     Button("Delete all my data", role: .destructive) { confirmingDeleteAll = true }
                         .disabled(!store.canLog)
                         .accessibilityIdentifier("deleteAllData")
-                    Text("Export includes your logged drinks and goal. Deleting erases them from your backend; it cannot be undone.")
-                        .font(.footnote)
                     if let dataMessage { Text(dataMessage).font(.footnote).accessibilityIdentifier("dataMessage") }
+                } header: {
+                    Text("Your data")
+                } footer: {
+                    Text("Export includes your logged drinks and goal. Deleting erases them from your backend and can't be undone.")
                 }
             }
-            Section("AI") { Text("Camera verifies the backend mode before analysis. Mock responses are synthetic. Meta mode sends the photo to Meta only with separate consent and a server-approved budget permit. Suggestions always require confirmation; zero retention is not promised.") }
+            Section("Privacy & AI") {
+                DisclosureGroup("What's sent where") {
+                    Text("Backend mode sends the drinks you confirm to your backend. Photos go to your backend only after you consent and tap Analyze; Meta mode needs a separate consent before a photo is sent to Meta. Apple Health records stay on this iPhone.")
+                    Text("Camera checks the backend mode before analysis. Mock responses are synthetic. In Meta mode a photo goes to Meta only with separate consent and a server-approved budget permit. Suggestions always need your confirmation; zero retention is not promised.")
+                }
+                .font(.footnote)
+                DisclosureGroup("Connecting a device") {
+                    Text("Simulator: 127.0.0.1 reaches this Mac. iPhone: use the Mac's private LAN address on a trusted network. Public connections require HTTPS.")
+                }
+                .font(.footnote)
+            }
         }
         .navigationTitle("Settings")
         .fileExporter(isPresented: Binding(get: { export != nil }, set: { if !$0 { export = nil } }),
@@ -95,6 +127,20 @@ struct BackendSettingsView: View {
         .task {
             if let goal = try? await store.currentGoal() { goalText = String(goal) }
         }
+    }
+
+    private var statusText: String {
+        if store.isOffline { return "Offline demo" }
+        if !store.isConfigured { return "Not connected" }
+        if case .failed = store.state { return "Can't reach backend" }
+        return "Connected"
+    }
+
+    private var statusSymbol: String {
+        if store.isOffline { return "iphone" }
+        if !store.isConfigured { return "link.badge.plus" }
+        if case .failed = store.state { return "exclamationmark.triangle" }
+        return "checkmark.circle"
     }
 
     @MainActor

@@ -1,5 +1,16 @@
 import SwiftUI
 
+// MARK: - Autofill hooks
+// Placeholder spots for one-tap autofill. The Apple Health workout reader (ios/HydraAI/Health/) and the
+// weather service (ios/HydraAI/Weather/) are built separately; wire them into `useLastWorkout()` and
+// `fillWeather()` below, then flip these flags. Until then the buttons stay hidden.
+enum WorkoutAutofill {
+    /// Shows "Use my last workout (Apple Health)" in step 1.
+    static let lastWorkoutEnabled = false
+    /// Shows "Fill in the weather" in step 2.
+    static let weatherEnabled = false
+}
+
 private struct WorkoutDraft: Equatable {
     var activity = "running"
     var intensity = "moderate"
@@ -20,6 +31,22 @@ private struct WorkoutDraft: Equatable {
     var urineError = ""
     var durationError = ""
     var protocolConfirmed = false
+
+    static let activities = ["running", "cycling", "walking", "strength", "other"]
+    static let intensities = ["low", "moderate", "high"]
+
+    /// Fills step 1 from a workout the user picked (e.g. their last Apple Health workout).
+    mutating func applyWorkout(activity: String, intensity: String?, durationMinutes: Double) {
+        if Self.activities.contains(activity) { self.activity = activity }
+        if let intensity, Self.intensities.contains(intensity) { self.intensity = intensity }
+        duration = durationMinutes.formatted(.number.precision(.fractionLength(0...1)).grouping(.never))
+    }
+
+    /// Fills step 2 from a weather reading the user asked for.
+    mutating func applyWeather(temperatureC: Double, humidityPercent: Double) {
+        temperature = temperatureC.formatted(.number.precision(.fractionLength(0...1)).grouping(.never))
+        humidity = humidityPercent.formatted(.number.precision(.fractionLength(0)).grouping(.never))
+    }
 
     private func number(_ text: String, minimum: Double = 0, maximum: Double) throws -> Double {
         guard let value = Double(text), value.isFinite, value >= minimum, value <= maximum else {
@@ -54,6 +81,7 @@ private struct WorkoutDraft: Equatable {
     }
 }
 
+/// Guided flow: try the demo, or 1. your workout → 2. conditions → 3. your estimate.
 struct WorkoutForecastView: View {
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = WorkoutForecastController()
@@ -64,100 +92,32 @@ struct WorkoutForecastView: View {
     @State private var inputError: String?
     @State private var showingCalibration = false
     @State private var requestTask: Task<Void, Never>?
+    /// Which button started the current request, so progress and errors show next to it.
+    @State private var lastRequestWasDemo = true
     @FocusState private var focusedField: String?
 
     private var connected: Bool { store.isConfigured && !store.isOffline }
     private var loading: Bool { controller.state == .loading }
 
     var body: some View {
-        Form {
-            Section {
-                Text("Exercise loss estimate") .font(.headline)
-                Text("Separate from water consumed and daily fluid requirements. This is not a drinking target or a dehydration diagnosis.")
-                    .font(.footnote)
-                if !connected { Text("Connect to your local backend in Settings to use forecasting.") }
+        ScrollViewReader { proxy in
+            Form {
+                introSection
+                demoSection
+                if let result = controller.result, result.synthetic { resultSections(result) }
+                recordedWonderSection
+                workoutSection
+                conditionsSection
+                calibrationSection
+                estimateSection
+                if let result = controller.result, !result.synthetic { resultSections(result) }
             }
-            Section("Synthetic demonstration") {
-                Text("Runs the trained model on a fixed simulated workout. No personal measurements or beverage logs are used.")
-                    .font(.footnote)
-                Button("Run synthetic demonstration") {
-                    submit(.demonstration(timezone: TimeZone.current.identifier))
-                }
-                .disabled(!connected || loading)
-                .accessibilityIdentifier("runWorkoutDemo")
+            .onChange(of: controller.result?.synthetic) { _, synthetic in
+                if synthetic == false { withAnimation { proxy.scrollTo("personalResult", anchor: .top) } }
             }
-            if let result = controller.result { resultSection(result) }
-            Section("Muse Wonder · recorded live result") {
-                Text("Replays one real Muse Wonder 1.0 response about the simulated workout, recorded earlier. Loading it sends nothing to Meta. The numbers come from the existing model; Wonder only selected which reviewed explanations apply.")
-                    .font(.footnote)
-                Button("Show recorded Wonder interpretation") { loadWonder() }
-                    .disabled(!connected || wonder.state == .loading)
-                    .accessibilityIdentifier("loadRecordedWonder")
-                if let recorded = wonder.result, let interpretation = recorded.systems["B"]?.interpretation {
-                    recordedWonderContent(recorded, interpretation)
-                }
-                if wonder.state == .loading { ProgressView() }
-                if case .failed(let message) = wonder.state { Text(message).foregroundStyle(.secondary) }
-            }
-            Section("Planned workout · manually entered") {
-                Picker("Activity", selection: $draft.activity) {
-                    ForEach(["running", "cycling", "walking", "strength", "other"], id: \.self) { Text($0.capitalized).tag($0) }
-                }
-                Picker("Intensity", selection: $draft.intensity) {
-                    ForEach(["low", "moderate", "high"], id: \.self) { Text($0.capitalized).tag($0) }
-                }
-                DatePicker("Starts", selection: $draft.startsAt)
-                numberField("Duration (minutes)", text: $draft.duration)
-                numberField("Temperature (°C)", text: $draft.temperature, signed: true)
-                numberField("Relative humidity (%)", text: $draft.humidity)
-                Toggle("Conditions match my past measurements", isOn: $draft.comparable)
-                Text("Confirm comparable activity, intensity, weather, clothing, equipment and acclimatization. Otherwise the estimate remains unavailable.")
-                    .font(.footnote)
-            }
-            Section("Personal calibration") {
-                Text("\(samples.count) manual measurements in this session")
-                Text("Measurements stay in memory on this screen. When you request an estimate, they are processed in memory by your backend, without storage or transfer to Meta. HealthKit records are not used.")
-                    .font(.footnote)
-                Toggle("I consent to backend processing of these manual measurements", isOn: $draft.consent)
-                    .accessibilityIdentifier("workoutCalibrationConsent")
-                DisclosureGroup("Add a completed workout measurement", isExpanded: $showingCalibration) {
-                    Text("Use only a workout matching the conditions above. Enter measured values, including explicit zero values where measured. Do not guess error bounds.")
-                        .font(.footnote)
-                    DatePicker("Measurement completed", selection: $draft.observedAt, in: ...Date.now)
-                    numberField("Before mass (kg)", text: $draft.preMass)
-                    numberField("After mass (kg)", text: $draft.postMass)
-                    numberField("Consumed during workout (mL)", text: $draft.consumed)
-                    numberField("Urine during workout (mL)", text: $draft.urine)
-                    numberField("Measured duration (minutes)", text: $draft.measuredDuration)
-                    Text("Independently established absolute error bounds") .font(.caption)
-                    numberField("Each weighing error (kg)", text: $draft.massError)
-                    numberField("Consumed volume error (mL)", text: $draft.intakeError)
-                    numberField("Urine volume error (mL)", text: $draft.urineError)
-                    numberField("Duration error (minutes)", text: $draft.durationError)
-                    Toggle("Comparable dry weighing; all intake and urine recorded", isOn: $draft.protocolConfirmed)
-                    Button("Add measurement to this session") { addSample() }
-                        .disabled(samples.count >= 32)
-                }
-                if !samples.isEmpty {
-                    Button("Remove all session measurements", role: .destructive) {
-                        samples = []; controller.invalidate(); draft.consent = false
-                    }
-                }
-                Button("Estimate planned workout loss") {
-                    do {
-                        let request = try WorkoutForecastRequest(mode: "personal", timezone: TimeZone.current.identifier,
-                            exercise: draft.exercise(), samples: samples, calibration_processing_consent: draft.consent)
-                        try request.validate(); submit(request)
-                    } catch { inputError = "Enter complete workout values and consent before sending any calibration measurements." }
-                }
-                .disabled(!connected || loading || (!samples.isEmpty && !draft.consent))
-                .accessibilityIdentifier("estimateWorkout")
-            }
-            if let inputError { Section { Text(inputError).foregroundStyle(.red) } }
-            if loading { Section { ProgressView("Calculating locally on your backend…") } }
-            if case .failed(let message) = controller.state { Section { Text(message).foregroundStyle(.secondary) } }
         }
-        .navigationTitle("Workout forecast")
+        .navigationTitle("Plan a workout")
+        .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { focusedField = nil }
@@ -169,10 +129,206 @@ struct WorkoutForecastView: View {
         .onDisappear { invalidate(); invalidateWonder(); samples = []; draft = WorkoutDraft() }
     }
 
-    private func numberField(_ title: String, text: Binding<String>, signed: Bool = false) -> some View {
-        TextField(title, text: text).keyboardType(signed ? .numbersAndPunctuation : .decimalPad)
-            .focused($focusedField, equals: title)
+    // MARK: - Sections
+
+    private var introSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    IconBadge(systemName: "figure.run")
+                    Text("Estimate how much fluid you might lose as sweat during a planned workout.")
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                InfoNote("Separate from what you drink. Not a drinking target or a dehydration diagnosis.")
+                if !connected {
+                    InfoNote("Connect to your backend in Settings to use this.", systemImage: "link")
+                }
+            }
+            .padding(.vertical, 4)
+        }
     }
+
+    private var demoSection: some View {
+        Section {
+            Button {
+                lastRequestWasDemo = true
+                submit(.demonstration(timezone: TimeZone.current.identifier))
+            } label: {
+                Label("Run the demo workout", systemImage: "play.circle.fill")
+                    .font(.body.weight(.semibold))
+            }
+            .disabled(!connected || loading)
+            .accessibilityIdentifier("runWorkoutDemo")
+            if lastRequestWasDemo { requestStatus }
+        } header: {
+            Text("Just exploring?")
+        } footer: {
+            Text("Runs Hydra's model on a fixed simulated workout. None of your data is used.")
+        }
+    }
+
+    private var recordedWonderSection: some View {
+        Section {
+            Button {
+                loadWonder()
+            } label: {
+                Label("Show Muse Wonder's take", systemImage: "sparkles")
+            }
+            .disabled(!connected || wonder.state == .loading)
+            .accessibilityIdentifier("loadRecordedWonder")
+            if let recorded = wonder.result, let interpretation = recorded.systems["B"]?.interpretation {
+                recordedWonderContent(recorded, interpretation)
+            }
+            if wonder.state == .loading { ProgressView() }
+            if case .failed(let message) = wonder.state { Text(message).foregroundStyle(.secondary) }
+        } header: {
+            Text("Muse Wonder · recorded result")
+        } footer: {
+            Text("A real Muse Wonder 1.0 response about the demo workout, recorded earlier — loading it sends nothing to Meta. Wonder only picked which reviewed explanations apply; the numbers are Hydra's.")
+        }
+    }
+
+    private var workoutSection: some View {
+        Section {
+            // Autofill hook: wired later to the Apple Health workout reader.
+            if WorkoutAutofill.lastWorkoutEnabled {
+                Button { useLastWorkout() } label: {
+                    Label("Use my last workout (Apple Health)", systemImage: "heart.text.square")
+                }
+                .accessibilityIdentifier("useLastWorkout")
+            }
+            Picker("Activity", selection: $draft.activity) {
+                ForEach(WorkoutDraft.activities, id: \.self) { Text($0.capitalized).tag($0) }
+            }
+            Picker("Intensity", selection: $draft.intensity) {
+                ForEach(WorkoutDraft.intensities, id: \.self) { Text($0.capitalized).tag($0) }
+            }
+            DatePicker("Starts", selection: $draft.startsAt)
+            numberField("Duration", unit: "min", text: $draft.duration)
+        } header: {
+            StepHeader(number: 1, title: "Your workout")
+        }
+    }
+
+    private var conditionsSection: some View {
+        Section {
+            // Autofill hook: wired later to the weather service.
+            if WorkoutAutofill.weatherEnabled {
+                Button { fillWeather() } label: {
+                    Label("Fill in the weather", systemImage: "cloud.sun")
+                }
+                .accessibilityIdentifier("fillWeather")
+            }
+            numberField("Temperature", unit: "°C", text: $draft.temperature, signed: true)
+            numberField("Humidity", unit: "%", text: $draft.humidity)
+            Toggle("Conditions match my past measurements", isOn: $draft.comparable)
+        } header: {
+            StepHeader(number: 2, title: "Conditions")
+        } footer: {
+            Text("Turn this on only if activity, intensity, weather, clothing, equipment and acclimatization match workouts you measured. Otherwise no personal estimate is given.")
+        }
+    }
+
+    private var calibrationSection: some View {
+        Section {
+            LabeledContent("Measurements this session", value: samples.count.formatted())
+            Toggle("I consent to backend processing of these manual measurements", isOn: $draft.consent)
+                .accessibilityIdentifier("workoutCalibrationConsent")
+            DisclosureGroup("Add a measured workout", isExpanded: $showingCalibration) {
+                Text("Use only a workout that matches the conditions above. Enter measured values, including zeros where measured. Don't guess error bounds.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                DatePicker("Finished", selection: $draft.observedAt, in: ...Date.now)
+                numberField("Weight before", unit: "kg", text: $draft.preMass)
+                numberField("Weight after", unit: "kg", text: $draft.postMass)
+                numberField("Drank during", unit: "mL", text: $draft.consumed)
+                numberField("Urine during", unit: "mL", text: $draft.urine)
+                numberField("Measured duration", unit: "min", text: $draft.measuredDuration)
+                Text("Measurement error bounds").font(.caption.bold()).foregroundStyle(.secondary)
+                numberField("Each weighing ±", unit: "kg", text: $draft.massError)
+                numberField("Amount drunk ±", unit: "mL", text: $draft.intakeError)
+                numberField("Urine ±", unit: "mL", text: $draft.urineError)
+                numberField("Duration ±", unit: "min", text: $draft.durationError)
+                Toggle("Comparable dry weighing; all intake and urine recorded", isOn: $draft.protocolConfirmed)
+                Button("Add measurement to this session") { addSample() }
+                    .disabled(samples.count >= 32)
+            }
+            if !samples.isEmpty {
+                Button("Remove all session measurements", role: .destructive) {
+                    samples = []; controller.invalidate(); draft.consent = false
+                }
+            }
+        } header: {
+            Text("Optional · your own measurements")
+        } footer: {
+            Text("Measurements stay in memory on this screen. Your backend processes them only when you estimate — not stored, not sent to Meta. Apple Health records aren't used.")
+        }
+    }
+
+    private var estimateSection: some View {
+        Section {
+            Button {
+                lastRequestWasDemo = false
+                do {
+                    let request = try WorkoutForecastRequest(mode: "personal", timezone: TimeZone.current.identifier,
+                        exercise: draft.exercise(), samples: samples, calibration_processing_consent: draft.consent)
+                    try request.validate(); submit(request)
+                } catch { inputError = "Fill in every workout and condition field (and consent, if you added measurements)." }
+            } label: {
+                Text("Estimate my workout")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 30)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!connected || loading || (!samples.isEmpty && !draft.consent))
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .accessibilityIdentifier("estimateWorkout")
+            if let inputError {
+                Text(inputError).foregroundStyle(.red).font(.subheadline)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 0, trailing: 4))
+            }
+            if !lastRequestWasDemo { requestStatus.listRowBackground(Color.clear) }
+        } header: {
+            StepHeader(number: 3, title: "Your estimate")
+        }
+    }
+
+    @ViewBuilder private var requestStatus: some View {
+        if loading { ProgressView("Calculating on your backend…") }
+        if case .failed(let message) = controller.state { Text(message).foregroundStyle(.secondary) }
+    }
+
+    private func numberField(_ title: String, unit: String, text: Binding<String>, signed: Bool = false) -> some View {
+        LabeledContent {
+            HStack(spacing: 4) {
+                TextField("0", text: text)
+                    .multilineTextAlignment(.trailing)
+                    .keyboardType(signed ? .numbersAndPunctuation : .decimalPad)
+                    .focused($focusedField, equals: title)
+                    .accessibilityLabel("\(title), \(unit)")
+                Text(unit).foregroundStyle(.secondary).accessibilityHidden(true)
+            }
+        } label: {
+            Text(title)
+        }
+    }
+
+    // MARK: - Autofill actions (placeholders)
+
+    private func useLastWorkout() {
+        // TODO(Health agent): read the user's most recent workout on device after they tap, then call
+        // draft.applyWorkout(activity:intensity:durationMinutes:). Nothing is read until then.
+    }
+
+    private func fillWeather() {
+        // TODO(Weather agent): fetch current conditions after the tap, then call
+        // draft.applyWeather(temperatureC:humidityPercent:).
+    }
+
+    // MARK: - Actions
 
     private func addSample() {
         do {
@@ -199,26 +355,6 @@ struct WorkoutForecastView: View {
         wonderTask = Task { await wonder.load(service: service) }
     }
 
-    @ViewBuilder private func recordedWonderContent(_ recorded: HydrationContextComparison,
-                                                    _ interpretation: HydrationContextComparison.Interpretation) -> some View {
-        ForEach(["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"], id: \.self) { category in
-            if let texts = interpretation.reviewed_text[category], !texts.isEmpty {
-                Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
-                ForEach(Array(texts.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
-            }
-        }
-        let observed = recorded.provider_observations
-        if let input = observed["input_tokens"] ?? nil, let output = observed["output_tokens"] ?? nil,
-           let latency = observed["latency_ms"] ?? nil, let cost = observed["usage_derived_cost_micro_usd"] ?? nil {
-            Text("\(Int(input)) input · \(Int(output)) output tokens · \(Int(latency)) ms")
-                .font(.caption).accessibilityIdentifier("recordedWonderUsage")
-            Text("Usage-derived cost $\((cost / 1_000_000).formatted(.number.precision(.fractionLength(4)))); final billing pending.")
-                .font(.caption)
-        }
-        Text("Muse Wonder 1.0 · Georgio's experiment account · attempt \(recorded.provenance.attempt_id ?? "")")
-            .font(.caption2)
-    }
-
     private func submit(_ request: WorkoutForecastRequest) {
         inputError = nil; focusedField = nil
         guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
@@ -226,68 +362,115 @@ struct WorkoutForecastView: View {
         requestTask = Task { await controller.load(request, service: service) }
     }
 
-    @ViewBuilder private func resultSection(_ result: WorkoutForecast) -> some View {
-        Section(result.synthetic ? "SIMULATED · not your measurements" : "Personal estimate") {
-            if let value = result.valueMl, let lower = result.lowerMl, let upper = result.upperMl {
-                Text("Estimated exercise sweat loss: \(value.formatted(.number.precision(.fractionLength(0...1)))) mL")
-                    .accessibilityIdentifier("workoutPrediction")
-                Text("Range: \(lower.formatted(.number.precision(.fractionLength(0...1))))–\(upper.formatted(.number.precision(.fractionLength(0...1)))) mL")
-                Text(result.synthetic
-                    ? "Range checked only on simulated data; it does not establish accuracy for you."
-                    : "Range reflects supplied measurement errors and comparable past workouts. Future loss can differ.")
-                    .font(.caption)
-            } else {
-                Text("Insufficient data for an exercise-loss estimate.").accessibilityIdentifier("workoutInsufficientData")
-            }
-            Text("Data: \(result.dataSufficiency.replacingOccurrences(of: "_", with: " "))")
-            Text("Personalization: \(result.personalizationStatus.replacingOccurrences(of: "_", with: " "))")
-            Text("\(result.sampleCount) calibration measurements · \(result.modelVersion)") .font(.caption)
-            if let history = result.longitudinalHistory {
-                Text("Calibration history: \(history.comparable_samples) comparable of \(history.total_samples) supplied workouts; \(history.recent_samples) recent measurements.")
-                    .accessibilityIdentifier("longitudinalHistory")
-                if let first = history.first_observed_at, let last = history.last_observed_at {
-                    Text("Observation window (UTC): \(first) to \(last)").font(.caption)
+    // MARK: - Results
+
+    private static let interpretationCategories = ["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"]
+
+    @ViewBuilder private func interpretationText(_ interpretation: HydrationContextComparison.Interpretation) -> some View {
+        ForEach(Self.interpretationCategories, id: \.self) { category in
+            if let texts = interpretation.reviewed_text[category], !texts.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
+                        .foregroundStyle(Color.hydraTint)
+                    ForEach(Array(texts.enumerated()), id: \.offset) { _, text in
+                        Text(text).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                Text("History is held for this session only. Recent-workout adaptation is experimental; its range is not a calibrated prediction interval.")
-                    .font(.footnote)
+            }
+        }
+    }
+
+    @ViewBuilder private func recordedWonderContent(_ recorded: HydrationContextComparison,
+                                                    _ interpretation: HydrationContextComparison.Interpretation) -> some View {
+        interpretationText(interpretation)
+        DisclosureGroup("How this was made") {
+            let observed = recorded.provider_observations
+            if let input = observed["input_tokens"] ?? nil, let output = observed["output_tokens"] ?? nil,
+               let latency = observed["latency_ms"] ?? nil, let cost = observed["usage_derived_cost_micro_usd"] ?? nil {
+                Text("\(Int(input)) input · \(Int(output)) output tokens · \(Int(latency)) ms")
+                    .accessibilityIdentifier("recordedWonderUsage")
+                Text("Usage-derived cost \(HydraFormat.usd(micro: cost)); final billing pending.")
+            }
+            Text("Muse Wonder 1.0 · Georgio's experiment account · attempt \(recorded.provenance.attempt_id ?? "")")
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder private func resultSections(_ result: WorkoutForecast) -> some View {
+        Section {
+            if let value = result.valueMl, let lower = result.lowerMl, let upper = result.upperMl {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(HydraFormat.milliliters(value)) mL")
+                        .font(.system(.largeTitle, design: .rounded).bold())
+                        .foregroundStyle(Color.hydraTint)
+                        .accessibilityLabel("Estimated exercise sweat loss: \(HydraFormat.milliliters(value)) mL")
+                        .accessibilityIdentifier("workoutPrediction")
+                    Text("estimated sweat loss · likely \(HydraFormat.milliliters(lower))–\(HydraFormat.milliliters(upper)) mL")
+                        .font(.subheadline)
+                    Text(result.synthetic
+                        ? "Range checked only on simulated data; it doesn't show accuracy for you."
+                        : "Range reflects your measurement errors and comparable past workouts. Actual loss can differ.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            } else {
+                Text("Not enough data for an estimate yet.").accessibilityIdentifier("workoutInsufficientData")
             }
             if let missing = result.missingInputs, !missing.isEmpty {
                 Text("Missing: " + missing.map { $0.replacingOccurrences(of: "_", with: " ") }.joined(separator: ", "))
                     .font(.footnote).accessibilityIdentifier("workoutMissingMeasurements")
             }
+            if let history = result.longitudinalHistory {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Calibration history: \(history.comparable_samples) comparable of \(history.total_samples) supplied workouts; \(history.recent_samples) recent measurements.")
+                        .font(.subheadline)
+                        .accessibilityIdentifier("longitudinalHistory")
+                    if let first = history.first_observed_at, let last = history.last_observed_at {
+                        Text("Observation window (UTC): \(first) to \(last)").font(.caption)
+                    }
+                    Text("History is held for this session only. Recent-workout adaptation is experimental; its range is not a calibrated prediction interval.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            InfoNote("Not a drinking recommendation. Hydra doesn't set daily fluid requirements.")
+            DisclosureGroup("How this was made") {
+                LabeledContent("Data", value: result.dataSufficiency.replacingOccurrences(of: "_", with: " "))
+                LabeledContent("Personalization", value: result.personalizationStatus.replacingOccurrences(of: "_", with: " "))
+                LabeledContent("Measurements used", value: result.sampleCount.formatted())
+                LabeledContent("Model", value: result.modelVersion)
+                ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
+                    LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized, value: result.inputFactors[key]!.display)
+                }
+                ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source).font(.caption) }
+                ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in
+                    Text(limitation.replacingOccurrences(of: "_", with: " ")).font(.caption)
+                }
+            }
+            .font(.footnote)
             if let comparison = result.contextComparison, let interpretation = comparison.systems["B"]?.interpretation {
                 DisclosureGroup("Compare A / B / C · research mock") {
                     Text("A · Existing numerical estimate")
                     Text("B · Contextual mock; no numerical prediction")
                     Text("C · Same estimate plus contextual mock")
                     Text("No Meta response or billed request was observed. Hydration intelligence uses Muse Wonder 1.0; this mock cannot measure its quality.")
-                        .font(.footnote)
-                    ForEach(["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"], id: \.self) { category in
-                        if let texts = interpretation.reviewed_text[category], !texts.isEmpty {
-                            Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
-                            ForEach(Array(texts.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
-                        }
-                    }
+                        .font(.footnote).foregroundStyle(.secondary)
+                    interpretationText(interpretation)
                     Text("Provider latency, tokens and actual cost: not observed.").font(.caption)
                 }
+                .font(.footnote)
                 .accessibilityIdentifier("contextComparison")
             }
-            DisclosureGroup("Input factors and provenance") {
-                ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
-                    Text("\(key.replacingOccurrences(of: "_", with: " ")): \(result.inputFactors[key]!.display)")
-                }
-                ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source).font(.caption) }
-            }
-            ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in
-                Text(limitation.replacingOccurrences(of: "_", with: " ")).font(.footnote)
-            }
-            Text("Not a drinking recommendation. Daily fluid requirements remain unavailable.") .font(.footnote)
             if let explanation = result.mockExplanation {
                 DisclosureGroup("Meta explanation integration · mock only") {
                     Text("No live Meta request was made. These are reviewed local explanation fixtures.").font(.caption)
                     ForEach(Array(explanation.explanations.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
                 }
+                .font(.footnote)
             }
+        } header: {
+            Text(result.synthetic ? "SIMULATED · not your measurements" : "Personal estimate")
         }
+        .id(result.synthetic ? "demoResult" : "personalResult")
     }
 }

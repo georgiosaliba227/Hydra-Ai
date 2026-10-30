@@ -18,30 +18,34 @@ struct WeeklyVolumeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Last 7 days")
-                .font(.headline)
-            Text("Confirmed beverage volume by day · mL")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline) {
+                Text("Last 7 days").font(.headline)
+                Spacer()
+                Text("\(dailyVolumes.reduce(0, +).formatted()) mL total")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
 
             HStack(alignment: .bottom, spacing: 10) {
                 ForEach(days.indices, id: \.self) { index in
+                    let isToday = index == days.count - 1
                     VStack(spacing: 6) {
-                        Text(dailyVolumes[index].formatted())
+                        Text(dailyVolumes[index] == 0 ? "–" : dailyVolumes[index].formatted(.number.notation(.compactName)))
                             .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                         GeometryReader { geometry in
                             let maximum = max(dailyVolumes.max() ?? 0, 1)
                             let fraction = CGFloat(dailyVolumes[index]) / CGFloat(maximum)
-                            RoundedRectangle(cornerRadius: 5)
-                                .fill(.cyan)
-                                .frame(height: max(2, geometry.size.height * fraction))
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(isToday ? Color.hydraTint : Color.hydraTint.opacity(0.45))
+                                .frame(height: max(3, geometry.size.height * fraction))
                                 .frame(maxHeight: .infinity, alignment: .bottom)
                         }
-                        .frame(height: 70)
+                        .frame(height: 84)
                         Text(days[index], format: .dateTime.weekday(.narrow))
-                            .font(.caption)
+                            .font(.caption.weight(isToday ? .bold : .regular))
                     }
                     .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)

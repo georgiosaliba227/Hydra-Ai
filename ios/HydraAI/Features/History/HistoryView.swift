@@ -21,7 +21,7 @@ struct HistoryView: View {
     var body: some View {
         List {
             if case .failed(let message) = store.state {
-                Text(message).foregroundStyle(.red)
+                Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red)
             }
             if let actionError {
                 Text(actionError).foregroundStyle(.red).accessibilityIdentifier("historyActionError")
@@ -32,16 +32,8 @@ struct HistoryView: View {
             }
 
             if days.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true)
-                        Text("No beverage history").fixedSize(horizontal: false, vertical: true)
-                    }
-                    .font(.headline)
-                    Text("Confirmed beverages will appear here.")
-                        .font(.subheadline)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                ContentUnavailableView("No drinks yet", systemImage: "drop",
+                                       description: Text("Drinks you log will appear here."))
             }
 
             ForEach(days, id: \.self) { day in
@@ -55,12 +47,23 @@ struct HistoryView: View {
                                 Button("Edit") { actionError = nil; editing = log }
                                     .disabled(!store.canLog)
                             }
+                            .contextMenu {
+                                Button("Edit", systemImage: "pencil") { actionError = nil; editing = log }
+                                    .disabled(!store.canLog)
+                                Button("Delete", systemImage: "trash", role: .destructive) { pendingDeletion = log }
+                                    .disabled(!store.canLog)
+                            }
                     }
                 } header: {
                     HStack {
-                        Text(day, format: .dateTime.weekday(.wide).month(.abbreviated).day())
+                        Text(Calendar.current.isDateInToday(day) ? "Today" : day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                         Spacer()
                         Text("\(dayLogs.reduce(0) { $0 + $1.consumedMl }.formatted()) mL")
+                            .monospacedDigit()
+                    }
+                } footer: {
+                    if day == days.first {
+                        Text("Swipe left on a drink, or touch and hold, to edit or delete it.")
                     }
                 }
             }
