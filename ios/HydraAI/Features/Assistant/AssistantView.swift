@@ -146,7 +146,10 @@ struct AssistantView: View {
                             ForEach(Array(item.evidence.enumerated()), id: \.offset) { _, source in
                                 if let link = source.url.flatMap(URL.init(string:)) {
                                     Link(destination: link) {
-                                        Label(source.title, systemImage: "link").multilineTextAlignment(.leading)
+                                        Label(source.title, systemImage: "link")
+                                            .multilineTextAlignment(.leading)
+                                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                            .contentShape(Rectangle())
                                     }
                                     .font(.footnote)
                                 } else {

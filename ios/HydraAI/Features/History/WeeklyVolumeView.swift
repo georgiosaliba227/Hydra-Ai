@@ -30,11 +30,9 @@ struct WeeklyVolumeView: View {
                 ForEach(days.indices, id: \.self) { index in
                     let isToday = index == days.count - 1
                     VStack(spacing: 6) {
-                        Text(dailyVolumes[index] == 0 ? "–" : dailyVolumes[index].formatted(.number.notation(.compactName)))
+                        Text(dailyVolumes[index].formatted(.number.notation(.compactName)))
                             .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                            .fixedSize()
                         GeometryReader { geometry in
                             let maximum = max(dailyVolumes.max() ?? 0, 1)
                             let fraction = CGFloat(dailyVolumes[index]) / CGFloat(maximum)

@@ -1,14 +1,18 @@
 import SwiftUI
 
-// MARK: - Autofill hooks
-// Placeholder spots for one-tap autofill. The Apple Health workout reader (ios/HydraAI/Health/) and the
-// weather service (ios/HydraAI/Weather/) are built separately; wire them into `useLastWorkout()` and
-// `fillWeather()` below, then flip these flags. Until then the buttons stay hidden.
-enum WorkoutAutofill {
+// MARK: - Integration hooks
+// Placeholder spots in the guided flow. The Apple Health workout reader, the weather autofill and the
+// "Wonder explains this workout" request are built separately (see WorkoutContextProvider,
+// HealthWorkoutClient, WeatherAutofill and docs/architecture/WONDER_WORKOUT_API.md). Wire them into
+// `useLastWorkout()`, `fillWeather()` and `wonderExplanationSection`, then flip these flags.
+// Until then each spot stays hidden.
+enum WorkoutFlowHooks {
     /// Shows "Use my last workout (Apple Health)" in step 1.
     static let lastWorkoutEnabled = false
     /// Shows "Fill in the weather" in step 2.
     static let weatherEnabled = false
+    /// Shows the "Wonder explains this workout" card in step 3, below the personal estimate.
+    static let wonderExplanationEnabled = false
 }
 
 private struct WorkoutDraft: Equatable {
@@ -111,6 +115,7 @@ struct WorkoutForecastView: View {
                 calibrationSection
                 estimateSection
                 if let result = controller.result, !result.synthetic { resultSections(result) }
+                if WorkoutFlowHooks.wonderExplanationEnabled { wonderExplanationSection }
             }
             .onChange(of: controller.result?.synthetic) { _, synthetic in
                 if synthetic == false { withAnimation { proxy.scrollTo("personalResult", anchor: .top) } }
@@ -192,7 +197,7 @@ struct WorkoutForecastView: View {
     private var workoutSection: some View {
         Section {
             // Autofill hook: wired later to the Apple Health workout reader.
-            if WorkoutAutofill.lastWorkoutEnabled {
+            if WorkoutFlowHooks.lastWorkoutEnabled {
                 Button { useLastWorkout() } label: {
                     Label("Use my last workout (Apple Health)", systemImage: "heart.text.square")
                 }
@@ -214,7 +219,7 @@ struct WorkoutForecastView: View {
     private var conditionsSection: some View {
         Section {
             // Autofill hook: wired later to the weather service.
-            if WorkoutAutofill.weatherEnabled {
+            if WorkoutFlowHooks.weatherEnabled {
                 Button { fillWeather() } label: {
                     Label("Fill in the weather", systemImage: "cloud.sun")
                 }
@@ -313,6 +318,19 @@ struct WorkoutForecastView: View {
             }
         } label: {
             Text(title)
+        }
+    }
+
+    /// Placeholder for "Wonder explains this workout". Follow the Trends pattern: show exactly what would be
+    /// sent, a consent toggle, an explain button, then headline + insight cards + a collapsed
+    /// "How this was made". Nothing is requested from here yet.
+    private var wonderExplanationSection: some View {
+        Section {
+            Label("Muse Wonder can explain this workout against your own history.", systemImage: "sparkles")
+                .font(.subheadline)
+                .accessibilityIdentifier("workoutWonderPlaceholder")
+        } header: {
+            Text("Wonder explains this workout")
         }
     }
 

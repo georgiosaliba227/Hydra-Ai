@@ -293,15 +293,19 @@ private struct QuickAddCard: View {
                                 Image(systemName: BeverageStyle.symbol(for: preset.category))
                                     .foregroundStyle(Color.hydraTint)
                                     .accessibilityHidden(true)
-                                VStack(alignment: .leading, spacing: 0) {
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(preset.label).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                                        .fixedSize()
                                     Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.secondary)
+                                        .fixedSize()
                                 }
+                                .accessibilityHidden(true)
                                 Spacer(minLength: 0)
                                 Image(systemName: "plus").font(.footnote.bold()).foregroundStyle(Color.hydraTint)
                                     .accessibilityHidden(true)
                             }
                             .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
                             .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
                             .background(Color.hydraTint.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .contentShape(Rectangle())

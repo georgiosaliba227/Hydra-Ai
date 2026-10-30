@@ -11,10 +11,12 @@ final class AccessibilityAuditUITests: XCTestCase {
             // Content scrolled under the translucent bars is blurred by design; input fields scroll their text.
             let underBars = [app.navigationBars.firstMatch, app.tabBars.firstMatch]
                 .contains { $0.exists && $0.frame.intersects(frame) }
+            // Scroll-view content entirely below the visible window is not rendered on screen to judge.
+            let offscreen = !frame.isEmpty && !app.windows.firstMatch.frame.intersects(frame)
             let inputField = [.textField, .secureTextField].contains(issue.element?.elementType)
             let unattributed = issue.element == nil || frame.isEmpty
             let tolerated = unattributed || description.contains("nearly passed") || description.contains("partially unsupported")
-                || issue.element?.isEnabled == false || underBars || (inputField && description.contains("clipped"))
+                || issue.element?.isEnabled == false || underBars || offscreen || (inputField && description.contains("clipped"))
             print("AUDIT|\(screen)|\(tolerated ? "logged" : "FAIL")|\(description)|\(issue.element?.label ?? "-")|type \(issue.element?.elementType.rawValue ?? 0)|\(frame)")
             return tolerated
         }
