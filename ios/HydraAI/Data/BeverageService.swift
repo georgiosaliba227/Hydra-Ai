@@ -16,6 +16,10 @@ protocol BeverageService: Sendable {
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer
     func wonderTrendPreview(timezone: String) async throws -> TrendPreview
     func explainTrends(_ request: TrendExplanationRequest) async throws -> TrendExplanationResponse
+    /// Not billable: the user's own backend computes what would be sent for this planned workout.
+    func wonderWorkoutPreview(_ request: WorkoutForecastRequest) async throws -> WorkoutWonderPreview
+    /// Billable when the backend is live: one request for exactly the previewed payload, with consent.
+    func explainWorkout(_ request: WorkoutExplanationRequest) async throws -> WorkoutExplanationResponse
     /// Succeeds when the log is gone, including when it was already deleted.
     func deleteBeverage(id: UUID, revision: Int) async throws
 }
@@ -140,6 +144,14 @@ extension BeverageService {
     }
 
     func explainTrends(_ request: TrendExplanationRequest) async throws -> TrendExplanationResponse {
+        throw ServiceError.invalidResponse
+    }
+
+    func wonderWorkoutPreview(_ request: WorkoutForecastRequest) async throws -> WorkoutWonderPreview {
+        throw ServiceError.invalidResponse
+    }
+
+    func explainWorkout(_ request: WorkoutExplanationRequest) async throws -> WorkoutExplanationResponse {
         throw ServiceError.invalidResponse
     }
 

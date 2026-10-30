@@ -310,13 +310,40 @@ actor HTTPBeverageService: BeverageService {
         return response
     }
 
-    private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = []) async throws -> (Data, Int) {
+    /// Not billable: computes the facts at the user's backend and returns exactly what would be sent to Meta.
+    func wonderWorkoutPreview(_ request: WorkoutForecastRequest) async throws -> WorkoutWonderPreview {
+        try request.validateForWonder()
+        let (data, status) = try await mutate("v1/wonder/workout/preview", method: "POST", body: try JSONEncoder().encode(request))
+        guard status == 200 else { throw WonderRequestError(status: status, body: data) }
+        let preview = try JSONDecoder().decode(WorkoutWonderPreview.self, from: data)
+        try preview.validate(request: request)
+        return preview
+    }
+
+    /// Billable when the backend is live: sends exactly the previewed workout, once, with the user's consent.
+    func explainWorkout(_ request: WorkoutExplanationRequest) async throws -> WorkoutExplanationResponse {
+        try request.forecast.validateForWonder()
+        guard request.payload_sha256.count == 64 else { throw ServiceError.invalidResponse }
+        // A live reply can take a while; a client timeout would not stop a request the backend already sent.
+        let (data, status) = try await mutate("v1/wonder/workout", method: "POST", body: try JSONEncoder().encode(request),
+                                              timeout: 60)
+        guard status == 200 else { throw WonderRequestError(status: status, body: data) }
+        let response = try JSONDecoder().decode(WorkoutExplanationResponse.self, from: data)
+        try response.result.validate()
+        guard response.result.payload_sha256 == request.payload_sha256,
+              response.result.facts.timezone == request.forecast.timezone else { throw ServiceError.invalidResponse }
+        return response
+    }
+
+    private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = [],
+                        timeout: TimeInterval? = nil) async throws -> (Data, Int) {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         guard let url = components.url else { throw ServiceError.configuration }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.cachePolicy = .reloadIgnoringLocalCacheData
+        if let timeout { request.timeoutInterval = timeout }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let body {
