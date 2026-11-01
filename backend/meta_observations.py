@@ -123,6 +123,24 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
         if len(permits) != 1:
             raise ValueError
         permit = json.loads(permits[0][0])
+        physical_reservation = connection.execute(
+            "SELECT 1 FROM live_events WHERE kind='physical_camera_once_reserved' AND reference=?",
+            (attempt_id,),
+        ).fetchone()
+        if physical_reservation:
+            approvals = connection.execute(
+                "SELECT reference FROM live_events WHERE kind='physical_camera_once_authorized'"
+            ).fetchall()
+            if len(approvals) != 1:
+                raise ValueError
+            physical = json.loads(approvals[0][0])
+            if (physical.get("policy_version") != "georgio-physical-camera-once-risk-v1"
+                    or physical.get("account_id") != account
+                    or physical.get("payload_sha256") != payload_hash):
+                raise ValueError
+            # Keep the legacy risk billing semantics, but identify this attempt's
+            # actual owner-approved image rather than the old synthetic permit.
+            permit = permit | {"image_sha256": physical["image_sha256"]}
         if permit["account_id"] != account or permit.get("purpose", "camera") != observation.purpose:
             raise ValueError
         input_hash = permit["image_sha256"]
