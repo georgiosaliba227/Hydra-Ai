@@ -27,10 +27,12 @@ struct CreateBeverageRequest: Codable, Sendable {
     var recognitionId: UUID? = nil
     var productId: String? = nil
     var containerMl: Int? = nil
+    var recognitionFeedback: RecognitionFeedback? = nil
 
     enum CodingKeys: String, CodingKey {
         case category, timezone, source
         case productId = "product_id", containerMl = "container_ml", recognitionId = "recognition_id"
+        case recognitionFeedback = "recognition_feedback"
         case consumedMl = "consumed_ml"
         case consumedAt = "consumed_at"
     }
@@ -96,7 +98,12 @@ extension CreateBeverageRequest {
         guard ["manual", "confirmed_recognition"].contains(source) else { throw BeverageValidationError.invalidCategory }
         if source == "confirmed_recognition" {
             guard let containerMl, (1...5000).contains(containerMl), consumedMl <= containerMl else { throw BeverageValidationError.invalidVolume }
-        } else if productId != nil || containerMl != nil || recognitionId != nil { throw BeverageValidationError.invalidCategory }
+            if let recognitionFeedback {
+                try recognitionFeedback.validate()
+                guard (recognitionFeedback.sourceMode == "meta_live") == (recognitionId != nil),
+                      recognitionFeedback.correctedLiquidMl.map({ $0 <= containerMl }) ?? true else { throw BeverageValidationError.invalidVolume }
+            }
+        } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil { throw BeverageValidationError.invalidCategory }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
         guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
         guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }

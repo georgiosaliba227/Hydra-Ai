@@ -6,6 +6,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .nutrition import lookup
+from .recognition_feedback import RecognitionFeedback
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
 
@@ -21,9 +22,17 @@ class CreateBeverageRequest(BaseModel):
     recognition_id: UUID | None = None
     product_id: str | None = Field(default=None, max_length=80, strict=True)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    recognition_feedback: RecognitionFeedback | None = None
 
     @model_validator(mode="after")
     def confirmed_photo(self) -> Self:
+        if self.recognition_feedback is not None:
+            feedback=self.recognition_feedback
+            if (self.source!="confirmed_recognition"
+                    or (feedback.source_mode=="meta_live")!=(self.recognition_id is not None)
+                    or (feedback.corrected_liquid_ml is not None and self.container_ml is not None
+                        and feedback.corrected_liquid_ml>self.container_ml)):
+                raise ValueError("Correction must match confirmed photo source and capacity")
         if self.source == "manual" and (self.product_id is not None or self.container_ml is not None or self.recognition_id is not None):
             raise ValueError("manual log cannot carry recognition fields")
         if self.source == "confirmed_recognition" and (self.container_ml is None or self.consumed_ml > self.container_ml):

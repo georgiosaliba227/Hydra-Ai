@@ -95,13 +95,14 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text("Export includes your logged drinks and goal. Deleting erases them from your backend and can't be undone.")
+                    Text("Export includes your drinks, goal, saved corrections and training photos you opted in to contribute. Deleting erases them from your backend and can't be undone.")
                 }
             }
             Section("Privacy & AI") {
                 DisclosureGroup("What's sent where") {
                     Text("Backend mode sends the drinks you confirm to your backend. Photos go to your backend only after you consent and tap Analyze; Meta mode needs a separate consent before a photo is sent to Meta. Apple Health records stay on this iPhone.")
                     Text("Camera checks the backend mode before analysis. Mock responses are synthetic. In Meta mode a photo goes to Meta only with separate consent and a server-approved budget permit. Suggestions always need your confirmation; zero retention is not promised.")
+                    Text("Remembered corrections improve your own suggestions without retraining Muse. Training contribution is a separate, optional choice on an edited entry: your backend stages the latest 20 opted-in photos and corrections for future reviewed training. Nothing uploads a training dataset to Meta automatically.")
                 }
                 .font(.footnote)
                 DisclosureGroup("Connecting a device") {
@@ -118,7 +119,7 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text("Every logged drink and your goal are erased from the backend. This cannot be undone.")
+            Text("Your drinks, goal, correction memory and opted-in training photos are erased from the backend. This cannot be undone.")
         }
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { goalFocused = false }

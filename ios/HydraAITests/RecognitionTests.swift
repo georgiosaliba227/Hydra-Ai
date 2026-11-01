@@ -44,6 +44,39 @@ final class RecognitionTests: XCTestCase {
             XCTAssertThrowsError(try decoded.validate())
         }
     }
+    func testLiquidEstimateAndPersonalCorrectionSurviveDecodeWithoutReplacingMuse() throws {
+        let enriched = result.replacingOccurrences(of: "\"nutrition\":null", with: "\"nutrition\":null,\"estimated_liquid_ml_min\":100,\"estimated_liquid_ml_max\":200,\"volume_basis\":\"visual_estimate\",\"personal_correction\":{\"identity\":\"Corrected coffee\",\"container_ml\":300,\"liquid_ml\":240,\"match_basis\":\"exact_image\",\"confirmed_at\":\"2026-11-01T12:00:00Z\"}")
+        let decoded = try JSONDecoder().decode(RecognitionResult.self, from: Data(enriched.utf8))
+        try decoded.validate()
+        let candidate = try XCTUnwrap(decoded.candidates.first)
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(candidate)) as? [String: Any])
+        XCTAssertEqual(candidate.identity, "Coffee")
+        XCTAssertEqual(encoded["estimated_liquid_ml_min"] as? Int, 100)
+        XCTAssertEqual(encoded["estimated_liquid_ml_max"] as? Int, 200)
+        XCTAssertEqual((encoded["personal_correction"] as? [String: Any])?["identity"] as? String, "Corrected coffee")
+        XCTAssertEqual((encoded["personal_correction"] as? [String: Any])?["liquid_ml"] as? Int, 240)
+    }
+    func testInvalidLiquidRangeIsRejectedAndNeverBecomesConsumedAmount() throws {
+        let invalid = result.replacingOccurrences(of: "\"nutrition\":null", with: "\"nutrition\":null,\"estimated_liquid_ml_min\":300,\"estimated_liquid_ml_max\":200,\"volume_basis\":\"visual_estimate\"")
+        let decoded = try JSONDecoder().decode(RecognitionResult.self, from: Data(invalid.utf8))
+        XCTAssertThrowsError(try decoded.validate())
+    }
+    func testPhotoFeedbackRequiresSeparateVersionedConsentAndPersistsWithPendingPayload() throws {
+        let body = """
+        {"category":"Corrected tea","consumed_ml":125,"consumed_at":"2026-11-01T12:00:00Z","timezone":"America/New_York","source":"confirmed_recognition","container_ml":300,"recognition_feedback":{"image_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","source_mode":"mock","original_candidate":{"identity":"Tea","container_ml":250,"confidence":"low","uncertainty_reasons":["Synthetic example"]},"remember_for_me":true,"share_for_training":false}}
+        """
+        let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
+        let request = try decoder.decode(CreateBeverageRequest.self, from: Data(body.utf8))
+        try request.validate()
+        let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: encoder.encode(request)) as? [String: Any])
+        let feedback = try XCTUnwrap(encoded["recognition_feedback"] as? [String: Any])
+        XCTAssertEqual(feedback["remember_for_me"] as? Bool, true)
+        XCTAssertNil(feedback["training_photo_base64"])
+        let invalid = body.replacingOccurrences(of: "\"share_for_training\":false", with: "\"share_for_training\":true")
+        let unconsented = try decoder.decode(CreateBeverageRequest.self, from: Data(invalid.utf8))
+        XCTAssertThrowsError(try unconsented.validate())
+    }
     @MainActor func testPhotoPreprocessingBoundsDimensionsAndOmitsGPS() throws {
         let image = UIGraphicsImageRenderer(size: CGSize(width: 2400, height: 1200)).image { context in
             UIColor.blue.setFill(); context.fill(CGRect(x: 0,y: 0,width: 2400,height: 1200))

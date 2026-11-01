@@ -65,7 +65,7 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertEqual(analyze.label, "Analyze with live Meta")
         XCTAssertTrue(app.staticTexts["recognitionSource"].label.hasPrefix("Live Meta analysis"))
         analyze.tap()
-        let reviews = app.buttons.matching(NSPredicate(format: "label == %@", "Review tea (low confidence)"))
+        let reviews = app.buttons.matching(NSPredicate(format: "label == %@", "Confirm tea (low confidence)"))
         XCTAssertTrue(reviews.element(boundBy: 1).waitForExistence(timeout: 20))
         XCTAssertEqual(reviews.count, 2)
         XCTAssertEqual(app.staticTexts["recognitionResultSource"].label, "Live Meta result — confirmation required")
@@ -84,7 +84,6 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertEqual(app.textFields["photoContainer"].value as? String, "450")
         let consumed = app.textFields["photoConsumed"]
         consumed.tap();consumed.typeText("125");app.buttons["photoKeyboardDone"].tap()
-        app.switches["confirmPhotoDetails"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         app.buttons["savePhotoBeverage"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         app.buttons["syntheticPhoto"].tap()

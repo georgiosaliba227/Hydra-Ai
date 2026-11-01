@@ -2,6 +2,13 @@
 
 # Beverage recognition contract v1 (Milestone 2)
 
+November 1 additive implementation: [camera confirmation and correction memory](CAMERA_CORRECTIONS_API.md)
+adds supported visible-liquid ranges, personal correction suggestions and separately
+consented training-example storage after confirmation. Analysis itself still writes
+no images or unconfirmed predictions. Earlier statements about no image storage
+apply to ordinary analysis/logging; the explicit training opt-in is the sole new
+photo-storage exception. It does not activate Meta or automatic model training.
+
 Extends PROTOTYPE_API.md. Existing manual logging stays compatible. The default is mock mode with billable requests disabled; no provider transport or credential is loaded in that mode. The implemented guarded opt-in mode, separate account ledgers, consent fields and recognition receipts are defined in GUARDED_META_API.md. Conflicting mode/billable flags refuse startup; a matching flag pair alone cannot dispatch.
 
 ## Analysis

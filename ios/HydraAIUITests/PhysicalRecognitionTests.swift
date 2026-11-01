@@ -93,7 +93,7 @@ final class PhysicalRecognitionTests: XCTestCase {
         let alert = app.alerts["Analysis unavailable"]
         XCTAssertTrue(alert.waitForExistence(timeout: 20)); alert.buttons["OK"].tap()
         scenario(app, "Generic coffee"); analyze(app)
-        XCTAssertTrue(app.buttons["Review Coffee (low confidence)"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["Confirm Coffee (low confidence)"].waitForExistence(timeout: 20))
         app.tabBars.buttons["Today"].tap(); assertTotal(app, initial)
     }
     func testNetworkFailureAndPendingSaveRetryAfterRestart() throws {
@@ -105,7 +105,6 @@ final class PhysicalRecognitionTests: XCTestCase {
         app.textFields["photoContainer"].tap(); app.textFields["photoContainer"].typeText("300")
         app.textFields["photoConsumed"].tap(); app.textFields["photoConsumed"].typeText("125")
         app.buttons["photoKeyboardDone"].tap()
-        app.switches["confirmPhotoDetails"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         try control("pause")
         do {
             app.buttons["savePhotoBeverage"].tap()

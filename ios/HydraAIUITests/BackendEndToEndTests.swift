@@ -83,11 +83,7 @@ final class BackendEndToEndTests: XCTestCase {
         capacity.tap(); capacity.typeText("300")
         let consumed = app.textFields["photoConsumed"]
         consumed.tap(); consumed.typeText("125")
-        XCTAssertFalse(save.isEnabled)
         app.buttons["photoKeyboardDone"].tap()
-        let confirm = app.switches["confirmPhotoDetails"]
-        if !confirm.isHittable { app.swipeUp() }
-        confirm.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: save)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         XCTAssertTrue(save.isEnabled); save.tap()

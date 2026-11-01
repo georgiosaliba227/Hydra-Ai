@@ -1,5 +1,14 @@
 # Hydra AI native iOS prototype
 
+Camera results now show beverage details, uncertain liquid-volume ranges when
+supported, and **Confirm** / **No, edit entry** actions. The final confirmation
+still requires actual consumed mL; inference never logs a drink. Corrections can
+be remembered personally, while original Muse suggestions remain labeled. A
+separate default-off training option stages the selected photo and corrections
+on the user's backend for reviewed future training. It does not retrain Muse
+automatically. Export/Delete all include these records and opted-in photos.
+See [the correction contract](../docs/architecture/CAMERA_CORRECTIONS_API.md).
+
 SwiftUI app connected to the local FastAPI/SQLite backend. A selected, resized beverage photo is uploaded only after backend consent; guarded Meta mode additionally requires explicit consent to transmit it to Meta. HealthKit records stay on device. No Meta credentials exist in this client.
 
 ## Run

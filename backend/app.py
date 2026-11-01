@@ -23,7 +23,9 @@ from ai.hydration import BeverageLog, calculate_contribution, summarize_day
 from ai.hydration.models import Composition, METHOD_VERSION
 from database.repository import (BeverageNotFound, BeverageRepository, IdempotencyConflict, RevisionConflict,
                                  StorageUnavailable)
-from .recognition import AnalysisRequest, AnalysisResult, MockMetaRecognizer, RecognitionUnavailable
+from .recognition import AnalysisRequest, AnalysisResult, Candidate, MockMetaRecognizer, RecognitionUnavailable
+from .recognition_feedback import candidate_key, product_signature
+from .meta_images import sanitized_jpeg
 from .nutrition import lookup
 from .meta_accounts import AccountLedger, ACCOUNTS
 from .meta_gateway import GuardedMetaGateway, GitHubNotifier
@@ -85,6 +87,10 @@ class RequestGuard:
                 return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
+        elif scope["path"] == "/v1/beverages":
+            # A confirmed photo may carry its image only for separately opted-in
+            # training collection. The typed schema rejects all other images.
+            body_limit = 1_450_000
         elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/wonder/workout/preview",
                                "/v1/wonder/workout"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
@@ -117,6 +123,17 @@ class RequestGuard:
             if not message.get("more_body", False):
                 break
         body = b"".join(chunks)
+        if scope["path"] == "/v1/beverages" and size > MAX_BODY_BYTES:
+            try:
+                envelope=json.loads(body)
+                feedback=envelope.get("recognition_feedback")
+                if (not isinstance(feedback,dict) or feedback.get("share_for_training") is not True
+                        or feedback.get("training_consent_version")!="hydra-training-photo-correction-v1"
+                        or not isinstance(feedback.get("training_photo_base64"),str)):
+                    raise ValueError
+            except (ValueError,TypeError,AttributeError,RecursionError):
+                await error_response("request_too_large",413,request_id)(scope,receive,send)
+                return
         delivered = False
 
         async def buffered_receive():
@@ -196,7 +213,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     app = FastAPI(title="Hydra AI Local Prototype", version="1.0.0")
     app.state.repository = BeverageRepository(db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
     app.state.recognition_mode = "mock" if mode == "mock" else "meta_live"
-    app.state.meta_ledger = AccountLedger(db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
+    app.state.meta_ledger = AccountLedger(os.getenv("HYDRA_META_LEDGER_PATH") or db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
     if mode == "guarded_meta":
         account = os.getenv("HYDRA_META_ACCOUNT", "")
         if account not in ACCOUNTS:
@@ -247,6 +264,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     @app.get("/v1/recognition-capabilities")
     def recognition_capabilities():
         return {"version": "recognition-v1", "mode": app.state.recognition_mode,
+                "correction_memory_available": app.state.repository.feedback_enabled,
+                "training_examples_available": app.state.repository.feedback_enabled,
                 "provider": "Meta" if mode == "guarded_meta" else None,
                 "model": "muse-spark-1.3", "dispatch_requires_account_permit_and_verified_bound": True,
                 "privacy": "Meta may retain content under its service, safety and legal terms; no zero-retention claim."}
@@ -273,8 +292,17 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         # Validate even injected adapter output, then enrich only from the catalogue.
         try:
             result = AnalysisResult.model_validate(request.app.state.recognizer.analyze(payload)).model_dump()
+            result["image_sha256"]=hashlib.sha256(sanitized_jpeg(payload)).hexdigest()
+            if not result["candidates"]:
+                unknown=Candidate(identity="Unknown beverage",confidence="low",
+                                  uncertainty_reasons=["No confident model match; prior user correction is shown separately"]).model_dump()
+                memory=request.app.state.repository.correction_for("local-demo",result["mode"],result["image_sha256"],candidate_key(unknown),None)
+                if memory is not None:
+                    result["candidates"].append(unknown)
             for candidate in result["candidates"]:
                 candidate["nutrition"] = lookup(candidate["product_id"], candidate["identity"])
+                candidate["personal_correction"]=request.app.state.repository.correction_for(
+                    "local-demo",result["mode"],result["image_sha256"],candidate_key(candidate),product_signature(candidate))
             return result
         except (ValidationError, ValueError):
             raise RecognitionUnavailable() from None
@@ -293,14 +321,24 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         if payload.recognition_id is not None:
             try:
                 receipt = request.app.state.meta_ledger.receipt(str(payload.recognition_id))
+                if payload.recognition_feedback is not None:
+                    from .meta_observations import read_observation
+                    observation=read_observation(request.app.state.meta_ledger.path,str(payload.recognition_id))
+                    if (observation["outcome"]!="success" or observation["purpose"]!="camera"
+                            or observation["input_sha256"]!=payload.recognition_feedback.image_sha256):
+                        raise BudgetDenied("Correction photo differs from the verified receipt")
             except BudgetDenied:
                 raise HTTPException(422, "invalid_request") from None
             provenance = ["user_confirmed_photo", "recognition-v1:meta_live", receipt["model"], receipt["account_id"], receipt["provider_id"]]
-        record = {**canonical, "id": str(uuid4()), "revision": 1,
+        record = {**{k:v for k,v in canonical.items() if k!="recognition_feedback"}, "id": str(uuid4()), "revision": 1,
                   "provenance": provenance,
                   "nutrition": lookup(payload.product_id, payload.category)}
         record["contribution"] = jsonable_encoder(asdict(calculate_contribution(to_engine(record))))
-        stored, created = request.app.state.repository.create("local-demo", str(idempotency_key), fingerprint, record)
+        feedback=(payload.recognition_feedback.storage_value(payload.category,payload.container_ml,utc_string(datetime.now(dt_timezone.utc)))
+                  if payload.recognition_feedback is not None else None)
+        if feedback is not None:
+            feedback["photo_receipt_verified"]=payload.recognition_id is not None
+        stored, created = request.app.state.repository.create("local-demo", str(idempotency_key), fingerprint, record,feedback=feedback)
         return JSONResponse(stored, status_code=201 if created else 200)
 
     @app.patch("/v1/beverages/{beverage_id}")
@@ -377,7 +415,9 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         repository = request.app.state.repository
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
         from .wonder_results import saved_trends, saved_workouts
+        corrections,training=repository.export_corrections("local-demo")
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
+                "recognition_corrections":corrections,"training_examples":training,
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
                 "wonder_trends": saved_trends(results_dir) if results_dir else [],

@@ -2,7 +2,7 @@
 import base64
 from typing import Annotated, Literal, Protocol
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StringConstraints, field_validator, model_validator
 
 from .nutrition import IDENTITY, PRODUCT_ID
 
@@ -56,6 +56,31 @@ class AnalysisRequest(BaseModel):
             raise ValueError("one bounded JPEG is required") from None
 
 
+def validate_liquid_estimate(container: int | None, lower: int | None, upper: int | None, basis: str) -> None:
+    if lower is None and upper is None:
+        if basis != "unknown":
+            raise ValueError("Unknown liquid volume requires unknown basis")
+    elif (lower is None or upper is None or lower > upper or basis == "unknown"
+          or (container is not None and upper > container)):
+        raise ValueError("Consistent visible-liquid bounds required")
+
+
+class PersonalCorrection(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    identity: str = Field(min_length=1, max_length=80)
+    container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    liquid_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    match_basis: Literal["exact_image", "product_label"]
+    confirmed_at: str = Field(min_length=1, max_length=60)
+
+    @model_validator(mode="after")
+    def photo_specific_volume(self):
+        if ((self.match_basis=="product_label" and (self.container_ml is not None or self.liquid_ml is not None))
+                or (self.container_ml is not None and self.liquid_ml is not None and self.liquid_ml>self.container_ml)):
+            raise ValueError("Only the exact photo can reuse confirmed volume")
+        return self
+
+
 class Candidate(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     identity: str = Field(min_length=1, max_length=80)
@@ -65,8 +90,17 @@ class Candidate(BaseModel):
     visible_label_text: str | None = Field(default=None, max_length=600)
     product_id: str | None = Field(default=None, max_length=80)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    estimated_liquid_ml_min: StrictInt | None = Field(default=None, ge=1, le=5000)
+    estimated_liquid_ml_max: StrictInt | None = Field(default=None, ge=1, le=5000)
+    volume_basis: Literal["visual_estimate", "visible_measurement", "unknown"] = "unknown"
+    personal_correction: PersonalCorrection | None = None
     confidence: Literal["low", "medium", "high"]
     uncertainty_reasons: list[Annotated[str, StringConstraints(min_length=1, max_length=300)]] = Field(min_length=1, max_length=8)
+
+    @model_validator(mode="after")
+    def volume_consistent(self):
+        validate_liquid_estimate(self.container_ml,self.estimated_liquid_ml_min,self.estimated_liquid_ml_max,self.volume_basis)
+        return self
 
 
 class AnalysisResult(BaseModel):
@@ -75,6 +109,7 @@ class AnalysisResult(BaseModel):
     mode: Literal["mock", "meta_live"] = "mock"
     model: Literal["muse-spark-1.3"] = MODEL
     recognition_id: str | None = None
+    image_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     candidates: list[Candidate] = Field(max_length=3)
     requires_confirmation: Literal[True] = True
 
@@ -100,6 +135,7 @@ class MockMetaRecognizer:
                                     confidence="medium", uncertainty_reasons=common + ["Verify US Original variant and label size"])]
         elif scenario == "generic":
             candidates = [Candidate(identity="Coffee", container_ml=250, confidence="low",
+                                    estimated_liquid_ml_min=175,estimated_liquid_ml_max=225,volume_basis="visual_estimate",
                                     uncertainty_reasons=common + ["Cup capacity and ingredients are unknown"])]
         elif scenario == "missing_nutrition":
             candidates = [Candidate(identity="Unlisted sports drink", confidence="low",

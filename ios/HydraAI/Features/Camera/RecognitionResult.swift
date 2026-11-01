@@ -29,9 +29,65 @@ struct RecognitionCandidate: Codable, Identifiable, Sendable {
     var category: String? = nil
     var brand: String? = nil
     var product: String? = nil
+    var visibleLabelText: String? = nil
+    var estimatedLiquidMlMin: Int? = nil
+    var estimatedLiquidMlMax: Int? = nil
+    var volumeBasis: String? = nil
+    var personalCorrection: PersonalRecognitionCorrection? = nil
     enum CodingKeys: String, CodingKey {
         case identity, confidence, nutrition, category, brand, product
         case productId = "product_id", containerMl = "container_ml", uncertaintyReasons = "uncertainty_reasons"
+        case visibleLabelText = "visible_label_text", estimatedLiquidMlMin = "estimated_liquid_ml_min"
+        case estimatedLiquidMlMax = "estimated_liquid_ml_max", volumeBasis = "volume_basis", personalCorrection = "personal_correction"
+    }
+
+    var suggestedIdentity: String { personalCorrection?.identity ?? identity }
+    var suggestedCapacity: Int? { personalCorrection?.containerMl ?? containerMl }
+    var personalLiquidText: String? {
+        personalCorrection?.liquidMl.map { "Your previous liquid correction for this photo: \($0) mL" }
+    }
+    var feedbackReference: RecognitionCandidate {
+        if !identity.isEmpty { return self }
+        return RecognitionCandidate(identity: "Unknown beverage", productId: nil, containerMl: nil,
+            confidence: "low", uncertaintyReasons: uncertaintyReasons)
+    }
+    var liquidEstimateText: String {
+        guard let lower = estimatedLiquidMlMin, let upper = estimatedLiquidMlMax else { return "Liquid currently present: unknown" }
+        return "Liquid currently present: about \(lower)–\(upper) mL"
+    }
+
+    func validate() throws {
+        guard !identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, identity.count <= 80,
+              ["low", "medium", "high"].contains(confidence), (1...8).contains(uncertaintyReasons.count),
+              uncertaintyReasons.allSatisfy({ !$0.isEmpty && $0.count <= 300 }),
+              containerMl.map({ (1...5000).contains($0) }) ?? true,
+              [brand, product, category].allSatisfy({ $0.map({ $0.count <= 80 }) ?? true }),
+              visibleLabelText.map({ $0.count <= 600 }) ?? true else { throw ServiceError.invalidResponse }
+        if estimatedLiquidMlMin != nil || estimatedLiquidMlMax != nil {
+            guard let lower = estimatedLiquidMlMin, let upper = estimatedLiquidMlMax,
+                  (1...5000).contains(lower), lower <= upper, upper <= (containerMl ?? 5000),
+                  ["visual_estimate", "visible_measurement"].contains(volumeBasis ?? "") else { throw ServiceError.invalidResponse }
+        } else if volumeBasis != nil && volumeBasis != "unknown" { throw ServiceError.invalidResponse }
+        try personalCorrection?.validate()
+    }
+}
+
+struct PersonalRecognitionCorrection: Codable, Sendable {
+    let identity: String
+    let containerMl: Int?
+    var liquidMl: Int? = nil
+    let matchBasis: String
+    let confirmedAt: String
+    enum CodingKeys: String, CodingKey {
+        case identity, containerMl = "container_ml", liquidMl = "liquid_ml", matchBasis = "match_basis", confirmedAt = "confirmed_at"
+    }
+    func validate() throws {
+        guard !identity.isEmpty, identity.count <= 80,
+              ["exact_image", "product_label"].contains(matchBasis),
+              containerMl.map({ (1...5000).contains($0) }) ?? true,
+              liquidMl.map({ (1...(containerMl ?? 5000)).contains($0) }) ?? true,
+              matchBasis != "product_label" || (containerMl == nil && liquidMl == nil),
+              !confirmedAt.isEmpty, confirmedAt.count <= 60 else { throw ServiceError.invalidResponse }
     }
 }
 
@@ -94,21 +150,18 @@ struct RecognitionResult: Decodable, Sendable {
     let candidates: [RecognitionCandidate]
     let requiresConfirmation: Bool
     var recognitionId: UUID? = nil
+    var imageSha256: String? = nil
     enum CodingKeys: String, CodingKey {
         case version, mode, model, candidates
         case requiresConfirmation = "requires_confirmation", recognitionId = "recognition_id"
+        case imageSha256 = "image_sha256"
     }
     func validate() throws {
         guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3", requiresConfirmation,
               candidates.count <= 3 else { throw ServiceError.invalidResponse }
         guard (mode == "meta_live") == (recognitionId != nil) else { throw ServiceError.invalidResponse }
-        for candidate in candidates {
-            guard !candidate.identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                  candidate.identity.count <= 80, ["low", "medium", "high"].contains(candidate.confidence),
-                  (1...8).contains(candidate.uncertaintyReasons.count),
-                  candidate.uncertaintyReasons.allSatisfy({ !$0.isEmpty && $0.count <= 300 }),
-                  candidate.containerMl.map({ (1...5000).contains($0) }) ?? true else { throw ServiceError.invalidResponse }
-        }
+        if let imageSha256 { guard imageSha256.count == 64, imageSha256.allSatisfy({ "0123456789abcdef".contains($0) }) else { throw ServiceError.invalidResponse } }
+        for candidate in candidates { try candidate.validate() }
     }
 }
 
@@ -165,6 +218,12 @@ struct RecognitionCapabilities: Decodable {
     let version: String
     let mode: String
     let model: String
+    var correctionMemoryAvailable: Bool? = nil
+    var trainingExamplesAvailable: Bool? = nil
+    enum CodingKeys: String, CodingKey {
+        case version, mode, model
+        case correctionMemoryAvailable = "correction_memory_available", trainingExamplesAvailable = "training_examples_available"
+    }
     func validate() throws {
         guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3" else { throw ServiceError.invalidResponse }
     }
