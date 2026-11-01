@@ -242,7 +242,10 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
 
     @app.exception_handler(RecognitionUnavailable)
     async def recognition_error(request: Request, exc):
-        return error_response("recognition_unavailable", 503, request.state.request_id, retryable=request.app.state.recognition_mode == "mock")
+        # A one-use live process returns to mock before its exception reaches
+        # this handler. Retry advice must follow the original request's mode.
+        request_mode = getattr(request.state, "recognition_request_mode", request.app.state.recognition_mode)
+        return error_response("recognition_unavailable", 503, request.state.request_id, retryable=request_mode == "mock")
 
     @app.get("/v1/recognition-capabilities")
     def recognition_capabilities():
@@ -268,6 +271,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
 
     @app.post("/v1/recognitions")
     def analyze_beverage(payload: AnalysisRequest, request: Request):
+        request.state.recognition_request_mode = payload.mode
         if payload.mode != request.app.state.recognition_mode:
             raise RecognitionUnavailable()
         # Validate even injected adapter output, then enrich only from the catalogue.

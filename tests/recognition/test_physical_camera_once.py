@@ -180,7 +180,8 @@ def test_http_once_service_restores_mock_and_saves_private_evidence(prepared,tmp
     assert client.get('/v1/recognition-capabilities',headers=AUTH).json()['mode']=='mock'
     assert json.loads(output.read_text())['backend_returned_to_mock'] is True
     assert output.stat().st_mode & 0o777 == 0o600
-    assert client.post('/v1/recognitions',json=image().model_dump(mode='json'),headers=AUTH).status_code==503
+    refused=client.post('/v1/recognitions',json=image().model_dump(mode='json'),headers=AUTH)
+    assert refused.status_code==503 and refused.json()['retryable'] is False
     assert provider.calls==1
 
 
@@ -195,7 +196,8 @@ def test_service_timeout_keeps_hold_and_disables_live(prepared,tmp_path):
     output=tmp_path/'result.json'
     arm_physical_once(app,ledger,provider,FakeNotifier(),output)
     client=TestClient(app)
-    assert client.post('/v1/recognitions',json=image().model_dump(mode='json'),headers=AUTH).status_code==503
+    refused=client.post('/v1/recognitions',json=image().model_dump(mode='json'),headers=AUTH)
+    assert refused.status_code==503 and refused.json()['retryable'] is False
     assert client.get('/health').json()['billable_requests_enabled'] is False
     with ledger.transaction() as db:
         assert db.execute('SELECT SUM(reserved) FROM live_attempts WHERE actual IS NULL').fetchone()==(2624512,)

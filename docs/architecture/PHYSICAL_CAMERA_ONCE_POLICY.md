@@ -49,6 +49,22 @@ Validation: 134 focused nonbillable tests passed, including 24 new tests for
 this policy and the HTTP service. They cover preserved history/freeze/old spent
 permit, image/payload substitution, wrong account/key, concurrency, restart,
 expired dispatch, credits/checkpoints, fake official HTTP, timeout holds and
-automatic return to mock. The broad suite run had 1,094 passing tests, 32 passing
+automatic return to mock. The final broad suite run had 1,096 passing tests, 32 passing
 subtests, one skip and one unrelated existing workout-date validation failure;
-it is not reported as an all-green full suite. No Swift source changed.
+the same failure was reproduced with the unchanged main app module. It is not
+reported as an all-green full suite. No Swift source changed.
+
+One real provider request was subsequently made using the approved physical
+camera export through the operator gateway. The phone submission had first
+failed admission without any reservation or provider send. The operator request
+received HTTP 200 with provider status `incomplete` and reason
+`max_output_tokens`; the strict parser accepted no recognition or logging
+receipt. The one authorization is consumed, both reservations remain held, and
+the authority stays frozen. Private evidence preserves response, usage, latency,
+identifiers and exact image fingerprint. This run establishes provider receipt
+of a physical camera export, not a completed in-app recognition flow.
+
+The test also exposed retry advice being computed after the one-use process
+returned to mock. The HTTP error handler now uses the original request mode:
+failed live requests continue to report `retryable: false` after disarming.
+Focused HTTP regressions verify both provider failure and stale live submissions.
