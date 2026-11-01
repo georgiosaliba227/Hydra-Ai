@@ -22,6 +22,8 @@ class CreateBeverageRequest(BaseModel):
     recognition_id: UUID | None = None
     product_id: str | None = Field(default=None, max_length=80, strict=True)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    consumption_assumption: Literal["entire_liquid", "full_container"] | None = None
+    beverage_type: str | None = Field(default=None, min_length=1, max_length=80, strict=True)
     recognition_feedback: RecognitionFeedback | None = None
 
     @model_validator(mode="after")
@@ -33,10 +35,12 @@ class CreateBeverageRequest(BaseModel):
                     or (feedback.corrected_liquid_ml is not None and self.container_ml is not None
                         and feedback.corrected_liquid_ml>self.container_ml)):
                 raise ValueError("Correction must match confirmed photo source and capacity")
-        if self.source == "manual" and (self.product_id is not None or self.container_ml is not None or self.recognition_id is not None):
+        if self.source == "manual" and (self.product_id is not None or self.container_ml is not None or self.recognition_id is not None or self.consumption_assumption is not None or self.beverage_type is not None):
             raise ValueError("manual log cannot carry recognition fields")
-        if self.source == "confirmed_recognition" and (self.container_ml is None or self.consumed_ml > self.container_ml):
-            raise ValueError("confirm container and amount consumed")
+        if self.container_ml is not None and self.consumed_ml > self.container_ml:
+            raise ValueError("consumed amount exceeds the confirmed container")
+        if self.consumption_assumption == "full_container" and self.container_ml != self.consumed_ml:
+            raise ValueError("full-container assumption requires equal known capacity")
         lookup(self.product_id, self.category)
         return self
 
@@ -46,6 +50,16 @@ class CreateBeverageRequest(BaseModel):
         value = value.strip()
         if not value:
             raise ValueError("empty category")
+        return value
+
+    @field_validator("beverage_type")
+    @classmethod
+    def clean_beverage_type(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value=value.strip()
+        if not value:
+            raise ValueError("empty beverage type")
         return value
 
     @field_validator("consumed_at", mode="before")

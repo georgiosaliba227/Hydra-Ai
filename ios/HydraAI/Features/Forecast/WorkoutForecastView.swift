@@ -70,7 +70,7 @@ private struct WorkoutDraft: Equatable {
                          conditions: conditions(), comparable_conditions_confirmed: comparable)
     }
     func sample() throws -> WorkoutForecastRequest.Sample {
-        guard protocolConfirmed, observedAt <= .now else { throw ServiceError.invalidResponse }
+        guard protocolConfirmed, DateBoundary.onOrBefore(observedAt, .now) else { throw ServiceError.invalidResponse }
         let duration = try number(measuredDuration, minimum: 0.01, maximum: 1440)
         let durationBound = try number(durationError, maximum: 1440)
         guard durationBound < duration else { throw ServiceError.invalidResponse }

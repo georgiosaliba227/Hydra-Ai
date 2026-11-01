@@ -1,6 +1,8 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 1 full-drink UX assignment: after analysis, automatically show a compact Confirm/Edit review. Default to the user's declared entire-liquid assumption using supported size evidence. Edit offers name/type and volume presets plus mL, US fl oz and litres. Persist assumptions distinctly from measured consumption; retain unknown capacity rather than inventing it. This extends the camera implementation scope below, without authorizing another paid request or relaxing billing/one-use gates.
+
 November 1 camera workflow assignment: implement photo recognition with visibly supported liquid-volume estimates, Confirm/Edit entry, personal correction memory, and separately opted-in photo/correction examples staged locally for future reviewed training. Keep model output distinct from user corrections and actual consumed quantity. This authorizes implementation and nonbillable tests, not another Meta request, automatic training, external dataset upload or financial-ledger changes. The earlier camera-development pause is lifted for this scope. See docs/architecture/CAMERA_CORRECTIONS_API.md.
 
 October 29 shared backend withdrawn (Amine, 2026-10-29): no cross-computer access. Each backend accepts only its owner token. The standing synthetic authorization remains available on an allocation: each fixed server-built synthetic payload may run once without a per-case approval. See docs/architecture/WONDER_LIVE.md.

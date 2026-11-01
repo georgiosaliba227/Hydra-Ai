@@ -1,6 +1,6 @@
 import Foundation
 
-/// The v1 beverage log contract. Volume is the confirmed amount consumed, in mL.
+/// The v1 log contract. User-assumed consumption is explicitly tagged; units are mL.
 struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     let consumedMl: Int
@@ -9,11 +9,22 @@ struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
     let timezone: String
     let source: String
     let revision: Int
+    var consumptionAssumption: String? = nil
+    var beverageType: String? = nil
+    var assumptionDescription: String? {
+        switch consumptionAssumption {
+        case "entire_liquid": "Assumed all liquid consumed"
+        case "full_container": "Assumed full container consumed"
+        default: nil
+        }
+    }
 
     enum CodingKeys: String, CodingKey {
         case id, category, timezone, source, revision
         case consumedMl = "consumed_ml"
         case consumedAt = "consumed_at"
+        case consumptionAssumption = "consumption_assumption"
+        case beverageType = "beverage_type"
     }
 }
 
@@ -28,11 +39,15 @@ struct CreateBeverageRequest: Codable, Sendable {
     var productId: String? = nil
     var containerMl: Int? = nil
     var recognitionFeedback: RecognitionFeedback? = nil
+    var consumptionAssumption: String? = nil
+    var beverageType: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case category, timezone, source
         case productId = "product_id", containerMl = "container_ml", recognitionId = "recognition_id"
         case recognitionFeedback = "recognition_feedback"
+        case consumptionAssumption = "consumption_assumption"
+        case beverageType = "beverage_type"
         case consumedMl = "consumed_ml"
         case consumedAt = "consumed_at"
     }
@@ -66,8 +81,8 @@ struct UpdateBeverageRequest: Encodable, Equatable, Sendable {
         if let category { guard !category.isEmpty, category.count <= 80 else { throw BeverageValidationError.invalidCategory } }
         if let consumedMl { guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume } }
         if let consumedAt {
-            guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
-            guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
+            guard DateBoundary.onOrAfter(consumedAt, Date(timeIntervalSince1970: 946_684_800)) else { throw BeverageValidationError.historicalDate }
+            guard DateBoundary.onOrBefore(consumedAt, now.addingTimeInterval(60)) else { throw BeverageValidationError.futureDate }
         }
     }
 }
@@ -97,15 +112,20 @@ extension CreateBeverageRequest {
         guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume }
         guard ["manual", "confirmed_recognition"].contains(source) else { throw BeverageValidationError.invalidCategory }
         if source == "confirmed_recognition" {
-            guard let containerMl, (1...5000).contains(containerMl), consumedMl <= containerMl else { throw BeverageValidationError.invalidVolume }
+            if let beverageType { guard !beverageType.isEmpty, beverageType.count <= 80 else { throw BeverageValidationError.invalidCategory } }
+            if let containerMl { guard (1...5000).contains(containerMl), consumedMl <= containerMl else { throw BeverageValidationError.invalidVolume } }
+            if let consumptionAssumption {
+                guard ["entire_liquid", "full_container"].contains(consumptionAssumption),
+                      consumptionAssumption != "full_container" || consumedMl == containerMl else { throw BeverageValidationError.invalidVolume }
+            }
             if let recognitionFeedback {
                 try recognitionFeedback.validate()
                 guard (recognitionFeedback.sourceMode == "meta_live") == (recognitionId != nil),
-                      recognitionFeedback.correctedLiquidMl.map({ $0 <= containerMl }) ?? true else { throw BeverageValidationError.invalidVolume }
+                      recognitionFeedback.correctedLiquidMl.map({ $0 <= (containerMl ?? 5000) }) ?? true else { throw BeverageValidationError.invalidVolume }
             }
-        } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil { throw BeverageValidationError.invalidCategory }
+        } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil || consumptionAssumption != nil || beverageType != nil { throw BeverageValidationError.invalidCategory }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
-        guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
-        guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
+        guard DateBoundary.onOrAfter(consumedAt, Date(timeIntervalSince1970: 946_684_800)) else { throw BeverageValidationError.historicalDate }
+        guard DateBoundary.onOrBefore(consumedAt, now.addingTimeInterval(60)) else { throw BeverageValidationError.futureDate }
     }
 }

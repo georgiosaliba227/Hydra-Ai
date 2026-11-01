@@ -56,13 +56,13 @@ class RecognitionFeedback(BaseModel):
                 raise ValueError("Training image differs from the corrected image")
         return self
 
-    def storage_value(self, identity: str, container: int, timestamp: str) -> dict:
+    def storage_value(self, identity: str, container: int | None, timestamp: str, *, beverage_type: str | None = None) -> dict:
         original=self.original_candidate.model_dump(exclude={"personal_correction"})
         result={"image_sha256":self.image_sha256,"source_mode":self.source_mode,
                 "candidate_key":candidate_key(original),"product_signature":product_signature(original),
                 "original_candidate":original,"corrected_identity":identity,
                 "corrected_container_ml":container,"corrected_liquid_ml":self.corrected_liquid_ml,
-                "created_at":timestamp,"remember_for_me":self.remember_for_me,
+                "created_at":timestamp,"corrected_type":beverage_type,"remember_for_me":self.remember_for_me,
                 "share_for_training":self.share_for_training,"synthetic":self.source_mode=="mock",
                 "original_candidate_provenance":"user_submitted_reference",
                 "corrected_details_provenance":"user_confirmed"}

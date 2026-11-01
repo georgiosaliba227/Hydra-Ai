@@ -7,8 +7,39 @@ implementation is mock-first and authorizes no additional inference.
 
 `recognition-v1` gains nullable estimated liquid lower/upper mL bounds and a
 volume basis. Capacity, liquid present and amount consumed remain distinct.
-Unobservable fill or unsupported geometry stays unknown. No photo estimates
-consumption; confirmation includes the actual consumed amount before logging.
+Unobservable fill or unsupported geometry stays unknown.
+
+November 1 full-drink assignment: default the confirmation form to the user's
+assumption that they drank all the liquid. Use an exact-photo corrected liquid
+amount or the rounded midpoint of a supported model range; show its uncertainty.
+If fill is unknown, do not silently substitute capacity. Offer an explicit
+"use full container" action when capacity is known; otherwise ask for the liquid
+amount or a photo showing its size label. Confirm/Edit remains required before
+logging. Users can turn off the assumption and enter a partial amount.
+
+Confirmed logs optionally carry `consumption_assumption: entire_liquid` or
+`full_container`, with corresponding user-assumption provenance. Full-container
+logging requires a known capacity equal to consumed mL. When capacity is unknown,
+an explicitly confirmed liquid amount can still be logged without inventing a
+container capacity. A later correction to consumed mL clears the old assumption.
+This supersedes the earlier mandatory manual consumed-mL entry in the form; it
+does not authorize model-inferred consumption or analysis without confirmation.
+
+The server separately extracts unambiguous mL/L capacity from model-transcribed
+label text as `label_capacity_ml`. This remains unverified label evidence,
+distinct from the model's visual capacity and user corrections. Serving-size or
+conflicting volume text is not treated as container capacity. No new lookup
+service, photo recipient, model, spending permission or financial policy is added.
+
+The owner expanded this assignment to a compact, automatically presented review
+with Confirm/Edit. Edit exposes drink name, type, volume presets and mL / US fl oz
+/ litre selection. Converted amounts round to the nearest mL. Capacity and raw
+recognition details are secondary; learning preferences are collapsed. The user
+can explicitly use full container capacity when fill is unknown. Name/type are
+stored separately (`category` retains the existing display-name role;
+`beverage_type` is bounded descriptive metadata, never a hydration multiplier).
+Confirmed corrections remember type as well as name. A larger corrected liquid
+amount clears a contradictory inferred capacity instead of inventing a new one.
 
 Responses include a normalized JPEG SHA256 and an optional personal correction
 beside each original candidate. Original Muse output is retained as its own

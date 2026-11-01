@@ -70,6 +70,7 @@ class PersonalCorrection(BaseModel):
     identity: str = Field(min_length=1, max_length=80)
     container_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
     liquid_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
+    beverage_type: str | None = Field(default=None, min_length=1, max_length=80)
     match_basis: Literal["exact_image", "product_label"]
     confirmed_at: str = Field(min_length=1, max_length=60)
 
@@ -94,6 +95,7 @@ class Candidate(BaseModel):
     estimated_liquid_ml_max: StrictInt | None = Field(default=None, ge=1, le=5000)
     volume_basis: Literal["visual_estimate", "visible_measurement", "unknown"] = "unknown"
     personal_correction: PersonalCorrection | None = None
+    label_capacity_ml: StrictInt | None = Field(default=None, ge=1, le=5000)
     confidence: Literal["low", "medium", "high"]
     uncertainty_reasons: list[Annotated[str, StringConstraints(min_length=1, max_length=300)]] = Field(min_length=1, max_length=8)
 

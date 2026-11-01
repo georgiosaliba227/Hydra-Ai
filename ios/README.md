@@ -1,13 +1,19 @@
 # Hydra AI native iOS prototype
 
-Camera results now show beverage details, uncertain liquid-volume ranges when
-supported, and **Confirm** / **No, edit entry** actions. The final confirmation
-still requires actual consumed mL; inference never logs a drink. Corrections can
+Camera analysis now opens a compact **Confirm / Edit** review with the drink and
+supported liquid-volume estimate. It defaults to the user's assumption that all
+the liquid is consumed; inference alone never logs a drink. Edit offers name/type,
+volume presets, mL/US fl oz/L, and partial-amount entry. Unknown fill is not silently
+replaced by capacity; a full-container amount requires an explicit choice. Corrections can
 be remembered personally, while original Muse suggestions remain labeled. A
 separate default-off training option stages the selected photo and corrections
 on the user's backend for reviewed future training. It does not retrain Muse
 automatically. Export/Delete all include these records and opted-in photos.
 See [the correction contract](../docs/architecture/CAMERA_CORRECTIONS_API.md).
+
+Inclusive date validation uses `DateBoundary` with finite timestamps. This avoids
+the missing weak-linked Date >=/<= calls reproduced on the physical iOS 27.2
+device, including during save and history refresh, without changing date limits.
 
 SwiftUI app connected to the local FastAPI/SQLite backend. A selected, resized beverage photo is uploaded only after backend consent; guarded Meta mode additionally requires explicit consent to transmit it to Meta. HealthKit records stay on device. No Meta credentials exist in this client.
 
@@ -57,11 +63,11 @@ The UI test launches with runtime configuration, saves it through Settings/Keych
 
 ## Milestone 2 mock recognition
 
-See [Milestone 2](../docs/MILESTONE_2.md). Configure the local backend, open Camera, capture/select a photo, consent to backend upload and choose an explicitly synthetic demo scenario. Analyze, review/correct identity and container capacity, enter actual consumed mL and confirm before Save. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
+See [Milestone 2](../docs/MILESTONE_2.md) and the current [camera contract](../docs/architecture/CAMERA_CORRECTIONS_API.md). Configure the local backend, open Camera, capture/select a photo, consent to backend upload and choose an explicitly synthetic demo scenario. Analyze opens Confirm/Edit. Confirm logs the displayed volume under the stated assumption; Edit changes name/type, volume/unit or partial consumption. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
 
 ## Guarded Meta mode
 
-Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. Meta mode requires both backend-upload consent and separate Meta disclosure consent. It never claims zero retention. Live results require a server-issued settled recognition receipt, preserved in pending submissions, and confirmation of identity/capacity/consumption. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
+Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. Meta mode requires both backend-upload consent and separate Meta disclosure consent. It never claims zero retention. Live results require a server-issued successful-recognition receipt, preserved in pending submissions, and confirmation of name/type and volume. That receipt does not imply billing finality. Assumed whole-liquid/full-container consumption is labeled in history; unknown capacity stays unknown. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
 
 `run_ios_e2e.py --live-simulation` only accepts an explicitly marked nonbillable loopback fake-provider backend. It runs the opt-in live-consent UI case with generated synthetic image data. It must never be pointed at a real Meta transport. Physical-only tests skip in normal simulator runs.
 

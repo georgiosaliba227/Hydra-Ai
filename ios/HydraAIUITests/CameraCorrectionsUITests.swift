@@ -14,41 +14,56 @@ final class CameraCorrectionsUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
+        app.tabBars.buttons["Today"].tap()
+        let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
+        XCTAssertTrue(total.waitForExistence(timeout: 15))
+        let initial = try XCTUnwrap(Int(total.value as? String ?? ""))
         app.tabBars.buttons["Camera"].tap()
         try analyzeFixture(app)
-        let edit = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "editRecognition-")).firstMatch
+        let edit = app.buttons["editRecognitionEntry"]
         XCTAssertTrue(edit.waitForExistence(timeout: 15))
         if !edit.isHittable { app.swipeUp() }
         edit.tap()
         let identity = app.textFields["photoIdentity"]
         XCTAssertTrue(identity.waitForExistence(timeout: 10))
         replace(identity, with: "Corrected tea")
-        replace(app.textFields["photoContainer"], with: "300")
-        replace(app.textFields["correctedPhotoLiquid"], with: "240")
+        app.buttons["photoDrinkType"].tap(); app.buttons["Tea"].tap()
+        replace(app.textFields["photoConsumed"], with: "240")
         let confirm = app.buttons["savePhotoBeverage"]
-        XCTAssertFalse(confirm.isEnabled, "A detected container is not an amount consumed")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label, "240 mL")
+        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        XCTAssertFalse(confirm.isEnabled, "Partial consumption requires a separate amount")
         app.textFields["photoConsumed"].tap(); app.textFields["photoConsumed"].typeText("125")
         app.buttons["photoKeyboardDone"].tap()
+        let options = app.buttons["Correction options"]
+        if !options.isHittable { app.swipeUp() }
+        XCTAssertTrue(options.waitForExistence(timeout: 10)); options.tap()
         let remember = app.switches["rememberPhotoCorrection"]
         if !remember.isHittable { app.swipeUp() }
         XCTAssertEqual(remember.value as? String, "1")
         let training = app.switches["shareCorrectionTraining"]
-        if !training.isHittable { app.swipeUp() }
+        for _ in 0..<3 {
+            if !training.isHittable || training.frame.maxY >= confirm.frame.minY { app.swipeUp() }
+            else { break }
+        }
+        XCTAssertLessThan(training.frame.maxY, confirm.frame.minY, "The full switch must be above the sticky confirmation bar")
         XCTAssertEqual(training.value as? String, "0", "Training must never be preselected")
-        training.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        let controls = XCTAttachment(screenshot: app.screenshot()); controls.name = "Optional correction controls"; controls.lifetime = .keepAlways; add(controls)
+        // SwiftUI's outer Switch includes the multiline label row. Its native
+        // child is the actual control, independent of text size or row height.
+        training.switches.firstMatch.tap()
         XCTAssertEqual(training.value as? String, "1")
         XCTAssertTrue(confirm.isEnabled); confirm.tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Today"].tap()
-        let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
-        let counted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '125'"), object: total)
+        let counted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", String(initial + 125)), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [counted], timeout: 15), .completed)
         app.tabBars.buttons["Camera"].tap()
         try analyzeFixture(app)
         let memory = app.staticTexts["personalCorrectionSuggestion"].firstMatch
         XCTAssertTrue(memory.waitForExistence(timeout: 15))
         XCTAssertTrue(memory.label.contains("Corrected tea"))
-        XCTAssertTrue(app.staticTexts["personalLiquidCorrection"].label.contains("240 mL"))
+        XCTAssertTrue(app.staticTexts.matching(identifier: "personalLiquidCorrection").firstMatch.label.contains("240 mL"))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Demo suggested: Coffee")).firstMatch.exists)
     }
 

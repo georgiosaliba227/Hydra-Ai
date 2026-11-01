@@ -65,6 +65,8 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertEqual(analyze.label, "Analyze with live Meta")
         XCTAssertTrue(app.staticTexts["recognitionSource"].label.hasPrefix("Live Meta analysis"))
         analyze.tap()
+        XCTAssertTrue(app.staticTexts["photoVolume"].waitForExistence(timeout: 15))
+        app.buttons["Cancel"].tap()
         let reviews = app.buttons.matching(NSPredicate(format: "label == %@", "Confirm tea (low confidence)"))
         XCTAssertTrue(reviews.element(boundBy: 1).waitForExistence(timeout: 20))
         XCTAssertEqual(reviews.count, 2)
@@ -74,14 +76,22 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertTrue(firstID.hasPrefix("recognitionCandidate-"))
         XCTAssertNotEqual(firstID, secondID)
         reviews.element(boundBy: 0).tap()
-        XCTAssertTrue(app.staticTexts["Live Meta suggestion — verify every field"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.textFields["photoContainer"].value as? String, "300")
+        XCTAssertTrue(app.staticTexts["photoVolume"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.staticTexts["photoVolume"].label, "Volume unclear")
         app.buttons["Cancel"].tap()
         XCTAssertTrue(app.buttons[firstID].waitForExistence(timeout: 10))
         XCTAssertEqual(reviews.element(boundBy: 1).identifier, secondID)
         app.buttons[secondID].tap()
-        XCTAssertTrue(app.staticTexts["Live Meta suggestion — verify every field"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.textFields["photoContainer"].value as? String, "450")
+        XCTAssertTrue(app.staticTexts["photoVolume"].waitForExistence(timeout: 10))
+        app.buttons["editRecognitionEntry"].tap()
+        let details = app.buttons["Photo details"]
+        if !details.isHittable { app.swipeUp() }
+        details.tap()
+        XCTAssertTrue(app.staticTexts["photoCapacity"].label.contains("450 mL"))
+        app.swipeDown()
+        let partial = app.switches["assumeEntireLiquid"]
+        if !partial.isHittable { app.swipeUp() }
+        partial.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         let consumed = app.textFields["photoConsumed"]
         consumed.tap();consumed.typeText("125");app.buttons["photoKeyboardDone"].tap()
         app.buttons["savePhotoBeverage"].tap()

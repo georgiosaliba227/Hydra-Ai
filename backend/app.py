@@ -25,6 +25,7 @@ from database.repository import (BeverageNotFound, BeverageRepository, Idempoten
                                  StorageUnavailable)
 from .recognition import AnalysisRequest, AnalysisResult, Candidate, MockMetaRecognizer, RecognitionUnavailable
 from .recognition_feedback import candidate_key, product_signature
+from .label_volume import label_capacity_ml
 from .meta_images import sanitized_jpeg
 from .nutrition import lookup
 from .meta_accounts import AccountLedger, ACCOUNTS
@@ -300,6 +301,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
                 if memory is not None:
                     result["candidates"].append(unknown)
             for candidate in result["candidates"]:
+                candidate["label_capacity_ml"]=label_capacity_ml(candidate.get("visible_label_text"))
                 candidate["nutrition"] = lookup(candidate["product_id"], candidate["identity"])
                 candidate["personal_correction"]=request.app.state.repository.correction_for(
                     "local-demo",result["mode"],result["image_sha256"],candidate_key(candidate),product_signature(candidate))
@@ -330,11 +332,13 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             except BudgetDenied:
                 raise HTTPException(422, "invalid_request") from None
             provenance = ["user_confirmed_photo", "recognition-v1:meta_live", receipt["model"], receipt["account_id"], receipt["provider_id"]]
+        if payload.consumption_assumption is not None:
+            provenance.append("user_assumed_"+payload.consumption_assumption)
         record = {**{k:v for k,v in canonical.items() if k!="recognition_feedback"}, "id": str(uuid4()), "revision": 1,
                   "provenance": provenance,
                   "nutrition": lookup(payload.product_id, payload.category)}
         record["contribution"] = jsonable_encoder(asdict(calculate_contribution(to_engine(record))))
-        feedback=(payload.recognition_feedback.storage_value(payload.category,payload.container_ml,utc_string(datetime.now(dt_timezone.utc)))
+        feedback=(payload.recognition_feedback.storage_value(payload.category,payload.container_ml,utc_string(datetime.now(dt_timezone.utc)),beverage_type=payload.beverage_type)
                   if payload.recognition_feedback is not None else None)
         if feedback is not None:
             feedback["photo_receipt_verified"]=payload.recognition_id is not None
@@ -352,6 +356,9 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             if "category" in changes and current["source"] != "manual":
                 raise ValueError("category of a confirmed recognition is fixed")
             record = {**current, **changes, "revision": current["revision"] + 1}
+            if "consumed_ml" in changes and changes["consumed_ml"]!=current["consumed_ml"]:
+                record.pop("consumption_assumption",None)
+                record["provenance"]=[p for p in record["provenance"] if p not in ("user_assumed_entire_liquid","user_assumed_full_container")]
             if record.get("container_ml") is not None and record["consumed_ml"] > record["container_ml"]:
                 raise ValueError("consumed amount exceeds the confirmed container")
             if "user_corrected" not in record["provenance"]:

@@ -187,7 +187,7 @@ struct LongitudinalHistory: Decodable, Sendable {
         } else {
             guard let first_observed_at, let last_observed_at,
                   let first = Self.instant(first_observed_at), let last = Self.instant(last_observed_at),
-                  let generated = Self.instant(forecast.generatedAt), first <= last, last < generated else { throw ServiceError.invalidResponse }
+                  let generated = Self.instant(forecast.generatedAt), DateBoundary.onOrBefore(first, last), last < generated else { throw ServiceError.invalidResponse }
         }
     }
     private static func instant(_ text: String) -> Date? {

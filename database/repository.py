@@ -201,6 +201,7 @@ class BeverageRepository:
             if match is None:
                 return None
             return {"identity":match["corrected_identity"],
+                    "beverage_type":match.get("corrected_type"),
                     "container_ml":match["corrected_container_ml"] if exact else None,
                     "liquid_ml":match.get("corrected_liquid_ml") if exact else None,
                     "match_basis":"exact_image" if exact else "product_label",

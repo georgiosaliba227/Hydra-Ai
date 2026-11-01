@@ -84,7 +84,7 @@ final class PhysicalRecognitionTests: XCTestCase {
         XCTAssertTrue(app.images["Selected beverage photo"].waitForExistence(timeout: 15))
         XCTAssertFalse(app.buttons["analyzePhoto"].isEnabled)
         analyze(app)
-        XCTAssertTrue(app.buttons["Enter or correct beverage details"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["editRecognitionEntry"].waitForExistence(timeout: 15))
     }
     func testMockAPIFailureThenExplicitAnalysisRetry() throws {
         let app = launch(); let initial = try total(app)
@@ -93,16 +93,18 @@ final class PhysicalRecognitionTests: XCTestCase {
         let alert = app.alerts["Analysis unavailable"]
         XCTAssertTrue(alert.waitForExistence(timeout: 20)); alert.buttons["OK"].tap()
         scenario(app, "Generic coffee"); analyze(app)
-        XCTAssertTrue(app.buttons["Confirm Coffee (low confidence)"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["reviewDrinkName"].waitForExistence(timeout: 20))
+        app.buttons["Cancel"].tap()
         app.tabBars.buttons["Today"].tap(); assertTotal(app, initial)
     }
     func testNetworkFailureAndPendingSaveRetryAfterRestart() throws {
         let app = launch(); let initial = try total(app)
         app.tabBars.buttons["Camera"].tap(); app.buttons["syntheticPhoto"].tap(); analyze(app)
-        let enter = app.buttons["Enter or correct beverage details"]
+        let enter = app.buttons["editRecognitionEntry"]
         XCTAssertTrue(enter.waitForExistence(timeout: 20)); enter.tap()
         app.textFields["photoIdentity"].tap(); app.textFields["photoIdentity"].typeText("Network retry tea")
-        app.textFields["photoContainer"].tap(); app.textFields["photoContainer"].typeText("300")
+        app.buttons["photoKeyboardDone"].tap()
+        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         app.textFields["photoConsumed"].tap(); app.textFields["photoConsumed"].typeText("125")
         app.buttons["photoKeyboardDone"].tap()
         try control("pause")

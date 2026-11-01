@@ -34,15 +34,32 @@ struct RecognitionCandidate: Codable, Identifiable, Sendable {
     var estimatedLiquidMlMax: Int? = nil
     var volumeBasis: String? = nil
     var personalCorrection: PersonalRecognitionCorrection? = nil
+    var labelCapacityMl: Int? = nil
     enum CodingKeys: String, CodingKey {
         case identity, confidence, nutrition, category, brand, product
         case productId = "product_id", containerMl = "container_ml", uncertaintyReasons = "uncertainty_reasons"
         case visibleLabelText = "visible_label_text", estimatedLiquidMlMin = "estimated_liquid_ml_min"
         case estimatedLiquidMlMax = "estimated_liquid_ml_max", volumeBasis = "volume_basis", personalCorrection = "personal_correction"
+        case labelCapacityMl = "label_capacity_ml"
     }
 
     var suggestedIdentity: String { personalCorrection?.identity ?? identity }
-    var suggestedCapacity: Int? { personalCorrection?.containerMl ?? containerMl }
+    var suggestedCapacity: Int? {
+        if let personalCorrection, personalCorrection.matchBasis == "exact_image" { return personalCorrection.containerMl }
+        return labelCapacityMl ?? containerMl
+    }
+    /// User's whole-liquid default, not an inference that consumption occurred.
+    var wholeLiquidMl: Int? {
+        let capacity = suggestedCapacity ?? 5000
+        guard (1...5000).contains(capacity) else { return nil }
+        if let correction = personalCorrection, correction.matchBasis == "exact_image", let ml = correction.liquidMl {
+            return (1...capacity).contains(ml) ? ml : nil
+        }
+        guard let lower = estimatedLiquidMlMin, let upper = estimatedLiquidMlMax,
+              ["visual_estimate", "visible_measurement"].contains(volumeBasis ?? ""),
+              (1...capacity).contains(lower), lower <= upper, upper <= capacity else { return nil }
+        return lower + (upper - lower + 1) / 2
+    }
     var personalLiquidText: String? {
         personalCorrection?.liquidMl.map { "Your previous liquid correction for this photo: \($0) mL" }
     }
@@ -61,6 +78,7 @@ struct RecognitionCandidate: Codable, Identifiable, Sendable {
               ["low", "medium", "high"].contains(confidence), (1...8).contains(uncertaintyReasons.count),
               uncertaintyReasons.allSatisfy({ !$0.isEmpty && $0.count <= 300 }),
               containerMl.map({ (1...5000).contains($0) }) ?? true,
+              labelCapacityMl.map({ (1...5000).contains($0) }) ?? true,
               [brand, product, category].allSatisfy({ $0.map({ $0.count <= 80 }) ?? true }),
               visibleLabelText.map({ $0.count <= 600 }) ?? true else { throw ServiceError.invalidResponse }
         if estimatedLiquidMlMin != nil || estimatedLiquidMlMax != nil {
@@ -76,15 +94,18 @@ struct PersonalRecognitionCorrection: Codable, Sendable {
     let identity: String
     let containerMl: Int?
     var liquidMl: Int? = nil
+    var beverageType: String? = nil
     let matchBasis: String
     let confirmedAt: String
     enum CodingKeys: String, CodingKey {
         case identity, containerMl = "container_ml", liquidMl = "liquid_ml", matchBasis = "match_basis", confirmedAt = "confirmed_at"
+        case beverageType = "beverage_type"
     }
     func validate() throws {
         guard !identity.isEmpty, identity.count <= 80,
               ["exact_image", "product_label"].contains(matchBasis),
               containerMl.map({ (1...5000).contains($0) }) ?? true,
+              beverageType.map({ !$0.isEmpty && $0.count <= 80 }) ?? true,
               liquidMl.map({ (1...(containerMl ?? 5000)).contains($0) }) ?? true,
               matchBasis != "product_label" || (containerMl == nil && liquidMl == nil),
               !confirmedAt.isEmpty, confirmedAt.count <= 60 else { throw ServiceError.invalidResponse }

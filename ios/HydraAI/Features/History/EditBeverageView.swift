@@ -44,7 +44,7 @@ struct EditBeverageView: View {
             Section {
                 Text(isManual
                     ? "Corrections replace this entry and are marked as user-corrected."
-                    : "This entry came from a confirmed photo, so its product stays fixed. The amount cannot exceed the confirmed container.")
+                    : "This entry came from a confirmed photo, so its product stays fixed. Changing the amount clears its full-drink assumption. A known container still bounds the amount.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

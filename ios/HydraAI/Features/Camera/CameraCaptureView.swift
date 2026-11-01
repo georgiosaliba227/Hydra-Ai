@@ -240,6 +240,9 @@ struct CameraCaptureView: View {
                     return
                 }
             }
+            let proposed = next.candidates.first ?? RecognitionCandidate(identity: "", productId: nil, containerMl: nil,
+                confidence: "low", uncertaintyReasons: ["Identity and volume are unknown; enter corrected details"])
+            present(proposed, editing: false)
         } catch {
             guard cameraSession.completeAnalysis(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Analysis unavailable"
