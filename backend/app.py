@@ -202,6 +202,9 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
     hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
     wonder_live = os.getenv("HYDRA_WONDER_LIVE", "false").lower()
+    camera_policy = os.getenv("HYDRA_META_CAMERA_POLICY", "legacy")
+    if camera_policy not in ("legacy", "georgio-camera-cutoff-v1"):
+        raise ValueError("Unsupported camera policy")
     if (mode not in ("mock", "guarded_meta") or billable not in ("false", "true")
             or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
@@ -220,11 +223,20 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         if account not in ACCOUNTS:
             raise ValueError("Select one explicitly authorized Meta account")
         key_name = "HYDRA_META_GEORGIO_API_KEY" if account == "georgiosaliba227" else "HYDRA_META_AMINE_API_KEY"
-        transport = OfficialMetaTransport(os.getenv(key_name, ""))
-        notifier = GitHubNotifier(os.getenv("HYDRA_GITHUB_NOTIFICATION_TOKEN", ""))
-        # Existing evidence is mandatory; do not create a zero baseline at startup.
-        app.state.meta_ledger.project_view()
-        app.state.recognizer = GuardedMetaGateway(app.state.meta_ledger, account, transport, notifier)
+        if camera_policy == "georgio-camera-cutoff-v1":
+            from .meta_camera_cutoff import CutoffCameraLedger, CutoffCameraTransport, CutoffCameraGateway, ACCOUNT
+            if account != ACCOUNT or hydration_enabled == "true" or wonder_live == "true":
+                raise ValueError("Cutoff camera policy is Georgio camera-only")
+            app.state.meta_ledger = CutoffCameraLedger(app.state.meta_ledger.path)
+            # Explicit operator activation required; startup never migrates.
+            app.state.meta_ledger.cutoff_status()
+            app.state.recognizer = CutoffCameraGateway(app.state.meta_ledger, CutoffCameraTransport(os.getenv(key_name, "")))
+        else:
+            transport = OfficialMetaTransport(os.getenv(key_name, ""))
+            notifier = GitHubNotifier(os.getenv("HYDRA_GITHUB_NOTIFICATION_TOKEN", ""))
+            # Existing evidence is mandatory; do not create a zero baseline at startup.
+            app.state.meta_ledger.project_view()
+            app.state.recognizer = GuardedMetaGateway(app.state.meta_ledger, account, transport, notifier)
     else:
         app.state.recognizer = MockMetaRecognizer()
     app.add_middleware(RequestGuard, token=token)
