@@ -22,6 +22,10 @@ assumptions are not vision-training targets.
   sole baseline failure used a fixed date that was no longer future. Its one-line
   fixture correction now always supplies actual tomorrow; the failing case was
   observed first and passed after correction. No workout production logic changed.
+- Offline demo rehearsal passed with zero network/financial-ledger attempts.
+  Its allowlist includes the new user-data tables and checks they remain empty
+  without explicit correction/training consent. All three preserved starter
+  tests also passed.
 - **55 focused backend tests** passed for metric label extraction, declaration of
   full consumption, name/type memory, privacy, transaction rollback, idempotent
   replay, retention/deletion, receipt binding and financial-history isolation.
