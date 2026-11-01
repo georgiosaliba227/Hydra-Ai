@@ -45,11 +45,12 @@ reply, usage, identifiers and latency are retained privately; photos, request
 bodies, prompts and credentials are absent from server logs. Confirmation still
 requires the actual consumed quantity before hydration logging.
 
-Validation: 134 focused nonbillable tests passed, including 24 new tests for
-this policy and the HTTP service. They cover preserved history/freeze/old spent
+Validation: 149 focused nonbillable tests passed, including 24 tests for
+the first physical policy/service and 15 for the separately approved retest.
+They cover preserved history/freeze/old spent
 permit, image/payload substitution, wrong account/key, concurrency, restart,
 expired dispatch, credits/checkpoints, fake official HTTP, timeout holds and
-automatic return to mock. The final broad suite run had 1,096 passing tests, 32 passing
+automatic return to mock. The final broad suite run had 1,111 passing tests, 32 passing
 subtests, one skip and one unrelated existing workout-date validation failure;
 the same failure was reproduced with the unchanged main app module. It is not
 reported as an all-green full suite. No Swift source changed.
@@ -91,3 +92,13 @@ Only this new reservation can settle usage above 512 tokens up to 1,024. All
 default transports, previous permits and ordinary ledger settlement retain the
 512-token cap. An incomplete or over-limit response keeps the new hold; it never
 causes another send. The same process guard restores mock mode immediately.
+
+The one separately approved retest then completed with HTTP 200 and valid
+structured recognition at the 1,024-token limit. It used the approved exported
+JPEG through the operator gateway. All earlier financial rows and both older
+holds were verified unchanged, the new authorization was consumed, and mock
+mode was verified afterward. Precise response, usage, latency and provider
+identifiers remain in private evidence. Final provider billing is still unknown;
+no reservation was released. No beverage entry was created because actual
+consumed quantity has not been confirmed. Phone UI receipt/display remains a
+separate verification step; this operator call is not represented as that step.
