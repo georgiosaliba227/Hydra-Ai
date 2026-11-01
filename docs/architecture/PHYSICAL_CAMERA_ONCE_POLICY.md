@@ -68,3 +68,26 @@ The test also exposed retry advice being computed after the one-use process
 returned to mock. The HTTP error handler now uses the original request mode:
 failed live requests continue to report `retryable: false` after disarming.
 Focused HTTP regressions verify both provider failure and stale live submissions.
+
+## Separately approved 1,024-token retest
+
+The owner subsequently authorized exactly one additional request for the same
+photo, 1,024 combined output tokens, $2 intended spend and possible extra charges,
+retaining both unresolved holds. `georgio-physical-camera-retest-risk-v1` has its
+own immutable approval/reservation event names. It does not renew either old
+permit. Both previous attempt rows and the previous physical permit events are
+fingerprint-bound and must remain unchanged. Any additional attempt denies this
+exception. The original freeze stays set.
+
+The trusted `RetestTransport` builds and validates the fixed 1,024-token payload;
+HTTP clients cannot select this transport or supply a cap. Standard remains the
+same fixed origin, one-use ticket, no tools and no automatic retries. Reserving
+1,047,552 input tokens plus 1,024 combined output tokens costs $1.313792 at the
+verified Standard rates, within the $2 intended amount. The combined retained
+reservations after admission are $3.938304. The $85 other-Mac allocation hold,
+credit cushion, notification and account cutoffs remain enforced.
+
+Only this new reservation can settle usage above 512 tokens up to 1,024. All
+default transports, previous permits and ordinary ledger settlement retain the
+512-token cap. An incomplete or over-limit response keeps the new hold; it never
+causes another send. The same process guard restores mock mode immediately.

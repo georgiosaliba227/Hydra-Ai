@@ -76,7 +76,9 @@ class GuardedMetaGateway:
         try:
             self.ledger.verify_credential(self.account, self.transport.credential_fingerprint)
             self.ledger.verify_purpose(self.account, "camera")
-            payload = request_payload(image)
+            # Only the trusted server transport can select an owner-approved
+            # specialized payload. HTTP request fields cannot raise this cap.
+            payload = getattr(self.transport, "build_payload", request_payload)(image)
             # Bounds come from the selected trusted transport, never an HTTP field.
             bound = self.transport.input_bound(payload)
             self.ledger.quote(self.account, bound)

@@ -27,7 +27,7 @@ def arm_physical_once(app, ledger, transport, notifier, output_file):
         def analyze(self, payload):
             if not lock.acquire(blocking=False):
                 raise RecognitionUnavailable()
-            report = {"policy_version": "georgio-physical-camera-once-risk-v1",
+            report = {"policy_version": ledger.policy_version,
                       "recognition": None, "provider_reply": None, "error": None}
             started = monotonic_ns()
             try:

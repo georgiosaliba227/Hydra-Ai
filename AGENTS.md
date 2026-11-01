@@ -1,6 +1,8 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 1 physical retest exception (Georgio, explicit follow-up approval): ONE additional request for the same pinned JPEG with 1,024 combined output tokens, $2 intended spend and accepted possible extra charges, retaining BOTH previous unresolved holds and all safeguards. `georgio-physical-camera-retest-risk-v1` uses a new immutable one-use authorization; earlier permits, output caps and attempts remain unchanged. No automatic retry or further request is authorized.
+
 November 1 physical camera exception (Georgio, explicit approval in this chat): ONE request for the exported physical beverage JPEG under free-credit terms, Muse Spark 1.3 Standard, at most 512 combined output tokens, $2 intended spend with accepted unknown extras, despite the original unresolved camera bill. Keep that prior hold, account freeze, all history, $75/$100/$120/$150 controls, no retries/tools/account switching/top-ups, and restore mock immediately after the attempt. This is the additive `georgio-physical-camera-once-risk-v1` policy, not permission to reset or reuse any earlier permit. All other spending remains gated. See docs/architecture/PHYSICAL_CAMERA_ONCE_POLICY.md.
 
 October 29 shared backend withdrawn (Amine, 2026-10-29): no cross-computer access. Each backend accepts only its owner token. The standing synthetic authorization remains available on an allocation: each fixed server-built synthetic payload may run once without a per-case approval. See docs/architecture/WONDER_LIVE.md.

@@ -49,7 +49,8 @@ def _transport_kind(transport: object) -> str:
     # can still replace HTTP, so trusted ledger custody remains a separate gate.
     from .meta_provider import OfficialMetaTransport
     from .hydration_intelligence import HydrationMetaTransport
-    return ("official_meta_https" if type(transport) in (OfficialMetaTransport, HydrationMetaTransport)
+    from .meta_physical_retest import RetestTransport
+    return ("official_meta_https" if type(transport) in (OfficialMetaTransport, HydrationMetaTransport, RetestTransport)
             else "injected_test_transport")
 
 
@@ -124,17 +125,20 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
             raise ValueError
         permit = json.loads(permits[0][0])
         physical_reservation = connection.execute(
-            "SELECT 1 FROM live_events WHERE kind='physical_camera_once_reserved' AND reference=?",
+            "SELECT kind FROM live_events WHERE kind IN ('physical_camera_once_reserved','physical_camera_retest_reserved') AND reference=?",
             (attempt_id,),
         ).fetchone()
         if physical_reservation:
+            is_retest = physical_reservation[0] == "physical_camera_retest_reserved"
+            approval_kind = "physical_camera_retest_authorized" if is_retest else "physical_camera_once_authorized"
             approvals = connection.execute(
-                "SELECT reference FROM live_events WHERE kind='physical_camera_once_authorized'"
+                "SELECT reference FROM live_events WHERE kind=?", (approval_kind,)
             ).fetchall()
             if len(approvals) != 1:
                 raise ValueError
             physical = json.loads(approvals[0][0])
-            if (physical.get("policy_version") != "georgio-physical-camera-once-risk-v1"
+            expected_policy = "georgio-physical-camera-retest-risk-v1" if is_retest else "georgio-physical-camera-once-risk-v1"
+            if (physical.get("policy_version") != expected_policy
                     or physical.get("account_id") != account
                     or physical.get("payload_sha256") != payload_hash):
                 raise ValueError

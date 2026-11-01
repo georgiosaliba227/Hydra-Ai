@@ -76,6 +76,13 @@ class PhysicalApproval(BaseModel):
 
 class PhysicalCameraLedger(AccountLedger):
     """A single named exception, still using atomic durable reservations/tickets."""
+    approval_type = PhysicalApproval
+    approval_event = APPROVAL_EVENT
+    reservation_event = RESERVATION_EVENT
+    policy_version = POLICY
+    input_limit = MAX_INPUT_TOKENS
+    output_limit = OUTPUT_LIMIT
+    retained_micro_usd = 1312256
 
     @staticmethod
     def prior_digest(db, prior_attempt_id) -> str:
@@ -84,16 +91,16 @@ class PhysicalCameraLedger(AccountLedger):
 
     def approve_physical_once(self, approval: PhysicalApproval) -> None:
         self.verify_storage()
-        approval = PhysicalApproval.model_validate_json(approval.model_dump_json())
+        approval = self.approval_type.model_validate_json(approval.model_dump_json())
         with self.transaction() as db:
             self._inspect_finality_schema(db)
-            if db.execute("SELECT 1 FROM live_events WHERE kind=?", (APPROVAL_EVENT,)).fetchone():
+            if db.execute("SELECT 1 FROM live_events WHERE kind=?", (self.approval_event,)).fetchone():
                 raise BudgetDenied("Physical exception is immutable and cannot be renewed")
             self._check(db, approval)
-            self.event(db, ACCOUNT, APPROVAL_EVENT, approval.model_dump_json())
+            self.event(db, ACCOUNT, self.approval_event, approval.model_dump_json())
 
     def _check(self, db, approval, own_attempt=None):
-        approval = PhysicalApproval.model_validate_json(approval.model_dump_json())
+        approval = self.approval_type.model_validate_json(approval.model_dump_json())
         account = db.execute("SELECT evidence,frozen FROM live_accounts WHERE account_id=?", (ACCOUNT,)).fetchone()
         prior = db.execute("SELECT account_id,state,reserved,actual,provider_id FROM live_attempts WHERE id=?", (approval.prior_attempt_id,)).fetchone()
         grant = db.execute("SELECT spent FROM controlled_permits WHERE account_id=?", (ACCOUNT,)).fetchone()
@@ -108,28 +115,31 @@ class PhysicalCameraLedger(AccountLedger):
             raise BudgetDenied("Original verified account and key required")
         if db.execute("SELECT 1 FROM live_accounts WHERE account_id!=? AND frozen=1", (ACCOUNT,)).fetchone():
             raise BudgetDenied("Another account is frozen")
-        if db.execute("SELECT 1 FROM live_attempts WHERE id!=? AND id!=?", (approval.prior_attempt_id, own_attempt or "")).fetchone():
-            raise BudgetDenied("No other project attempt is allowed by this exception")
+        self._check_additional_history(db, approval, own_attempt)
         if db.execute("SELECT 1 FROM live_finalities").fetchone():
             raise BudgetDenied("Original finality state changed; review new evidence")
-        token_cost = approval.price.cost(MAX_INPUT_TOKENS, OUTPUT_LIMIT)
+        token_cost = approval.price.cost(self.input_limit, self.output_limit)
         if token_cost > approval.intended_maximum_micro_usd:
             raise BudgetDenied("Token reservation exceeds intended spend")
         historical = max(approval.dashboard_gross_upper_micro_usd, old_evidence["gross_micro_usd"])
-        exposure = historical + prior[2] + approval.other_mac_allocation_hold_micro_usd + approval.intended_maximum_micro_usd
+        exposure = historical + self.retained_micro_usd + approval.other_mac_allocation_hold_micro_usd + approval.intended_maximum_micro_usd
         if exposure >= 100 * USD:  # This approval contains no new $100 authorization.
             raise BudgetDenied("Additional approval checkpoint or operational cutoff reached")
         if (exposure >= 120 * USD or exposure >= 150 * USD
-                or approval.credits_lower_micro_usd < prior[2] + approval.other_mac_allocation_hold_micro_usd + approval.intended_maximum_micro_usd + 30 * USD):
+                or approval.credits_lower_micro_usd < self.retained_micro_usd + approval.other_mac_allocation_hold_micro_usd + approval.intended_maximum_micro_usd + 30 * USD):
             raise BudgetDenied("Credit reserve or account cutoff unavailable")
         return approval, token_cost
 
+    def _check_additional_history(self, db, approval, own_attempt):
+        if db.execute("SELECT 1 FROM live_attempts WHERE id!=? AND id!=?", (approval.prior_attempt_id, own_attempt or "")).fetchone():
+            raise BudgetDenied("No other project attempt is allowed by this exception")
+
     def _approval(self, db, own_attempt=None):
-        rows = db.execute("SELECT reference FROM live_events WHERE kind=?", (APPROVAL_EVENT,)).fetchall()
+        rows = db.execute("SELECT reference FROM live_events WHERE kind=?", (self.approval_event,)).fetchall()
         if len(rows) != 1:
             raise BudgetDenied("Exactly one immutable physical authorization required")
         try:
-            approval = PhysicalApproval.model_validate_json(rows[0][0])
+            approval = self.approval_type.model_validate_json(rows[0][0])
         except ValueError:
             raise BudgetDenied("Physical authorization expired or invalid") from None
         return self._check(db, approval, own_attempt)
@@ -148,7 +158,7 @@ class PhysicalCameraLedger(AccountLedger):
     def quote(self, account, input_bound):
         with self.transaction() as db:
             approval, amount = self._approval(db)
-            if account != ACCOUNT or type(input_bound) is not int or input_bound != MAX_INPUT_TOKENS:
+            if account != ACCOUNT or type(input_bound) is not int or input_bound != self.input_limit:
                 raise BudgetDenied("Full-context Standard quote required")
             return approval.price, amount
 
@@ -157,15 +167,15 @@ class PhysicalCameraLedger(AccountLedger):
         with self.transaction() as db:
             approval, amount = self._approval(db)
             if ((account, image_hash) != (ACCOUNT, IMAGE)
-                    or type(input_bound) is not int or input_bound != MAX_INPUT_TOKENS
-                    or db.execute("SELECT 1 FROM live_events WHERE kind=?", (RESERVATION_EVENT,)).fetchone()):
+                    or type(input_bound) is not int or input_bound != self.input_limit
+                    or db.execute("SELECT 1 FROM live_events WHERE kind=?", (self.reservation_event,)).fetchone()):
                 raise BudgetDenied("Exact one-use physical photo required")
             attempt = str(uuid4())
             db.execute("INSERT INTO live_attempts(id,account_id,price,reserved,state,created_at,input_bound) VALUES(?,?,?,?,?,?,?)",
                        (attempt, ACCOUNT, approval.price.model_dump_json(), amount, "reserved", stamp(), input_bound))
-            self.event(db, ACCOUNT, RESERVATION_EVENT, attempt)
+            self.event(db, ACCOUNT, self.reservation_event, attempt)
             self.event(db, ACCOUNT, "reserved", attempt)
-            self.queue_threshold_notices(db, ACCOUNT, approval.dashboard_gross_upper_micro_usd + 1312256 + approval.intended_maximum_micro_usd)
+            self.queue_threshold_notices(db, ACCOUNT, approval.dashboard_gross_upper_micro_usd + self.retained_micro_usd + approval.intended_maximum_micro_usd)
             return attempt
 
     def mark_dispatched(self, attempt, payload_sha256):
@@ -175,7 +185,7 @@ class PhysicalCameraLedger(AccountLedger):
             approval, _ = self._approval(db, attempt)
             if payload_sha256 != approval.payload_sha256:
                 raise BudgetDenied("Payload differs from the exact approved photo request")
-            if db.execute("SELECT reference FROM live_events WHERE kind=?", (RESERVATION_EVENT,)).fetchall() != [(attempt,)]:
+            if db.execute("SELECT reference FROM live_events WHERE kind=?", (self.reservation_event,)).fetchall() != [(attempt,)]:
                 raise BudgetDenied("Matching one-use reservation required")
             if db.execute("SELECT state FROM live_attempts WHERE id=?", (attempt,)).fetchone() != ("reserved",):
                 raise BudgetDenied("Attempt already dispatched")
@@ -191,11 +201,11 @@ class PhysicalCameraLedger(AccountLedger):
         with self.transaction() as db:
             approval, _ = self._approval(db, attempt)
             row = db.execute("SELECT state,ticket_nonce,payload_sha256,input_bound FROM live_attempts WHERE id=?", (attempt,)).fetchone()
-            if (row != ("dispatched", nonce, payload_sha256, MAX_INPUT_TOKENS)
+            if (row != ("dispatched", nonce, payload_sha256, self.input_limit)
                     or payload_sha256 != approval.payload_sha256
-                    or type(input_bound) is not int or input_bound != MAX_INPUT_TOKENS
+                    or type(input_bound) is not int or input_bound != self.input_limit
                     or credential_fingerprint != approval.key_sha256
-                    or db.execute("SELECT reference FROM live_events WHERE kind=?", (RESERVATION_EVENT,)).fetchall() != [(attempt,)]
+                    or db.execute("SELECT reference FROM live_events WHERE kind=?", (self.reservation_event,)).fetchall() != [(attempt,)]
                     or db.execute("SELECT 1 FROM live_notices WHERE delivered_at IS NULL").fetchone()):
                 raise BudgetDenied("One-use dispatch evidence mismatch")
             db.execute("UPDATE live_attempts SET state='sending',ticket_nonce=NULL WHERE id=?", (attempt,))

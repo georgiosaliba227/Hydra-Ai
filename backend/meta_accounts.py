@@ -705,6 +705,10 @@ class AccountLedger(MetaBudget):
             db.execute("UPDATE live_attempts SET state='unresolved' WHERE id=? AND actual IS NULL", (attempt,))
             self.event(db, row[0], "reconciliation_required", attempt)
 
+    def output_bound_for_attempt(self, db: sqlite3.Connection, attempt: str) -> int:
+        """Default cap; only an explicit account-bound policy may specialize it."""
+        return OUTPUT_LIMIT
+
     def settle_provider_reply(self, attempt: str, reply: "ProviderReply") -> None:
         # Only gateway transport replies reach here. No API accepts usage/costs.
         blocked = False
@@ -748,7 +752,7 @@ class AccountLedger(MetaBudget):
                         "attempt_id": attempt, "token_cost_micro_usd": amount,
                         "total_provider_charge_micro_usd": None,
                     }, sort_keys=True))
-                    if amount > row[2] or inputs > row[4] or outputs > OUTPUT_LIMIT:
+                    if amount > row[2] or inputs > row[4] or outputs > self.output_bound_for_attempt(db, attempt):
                         raise ValueError
                     return
                 # Extra categories cannot be guessed from usage. Nonzero overhead
