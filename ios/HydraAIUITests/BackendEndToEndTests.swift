@@ -2,6 +2,43 @@ import XCTest
 
 /// Opt-in test against a running LOCAL, synthetic-data backend. No AI calls.
 final class BackendEndToEndTests: XCTestCase {
+    func testCameraShortcutAndLargeTextLayout() throws {
+        continueAfterFailure = false
+        let env = ProcessInfo.processInfo.environment
+        guard let backend = env["HYDRA_E2E_BACKEND_URL"], let token = env["HYDRA_E2E_API_TOKEN"] else {
+            throw XCTSkip("Requires opt-in synthetic local backend")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
+        app.tabBars.buttons["Today"].tap()
+        XCTAssertTrue(app.buttons["scanDrink"].waitForExistence(timeout: 10))
+        let today = XCTAttachment(screenshot: app.screenshot()); today.name = "Hydra Today Preview"; today.lifetime = .keepAlways; add(today)
+        app.buttons["scanDrink"].tap()
+        XCTAssertTrue(app.staticTexts["recognitionHeader"].waitForExistence(timeout: 10))
+        let camera = XCTAttachment(screenshot: app.screenshot()); camera.name = "Hydra Camera Preview"; camera.lifetime = .keepAlways; add(camera)
+        app.terminate()
+        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Settings"].tap()
+        let save = app.buttons["saveConnection"]
+        for _ in 0..<4 where !save.isHittable { app.swipeUp() }
+        save.tap()
+        app.tabBars.buttons["Today"].tap()
+        let scan = app.buttons["scanDrink"]
+        for _ in 0..<6 where !scan.isHittable { app.swipeUp() }
+        XCTAssertTrue(scan.isHittable); scan.tap()
+        XCTAssertTrue(app.staticTexts["recognitionHeader"].waitForExistence(timeout: 10))
+        let choose = app.buttons["chooseBeveragePhoto"]
+        for _ in 0..<6 where !choose.isHittable { app.swipeUp() }
+        XCTAssertTrue(choose.isHittable)
+        XCTAssertFalse(app.buttons["exportPreparedPhoto"].exists)
+        let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "Hydra Camera Large Text"; shot.lifetime = .keepAlways; add(shot)
+    }
+
     func testManualLoggingAndRestartPersistence() throws {
         continueAfterFailure = false
         let environment = ProcessInfo.processInfo.environment
@@ -64,13 +101,17 @@ final class BackendEndToEndTests: XCTestCase {
         app.tabBars.buttons["Camera"].tap()
         let header = app.staticTexts["recognitionHeader"]
         XCTAssertTrue(header.waitForExistence(timeout: 10))
-        let mockHeader = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'mock analysis'"), object: header)
+        let mockHeader = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'Demo mode'"), object: header)
         XCTAssertEqual(XCTWaiter.wait(for: [mockHeader], timeout: 10), .completed)
         app.buttons["syntheticPhoto"].tap()
         let analyze = app.buttons["analyzePhoto"]
-        XCTAssertTrue(analyze.waitForExistence(timeout: 10)); XCTAssertFalse(analyze.isEnabled)
-        XCTAssertEqual(analyze.label, "Analyze with mock Meta response")
-        app.switches["photoConsent"].tap()
+        XCTAssertTrue(analyze.waitForExistence(timeout: 10))
+        XCTAssertEqual(analyze.label, "Try demo scan")
+        XCTAssertTrue(app.staticTexts["scanSharingDisclosure"].label.contains("does not identify"))
+        app.buttons["cancelPhotoScan"].tap()
+        XCTAssertFalse(app.staticTexts["recognitionResultSource"].exists)
+        app.buttons["reviewPhotoSharing"].tap()
+        XCTAssertTrue(analyze.waitForExistence(timeout: 10))
         analyze.tap()
         let enter = app.buttons["Enter or correct beverage details"]
         if !enter.isHittable { app.swipeUp() }

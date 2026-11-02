@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DashboardView: View {
+    let onScan: () -> Void
     @EnvironmentObject private var store: BeverageStore
     @State private var showingManualLog = false
 
@@ -18,6 +19,15 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: HydraSpacing.section) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("A little sip.").font(.system(.title2, design: .rounded, weight: .semibold))
+                        Text("A little momentum.").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }.layoutPriority(1)
+                    Spacer(minLength: 0)
+                    Image(systemName: "sun.max.fill").font(.largeTitle).foregroundStyle(.orange).accessibilityHidden(true)
+                }
                 statusBanners
                 if store.summary != nil {
                     TodayProgressCard(volumeMl: todayVolumeMl, goal: store.summary?.goal)
@@ -25,6 +35,11 @@ struct DashboardView: View {
                     StatusBanner(text: "Today's total appears once your drinks have loaded.",
                                  systemImage: "hourglass", tint: .secondary)
                 }
+                Button(action: onScan) {
+                    HStack { Label("Scan a drink", systemImage: "camera.viewfinder"); Spacer(); Image(systemName: "arrow.right") }
+                }
+                .buttonStyle(HydraPressStyle())
+                .accessibilityIdentifier("scanDrink")
                 QuickAddCard(showingManualLog: $showingManualLog)
                 insightsSection
                 recentSection
@@ -32,9 +47,11 @@ struct DashboardView: View {
             }
             .hydraScreen()
         }
+        .hydraReadableScrollEdges()
         .background(Color.hydraBackground)
         .refreshable { await store.refresh() }
-        .navigationTitle("Today")
+        .navigationTitle("Hydra")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingManualLog) {
             NavigationStack {
                 ManualLogView()
@@ -177,57 +194,28 @@ struct DashboardView: View {
 
 // MARK: - Progress
 
-/// Today's logged total, with a ring only when the user has chosen a goal.
+/// Today's logged total, with progress only for a goal the user chose.
 private struct TodayProgressCard: View {
     let volumeMl: Int
     let goal: DailySummary.Goal?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var ringSize: CGFloat = 128
-    @ScaledMetric(relativeTo: .largeTitle) private var numberSize: CGFloat = 32
 
     private var validGoal: DailySummary.Goal? { goal.flatMap { $0.isValid ? $0 : nil } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(Date.now.formatted(.dateTime.weekday(.wide).month().day()))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 16) { ring; details }
+            LoggedVolumeCard(title: "Logged today", volumeMl: volumeMl,
+                             detail: "Confirmed drink volume · \(Date.now.formatted(.dateTime.weekday(.wide).month().day()))")
+                .accessibilityIdentifier("dailyTotal")
+            if let validGoal {
+                VStack(alignment: .leading, spacing: 14) {
+                    ProgressView(value: min(validGoal.progressRatio, 1))
+                    details
+                }.hydraCard()
             } else {
-                HStack(spacing: 20) { ring; details }
+                InfoNote("No goal set. You can choose your own in Settings.")
             }
             InfoNote("Drink volume you logged — not a measure of hydration.")
         }
-        .hydraCard(padding: 20)
-    }
-
-    private var ring: some View {
-        ZStack {
-            Circle().stroke(Color.hydraTint.opacity(0.15), lineWidth: 14)
-            if let validGoal {
-                Circle()
-                    .trim(from: 0, to: min(validGoal.progressRatio, 1))
-                    .stroke(Color.hydraTint, style: StrokeStyle(lineWidth: 14, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.snappy, value: validGoal.progressRatio)
-            }
-            VStack(spacing: 0) {
-                Text(volumeMl.formatted())
-                    .font(.system(size: numberSize, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text("mL").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-            }
-            .padding(18)
-        }
-        .frame(width: ringSize, height: ringSize)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Logged today, \(volumeMl.formatted()) milliliters")
-        .accessibilityValue(String(volumeMl))
-        .accessibilityIdentifier("dailyTotal")
     }
 
     @ViewBuilder private var details: some View {
@@ -296,7 +284,7 @@ private struct QuickAddCard: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(preset.label).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
                                         .fixedSize()
-                                    Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.secondary)
+                                    Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.primary)
                                         .fixedSize()
                                 }
                                 .accessibilityHidden(true)

@@ -5,6 +5,8 @@ import XCTest
 /// contrast of system secondary styles and partial Dynamic Type support in system forms are logged only.
 final class AccessibilityAuditUITests: XCTestCase {
     private func audit(_ app: XCUIApplication, _ screen: String) throws {
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Hydra \(screen) Accessibility"; screenshot.lifetime = .keepAlways; add(screenshot)
         try app.performAccessibilityAudit { issue in
             let description = issue.compactDescription
             let frame = issue.element?.frame ?? .zero
@@ -53,6 +55,11 @@ final class AccessibilityAuditUITests: XCTestCase {
         let suggestion = app.buttons["suggested-coffee_counts"]
         XCTAssertTrue(suggestion.waitForExistence(timeout: 15)); suggestion.tap()
         XCTAssertTrue(app.staticTexts["assistantAnswer-coffee_caffeine"].waitForExistence(timeout: 10))
+        try audit(app, screen)
+
+        screen = "Camera"
+        app.tabBars.buttons["Camera"].tap()
+        XCTAssertTrue(app.staticTexts["recognitionHeader"].waitForExistence(timeout: 10))
         try audit(app, screen)
     }
 }

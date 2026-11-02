@@ -9,7 +9,10 @@ extension Color {
     static let hydraTint = Color(UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.12, green: 0.56, blue: 0.71, alpha: 1)
-            : UIColor(red: 0.00, green: 0.48, blue: 0.60, alpha: 1)
+            : UIColor(red: 0.02, green: 0.42, blue: 0.39, alpha: 1)
+    })
+    static let hydraSecondaryText = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark ? UIColor(white: 0.78, alpha: 1) : UIColor(white: 0.35, alpha: 1)
     })
     static let hydraBackground = Color(.systemGroupedBackground)
     static let hydraCard = Color(.secondarySystemGroupedBackground)
@@ -21,7 +24,7 @@ enum HydraSpacing {
     /// Inside a card.
     static let item: CGFloat = 12
     static let cardPadding: CGFloat = 16
-    static let cornerRadius: CGFloat = 22
+    static let cornerRadius: CGFloat = 26
 }
 
 struct HydraCardModifier: ViewModifier {
@@ -39,6 +42,16 @@ extension View {
     /// The single card style used across the app.
     func hydraCard(padding: CGFloat = HydraSpacing.cardPadding) -> some View {
         modifier(HydraCardModifier(padding: padding))
+    }
+
+    /// Keep text above the floating tab bar readable instead of fading it out.
+    @ViewBuilder
+    func hydraReadableScrollEdges() -> some View {
+        if #available(iOS 26.0, *) {
+            self.scrollEdgeEffectHidden(true, for: .bottom)
+        } else {
+            self
+        }
     }
 
     /// Scrollable screen of cards on the grouped background.
@@ -108,7 +121,7 @@ struct InfoNote: View {
             Image(systemName: systemImage).accessibilityHidden(true)
         }
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Color.hydraSecondaryText)
         .labelStyle(.titleAndIcon)
     }
 }

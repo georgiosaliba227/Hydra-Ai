@@ -477,7 +477,7 @@ def test_preview_without_live_configuration(tmp_path, client_env):
     lambda r: {k: v for k, v in r.items() if k != "exercise"},
     lambda r: r | {"exercise": r["exercise"] | {"actual": session(1)}},
     lambda r: r | {"timezone": "Not/AZone"},
-    lambda r: r | {"samples": [session(-1)]},  # a "previous" session in the future
+    lambda r: r | {"samples": [session(-1, now=datetime.now(timezone.utc))]},  # always in the future
 ])
 def test_invalid_requests_are_rejected(tmp_path, client_env, change):
     request = live_body()
