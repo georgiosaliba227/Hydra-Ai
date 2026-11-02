@@ -36,9 +36,11 @@ final class PhysicalRecognitionTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [check], timeout: 20), .completed)
     }
     private func analyze(_ app: XCUIApplication) {
-        let consent = app.switches["photoConsent"]
-        if !consent.isHittable { app.swipeUp() }
-        if (consent.value as? String) != "1" { consent.tap() }
+        if !app.buttons["analyzePhoto"].exists {
+            let review = app.buttons["reviewPhotoSharing"]
+            if !review.isHittable { app.swipeUp() }
+            review.tap()
+        }
         let button = app.buttons["analyzePhoto"]
         if !button.isHittable { app.swipeUp() }
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: button)
@@ -46,9 +48,12 @@ final class PhysicalRecognitionTests: XCTestCase {
         button.tap()
     }
     private func scenario(_ app: XCUIApplication, _ name: String) {
+        if app.buttons["cancelPhotoScan"].exists { app.buttons["cancelPhotoScan"].tap() }
+        app.buttons["cameraOptions"].tap()
         app.buttons["mockScenario"].tap()
         let option = app.buttons[name]
         XCTAssertTrue(option.waitForExistence(timeout: 5)); option.tap()
+        app.buttons["Done"].tap()
     }
     private func control(_ action: String) throws {
         guard env["HYDRA_E2E_FAULT_DRIVER"] == "stdout-v1", ["pause", "resume"].contains(action) else {
@@ -81,8 +86,9 @@ final class PhysicalRecognitionTests: XCTestCase {
             if cancel.exists { cancel.tap() }
             throw XCTSkip("System picker did not expose the synthetic asset's date; no personal asset was selected")
         }
-        XCTAssertTrue(app.images["Selected beverage photo"].waitForExistence(timeout: 15))
-        XCTAssertFalse(app.buttons["analyzePhoto"].isEnabled)
+        XCTAssertTrue(app.buttons["analyzePhoto"].waitForExistence(timeout: 15))
+        app.buttons["cancelPhotoScan"].tap()
+        XCTAssertTrue(app.images["Selected beverage photo"].exists)
         analyze(app)
         XCTAssertTrue(app.buttons["Enter or correct beverage details"].waitForExistence(timeout: 15))
     }

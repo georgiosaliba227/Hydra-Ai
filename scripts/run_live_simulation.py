@@ -35,6 +35,9 @@ def main() -> None:
         class SimulatedRecognizer:
             def __init__(self): self.lock=threading.Lock();self.approved=False
             def analyze(self,payload):
+                # Keep the real pending state observable for the scanner UI assertion.
+                # This delay exists only in the nonbillable local test provider.
+                time.sleep(2)
                 with self.lock:
                     if not self.approved:
                         digest=hashlib.sha256(sanitized_jpeg(payload)).hexdigest()

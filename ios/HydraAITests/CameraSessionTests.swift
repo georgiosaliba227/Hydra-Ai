@@ -4,6 +4,35 @@ import XCTest
 
 @MainActor
 final class CameraSessionTests: XCTestCase {
+    func testScanSheetConsentIsBoundToDisclosedModeAndConnection() throws {
+        let session = CameraSession(), generation = UUID()
+        XCTAssertFalse(session.consentToScan(generation: generation, expectedMode: "meta_live"))
+        let ticket = try XCTUnwrap(session.beginCapabilities(generation: generation))
+        XCTAssertFalse(session.consentToScan(generation: generation, expectedMode: "meta_live"))
+        session.completeCapabilities("meta_live", ticket: ticket, currentGeneration: generation)
+        XCTAssertFalse(session.consentToScan(generation: generation, expectedMode: "mock"))
+        XCTAssertFalse(session.consent)
+        XCTAssertTrue(session.consentToScan(generation: generation, expectedMode: "meta_live"))
+        XCTAssertTrue(session.metaConsent)
+        let analysis = try XCTUnwrap(session.beginAnalysis(generation: generation))
+        XCTAssertFalse(session.consentToScan(generation: generation, expectedMode: "meta_live"))
+        session.completeAnalysis(result(), ticket: analysis, currentGeneration: generation)
+        session.revokePhotoConsent()
+        XCTAssertNil(session.beginAnalysis(generation: generation), "A new photo needs a fresh scan action")
+        XCTAssertFalse(session.consentToScan(generation: UUID(), expectedMode: "meta_live"))
+        XCTAssertFalse(session.metaConsent)
+    }
+
+    func testDemoScanDoesNotGrantMetaConsent() throws {
+        let session = CameraSession(), generation = UUID()
+        let ticket = try XCTUnwrap(session.beginCapabilities(generation: generation))
+        session.completeCapabilities("mock", ticket: ticket, currentGeneration: generation)
+        XCTAssertTrue(session.consentToScan(generation: generation, expectedMode: "mock"))
+        XCTAssertTrue(session.consent)
+        XCTAssertFalse(session.metaConsent)
+        XCTAssertNotNil(session.beginAnalysis(generation: generation))
+    }
+
     private func result() -> RecognitionResult {
         RecognitionResult(version: "recognition-v1", mode: "meta_live", model: "muse-spark-1.3",
                           candidates: [], requiresConfirmation: true, recognitionId: UUID())

@@ -34,6 +34,7 @@ struct AssistantView: View {
             .hydraScreen()
         }
         .scrollDismissesKeyboard(.interactively)
+        .hydraReadableScrollEdges()
         .background(Color.hydraBackground)
         .navigationTitle("Ask Hydra")
         .task {

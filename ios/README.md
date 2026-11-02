@@ -48,11 +48,11 @@ The UI test launches with runtime configuration, saves it through Settings/Keych
 
 ## Milestone 2 mock recognition
 
-See [Milestone 2](../docs/MILESTONE_2.md). Configure the local backend, open Camera, capture/select a photo, consent to backend upload and choose an explicitly synthetic demo scenario. Analyze, review/correct identity and container capacity, enter actual consumed mL and confirm before Save. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
+See [Milestone 2](../docs/MILESTONE_2.md). Configure the local backend, open Camera, capture/select a photo, review the photo-sharing sheet and tap **Try demo scan**. Sample responses are explicitly labeled; choose scenarios under **Camera options → Demo tools**. Review results, review/correct identity and container capacity, enter actual consumed mL and confirm before Save. Meta inference stays disabled. Unknown nutrition stays unknown. A failed confirmation uses the existing Today retry action with its persisted request/key.
 
 ## Guarded Meta mode
 
-Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. Meta mode requires both backend-upload consent and separate Meta disclosure consent. It never claims zero retention. Live results require a server-issued settled recognition receipt, preserved in pending submissions, and confirmation of identity/capacity/consumption. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
+Camera fetches authenticated recognition capabilities and fails closed if mode cannot be verified. The per-photo sharing sheet names both the connected server and Meta, discloses retention, and requires an explicit **Scan photo** action. That action grants backend and Meta consent only for the displayed photo, mode and connection; canceling sends nothing. Changing the photo or refreshing the connection clears consent. It never claims zero retention. Live results require a server-issued settled recognition receipt, preserved in pending submissions, and confirmation of identity/capacity/consumption. All provider credentials remain on the server. Mock is the default; no live spend is authorized. See [budget controls](../docs/API_BUDGET.md).
 
 `run_ios_e2e.py --live-simulation` only accepts an explicitly marked nonbillable loopback fake-provider backend. It runs the opt-in live-consent UI case with generated synthetic image data. It must never be pointed at a real Meta transport. Physical-only tests skip in normal simulator runs.
 
@@ -60,8 +60,14 @@ If Xcode hangs after passing simulator tests while collecting verbose diagnostic
 
 ## Workout forecast prototype
 
-Today → **Workout forecast · separate from intake** opens a separate estimate screen. **Run synthetic demonstration** submits only mode/timezone and requests the server-owned fixed fixture; the result is labeled simulated, never added to consumption. The local mock Meta explanation integration is explicitly labeled mock and makes no live provider request.
+Today → **Plan a workout** opens a separate estimate screen. **Run synthetic demonstration** submits only mode/timezone and requests the server-owned fixed fixture; the result is labeled simulated, never added to consumption. The local mock Meta explanation integration is explicitly labeled mock and makes no live provider request.
 
 For a personal estimate, manually enter a planned workout and comparable conditions. Add completed manual weighing measurements with recorded intake/urine and independently established absolute error bounds. Explicit calibration-processing consent is required before upload. Unknown values must stay unknown: do not enter zero or invent instrument bounds. Missing usable calibration returns insufficient data; the trained research artifact does not silently supply physiological ground truth.
 
 Session measurements/results remain in screen memory, are cleared on leaving or changing connection, and are not saved to HealthKit or beverage storage. Edits invalidate the displayed result and late responses. The backend processes calibration in memory, with no persistence or provider export. Numbers are estimated workout sweat loss, not consumed water, remaining need, diagnosis or recommended intake. A simulator run cannot validate physiology or physical-device behavior.
+
+## Animated camera experience
+
+Today and Camera use a shared aqua/ink style. **Scan a drink** opens the Camera tab. Capture or choose a photo, review its sharing sheet, then scan. A moving beam appears only while the actual request is pending; no fabricated percentage or minimum delay is used. The photo collapses above result cards showing candidate capacity, uncalibrated confidence, sourced nutrition and unknown values. **Review & log** retains explicit consumed-volume confirmation.
+
+Exporting the exact prepared photo and refreshing capabilities remain available under **Camera options**. The main screen contains no export or provider-specific action buttons. Reduce Motion pauses decorative floating/scanning movement; textual scan status remains visible. No backend API, provider activation or spending controls changed. Physical-camera capture and permission behavior still require device verification.

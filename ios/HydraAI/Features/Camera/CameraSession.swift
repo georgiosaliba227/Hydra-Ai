@@ -36,6 +36,17 @@ final class CameraSession: ObservableObject {
 
     func discardResult() { result = nil }
 
+    /// Called only by the explicit action on the per-photo sharing sheet.
+    /// The sheet must still describe this connection and this recognition mode.
+    func consentToScan(generation: UUID, expectedMode: String) -> Bool {
+        guard self.generation == generation, mode == expectedMode,
+              ["mock", "meta_live"].contains(expectedMode),
+              !isAnalyzing, !isLoadingCapabilities else { return false }
+        consent = true
+        metaConsent = expectedMode == "meta_live"
+        return true
+    }
+
     func beginCapabilities(generation: UUID) -> Ticket? {
         bind(to: generation)
         guard !isAnalyzing, !isLoadingCapabilities else { return nil }
