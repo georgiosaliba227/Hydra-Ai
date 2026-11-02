@@ -240,7 +240,9 @@ func runModelJob() async throws {
         decoding: try JSONSerialization.data(
           withJSONObject: [
             "model_id": baseModelID, "base_revision": baseRevision,
-            "runtime_revision": runtimeRevision,
+            "runtime_revision": runtimeRevision, "runtime_patch_sha256": runtimePatchSHA256,
+            "vision_release_policy": MuseGlimmer.hydraFrozenVisionReleasePolicy,
+            "vision_release_enabled": true,
             "prompt_sha256": sha256(Data(recognitionPrompt.utf8)), "prompt": recognitionPrompt,
             "generation_header": generationHeader, "template_current_date": templateCurrentDate,
             "reasoning_strength": reasoningStrength,
@@ -305,12 +307,16 @@ func runModelJob() async throws {
     guard let model = context.model as? MuseGlimmer else {
       throw ContractError.invalid("local checkpoint is not Muse Glimmer")
     }
+    model.releaseFrozenVisionAfterEmbedding = true
     let runner = ImageRunner(
       context: context, model: model, root: root, imageTokens: imageTokens,
       prefillStep: prefillStep, maxOutput: maxOutput, safety: safety)
     announce("base_loaded")
     var settings: [String: Any] = [
-      "base_revision": baseRevision, "runtime_revision": runtimeRevision, "model_id": baseModelID,
+      "base_revision": baseRevision, "runtime_revision": runtimeRevision,
+      "runtime_patch_sha256": runtimePatchSHA256,
+      "vision_release_policy": MuseGlimmer.hydraFrozenVisionReleasePolicy,
+      "vision_release_enabled": model.releaseFrozenVisionAfterEmbedding, "model_id": baseModelID,
       "image_tokens": imageTokens, "prefill_step": prefillStep, "max_answer_tokens": maxAnswer,
       "max_output_tokens": maxOutput, "memory_limit_bytes": Memory.memoryLimit,
       "rss_limit_bytes": rssGiB * 1024 * 1024 * 1024,
@@ -324,6 +330,7 @@ func runModelJob() async throws {
       "adapter_config_sha256": NSNull(), "decoding": "greedy",
     ]
     if options.command == "infer" {
+      model.train(false)
       var adapterHash: String?
       if let path = options.values["--adapter"] {
         let directory = URL(fileURLWithPath: path)

@@ -334,7 +334,8 @@ class ProvenanceTests(ManifestTests):
             run_metadata_path=metadata_path, data_root=self.root, artifact_root=self.root), metadata
 
     def write_runtime_provenance(self, metadata):
-        metadata.update(runtime_revision="c"*40, executable_sha256="d"*64, inference_split="test")
+        metadata.update(runtime_revision="c"*40, executable_sha256="d"*64, inference_split="test",
+            runtime_patch_sha256="9"*64, vision_release_policy="hydra-frozen-vision-release-v1", vision_release_enabled=True)
         model = dict(schema_version="meta-base-provenance-v1", repo=metadata["model_id"],
             revision=metadata["base_revision"], files={"model.safetensors":dict(bytes=10, sha256="e"*64,
                 provider_lfs_sha256="e"*64, provider_git_blob_sha1=None)})
@@ -348,7 +349,8 @@ class ProvenanceTests(ManifestTests):
             metadata.update(adapter_config_path=adapter_config.name, adapter_config_sha256=sha(adapter_config.read_bytes()))
         config = dict(schema_version="beverage-inference-config-v1", model_id=metadata["model_id"],
             base_revision=metadata["base_revision"], runtime_revision=metadata["runtime_revision"],
-            executable_sha256=metadata["executable_sha256"], model_provenance_sha256=metadata["model_provenance_sha256"],
+            runtime_patch_sha256=metadata["runtime_patch_sha256"], vision_release_policy=metadata["vision_release_policy"],
+            vision_release_enabled=metadata["vision_release_enabled"], executable_sha256=metadata["executable_sha256"], model_provenance_sha256=metadata["model_provenance_sha256"],
             prompt_sha256=metadata["prompt_sha256"], generation_header=" to=user<|message|>",
             template_current_date="2026-11-02", reasoning_strength="low", image_tokens=128,
             prefill_step=32, max_output_tokens=96, memory_limit_bytes=19*1024**3, rss_limit_bytes=20*1024**3,
@@ -359,7 +361,7 @@ class ProvenanceTests(ManifestTests):
         runtime = {key: config[key] for key in ("model_id", "base_revision", "runtime_revision", "image_tokens",
             "prefill_step", "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
             "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding",
-            "memory_limit_bytes", "rss_limit_bytes")}
+            "memory_limit_bytes", "rss_limit_bytes", "runtime_patch_sha256", "vision_release_policy", "vision_release_enabled")}
         runtime["predictions_sha256"] = metadata["predictions_sha256"]
         runtime_path = self.root / "runtime.json"
         runtime_path.write_text(json.dumps(runtime))
@@ -416,6 +418,48 @@ class ProvenanceTests(ManifestTests):
                 ("memory_limit_bytes",True), ("rss_limit_bytes",20*1024**3+1),
                 ("rss_limit_bytes",0), ("rss_limit_bytes",True)):
             args, metadata = self.prepare_run()
+            config_path = self.root / metadata["inference_config_path"]
+            config = json.loads(config_path.read_text())
+            config[field] = invalid
+            config_path.write_text(json.dumps(config))
+            metadata["inference_config_sha256"] = ev.canonical_sha256(config)
+            runtime_path = self.root / metadata["runtime_config_path"]
+            runtime = json.loads(runtime_path.read_text())
+            runtime[field] = invalid
+            runtime_path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"] = sha(runtime_path.read_bytes())
+            selection_path = self.root / metadata["selection_path"]
+            selection = json.loads(selection_path.read_text())
+            selection["inference_config_sha256"] = metadata["inference_config_sha256"]
+            selection_path.write_text(json.dumps(selection))
+            metadata["selection_sha256"] = sha(selection_path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+
+    def test_actual_runtime_patch_and_release_flag_must_match_frozen_configuration(self):
+        for field, changed in (("runtime_patch_sha256","f"*64), ("vision_release_policy","unreviewed-policy"),
+                               ("vision_release_enabled",False), ("vision_release_enabled",1)):
+            args, metadata = self.prepare_run()
+            path = self.root / metadata["runtime_config_path"]
+            runtime = json.loads(path.read_text())
+            runtime[field] = changed
+            path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"] = sha(path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+        args, metadata = self.prepare_run()
+        metadata["runtime_patch_sha256"] = "f"*64
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+        with self.assertRaises(ValueError):
+            ev.evaluate_files(**args)
+
+    def test_release_policy_requires_versioned_patch_hash_and_actual_boolean_flag(self):
+        for field, invalid in (("runtime_patch_sha256","patched"), ("vision_release_policy","unknown"),
+                ("vision_release_enabled",1), ("vision_release_enabled",False)):
+            args, metadata = self.prepare_run()
+            metadata[field] = invalid
             config_path = self.root / metadata["inference_config_path"]
             config = json.loads(config_path.read_text())
             config[field] = invalid

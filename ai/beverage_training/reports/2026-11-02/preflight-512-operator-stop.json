@@ -1,0 +1,34 @@
+{
+  "human_owner_specifically_requested_stop": false,
+  "kind": "operator_stop_memory_paging",
+  "no_guard_failure_observed": true,
+  "not_an_oom": true,
+  "observed_utc": "2026-11-02T20:23:36.073581+00:00",
+  "phase": "image_prefix_prefill",
+  "post_termination_observations": [
+    {
+      "initiating_failure": false,
+      "kind": "resident_measurement_unavailable",
+      "order": "after SIGTERM",
+      "source": "preserved raw launcher log"
+    }
+  ],
+  "process_status_before_stop": "10:02 /private/tmp/hydra-beverage-meta-build/out/Products/Release/meta-beverage",
+  "reason": "Codex root requested stop while carrying out the owner-authorized local training task, due to observed system-wide paging; no pre-stop memory guard failure or OOM occurred.",
+  "reason_correction": {
+    "corrected_utc": "2026-11-02T20:25:52.786142+00:00",
+    "previous_reason": "Owner requested stop due to observed paging before applying frozen-vision release; no memory guard tripped.",
+    "reason": "Clarify root-agent operator decision versus an explicit human stop request."
+  },
+  "requested_by": "codex_root_agent",
+  "schema_version": "beverage-runtime-failure-v1",
+  "system_wide_paging": {
+    "attribution_limit": "System-wide counters; not every page is attributable to this child.",
+    "interval_seconds": 15.01,
+    "page_size_bytes": 16384,
+    "swap_in_bytes": 2305572864,
+    "swap_in_pages": 140721,
+    "swap_out_bytes": 2914451456,
+    "swap_out_pages": 177884
+  }
+}

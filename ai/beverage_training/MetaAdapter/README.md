@@ -7,11 +7,16 @@ This isolated macOS executable runs the pinned open Meta Muse Glimmer vision mod
 Swift 6.2 or newer, macOS 14 or newer, Xcode and the Metal Toolchain are required. The free official component can be installed with `xcodebuild -downloadComponent MetalToolchain` when `xcrun metal --version` reports it missing.
 
 ```sh
-swift test -c release --jobs 4 --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build
+swift package --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build --force-resolved-versions resolve
+python3 ai/beverage_training/MetaAdapter/apply_runtime_patch.py --scratch /private/tmp/hydra-beverage-meta-build
+swift test --force-resolved-versions -c release --jobs 4 --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build
 python3 ai/beverage_training/MetaAdapter/Tests/test_launcher.py
+python3 ai/beverage_training/MetaAdapter/Tests/test_patch_helper.py
 ```
 
 Use the executable path printed by `swift build -c release --show-bin-path --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build`; SwiftPM's Xcode build system can place it under `out/Products/Release` instead of `release`. Pass that path with `--binary` if necessary.
+
+The build helper applies the exact tracked `Patches/0001-release-frozen-vision.patch` to upstream revision `b8d4935ab152169ac8cb0da5414b51447e78efb1`. `Patches/provenance.json` records original/patched hashes and the patch SHA. It refuses another revision, staged/untracked/unreviewed source changes, mixed states and unexpected bytes; reapplying it is idempotent. The executable references the patch-only API, so an unpatched runtime cannot silently build. Run evidence and the frozen inference configuration include the patch SHA, policy and actual enabled flag as well as the executable SHA.
 
 The tiny random Muse architecture test checks that changing image pixels changes response logits, that response loss changes adapter parameters, and that saving/reloading preserves logits. It is a software fixture, not evidence about the real 30B model's fit or accuracy.
 
@@ -37,6 +42,8 @@ Every model job requires `MODEL_DIR/base-provenance.json` from the reviewed down
 
 Image tokens are bounded to 16–512, output/answer tokens to 16–192, prefill chunks to 1–128. Initial defaults are 128 image tokens and 96 answer/output tokens. More image resolution is useful for printed labels; choose resolution using train/validation before final test. MLX's `memoryLimit` is advisory: its allocator can exceed it. The runner checks a sampled MLX active-plus-cache budget (19 GiB maximum) and resident-process budget (20 GiB default/maximum), checks each completed model phase, and samples every 50 ms during work. The launcher independently samples child RSS with macOS `libproc` and terminates an over-budget process. A 64 MiB reusable buffer cache limits retained free buffers. These are sampled stop guards, **not a hard allocation cap**: a single allocation may overshoot before the next observation. Recoverable MLX backend errors become Swift throws; GPU-driver aborts remain subprocess failures. Failed jobs preserve a sanitized `failure.json` and cannot produce an accepted training result. No OS wired-memory limit is changed. A process lock permits one local model job at a time. Each phase prints aggregate MLX active/cache/peak bytes and process peak RSS. A hardware preflight must measure the real checkpoint before a fit claim.
 
+The reviewed opt-in `hydra-frozen-vision-release-v1` policy synchronously evaluates the complete image-conditioned embeddings, then drops the on-demand frozen vision module and clears free buffers **before** language prefill. The original checkpoint source is retained for the next image. Encoding and materialization share one MLX error scope; vision locals have returned before release. The SDK default remains unchanged, and attached/immediate vision is explicitly rejected by this policy. `vision_released` telemetry records before/after active bytes and embedding time without photo contents. This reduces retention during prefill/gradients; it does not remove the initial language-plus-vision encoding peak. No separate image-feature cache or alternate model is used.
+
 ## Actual training method and limits
 
 The image encoder and base model remain frozen. Each sample builds fresh image-conditioned KV caches for all but the final prompt token outside the gradient trace. The loss runs on the final prompt token followed by teacher-forced response tokens, with targets covering every answer token, including the first token and end marker. Only response positions contribute loss. Gradients flow through the last language layer's q/v adapters and attention to the visual prefix; they do **not** flow through image encoding or earlier prompt KV computation. This is a detached-prefix approximation to full multimodal fine tuning and is recorded as `image-conditioned-detached-prefix-response-only-lora` in `training.json`.
@@ -47,7 +54,7 @@ A completed training artifact contains `initial-adapters.safetensors`, `adapters
 
 ## Pinned dependency need and provenance
 
-- Official `ml-explore/mlx-swift-lm` revision `b8d4935ab152169ac8cb0da5414b51447e78efb1` (MIT): Muse Glimmer architecture, image processor, cache handling and LoRA modules.
+- Official `ml-explore/mlx-swift-lm` revision `b8d4935ab152169ac8cb0da5414b51447e78efb1` plus the exact reviewed frozen-vision release patch (MIT): Muse Glimmer architecture, image processor, cache handling and LoRA modules.
 - Official `ml-explore/mlx-swift` 0.33.0 (MIT): Apple GPU tensors, automatic differentiation, optimizer and tensor checkpoint IO. Its source pins C++ MLX `36969c094354086e15d2a327a9c50feb20b9cf11` and mlx-c `a26f2d584a14ec619ae8db9a09be03becd47598a`.
 - Hugging Face `swift-transformers` 1.3.0 revision `b38443e44d93eca770f2eb68e2a4d0fa100f9aa2` (Apache-2.0): offline tokenizer and released Jinja chat-template support. The runner supplies an explicit local tokenizer bridge, so it does not invoke a downloader or load credentials.
 - `Package.resolved` records all transitive resolved revisions. These dependencies are isolated from backend and iPhone requirements.

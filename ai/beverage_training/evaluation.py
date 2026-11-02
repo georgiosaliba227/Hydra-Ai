@@ -375,12 +375,17 @@ def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: P
     if (config.get("schema_version") != "beverage-inference-config-v1"
             or metadata.get("inference_split") != "test"
             or config.get("decoding") != "greedy"
+            or not _sha(config.get("runtime_patch_sha256"))
+            or config.get("vision_release_policy") != "hydra-frozen-vision-release-v1"
+            or config.get("vision_release_enabled") is not True
+            or type(metadata.get("vision_release_enabled")) is not bool
             or not _text(config.get("generation_header"))
             or not _text(config.get("template_current_date"))
             or not _text(config.get("reasoning_strength"))):
         raise ValueError("versioned frozen test inference configuration required")
     for field in ("model_id", "base_revision", "runtime_revision", "executable_sha256",
-                  "model_provenance_sha256", "prompt_sha256", "adapter_config_sha256"):
+                  "model_provenance_sha256", "prompt_sha256", "adapter_config_sha256",
+                  "runtime_patch_sha256", "vision_release_policy", "vision_release_enabled"):
         if field not in metadata or field not in config or config[field] != metadata[field]:
             raise ValueError("inference config differs from run provenance")
     if (not _sha(metadata["executable_sha256"]) or not isinstance(metadata["runtime_revision"], str)
@@ -399,8 +404,8 @@ def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: P
     for field in ("model_id", "base_revision", "runtime_revision", "image_tokens", "prefill_step",
                   "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
                   "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding",
-                  "memory_limit_bytes", "rss_limit_bytes"):
-        if field not in runtime or runtime[field] != config[field]:
+                  "memory_limit_bytes", "rss_limit_bytes", "runtime_patch_sha256", "vision_release_policy", "vision_release_enabled"):
+        if field not in runtime or type(runtime[field]) is not type(config[field]) or runtime[field] != config[field]:
             raise ValueError("actual runtime differs from selected inference configuration")
     if runtime.get("predictions_sha256") != metadata["predictions_sha256"]:
         raise ValueError("runtime predictions hash mismatch")
@@ -516,6 +521,8 @@ def evaluate_files(*, manifest_path: Path, predictions_path: Path, policy_path: 
         inference_config_sha256=metadata["inference_config_sha256"],
         model_provenance_sha256=metadata["model_provenance_sha256"],
         executable_sha256=metadata["executable_sha256"],
+        runtime_patch_sha256=metadata["runtime_patch_sha256"],
+        vision_release_policy=metadata["vision_release_policy"], vision_release_enabled=metadata["vision_release_enabled"],
         adapter_target_met=measurement_class == "measured_adapter" and report["above_70_percent"],
         provenance_limit="Artifact hashes do not authenticate real training updates, independent photo labels or provider origin of base weights; the launcher verifies files against externally trusted provider provenance.",
         target_definition="Strictly >70% top1 full identity AND exact positive printed capacity over all test images; unknown capacity is not positive success.",

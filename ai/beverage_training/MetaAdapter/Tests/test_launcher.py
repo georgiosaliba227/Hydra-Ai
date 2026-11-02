@@ -6,6 +6,7 @@ import hashlib
 import json
 import sys
 import unittest
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[4] / "scripts" / "train_meta_beverage_adapter.py"
 spec = importlib.util.spec_from_file_location("meta_launcher", SCRIPT)
@@ -68,6 +69,22 @@ class LauncherTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == "darwin", "Apple runtime monitor requires macOS")
     def test_bounded_normal_child_finishes(self):
         launcher.run_local_process([sys.executable, "-c", "pass"], rss_limit_bytes=256*1024*1024)
+
+    def test_sampler_exit_race_preserves_successful_child_exit(self):
+        with patch.object(launcher, "child_resident_bytes", side_effect=launcher.LocalProcessError("resident_measurement_unavailable")):
+            launcher.run_local_process([sys.executable, "-c", "import time; time.sleep(.03)"], rss_limit_bytes=256*1024*1024)
+
+    def test_sampler_exit_race_preserves_failed_child_exit(self):
+        with patch.object(launcher, "child_resident_bytes", side_effect=launcher.LocalProcessError("resident_measurement_unavailable")):
+            with self.assertRaises(launcher.LocalProcessError) as caught:
+                launcher.run_local_process([sys.executable, "-c", "import time,sys; time.sleep(.03); sys.exit(7)"], rss_limit_bytes=256*1024*1024)
+        self.assertEqual(caught.exception.kind, "local_runtime_failed")
+
+    def test_sampler_fault_on_live_child_still_fails_closed(self):
+        with patch.object(launcher, "child_resident_bytes", side_effect=launcher.LocalProcessError("resident_measurement_unavailable")):
+            with self.assertRaises(launcher.LocalProcessError) as caught:
+                launcher.run_local_process([sys.executable, "-c", "import time; time.sleep(1)"], rss_limit_bytes=256*1024*1024)
+        self.assertEqual(caught.exception.kind, "resident_measurement_unavailable")
 
     def test_artifact_paths_must_resolve_below_root(self):
         with tempfile.TemporaryDirectory() as directory:

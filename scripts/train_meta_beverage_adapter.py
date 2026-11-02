@@ -66,10 +66,16 @@ def run_local_process(command: list[str], *, rss_limit_bytes: int) -> None:
         while child.poll() is None:
             try:
                 resident = child_resident_bytes(child.pid)
-            except LocalProcessError:
-                if child.poll() is not None:
-                    break
-                raise
+            except LocalProcessError as measurement_error:
+                # libproc can lose the task before waitpid/poll reports process exit.
+                # Resolve that bounded race before classifying a monitoring failure.
+                try:
+                    completed_status = child.wait(timeout=.1)
+                except subprocess.TimeoutExpired:
+                    raise measurement_error
+                if completed_status != 0:
+                    raise LocalProcessError("local_runtime_failed")
+                break
             if resident > rss_limit_bytes:
                 raise LocalProcessError("rss_budget_exceeded")
             time.sleep(.05)
@@ -236,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
     inference_config = {
         "schema_version": "beverage-inference-config-v1", "model_id": info["model_id"],
         "base_revision": info["base_revision"], "runtime_revision": info["runtime_revision"],
+        "runtime_patch_sha256": info["runtime_patch_sha256"], "vision_release_policy": info["vision_release_policy"], "vision_release_enabled": info["vision_release_enabled"],
         "executable_sha256": executable_hash, "model_provenance_sha256": proof_hash,
         "prompt_sha256": info["prompt_sha256"], "generation_header": info["generation_header"],
         "template_current_date": info["template_current_date"], "reasoning_strength": info["reasoning_strength"],
@@ -298,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
             "run_kind": "adapter" if args.adapter else "baseline", "dataset_kind": args.dataset_kind,
             "model_id": info["model_id"], "base_revision": info["base_revision"],
             "runtime_revision": info["runtime_revision"], "adapter_sha256": adapter_hash,
+            "runtime_patch_sha256": info["runtime_patch_sha256"], "vision_release_policy": info["vision_release_policy"], "vision_release_enabled": info["vision_release_enabled"],
             "runtime_config_sha256": file_sha(args.output / "runtime.json"),
             "runtime_config_path": artifact_relative(args.output / "runtime.json", args.artifact_root),
             "executable_sha256": executable_hash,

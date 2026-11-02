@@ -12,8 +12,16 @@ Manifest JSONL rows: `image_id`, `source_url`, `source_product_id`, `source_revi
 Predictions JSONL: `image_id`, `model_id`, `base_revision`, `adapter_sha256`(nullable for baseline), `prompt_sha256`, `outcome`, `brand`, `product`, `capacity_ml`, `latency_ms`, `error`(sanitized). Missing/failed predictions count as failures.
 
 ## Tasks
-- [ ] Collect candidate metadata/images with attribution and hashes; review at least250 and freeze product-grouped150/25/75 splits with varied real backgrounds.
-- [ ] Implement/test scorer and split leakage checks, exact capacity/joint success and confidence intervals. Lock aliases before inference.
-- [ ] Build pinned MLX Meta loader, image inference and actual LoRA update/save/reload preflight under24GB. Record memory and training artifacts.
+- [x] Collect candidate metadata/images with attribution and hashes; review at least250 and freeze product-grouped150/25/75 splits with varied real backgrounds.
+- [x] Implement/test scorer and split leakage checks, exact capacity/joint success and confidence intervals. Lock aliases before inference.
+- [x] Build pinned MLX Meta loader, image inference and actual LoRA update/save/reload preflight under24GB. Record memory and training artifacts.
 - [ ] Run baseline, train and validate; choose checkpoint using validation only. Score untouched test, preserve all failures, continue legitimate iterations if below70%.
 - [ ] Package reproducible model/metrics and review PR; report actual success and limits. Do not declare goal complete without dataset, weights and measured test evidence.
+
+## Measured progress
+
+The frozen cohort has 250 distinct source photos in 227 connected product groups: 150 train, 25 validation and 75 test; 120 photos have natural backgrounds, including 46 test photos across 7 settings. The complete source catalog and all pinned model files passed provider-digest verification. Public references/attribution are in ai/beverage_training/manifests/beverage-250-20261102/.
+
+The real 30B model completed one image-conditioned Adam update at 128 image tokens: 70,656 trainable parameters, parameter delta L2 = 0.04166687986138062, exact tensor/logit agreement after save/reload. This is a preflight, not the full training run or an accuracy result. Evidence is in ai/beverage_training/reports/2026-11-02/preflight-128.json.
+
+The 512-image-token preflight was stopped by Codex root during language prefill after observed system-wide memory paging. No optimizer update, OOM or pre-stop guard failure occurred in that run. A scoped frozen-vision release patch is being tested before resuming higher-resolution work. Memory guards and OS limits remain unchanged. Baseline validation, full 150-image training and untouched 75-image test evaluation remain outstanding.
