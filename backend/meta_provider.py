@@ -121,9 +121,11 @@ class OfficialMetaTransport:
             connection.close()
 
 
-def request_payload(image: AnalysisRequest) -> dict:
+def request_payload(image: AnalysisRequest, *, output_limit: int = OUTPUT_LIMIT) -> dict:
+    if type(output_limit) is not int or output_limit not in (512, 1024):
+        raise ValueError("Unsupported camera output limit")
     return {"model": MODEL, "store": False, "stream": False, "background": False,
-            "max_output_tokens": OUTPUT_LIMIT,
+            "max_output_tokens": output_limit,
             "reasoning": {"effort": "minimal"},
             "text": {"format": {"type": "json_schema", "name": "beverage_recognition", "strict": True,
                                 "schema": recognition_schema()}},

@@ -49,7 +49,8 @@ def _transport_kind(transport: object) -> str:
     # can still replace HTTP, so trusted ledger custody remains a separate gate.
     from .meta_provider import OfficialMetaTransport
     from .hydration_intelligence import HydrationMetaTransport
-    return ("official_meta_https" if type(transport) in (OfficialMetaTransport, HydrationMetaTransport)
+    from .meta_camera_cutoff import CutoffCameraTransport
+    return ("official_meta_https" if type(transport) in (OfficialMetaTransport, HydrationMetaTransport, CutoffCameraTransport)
             else "injected_test_transport")
 
 
@@ -117,12 +118,25 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
             raise ValueError
         if observation.outcome != "success" and observation.result_sha256 is not None:
             raise ValueError
-        permits = connection.execute("SELECT permit FROM controlled_permits WHERE account_id=?", (account,)).fetchall()
-        if not permits:
-            permits = connection.execute("SELECT permit FROM live_permit WHERE id=1").fetchall()
-        if len(permits) != 1:
-            raise ValueError
-        permit = json.loads(permits[0][0])
+        cutoff_link = None
+        if connection.execute("SELECT 1 FROM sqlite_master WHERE name='camera_cutoff_attempts' AND type='table'").fetchone():
+            cutoff_link = connection.execute("SELECT c.image_sha256,c.policy_sha256,p.policy,p.sha256 FROM camera_cutoff_attempts c "
+                                             "CROSS JOIN camera_cutoff_policy p WHERE c.attempt_id=? AND p.id=1", (attempt_id,)).fetchone()
+        if cutoff_link:
+            from .meta_camera_cutoff import CutoffCameraPolicy
+            policy = CutoffCameraPolicy.model_validate_json(cutoff_link[2])
+            if (policy.account_id != account or cutoff_link[1] != cutoff_link[3]
+                    or hashlib.sha256(cutoff_link[2].encode()).hexdigest() != cutoff_link[3]):
+                raise ValueError
+            permit = {"account_id": account, "purpose": "camera", "image_sha256": cutoff_link[0],
+                      "policy_version": policy.version}
+        else:
+            permits = connection.execute("SELECT permit FROM controlled_permits WHERE account_id=?", (account,)).fetchall()
+            if not permits:
+                permits = connection.execute("SELECT permit FROM live_permit WHERE id=1").fetchall()
+            if len(permits) != 1:
+                raise ValueError
+            permit = json.loads(permits[0][0])
         if permit["account_id"] != account or permit.get("purpose", "camera") != observation.purpose:
             raise ValueError
         input_hash = permit["image_sha256"]
@@ -164,7 +178,7 @@ def read_observation(path: str | Path, attempt_id: str) -> dict:
         return {"version": "meta-observation-v1", "attempt_id": attempt_id, "account_id": account,
                 "model": MODEL, "provider_id": provider_id, "input_sha256": input_hash,
                 "payload_sha256": payload_hash, "observed_at": observed_at,
-                **observation.model_dump(), "usage": usage, "usage_cost_micro_usd": usage_cost if permit.get("policy_version") == "georgio-first-camera-risk-v1" else actual,
+                **observation.model_dump(), "usage": usage, "usage_cost_micro_usd": usage_cost if permit.get("policy_version") in ("georgio-first-camera-risk-v1", "georgio-camera-cutoff-v1") else actual,
                 "reserved_micro_usd": reserved, "final_gross_micro_usd": final_amount,
                 "billing_status": ("invoice_verified" if final_amount is not None else
                                    "usage_recorded_invoice_pending" if state == "billing_pending" else
