@@ -99,4 +99,24 @@ final class SimpleCameraUITests: XCTestCase {
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         total(app, initial + 125)
     }
+    func test04PrintedOneLitreLabelUsesFullContainerAssumption() throws {
+        guard ProcessInfo.processInfo.environment["HYDRA_E2E_LABEL_CAMERA"] == "1" else {
+            throw XCTSkip("One-litre label fixture required")
+        }
+        let (app, initial) = try start(); analyze(app)
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.filter(\.isNumber), "1000")
+        XCTAssertTrue(app.staticTexts["photoVolume"].label.contains("mL"))
+        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.filter(\.isNumber), "1000")
+        XCTAssertTrue(app.staticTexts["photoLabelCapacity"].label.hasPrefix("Printed size:"))
+        XCTAssertTrue(app.staticTexts["consumptionAssumptionSummary"].label.contains("full container"))
+        XCTAssertTrue(app.buttons["editRecognitionEntry"].exists)
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        screenshot(app, "Printed one litre label review")
+        app.buttons["savePhotoBeverage"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        total(app, initial + 1000)
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "identifier == 'beverageRow' AND label CONTAINS 'Assumed full container consumed'")).firstMatch.waitForExistence(timeout: 10))
+    }
+
 }

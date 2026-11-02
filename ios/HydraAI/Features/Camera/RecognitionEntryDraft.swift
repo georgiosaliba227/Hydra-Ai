@@ -44,6 +44,7 @@ struct RecognitionEntryDraft {
         drinkType = Self.normalizedType(candidate.personalCorrection?.beverageType ?? candidate.category ?? candidate.identity)
         volumeText = candidate.wholeLiquidMl.map(String.init) ?? ""
         correctedLiquidMl = candidate.personalCorrection?.liquidMl
+        applyWholeDrinkDefault()
     }
     private static func normalizedType(_ text: String) -> String {
         let normalized = text.lowercased().filter(\.isLetter)
@@ -83,7 +84,22 @@ struct RecognitionEntryDraft {
     mutating func setDrankAll(_ all: Bool) {
         drankAll = all; fullContainer = false
         unit = .millilitres
-        volumeText = all ? (correctedLiquidMl ?? candidate.wholeLiquidMl).map(String.init) ?? "" : ""
+        if all { applyWholeDrinkDefault() } else { volumeText = "" }
+    }
+    private mutating func applyWholeDrinkDefault() {
+        volumeText = (correctedLiquidMl ?? candidate.wholeLiquidMl).map(String.init) ?? ""
+        guard correctedLiquidMl == nil, let label = candidate.labelCapacityMl,
+              (1...5000).contains(label), candidate.suggestedCapacity == label else { return }
+        // A readable label supports capacity, not measured fill. The review
+        // explicitly asks the user to confirm a full-container assumption.
+        // Clearly partial fill and exact-photo liquid corrections keep priority.
+        if candidate.estimatedLiquidMlMin == nil && candidate.estimatedLiquidMlMax == nil {
+            useFullContainer()
+        } else if let lower = candidate.estimatedLiquidMlMin, let upper = candidate.estimatedLiquidMlMax,
+                  ["visual_estimate", "visible_measurement"].contains(candidate.volumeBasis ?? ""),
+                  lower > 0, lower <= upper, upper == label {
+            useFullContainer()
+        }
     }
     mutating func useFullContainer() {
         guard let capacity = candidate.suggestedCapacity else { return }

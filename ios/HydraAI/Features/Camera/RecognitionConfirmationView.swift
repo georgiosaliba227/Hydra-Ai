@@ -43,6 +43,10 @@ struct RecognitionConfirmationView: View {
                     }
                     Text(draft.consumedMl.map { "\($0) mL" } ?? "Volume unclear")
                         .font(editing ? .title2.bold() : .largeTitle.bold()).accessibilityIdentifier("photoVolume")
+                    if let label = candidate.labelCapacityMl {
+                        Text("Printed size: \(label) mL")
+                            .font(.subheadline.bold()).accessibilityIdentifier("photoLabelCapacity")
+                    }
                     Text(draft.assumption == "full_container" ? "Assuming a full container, all consumed." :
                          draft.drankAll ? "Assuming you drink all the liquid." : "Only the amount you drink will be logged.")
                         .font(.subheadline).accessibilityIdentifier("consumptionAssumptionSummary")

@@ -17,6 +17,8 @@ If fill is unknown, do not silently substitute capacity. Offer an explicit
 amount or a photo showing its size label. Confirm/Edit remains required before
 logging. Users can turn off the assumption and enter a partial amount.
 
+November 2 printed-size correction: inspect and show readable net-contents labels first (for example “1 LITER” → 1000 mL capacity). A label-backed capacity may prefill the full container under a visible `full_container` assumption accepted with Confirm, when fill is unknown or the supported range includes full capacity. This explicitly stated assumption replaces the midpoint default in that case; it is not a measurement or training target. An exact-photo user liquid correction, clearly partial supported range or contradictory label/range keeps precedence. Unlabeled inferred capacity alone still never prefills consumption. Printed capacity is visible on the initial review, not only in Edit. This supersedes the earlier instruction requiring a separate full-container action for label-backed capacity; manual edits and partial entry remain available.
+
 Confirmed logs optionally carry `consumption_assumption: entire_liquid` or
 `full_container`, with corresponding user-assumption provenance. Full-container
 logging requires a known capacity equal to consumed mL. When capacity is unknown,

@@ -37,3 +37,20 @@ def test_api_exposes_label_size_separately_from_raw_model_capacity(camera):
     candidate=analyze(client)['candidates'][0]
     assert candidate['container_ml']==600, 'Do not rewrite the original visual prediction'
     assert candidate['label_capacity_ml']==500
+
+
+def test_one_liter_label_is_container_capacity_not_a_visual_fill_guess(camera):
+    app,client,_=camera
+    original=app.state.recognizer.analyze
+    def response(payload):
+        value=original(payload)
+        value['candidates'][0]|={
+            'container_ml':1000,
+            'visible_label_text':'DASANI PURIFIED WATER Enhanced with minerals for a pure, fresh taste 1 LITER',
+            'estimated_liquid_ml_min':900,'estimated_liquid_ml_max':1000,'volume_basis':'visual_estimate'}
+        return value
+    app.state.recognizer.analyze=response
+    candidate=analyze(client)['candidates'][0]
+    assert candidate['label_capacity_ml']==1000
+    assert (candidate['estimated_liquid_ml_min'],candidate['estimated_liquid_ml_max'])==(900,1000)
+    assert label_capacity_ml('1LITER')==1000
