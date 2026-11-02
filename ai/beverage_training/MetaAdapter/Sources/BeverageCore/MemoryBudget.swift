@@ -1,4 +1,9 @@
 public struct MemoryBudget: Sendable {
+  /// Process-local GPU residency; never raises the device/OS recommendation.
+  public static func gpuResidencyBytes(recommended: Int, mlxBudget: Int) -> Int {
+    max(0, min(16 * 1024 * 1024 * 1024, recommended, mlxBudget))
+  }
+
   public let mlxBytes: Int
   public let residentBytes: Int
   public init(mlxBytes: Int, residentBytes: Int) {

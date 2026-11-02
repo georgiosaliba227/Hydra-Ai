@@ -200,10 +200,21 @@ struct ImageRunner {
 }
 
 func run() async throws {
-  try await guardedMLX { error in
-    try await runModelJob()
-    try error.check()
+  let options = try Options(Array(CommandLine.arguments.dropFirst()))
+  let work = {
+    try await guardedMLX { error in
+      try await runModelJob()
+      try error.check()
+    }
   }
+  if options.command == "info" { try await work(); return }
+  let budget = try options.integer("memory-limit-gb", 19, range: 16...19) * 1024 * 1024 * 1024
+  let residency = MemoryBudget.gpuResidencyBytes(
+    recommended: GPU.maxRecommendedWorkingSetBytes() ?? 0, mlxBudget: budget)
+  // Residency sets pin this process's buffers within Apple's existing limit.
+  // No sysctl, OS limit increase, new allocation or wider MLX/RSS budget.
+  let ticket = WiredFixedPolicy(limit: residency).ticket(size: residency)
+  try await ticket.withWiredLimit { try await work() }
 }
 
 func runModelJob() async throws {
@@ -308,6 +319,9 @@ func runModelJob() async throws {
       "image_tokens": imageTokens, "prefill_step": prefillStep, "max_answer_tokens": maxAnswer,
       "max_output_tokens": maxOutput, "memory_limit_bytes": Memory.memoryLimit,
       "rss_limit_bytes": rssGiB * 1024 * 1024 * 1024,
+      "gpu_residency_policy": "process-local-max16gib-under-device-recommendation-v1",
+      "gpu_residency_budget_bytes": MemoryBudget.gpuResidencyBytes(
+        recommended: GPU.maxRecommendedWorkingSetBytes() ?? 0, mlxBudget: Memory.memoryLimit),
       "memory_guard":
         "sampled 50ms MLX/RSS plus independent launcher RSS; advisory MLX allocator limit",
       "seed": 42, "generation_header": generationHeader,

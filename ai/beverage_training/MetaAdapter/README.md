@@ -65,3 +65,5 @@ A completed training artifact contains `initial-adapters.safetensors`, `adapters
 - Base checkpoint: `mlx-community/Muse-Glimmer-30B-4bit`, Hugging Face revision `3e7677d7a40d348a3daba263a2b1c0aa41910710`; follow the checkpoint's Meta Muse model license. The reviewed downloader creates provider evidence; the launcher verifies the downloaded bytes before the executable loads them.
 
 No full-model fit, training completion or recognition success is claimed by the source package alone.
+
+The runner scopes a process-local GPU residency ticket to each model job, bounded by min(16GiB, device recommendation, existing MLX budget), to avoid paging immutable weights during repeated operations. The ticket restores its prior process setting on normal/error completion. No OS settings, system wired-memory ceiling or model weights change. This is separate from the sampled memory stop guards; the runtime records the requested budget.
