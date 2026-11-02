@@ -129,6 +129,7 @@ def validate_manifest(rows: list[Row], data_root: Path, policy: Row) -> dict[str
     seen: dict[str, set[str]] = {key: set() for key in ("image_id", "image_sha256", "original_sha256")}
     product_splits: dict[str, str] = {}
     duplicate_splits: dict[str, str] = {}
+    identity_splits: dict[str, str] = {}
     for row in rows:
         for key in ("image_id", "source_product_id", "source_revision", "author", "brand", "product", "capacity_evidence", "reviewer", "background_detail"):
             if not _text(row.get(key)):
@@ -156,6 +157,9 @@ def validate_manifest(rows: list[Row], data_root: Path, policy: Row) -> dict[str
             normalized = normalize_identity(alias)
             if normalized in brands or not any(normalized.startswith(brand + " ") for brand in brands):
                 raise ValueError("identity alias must include full brand and product phrase")
+            if normalized in identity_splits and identity_splits[normalized] != row["split"]:
+                raise ValueError("full identity alias leaks across splits")
+            identity_splits[normalized] = row["split"]
         if row.get("capacity_ml") is None:
             if row.get("capacity_visible") is not False:
                 raise ValueError("unknown capacity cannot be visibly verified")
@@ -382,7 +386,9 @@ def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: P
     if (not _sha(metadata["executable_sha256"]) or not isinstance(metadata["runtime_revision"], str)
             or not re.fullmatch(r"[0-9a-f]{40}", metadata["runtime_revision"])):
         raise ValueError("pinned executable and runtime provenance required")
-    for field, low, high in (("image_tokens",16,512), ("prefill_step",1,128), ("max_output_tokens",16,192)):
+    for field, low, high in (("image_tokens",16,512), ("prefill_step",1,128), ("max_output_tokens",16,192),
+                             ("memory_limit_bytes",16*1024**3,19*1024**3),
+                             ("rss_limit_bytes",1024**3,20*1024**3)):
         if type(config.get(field)) is not int or not low <= config[field] <= high:
             raise ValueError("invalid frozen inference bound")
     if metadata["run_kind"] == "adapter":
@@ -392,7 +398,8 @@ def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: P
     runtime = _evidence(metadata, "runtime_config_path", "runtime_config_sha256", artifact_root)
     for field in ("model_id", "base_revision", "runtime_revision", "image_tokens", "prefill_step",
                   "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
-                  "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding"):
+                  "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding",
+                  "memory_limit_bytes", "rss_limit_bytes"):
         if field not in runtime or runtime[field] != config[field]:
             raise ValueError("actual runtime differs from selected inference configuration")
     if runtime.get("predictions_sha256") != metadata["predictions_sha256"]:

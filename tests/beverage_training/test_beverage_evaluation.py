@@ -127,6 +127,8 @@ class ManifestTests(unittest.TestCase):
         self.rows = []
         for i in range(250):
             value = row(i, "train" if i < 150 else "validation" if i < 175 else "test")
+            value["product"] = f"Lime sparkling water product-{i}"
+            value["identity_aliases"] = [f"Acme Lime sparkling water product-{i}", f"Acme Lime seltzer product-{i}"]
             value["background_detail"] = ("kitchen counter", "outdoor table", "store shelf")[i % 3]
             value["drink_family"] = ("water", "soda", "juice", "sports", "energy", "milk", "tea")[i % 7]
             (self.root / value["image_path"]).write_bytes(f"pixels-{i}".encode())
@@ -176,6 +178,24 @@ class ManifestTests(unittest.TestCase):
             rows[0].update(changes)
             with self.assertRaises(ValueError):
                 ev.validate_manifest(rows, self.root, ev.freeze_split_policy(rows))
+
+    def test_full_identity_overlap_different_barcodes_and_sizes_cannot_cross_splits(self):
+        rows = copy.deepcopy(self.rows)
+        rows[-1]["capacity_ml"] = 500
+        rows[-1]["capacity_evidence"] = "Printed 500 mL on front"
+        rows[-1]["identity_aliases"].append("ＡＣＭＥ   LIME—seltzer product-0")
+        self.assertNotEqual(rows[0]["source_product_id"], rows[-1]["source_product_id"])
+        self.assertNotEqual(rows[0]["image_sha256"], rows[-1]["image_sha256"])
+        with self.assertRaisesRegex(ValueError, "identity.*split"):
+            ev.validate_manifest(rows, self.root, ev.freeze_split_policy(rows))
+
+    def test_full_identity_size_variants_can_share_one_split_without_brand_only_grouping(self):
+        rows = copy.deepcopy(self.rows)
+        rows[1]["capacity_ml"] = 500
+        rows[1]["capacity_evidence"] = "Printed 500 mL on front"
+        rows[1]["identity_aliases"].append(rows[0]["identity_aliases"][0])
+        self.assertEqual(ev.validate_manifest(rows, self.root, ev.freeze_split_policy(rows)),
+                         dict(train=150, validation=25, test=75))
 
     def test_duplicate_identity_bytes_or_product_across_splits_is_rejected(self):
         for key in ("image_id", "image_sha256", "original_sha256", "source_product_id"):
@@ -299,7 +319,7 @@ class ProvenanceTests(ManifestTests):
         prompt_path = self.root / "prompt.txt"
         prompt_path.write_text("Identify beverage and printed capacity from pixels only.")
         predictions_path = self.root / "predictions.jsonl"
-        predictions_path.write_text("".join(json.dumps(prediction(i, prompt_sha256=sha(prompt_path.read_bytes()))) + "\n" for i in range(175, 250)))
+        predictions_path.write_text("".join(json.dumps(prediction(i, product=self.rows[i]["product"], prompt_sha256=sha(prompt_path.read_bytes()))) + "\n" for i in range(175, 250)))
         metadata = dict(schema_version="beverage-run-v1", run_id="offline-fixture", run_kind=kind,
             dataset_kind=dataset_kind, model_id="meta/test", base_revision="a"*40,
             prompt_path="prompt.txt", prompt_sha256=sha(prompt_path.read_bytes()), manifest_sha256=ev.manifest_sha256(self.rows),
@@ -331,13 +351,15 @@ class ProvenanceTests(ManifestTests):
             executable_sha256=metadata["executable_sha256"], model_provenance_sha256=metadata["model_provenance_sha256"],
             prompt_sha256=metadata["prompt_sha256"], generation_header=" to=user<|message|>",
             template_current_date="2026-11-02", reasoning_strength="low", image_tokens=128,
-            prefill_step=32, max_output_tokens=96, decoding="greedy", adapter_config_sha256=metadata["adapter_config_sha256"])
+            prefill_step=32, max_output_tokens=96, memory_limit_bytes=19*1024**3, rss_limit_bytes=20*1024**3,
+            decoding="greedy", adapter_config_sha256=metadata["adapter_config_sha256"])
         config_path = self.root / "inference-config.json"
         config_path.write_text(json.dumps(config))
         metadata.update(inference_config_path=config_path.name, inference_config_sha256=ev.canonical_sha256(config))
         runtime = {key: config[key] for key in ("model_id", "base_revision", "runtime_revision", "image_tokens",
             "prefill_step", "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
-            "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding")}
+            "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding",
+            "memory_limit_bytes", "rss_limit_bytes")}
         runtime["predictions_sha256"] = metadata["predictions_sha256"]
         runtime_path = self.root / "runtime.json"
         runtime_path.write_text(json.dumps(runtime))
@@ -373,6 +395,42 @@ class ProvenanceTests(ManifestTests):
             runtime[field] = value
             path.write_text(json.dumps(runtime))
             metadata["runtime_config_sha256"] = sha(path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+
+    def test_actual_runtime_memory_limits_must_match_frozen_limits(self):
+        for field, changed in (("memory_limit_bytes",18*1024**3), ("rss_limit_bytes",19*1024**3)):
+            args, metadata = self.prepare_run()
+            path = self.root / metadata["runtime_config_path"]
+            runtime = json.loads(path.read_text())
+            runtime[field] = changed
+            path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"] = sha(path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+
+    def test_memory_bounds_cannot_be_relaxed_even_in_a_consistent_selection(self):
+        for field, invalid in (("memory_limit_bytes",19*1024**3+1), ("memory_limit_bytes",16*1024**3-1),
+                ("memory_limit_bytes",True), ("rss_limit_bytes",20*1024**3+1),
+                ("rss_limit_bytes",0), ("rss_limit_bytes",True)):
+            args, metadata = self.prepare_run()
+            config_path = self.root / metadata["inference_config_path"]
+            config = json.loads(config_path.read_text())
+            config[field] = invalid
+            config_path.write_text(json.dumps(config))
+            metadata["inference_config_sha256"] = ev.canonical_sha256(config)
+            runtime_path = self.root / metadata["runtime_config_path"]
+            runtime = json.loads(runtime_path.read_text())
+            runtime[field] = invalid
+            runtime_path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"] = sha(runtime_path.read_bytes())
+            selection_path = self.root / metadata["selection_path"]
+            selection = json.loads(selection_path.read_text())
+            selection["inference_config_sha256"] = metadata["inference_config_sha256"]
+            selection_path.write_text(json.dumps(selection))
+            metadata["selection_sha256"] = sha(selection_path.read_bytes())
             args["run_metadata_path"].write_text(json.dumps(metadata))
             with self.assertRaises(ValueError):
                 ev.evaluate_files(**args)
@@ -440,7 +498,7 @@ class ProvenanceTests(ManifestTests):
         args["run_metadata_path"].write_text(json.dumps(metadata))
         self.write_runtime_provenance(metadata)
         # Predictions must identify exactly these adapter bytes.
-        args["predictions_path"].write_text("".join(json.dumps(prediction(i, adapter_sha256=adapter_hash, prompt_sha256=metadata["prompt_sha256"])) + "\n" for i in range(175,250)))
+        args["predictions_path"].write_text("".join(json.dumps(prediction(i, product=self.rows[i]["product"], adapter_sha256=adapter_hash, prompt_sha256=metadata["prompt_sha256"])) + "\n" for i in range(175,250)))
         metadata["predictions_sha256"] = sha(args["predictions_path"].read_bytes())
         self.write_runtime_provenance(metadata)
         args["run_metadata_path"].write_text(json.dumps(metadata))
