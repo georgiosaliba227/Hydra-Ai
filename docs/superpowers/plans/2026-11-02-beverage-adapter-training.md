@@ -8,7 +8,7 @@
 **Tech stack:** Python data/evaluation tools, SwiftMLX, local AppleGPU, licensed public images.
 
 ## Shared interfaces
-Manifest JSONL rows: `image_id`, `source_url`, `source_product_id`, `source_revision`, `author`, `license`, `original_sha256`, `image_sha256`, `image_path`, `brand`, `product`, `identity_aliases`, `capacity_ml`, `capacity_visible`, `capacity_evidence`, `background`, `review_status`, `split`. Paths relative to an explicit data root; no answer in model prompt.
+Manifest JSONL rows: `image_id`, `source_url`, `source_product_id`, `source_revision`, `author`, `license`, `original_sha256`, `image_sha256`, `image_path`, `brand`, `product`, `identity_aliases`, `capacity_ml`, `capacity_visible`, `capacity_evidence`, `background`, `background_detail`, `reviewer`, `drink_family`, `review_status`, `split`. Paths relative to an explicit data root; no answer in model prompt.
 Predictions JSONL: `image_id`, `model_id`, `base_revision`, `adapter_sha256`(nullable for baseline), `prompt_sha256`, `outcome`, `brand`, `product`, `capacity_ml`, `latency_ms`, `error`(sanitized). Missing/failed predictions count as failures.
 
 ## Tasks
