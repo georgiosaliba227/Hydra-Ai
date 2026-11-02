@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import struct
 import sys
 import tempfile
 import unittest
@@ -373,6 +374,229 @@ class ProvenanceTests(ManifestTests):
             inference_config_sha256=metadata["inference_config_sha256"], adapter_config_sha256=metadata["adapter_config_sha256"])
         selection_path.write_text(json.dumps(selection))
         metadata.update(selection_path=selection_path.name, selection_sha256=sha(selection_path.read_bytes()))
+
+    def prepare_cached_run(self, *, adapter=False, failed=None, missing=None, encoder_changes=None):
+        args, metadata = self.prepare_run("adapter" if adapter else "baseline")
+        if adapter:
+            path = self.root / "adapter.safetensors"
+            path.write_bytes(b"synthetic fixture adapter, not trained weights")
+            metadata.update(adapter_path=path.name, adapter_sha256=sha(path.read_bytes()))
+            args["predictions_path"].write_text("".join(json.dumps(prediction(i, product=self.rows[i]["product"],
+                adapter_sha256=metadata["adapter_sha256"], prompt_sha256=metadata["prompt_sha256"]))+"\n" for i in range(175,250)))
+        predictions = [json.loads(line) for line in args["predictions_path"].read_text().splitlines()]
+        for pred in predictions:
+            if pred["image_id"] == failed:
+                pred.update(outcome="error", error="feature_preparation_failed", brand=None, product=None, capacity_ml=None)
+        predictions = [pred for pred in predictions if pred["image_id"] != missing]
+        args["predictions_path"].write_text("".join(json.dumps(pred)+"\n" for pred in predictions))
+        metadata["predictions_sha256"] = sha(args["predictions_path"].read_bytes())
+        self.write_runtime_provenance(metadata)
+        model_path = self.root / metadata["model_provenance_path"]
+        model = json.loads(model_path.read_text())
+        for index,name in enumerate(("processor_config.json","tokenizer.json","tokenizer_config.json","chat_template.jinja"),1):
+            model["files"][name] = dict(bytes=10,sha256=str(index)*64,provider_lfs_sha256=str(index)*64,provider_git_blob_sha1=None)
+        model_path.write_text(json.dumps(model))
+        metadata["model_provenance_sha256"] = sha(model_path.read_bytes())
+        config = json.loads((self.root / metadata["inference_config_path"]).read_text())
+        config.update(execution_policy="separate-frozen-vision-v1", vision_release_policy="separate-frozen-vision-v1",
+            vision_release_enabled=False, model_provenance_sha256=metadata["model_provenance_sha256"])
+        encoder = {key:config[key] for key in ("model_id","base_revision","model_provenance_sha256","runtime_revision",
+            "runtime_patch_sha256","executable_sha256","prompt_sha256","generation_header","template_current_date",
+            "reasoning_strength","image_tokens")}
+        encoder.update(schema_version="beverage-encoder-config-v1",execution_policy="separate-frozen-vision-v1",
+            processor_sha256="1"*64,tokenizer_sha256="2"*64,tokenizer_config_sha256="3"*64,chat_template_sha256="4"*64,
+            feature_format="safetensors-v1",feature_dtype_policy="frozen_encoder_output",token_dtype="I32")
+        encoder.update(encoder_changes or {})
+        config["encoder_config_sha256"] = ev.canonical_sha256(encoder)
+        metadata.update(execution_policy=config["execution_policy"], vision_release_policy=config["vision_release_policy"],
+            vision_release_enabled=False,encoder_config_sha256=config["encoder_config_sha256"],
+            language_started_utc=metadata["test_inference_started_utc"])
+        config_path = self.root / metadata["inference_config_path"]
+        config_path.write_text(json.dumps(config))
+        metadata["inference_config_sha256"] = ev.canonical_sha256(config)
+        selection_path = self.root / metadata["selection_path"]
+        selection = json.loads(selection_path.read_text())
+        selection.update(inference_config_sha256=metadata["inference_config_sha256"],encoder_config_sha256=metadata["encoder_config_sha256"])
+        selection_path.write_text(json.dumps(selection))
+        metadata["selection_sha256"] = sha(selection_path.read_bytes())
+        metadata.update(cache_admission_selection_path=selection_path.name,cache_admission_selection_sha256=metadata["selection_sha256"])
+        def write_cache(split):
+            cache_root = self.root / (split+"-features")
+            cache_root.mkdir(exist_ok=True)
+            (cache_root / "encoder-config.json").write_text(json.dumps(encoder))
+            started = "2026-11-02T10:10:00Z" if split=="test" else "2026-11-02T08:00:00Z"
+            completed = "2026-11-02T10:20:00Z" if split=="test" else "2026-11-02T08:30:00Z"
+            encoder_run = dict(schema_version="beverage-encoder-run-v1",encoder_config_sha256=metadata["encoder_config_sha256"],
+                vision_only=True,language_loaded=False,loaded_weight_namespaces=["vision_tower","vision_adapter","vision_projection"],
+                started_utc=started,completed_utc=completed)
+            (cache_root / "encoder-run.json").write_text(json.dumps(encoder_run))
+            entries=[]
+            for truth in [r for r in self.rows if r["split"]==split]:
+                entry=dict(image_id=truth["image_id"],image_sha256=truth["image_sha256"],split=split,
+                    outcome="success",error=None,tensor_path=truth["image_id"]+".safetensors",feature_key="vision_features",
+                    feature_dtype="BF16",feature_shape=[1,6656],tokens_key="prompt_tokens",tokens_dtype="I32",tokens_shape=[3])
+                tokens=struct.pack("<iii",1,12,2)
+                features=b"\0"*(6656*2)
+                header=dict(vision_features=dict(dtype="BF16",shape=[1,6656],data_offsets=[0,len(features)]),
+                    prompt_tokens=dict(dtype="I32",shape=[3],data_offsets=[len(features),len(features)+len(tokens)]))
+                encoded=json.dumps(header,separators=(",",":")).encode()
+                data=struct.pack("<Q",len(encoded))+encoded+features+tokens
+                (cache_root / entry["tensor_path"]).write_bytes(data)
+                entry.update(tensor_sha256=sha(data),prompt_tokens_sha256=sha(tokens))
+                if truth["image_id"]==failed:
+                    entry.update({key:None for key in entry if key not in ("image_id","image_sha256","split","outcome","error")})
+                    entry.update(outcome="error",error="feature_preparation_failed")
+                entries.append(entry)
+            descriptor=dict(schema_version="beverage-feature-cache-v1",execution_policy="separate-frozen-vision-v1",
+                encoder_config_sha256=metadata["encoder_config_sha256"],encoder_config_path="encoder-config.json",
+                encoder_run_path="encoder-run.json",encoder_run_sha256=sha((cache_root / "encoder-run.json").read_bytes()),
+                source_manifest_sha256=metadata["manifest_sha256"],split_policy_sha256=metadata["split_policy_sha256"],
+                split=split,started_utc=started,completed_utc=completed,outcome="complete",
+                cache_admission_selection_sha256=metadata["selection_sha256"] if split=="test" else None,entries=entries)
+            descriptor_path=cache_root / "feature-cache.json"
+            descriptor_path.write_text(json.dumps(descriptor))
+            uses=[dict(image_id=e["image_id"],feature_sha256=e["tensor_sha256"]) for e in entries
+                  if e["outcome"]=="success" and e["image_id"]!=missing]
+            return descriptor_path,uses
+        path,uses=write_cache("test")
+        metadata.update(feature_cache_path=path.relative_to(self.root).as_posix(),feature_cache_sha256=sha(path.read_bytes()),
+            encoder_config_path=(path.parent / "encoder-config.json").relative_to(self.root).as_posix())
+        runtime=json.loads((self.root / metadata["runtime_config_path"]).read_text())
+        runtime.update({key:metadata[key] for key in ("model_provenance_sha256","vision_release_policy","vision_release_enabled",
+            "execution_policy","encoder_config_sha256","feature_cache_sha256","language_started_utc")})
+        runtime.update(language_only=True,vision_loaded=False,actual_feature_uses=uses)
+        runtime_path=self.root / metadata["runtime_config_path"]
+        runtime_path.write_text(json.dumps(runtime))
+        metadata["runtime_config_sha256"]=sha(runtime_path.read_bytes())
+        if adapter:
+            train_cache,train_uses=write_cache("train")
+            training=dict(schema_version="beverage-training-v1",updated_steps=150,initial_adapter_sha256="f"*64,
+                adapter_sha256=metadata["adapter_sha256"],parameter_delta_l2=.5,save_reload_max_abs_error=0.,
+                split_policy_sha256=metadata["split_policy_sha256"],train_manifest_sha256=ev.manifest_sha256(self.rows[:150]),
+                train_image_ids=[r["image_id"] for r in self.rows[:150]],execution_policy=metadata["execution_policy"],
+                language_only=True,vision_loaded=False,encoder_config_sha256=metadata["encoder_config_sha256"],
+                feature_cache_sha256=sha(train_cache.read_bytes()),feature_cache_path=train_cache.relative_to(self.root).as_posix(),
+                encoder_config_path=(train_cache.parent / "encoder-config.json").relative_to(self.root).as_posix(),
+                language_started_utc="2026-11-02T09:00:00Z",actual_feature_uses=train_uses)
+            train_path=self.root / "training.json"
+            train_path.write_text(json.dumps(training))
+            metadata.update(training_run_path=train_path.name,training_run_sha256=sha(train_path.read_bytes()))
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+        return args,metadata
+
+    def rewrite_cache(self,args,metadata,descriptor):
+        path=self.root / metadata["feature_cache_path"]
+        path.write_text(json.dumps(descriptor))
+        metadata["feature_cache_sha256"]=sha(path.read_bytes())
+        runtime_path=self.root / metadata["runtime_config_path"]
+        runtime=json.loads(runtime_path.read_text())
+        runtime["feature_cache_sha256"]=metadata["feature_cache_sha256"]
+        by_id={entry["image_id"]:entry for entry in descriptor["entries"]}
+        for use in runtime["actual_feature_uses"]:
+            if use["image_id"] in by_id and by_id[use["image_id"]].get("tensor_sha256"):
+                use["feature_sha256"]=by_id[use["image_id"]]["tensor_sha256"]
+        runtime_path.write_text(json.dumps(runtime))
+        metadata["runtime_config_sha256"]=sha(runtime_path.read_bytes())
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+
+    def test_separate_feature_cache_keeps_failed_and_missing_cases_in_denominator(self):
+        args,metadata=self.prepare_cached_run(failed="image-175",missing="image-176")
+        report=ev.evaluate_files(**args)
+        self.assertEqual(report["joint"]["total"],75)
+        self.assertEqual(report["joint"]["correct"],73)
+        self.assertEqual(report["counts"]["missing"],1)
+        self.assertEqual(report["counts"]["failed"],1)
+        self.assertEqual(report["feature_cache_sha256"],metadata["feature_cache_sha256"])
+
+    def test_shared_test_cache_admission_may_differ_but_cannot_predate_later_run_selection(self):
+        args,metadata=self.prepare_cached_run()
+        admission=json.loads((self.root / metadata["selection_path"]).read_text())
+        admission.update(adapter_sha256="a"*64,inference_config_sha256="8"*64)
+        path=self.root / "shared-cache-admission.json"
+        path.write_text(json.dumps(admission))
+        metadata.update(cache_admission_selection_path=path.name,cache_admission_selection_sha256=sha(path.read_bytes()))
+        descriptor=json.loads((self.root / metadata["feature_cache_path"]).read_text())
+        descriptor["cache_admission_selection_sha256"]=metadata["cache_admission_selection_sha256"]
+        self.rewrite_cache(args,metadata,descriptor)
+        self.assertEqual(ev.evaluate_files(**args)["joint"]["correct"],75)
+        selection_path=self.root / metadata["selection_path"]
+        selection=json.loads(selection_path.read_text())
+        selection["checkpoint_frozen_utc"]="2026-11-02T10:11:00Z"
+        selection_path.write_text(json.dumps(selection))
+        metadata.update(checkpoint_frozen_utc=selection["checkpoint_frozen_utc"],selection_sha256=sha(selection_path.read_bytes()))
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+        with self.assertRaises(ValueError):ev.evaluate_files(**args)
+
+    def test_separate_cache_validates_actual_training_feature_use(self):
+        args,metadata=self.prepare_cached_run(adapter=True)
+        report=ev.evaluate_files(**args)
+        self.assertEqual(report["joint"]["correct"],75)
+        self.assertFalse(report["adapter_target_met"])
+        training_path=self.root / metadata["training_run_path"]
+        training=json.loads(training_path.read_text())
+        training["actual_feature_uses"].pop()
+        training_path.write_text(json.dumps(training))
+        metadata["training_run_sha256"]=sha(training_path.read_bytes())
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+        with self.assertRaises(ValueError):ev.evaluate_files(**args)
+
+    def test_feature_cache_image_split_timing_and_duplicate_bindings_are_checked(self):
+        for mutate in (lambda d:d["entries"][0].update(image_sha256="f"*64),
+            lambda d:d["entries"][0].update(split="train"), lambda d:d.update(split="validation"),
+            lambda d:d.update(started_utc="2026-11-02T09:00:00Z"),
+            lambda d:d.update(completed_utc="2026-11-02T12:00:00Z"),
+            lambda d:d["entries"].append(dict(d["entries"][0])),
+            lambda d:d["entries"][0].update(tensor_path="../escape.safetensors")):
+            args,metadata=self.prepare_cached_run()
+            descriptor=json.loads((self.root / metadata["feature_cache_path"]).read_text())
+            mutate(descriptor)
+            self.rewrite_cache(args,metadata,descriptor)
+            with self.assertRaises(ValueError):ev.evaluate_files(**args)
+
+    def test_feature_tensor_bytes_headers_and_prompt_tokens_are_verified(self):
+        for mutation in ("bytes","tokens_hash","shape","overlap","extra_tensor","bool_shape"):
+            args,metadata=self.prepare_cached_run()
+            descriptor=json.loads((self.root / metadata["feature_cache_path"]).read_text())
+            entry=descriptor["entries"][0]
+            path=(self.root / metadata["feature_cache_path"]).parent / entry["tensor_path"]
+            if mutation=="bytes":path.write_bytes(b"tampered")
+            elif mutation=="tokens_hash":entry["prompt_tokens_sha256"]="f"*64
+            elif mutation=="shape":entry["feature_shape"]=[1,6655]
+            else:
+                raw=path.read_bytes(); size=struct.unpack("<Q",raw[:8])[0]
+                header=json.loads(raw[8:8+size]); payload=raw[8+size:]
+                if mutation=="overlap":header["prompt_tokens"]["data_offsets"]=[0,12]
+                elif mutation=="bool_shape":header["vision_features"]["shape"]=[True,6656]
+                else:header["answer"]=dict(dtype="I32",shape=[1],data_offsets=[0,4])
+                encoded=json.dumps(header).encode();raw=struct.pack("<Q",len(encoded))+encoded+payload
+                path.write_bytes(raw);entry["tensor_sha256"]=sha(raw)
+            self.rewrite_cache(args,metadata,descriptor)
+            with self.assertRaises(ValueError):ev.evaluate_files(**args)
+
+    def test_separate_runtime_must_prove_language_only_and_match_actual_feature_uses(self):
+        for mutate in (lambda r:r.update(vision_loaded=True),lambda r:r.update(language_only=False),
+            lambda r:r["actual_feature_uses"].pop(),
+            lambda r:r["actual_feature_uses"][0].update(feature_sha256="f"*64),
+            lambda r:r["actual_feature_uses"].append(dict(image_id="outside-split",feature_sha256=None))):
+            args,metadata=self.prepare_cached_run()
+            path=self.root / metadata["runtime_config_path"]
+            runtime=json.loads(path.read_text());mutate(runtime);path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"]=sha(path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):ev.evaluate_files(**args)
+
+    def test_encoder_settings_and_actual_vision_only_namespaces_are_bound(self):
+        args,metadata=self.prepare_cached_run(encoder_changes={"processor_sha256":"f"*64})
+        with self.assertRaises(ValueError):ev.evaluate_files(**args)
+        args,metadata=self.prepare_cached_run()
+        descriptor_path=self.root / metadata["feature_cache_path"]
+        descriptor=json.loads(descriptor_path.read_text())
+        path=descriptor_path.parent / descriptor["encoder_run_path"]
+        encoder_run=json.loads(path.read_text())
+        encoder_run.update(language_loaded=True,loaded_weight_namespaces=["language_model"])
+        path.write_text(json.dumps(encoder_run));descriptor["encoder_run_sha256"]=sha(path.read_bytes())
+        self.rewrite_cache(args,metadata,descriptor)
+        with self.assertRaises(ValueError):ev.evaluate_files(**args)
 
     def test_inference_settings_or_binary_change_after_selection_is_rejected(self):
         for field, value in (("image_tokens",256), ("prefill_step",64), ("max_output_tokens",192),

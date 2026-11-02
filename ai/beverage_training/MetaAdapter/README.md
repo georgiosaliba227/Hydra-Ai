@@ -12,11 +12,12 @@ python3 ai/beverage_training/MetaAdapter/apply_runtime_patch.py --scratch /priva
 swift test --force-resolved-versions -c release --jobs 4 --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build
 python3 ai/beverage_training/MetaAdapter/Tests/test_launcher.py
 python3 ai/beverage_training/MetaAdapter/Tests/test_patch_helper.py
+python3 ai/beverage_training/MetaAdapter/Tests/test_cache_contract.py
 ```
 
 Use the executable path printed by `swift build -c release --show-bin-path --package-path ai/beverage_training/MetaAdapter --scratch-path /private/tmp/hydra-beverage-meta-build`; SwiftPM's Xcode build system can place it under `out/Products/Release` instead of `release`. Pass that path with `--binary` if necessary.
 
-The build helper applies the exact tracked `Patches/0001-release-frozen-vision.patch` to upstream revision `b8d4935ab152169ac8cb0da5414b51447e78efb1`. `Patches/provenance.json` records original/patched hashes and the patch SHA. It refuses another revision, staged/untracked/unreviewed source changes, mixed states and unexpected bytes; reapplying it is idempotent. The executable references the patch-only API, so an unpatched runtime cannot silently build. Run evidence and the frozen inference configuration include the patch SHA, policy and actual enabled flag as well as the executable SHA.
+The build helper applies the exact tracked combined `Patches/0002-separate-frozen-vision.patch` to upstream revision `b8d4935ab152169ac8cb0da5414b51447e78efb1`. `Patches/provenance.json` records original/patched hashes and the patch SHA. It refuses another revision, staged/untracked/unreviewed source changes, mixed states and unexpected bytes; reapplying it is idempotent. The executable references the patch-only API, so an unpatched runtime cannot silently build. Run evidence and the frozen inference configuration include the patch SHA, policy and actual enabled flag as well as the executable SHA.
 
 The tiny random Muse architecture test checks that changing image pixels changes response logits, that response loss changes adapter parameters, and that saving/reloading preserves logits. It is a software fixture, not evidence about the real 30B model's fit or accuracy.
 
@@ -31,7 +32,8 @@ python3 scripts/train_meta_beverage_adapter.py smoke \
   --manifest /absolute/path/to/reviewed-train-preflight.jsonl \
   --split-policy /absolute/path/to/preflight-policy.json \
   --output /absolute/path/to/artifacts/smoke-001 \
-  --artifact-root /absolute/path/to/artifacts --image-tokens 128 --steps 1
+  --artifact-root /absolute/path/to/artifacts --image-tokens 128 --steps 1 \
+  --feature-cache /absolute/path/to/artifacts/train-cache/feature-cache.json
 ```
 
 `smoke` accepts a small reviewed train-only manifest, reports `beverage-preflight-v1`, and cannot satisfy the benchmark. `train` requires the complete reviewed experiment manifest, takes only train rows into the model process, and accepts a checkpoint as complete only after every train image has contributed an update. Defaults: one epoch, last one language layer, q/v projection LoRA, rank 4, scale 8, Adam learning rate 0.0001, zero dropout, seed 42.
@@ -42,7 +44,9 @@ Every model job requires `MODEL_DIR/base-provenance.json` from the reviewed down
 
 Image tokens are bounded to 16–512, output/answer tokens to 16–192, prefill chunks to 1–128. Initial defaults are 128 image tokens and 96 answer/output tokens. More image resolution is useful for printed labels; choose resolution using train/validation before final test. MLX's `memoryLimit` is advisory: its allocator can exceed it. The runner checks a sampled MLX active-plus-cache budget (19 GiB maximum) and resident-process budget (20 GiB default/maximum), checks each completed model phase, and samples every 50 ms during work. The launcher independently samples child RSS with macOS `libproc` and terminates an over-budget process. A 64 MiB reusable buffer cache limits retained free buffers. These are sampled stop guards, **not a hard allocation cap**: a single allocation may overshoot before the next observation. Recoverable MLX backend errors become Swift throws; GPU-driver aborts remain subprocess failures. Failed jobs preserve a sanitized `failure.json` and cannot produce an accepted training result. No OS wired-memory limit is changed. A process lock permits one local model job at a time. Each phase prints aggregate MLX active/cache/peak bytes and process peak RSS. A hardware preflight must measure the real checkpoint before a fit claim.
 
-The reviewed opt-in `hydra-frozen-vision-release-v1` policy synchronously evaluates the complete image-conditioned embeddings, then drops the on-demand frozen vision module and clears free buffers **before** language prefill. The original checkpoint source is retained for the next image. Encoding and materialization share one MLX error scope; vision locals have returned before release. The SDK default remains unchanged, and attached/immediate vision is explicitly rejected by this policy. `vision_released` telemetry records before/after active bytes and embedding time without photo contents. This reduces retention during prefill/gradients; it does not remove the initial language-plus-vision encoding peak. No separate image-feature cache or alternate model is used.
+The current `separate-frozen-vision-v1` execution policy uses two sequential processes. First, `prepare-features --split train|validation|test` loads only the original vision tower, adapter and projection, evaluates image features, and saves local Safetensors plus an image/model/configuration-bound descriptor. That worker exits before the language worker starts. `smoke`, `train` and `infer` require `--feature-cache /cache/feature-cache.json`; their model contains only language weights and rejects pixel inputs. The language worker reconstructs and checks the fixed prompt tokens. There is no alternate model, requantization or answer-bearing cache input. The prior release-after-encoding implementation and its stopped partial validation are preserved as historical evidence.
+
+Prepare a small smoke cache using the same train-only manifest/policy with `prepare-features --split train --preflight`, then pass it to `smoke`. Full train/validation cache preparation uses the frozen full manifest without `--preflight`. Test cache preparation requires `--selection` and, for a shared cache, `--cache-admission-selection`; both baseline and adapter selections must precede cache creation. The cache descriptor records the admission selection; each final decoder run independently checks its own frozen selection. No test features enter training or validation workers.
 
 ## Actual training method and limits
 

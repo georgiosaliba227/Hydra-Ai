@@ -12,7 +12,7 @@ struct Options {
   let command: String
   var values: [String: String] = [:]
   init(_ args: [String]) throws {
-    guard let command = args.first, ["smoke", "train", "infer", "info"].contains(command) else {
+    guard let command = args.first, ["smoke", "train", "infer", "info", "prepare-features"].contains(command) else {
       throw ContractError.invalid(
         "usage: meta-beverage smoke|train|infer|info --model DIR --data-root DIR --manifest JSONL --output NEW_DIR [bounds]"
       )
@@ -82,43 +82,17 @@ struct ImageRunner {
   let maxOutput: Int
   let safety: RuntimeSafety
 
-  func input(_ row: InferenceRow) async throws -> LMInput {
-    try safety.check("image_preprocess_before")
-    let imageURL = try safeImageURL(root: root, relativePath: row.image_path)
-    guard try fileSHA256(imageURL) == row.image_sha256 else {
-      throw ContractError.invalid("image hash mismatch")
+  let featureCache: FeatureCache
+  func input(_ row: InferenceRow) throws -> (MLXArray, MLXArray) {
+    let (features, tokens) = try featureCache.load(row, tokenizer: context.tokenizer)
+    let array = try guardedMLX { error in
+      let value = MLXArray(tokens).expandedDimensions(axis: 0); try error.check(); return value
     }
-    var user = UserInput(
-      prompt: recognitionPrompt, images: [.init(source: .url(imageURL))],
-      additionalContext: [
-        "current_date": templateCurrentDate, "reasoning_strength": reasoningStrength,
-      ])
-    // Muse uses 14px patches merged 2x2, hence each language image token = 28x28 pixels.
-    user.processing.maxPixels = imageTokens * 28 * 28
-    let input = try await guardedMLX { error in
-      let result = try await context.processor.prepare(input: user)
-      try error.check()
-      return result
-    }
-    try safety.check("image_preprocessed")
-    guard input.image != nil, input.text.tokens.size <= imageTokens + 512 else {
-      throw ContractError.invalid("image/prompt token budget exceeded")
-    }
-    // The released ATEM template ends at '<|start|>assistant'. Fix the
-    // recipient to user so bounded decoding begins with the JSON answer,
-    // rather than consuming its budget generating a private reasoning header.
-    let header = context.tokenizer.encode(text: generationHeader, addSpecialTokens: false)
-    return try guardedMLX { error in
-      let tokens = input.text.tokens.asArray(Int.self) + header
-      try error.check()
-      let array = MLXArray(tokens).expandedDimensions(axis: 0)
-      try error.check()
-      return LMInput(text: .init(tokens: array), image: input.image)
-    }
+    return (features, array)
   }
 
   func infer(_ row: InferenceRow) async throws -> BeverageAnswer {
-    let input = try await input(row)
+    let (features, tokens) = try input(row)
     let cache = try guardedMLX { error in
       let value = try model.newCache(parameters: nil)
       try error.check()
@@ -127,8 +101,8 @@ struct ImageRunner {
     var logits: MLXArray
     try safety.check("image_inference_prefill")
     let prepared = try guardedMLX { error in
-      let result = try model.prepare(
-        input, cache: cache, state: nil, prefill: .init(stepSize: prefillStep))
+      let result = try model.prepareWithFrozenVisionFeatures(
+        tokens: tokens, features: features, cache: cache, prefill: .init(stepSize: prefillStep))
       try error.check()
       if case .logits(let output) = result { eval(output.logits, cache) }
       try error.check()
@@ -172,7 +146,7 @@ struct ImageRunner {
   func prefix(_ row: InferenceRow, label: TrainingLabel, maxAnswer: Int) async throws -> (
     [any KVCache], TeacherForcing
   ) {
-    let input = try await input(row)
+    let (features, tokens) = try input(row)
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
     let answerJSON = String(decoding: try encoder.encode(label.answer), as: UTF8.self)
@@ -182,7 +156,7 @@ struct ImageRunner {
       answer.append(eos)
     }
     let promptTokens = try guardedMLX { error in
-      let value = input.text.tokens.asArray(Int.self)
+      let value = tokens.asArray(Int.self)
       try error.check()
       return value
     }
@@ -191,7 +165,7 @@ struct ImageRunner {
     let prefixInput = try guardedMLX { error in
       let array = MLXArray(sequence.prefix).expandedDimensions(axis: 0)
       try error.check()
-      return LMInput(text: .init(tokens: array), image: input.image)
+      return array
     }
     let cache = try guardedMLX { error in
       let value = try model.newCache(parameters: nil)
@@ -200,8 +174,8 @@ struct ImageRunner {
     }
     try safety.check("image_prefix_prefill")
     let prepared = try guardedMLX { error in
-      let result = try model.prepare(
-        prefixInput, cache: cache, state: nil, prefill: .init(stepSize: prefillStep))
+      let result = try model.prepareWithFrozenVisionFeatures(
+        tokens: prefixInput, features: features, cache: cache, prefill: .init(stepSize: prefillStep))
       try error.check()
       if case .logits(let output) = result { eval(output.logits, cache) }
       try error.check()
@@ -241,8 +215,8 @@ func runModelJob() async throws {
           withJSONObject: [
             "model_id": baseModelID, "base_revision": baseRevision,
             "runtime_revision": runtimeRevision, "runtime_patch_sha256": runtimePatchSHA256,
-            "vision_release_policy": MuseGlimmer.hydraFrozenVisionReleasePolicy,
-            "vision_release_enabled": true,
+            "execution_policy": executionPolicy, "vision_release_policy": executionPolicy,
+            "vision_release_enabled": false,
             "prompt_sha256": sha256(Data(recognitionPrompt.utf8)), "prompt": recognitionPrompt,
             "generation_header": generationHeader, "template_current_date": templateCurrentDate,
             "reasoning_strength": reasoningStrength,
@@ -297,26 +271,40 @@ func runModelJob() async throws {
     defer { safety.stop() }
     try safety.check("before_load")
     announce("before_load")
-    let context = try await guardedMLX { error in
-      let result = try await VLMModelFactory.shared.load(
-        from: modelDirectory, using: LocalTokenizerLoader())
-      try error.check()
-      return result
+    if options.command == "prepare-features" {
+      try await prepareFeatureCache(options: options, modelDirectory: modelDirectory, root: root,
+        output: output, rows: rows, imageTokens: imageTokens, safety: safety)
+      try safety.check("encoder_finished")
+      return
     }
+    let languageStarted = utcNow()
+    let split = options.command == "infer" ? (options.values["--split"] ?? "validation") : "train"
+    guard rows.allSatisfy({ $0.split == split && $0.image_path == nil }) else {
+      throw ContractError.invalid("language worker accepts only one pixel-free split")
+    }
+    let featureCache = try FeatureCache(options: options, rows: rows, split: split, imageTokens: imageTokens)
+    if options.command != "infer", featureCache.entries.values.contains(where: { $0["outcome"] as? String != "success" }) {
+      throw ContractError.invalid("training requires complete successful features")
+    }
+    let context = try await loadLanguageContext(modelDirectory)
     try safety.check("base_loaded")
     guard let model = context.model as? MuseGlimmer else {
       throw ContractError.invalid("local checkpoint is not Muse Glimmer")
     }
-    model.releaseFrozenVisionAfterEmbedding = true
+    model.releaseFrozenVisionAfterEmbedding = false
     let runner = ImageRunner(
       context: context, model: model, root: root, imageTokens: imageTokens,
-      prefillStep: prefillStep, maxOutput: maxOutput, safety: safety)
+      prefillStep: prefillStep, maxOutput: maxOutput, safety: safety, featureCache: featureCache)
     announce("base_loaded")
     var settings: [String: Any] = [
       "base_revision": baseRevision, "runtime_revision": runtimeRevision,
       "runtime_patch_sha256": runtimePatchSHA256,
-      "vision_release_policy": MuseGlimmer.hydraFrozenVisionReleasePolicy,
-      "vision_release_enabled": model.releaseFrozenVisionAfterEmbedding, "model_id": baseModelID,
+      "execution_policy": executionPolicy, "vision_release_policy": executionPolicy,
+      "vision_release_enabled": false, "model_id": baseModelID,
+      "language_only": true, "vision_loaded": false, "language_started_utc": languageStarted,
+      "feature_cache_sha256": featureCache.descriptorHash, "encoder_config_sha256": featureCache.encoderHash,
+      "feature_cache_path": try options.required("feature-cache-artifact-path"),
+      "encoder_config_path": try options.required("encoder-config-artifact-path"),
       "image_tokens": imageTokens, "prefill_step": prefillStep, "max_answer_tokens": maxAnswer,
       "max_output_tokens": maxOutput, "memory_limit_bytes": Memory.memoryLimit,
       "rss_limit_bytes": rssGiB * 1024 * 1024 * 1024,
@@ -584,10 +572,13 @@ func runModelJob() async throws {
       evidence["trainable_parameter_count"] = initial.reduce(0) { $0 + $1.1.size }
       evidence["visual_conditioning"] =
         "frozen image encoder and frozen prompt prefix KV caches; gradients only through response positions in last language layer adapters"
+      for key in ["execution_policy", "language_only", "vision_loaded", "language_started_utc", "feature_cache_sha256", "feature_cache_path", "encoder_config_sha256", "encoder_config_path"] { evidence[key] = settings[key] }
+      evidence["actual_feature_uses"] = featureCache.actualUses
       try writeJSON(evidence, output.appendingPathComponent("training.json"))
       settings["adapter_sha256"] = hash
     }
     try safety.check("finished")
+    settings["actual_feature_uses"] = featureCache.actualUses
     settings["memory"] = memoryRecord("finished")
     try writeJSON(settings, output.appendingPathComponent("runtime.json"))
     announce("finished")

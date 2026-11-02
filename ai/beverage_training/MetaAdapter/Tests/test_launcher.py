@@ -15,11 +15,16 @@ spec.loader.exec_module(launcher)
 
 class LauncherTests(unittest.TestCase):
     def test_child_manifest_excludes_held_out_labels_and_training_test_rows(self):
-        train = {"image_id": "a", "image_path": "a.jpg", "image_sha256": "a" * 64, "split": "train", "review_status": "reviewed", "brand": "TRAIN LABEL"}
+        train = {"image_id": "a", "image_path": "a.jpg", "image_sha256": "a" * 64, "split": "train", "review_status": "reviewed", "brand": "TRAIN LABEL", "product": "type", "capacity_ml": 100, "capacity_visible": True}
         test = {"image_id": "b", "image_path": "b.jpg", "image_sha256": "b" * 64, "split": "test", "review_status": "reviewed", "brand": "HELD OUT LABEL", "source_product_id": "BARCODE"}
         projected = launcher.runtime_rows([train, test], command="infer", split="test")
-        self.assertEqual(projected, [{key: test[key] for key in ("image_id", "image_path", "image_sha256", "split", "review_status")}])
-        self.assertEqual(launcher.runtime_rows([train, test], command="train", split="validation"), [train])
+        self.assertEqual(projected, [{key: test[key] for key in ("image_id", "image_sha256", "split", "review_status")}])
+        self.assertEqual(launcher.runtime_rows([train, test], command="train", split="validation"), [{key: value for key, value in train.items() if key != "image_path"}])
+
+    def test_encoder_manifest_is_label_free_but_has_pixels(self):
+        row={"image_id":"a","image_path":"a.jpg","image_sha256":"a"*64,"split":"train","review_status":"reviewed","brand":"SECRET","source_product_id":"BARCODE"}
+        result=launcher.runtime_rows([row],command="prepare-features",split="train")[0]
+        self.assertEqual(set(result),{"image_id","image_path","image_sha256","split","review_status"})
 
     def test_test_split_requires_frozen_selection(self):
         with self.assertRaises(ValueError):

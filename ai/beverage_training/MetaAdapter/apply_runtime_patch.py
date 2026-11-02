@@ -16,18 +16,14 @@ def digest(path: Path) -> str:
 
 
 def source_state(repository: Path, evidence: dict) -> str:
-    states = []
-    for name, hashes in evidence["files"].items():
-        actual = digest(repository / name)
-        if actual == hashes["original_sha256"]:
-            states.append("original")
-        elif actual == hashes["patched_sha256"]:
-            states.append("patched")
-        else:
-            raise ValueError("runtime source differs from reviewed original/patched bytes")
-    if len(set(states)) != 1:
-        raise ValueError("runtime patch is only partially applied")
-    return states[0]
+    actual = {name: digest(repository / name) for name in evidence["files"]}
+    for state, key in (("original", "original_sha256"), ("patched", "patched_sha256")):
+        if all(actual[name] == hashes[key] for name, hashes in evidence["files"].items()):
+            return state
+    prior = evidence.get("prior_patch")
+    if prior and all(actual[name] == hashes["patched_sha256"] for name, hashes in prior["files"].items()):
+        return "prior"
+    raise ValueError("runtime source has mixed or unreviewed bytes")
 
 
 def validate_source_tree(repository: Path, evidence: dict) -> None:
@@ -41,7 +37,7 @@ def validate_source_tree(repository: Path, evidence: dict) -> None:
 
 def apply(repository: Path) -> str:
     evidence = json.loads((HERE / "Patches/provenance.json").read_text())
-    patch = HERE / "Patches/0001-release-frozen-vision.patch"
+    patch = HERE / "Patches" / evidence.get("patch_file", "0001-release-frozen-vision.patch")
     if digest(patch) != evidence["patch_sha256"]:
         raise ValueError("reviewed patch fingerprint mismatch")
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
@@ -49,6 +45,17 @@ def apply(repository: Path) -> str:
         raise ValueError("runtime revision differs from reviewed pin")
     validate_source_tree(repository, evidence)
     state = source_state(repository, evidence)
+    if state == "prior":
+        prior = evidence["prior_patch"]
+        previous = HERE / "Patches" / prior["patch_file"]
+        if digest(previous) != prior["patch_sha256"]:
+            raise ValueError("prior reviewed patch fingerprint mismatch")
+        for name in evidence["files"]:
+            path = repository / name
+            path.chmod(path.stat().st_mode | stat.S_IWUSR)
+        subprocess.run(["git", "apply", "--reverse", "--check", str(previous)], cwd=repository, check=True)
+        subprocess.run(["git", "apply", "--reverse", str(previous)], cwd=repository, check=True)
+        state = source_state(repository, evidence)
     if state == "original":
         for name in evidence["files"]:
             path = repository / name

@@ -6,10 +6,25 @@
     },
     "Libraries/MLXVLM/Models/MuseGlimmer.swift": {
       "original_sha256": "3f161b3f5eb421de17bcbb5a01b0fd1a4985828ba98f68961a8ba28620ec8bc9",
-      "patched_sha256": "0e9d97a71a33340be50639a403a65da5e37946a281eba3d34186d9a4778253d3"
+      "patched_sha256": "a7ceb5cf009ad4f637920b04c892abde66fd7f8e1faa3b436499da20f33cb53b"
     }
   },
-  "patch_sha256": "fb0b9d72af315b40867c23e2b2f270172fae560724c7582335dbf6baaf5e596f",
-  "policy": "hydra-frozen-vision-release-v1",
+  "patch_file": "0002-separate-frozen-vision.patch",
+  "patch_sha256": "22e4772423c40fda65239c2f6e6585934245b76d39593df87b27bc73225d6e76",
+  "policy": "separate-frozen-vision-v1",
+  "prior_patch": {
+    "files": {
+      "Libraries/MLXLMCommon/ModelComponent.swift": {
+        "original_sha256": "7b66ba5750d62899abd601b0ab5b35be34a98e8b0a8d1f7937177dc8fd11bfda",
+        "patched_sha256": "9c9e821cdd090415f5759622b6ccfe1c1e48c6a40933e11e289fbccd921e767e"
+      },
+      "Libraries/MLXVLM/Models/MuseGlimmer.swift": {
+        "original_sha256": "3f161b3f5eb421de17bcbb5a01b0fd1a4985828ba98f68961a8ba28620ec8bc9",
+        "patched_sha256": "0e9d97a71a33340be50639a403a65da5e37946a281eba3d34186d9a4778253d3"
+      }
+    },
+    "patch_file": "0001-release-frozen-vision.patch",
+    "patch_sha256": "fb0b9d72af315b40867c23e2b2f270172fae560724c7582335dbf6baaf5e596f"
+  },
   "upstream_revision": "b8d4935ab152169ac8cb0da5414b51447e78efb1"
 }

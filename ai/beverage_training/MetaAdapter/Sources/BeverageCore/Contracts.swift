@@ -108,7 +108,7 @@ public func safeImageURL(root: URL, relativePath: String) throws -> URL {
 /// Labels, barcode, filename text and source metadata never enter the model input.
 public struct InferenceRow: Decodable {
   public let image_id: String
-  public let image_path: String
+  public let image_path: String?
   public let image_sha256: String
   public let split: String
   public let review_status: String

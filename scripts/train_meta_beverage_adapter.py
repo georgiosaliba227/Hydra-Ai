@@ -21,6 +21,7 @@ import tempfile
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from ai.beverage_training.evaluation import canonical_sha256, manifest_sha256, validate_manifest
+from ai.beverage_training.MetaAdapter.cache_contract import verify_cache, POLICY, utc
 
 
 def read_json(path: Path):
@@ -180,19 +181,25 @@ def verify_base_provenance(model: Path, *, model_id: str, revision: str) -> tupl
 
 
 def runtime_rows(rows: list[dict], *, command: str, split: str) -> list[dict]:
-    if command == "infer":
-        keys = ("image_id", "image_path", "image_sha256", "split", "review_status")
-        return [{key: row[key] for key in keys} for row in rows if row["split"] == split]
-    return sorted((row for row in rows if row["split"] == "train"), key=lambda row: row["image_id"])
+    keys = ("image_id", "image_sha256", "split", "review_status")
+    if command == "prepare-features":
+        keys += ("image_path",)
+    elif command != "infer":
+        keys += ("brand", "product", "capacity_ml", "capacity_visible")
+        split = "train"
+    return [{key: row[key] for key in keys} for row in sorted(rows, key=lambda row: row["image_id"]) if row["split"] == split]
 
 
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=("smoke", "train", "infer"))
+    p.add_argument("command", choices=("smoke", "train", "infer", "prepare-features"))
     for name in ("model", "data-root", "manifest", "split-policy", "output", "artifact-root"):
         p.add_argument("--" + name, required=True, type=Path)
     p.add_argument("--binary", type=Path, default=Path("/private/tmp/hydra-beverage-meta-build/release/meta-beverage"))
     p.add_argument("--adapter", type=Path)
+    p.add_argument("--feature-cache", type=Path)
+    p.add_argument("--preflight", action="store_true", help="Train-only incomplete encoder hardware preflight")
+    p.add_argument("--cache-admission-selection", type=Path)
     p.add_argument("--selection", type=Path, help="Required before either baseline or adapter final-test inference")
     p.add_argument("--split", choices=("train", "validation", "test"), default="validation")
     p.add_argument("--run-id")
@@ -211,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     rows = [json.loads(line) for line in args.manifest.read_text(encoding="utf-8").splitlines() if line.strip()]
     policy = read_json(args.split_policy)
     policy_sha = canonical_sha256(policy)
-    if args.command == "smoke":
+    if args.command == "smoke" or (args.command == "prepare-features" and args.preflight):
         # Hardware preflight is separately labeled and cannot satisfy evaluation.
         # A single reviewed train photo is enough to test the real visual update.
         if (not rows or any(row.get("split") != "train" or row.get("review_status") != "reviewed" for row in rows)
@@ -231,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
     adapter_hash = file_sha(args.adapter / "adapters.safetensors") if args.adapter else None
     adapter_config_hash = file_sha(args.adapter / "adapter_config.json") if args.adapter else None
     selection = read_json(args.selection) if args.selection else None
-    if args.command != "infer" and (args.adapter or args.selection):
+    if args.command not in ("infer", "prepare-features") and (args.adapter or args.selection):
         raise ValueError("training starts from base weights; adapter/selection applies only to inference")
     train_rows = sorted((row for row in rows if row["split"] == "train"), key=lambda row: row["image_id"])
     info = json.loads(subprocess.run([str(args.binary), "info"], check=True, capture_output=True, text=True).stdout)
@@ -239,8 +246,40 @@ def main(argv: list[str] | None = None) -> int:
     executable_hash = file_sha(args.binary)
     if info["executable_sha256"] != executable_hash:
         raise ValueError("executable changed while reading its provenance")
+    proof = json.loads(proof_bytes)
+    encoder_config = {key: info[key] for key in ("model_id", "base_revision", "runtime_revision", "runtime_patch_sha256", "executable_sha256", "prompt_sha256", "generation_header", "template_current_date", "reasoning_strength")}
+    encoder_config.update(schema_version="beverage-encoder-config-v1", execution_policy=POLICY,
+        model_provenance_sha256=proof_hash, image_tokens=args.image_tokens,
+        processor_sha256=proof["files"]["processor_config.json"]["sha256"], tokenizer_sha256=proof["files"]["tokenizer.json"]["sha256"],
+        tokenizer_config_sha256=proof["files"]["tokenizer_config.json"]["sha256"], chat_template_sha256=proof["files"]["chat_template.jinja"]["sha256"],
+        feature_format="safetensors-v1", feature_dtype_policy="frozen_encoder_output", token_dtype="I32")
+    encoder_hash = canonical_sha256(encoder_config)
+    cache = None
+    selected_split = args.split if args.command in ("infer", "prepare-features") else "train"
+    if args.command != "prepare-features":
+        if not args.feature_cache:
+            raise ValueError("language-only execution requires --feature-cache")
+        artifact_relative(args.feature_cache, args.artifact_root)
+        cache = verify_cache(args.feature_cache, rows=rows, split=selected_split, encoder_sha256=encoder_hash,
+            source_manifest_sha256=manifest_sha256(rows), split_policy_sha256=policy_sha)
+        if args.command != "infer" and any(entry["outcome"] != "success" for entry in cache["entries"]):
+            raise ValueError("training requires every train feature to succeed")
+    admission_path = args.cache_admission_selection or args.selection
+    admission = read_json(admission_path) if admission_path else None
+    if selected_split == "test":
+        if not admission or not selection:
+            raise ValueError("test cache/inference requires frozen admission and run selection")
+        expected_validation = sorted(row["image_id"] for row in rows if row["split"] == "validation")
+        for selected in (admission, selection):
+            if (selected.get("selected_using") != "train_validation_only" or selected.get("split_policy_sha256") != policy_sha
+                    or selected.get("encoder_config_sha256") != encoder_hash or sorted(selected.get("validation_image_ids", [])) != expected_validation
+                    or utc(selected["checkpoint_frozen_utc"]) > datetime.now(timezone.utc)):
+                raise ValueError("test cache admission differs from frozen validation encoder selection")
+        if cache and (cache.get("cache_admission_selection_sha256") != file_sha(admission_path)
+                or utc(cache["started_utc"]) < max(utc(admission["checkpoint_frozen_utc"]), utc(selection["checkpoint_frozen_utc"]))):
+            raise ValueError("test cache was prepared before both frozen selections")
     inference_config = {
-        "schema_version": "beverage-inference-config-v1", "model_id": info["model_id"],
+        "schema_version": "beverage-inference-config-v1", "execution_policy": POLICY, "encoder_config_sha256": encoder_hash, "model_id": info["model_id"],
         "base_revision": info["base_revision"], "runtime_revision": info["runtime_revision"],
         "runtime_patch_sha256": info["runtime_patch_sha256"], "vision_release_policy": info["vision_release_policy"], "vision_release_enabled": info["vision_release_enabled"],
         "executable_sha256": executable_hash, "model_provenance_sha256": proof_hash,
@@ -257,7 +296,15 @@ def main(argv: list[str] | None = None) -> int:
         frozen = validate_selection(selection, split=args.split, adapter_sha256=adapter_hash, policy_sha256=policy_sha,
             adapter_config_sha256=adapter_config_hash, inference_config_sha256=inference_hash)
     command = [str(args.binary), args.command, "--model", str(args.model.resolve()), "--data-root", str(args.data_root.resolve()), "--manifest", str(args.manifest.resolve()), "--output", str(args.output.resolve()), "--train-manifest-sha256", manifest_sha256(train_rows), "--split-policy-sha256", policy_sha]
-    command += ["--model-provenance-sha256", proof_hash]
+    command += ["--model-provenance-sha256", proof_hash, "--source-manifest-sha256", manifest_sha256(rows), "--encoder-config-sha256", encoder_hash]
+    if cache:
+        command += ["--feature-cache", str(args.feature_cache.absolute()), "--feature-cache-sha256", file_sha(args.feature_cache),
+            "--feature-cache-artifact-path", artifact_relative(args.feature_cache, args.artifact_root),
+            "--encoder-config-artifact-path", artifact_relative(args.feature_cache.parent / cache["encoder_config_path"], args.artifact_root)]
+    if args.command == "prepare-features":
+        command += ["--split", args.split]
+        if admission_path:
+            command += ["--cache-admission-selection-sha256", file_sha(admission_path)]
     for name in ("image_tokens", "prefill_step", "max_answer_tokens", "max_output_tokens", "memory_limit_gb", "rss_limit_gb", "epochs", "layers", "rank", "learning_rate"):
         command += ["--" + name.replace("_", "-"), str(getattr(args, name))]
     if args.steps is not None:
@@ -271,6 +318,10 @@ def main(argv: list[str] | None = None) -> int:
     # train rows for fitting, or a label-free projection for the selected inference split.
     runtime_input_rows = runtime_rows(rows, command=args.command, split=args.split)
     with tempfile.TemporaryDirectory(prefix="hydra-beverage-input-") as temp:
+        encoder_path = Path(temp) / "encoder-config.json"
+        encoder_path.write_text(json.dumps(encoder_config, sort_keys=True, separators=(",", ":")), encoding="utf-8")
+        if args.command == "prepare-features":
+            command += ["--encoder-config", str(encoder_path)]
         runtime_manifest = Path(temp) / "manifest.jsonl"
         runtime_manifest.write_text("".join(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n" for row in runtime_input_rows), encoding="utf-8")
         command[command.index("--manifest") + 1] = str(runtime_manifest)
@@ -294,6 +345,16 @@ def main(argv: list[str] | None = None) -> int:
                     "phase": "launcher_child", "rss_budget_bytes": args.rss_limit_gb * 1024 ** 3,
                     "guard_limit": "independent sampled 50ms RSS guard; allocation spikes may overshoot"}, sort_keys=True, indent=2) + "\n")
             raise
+    if args.command == "prepare-features":
+        verify_cache(args.output / "feature-cache.json", rows=rows, split=args.split, encoder_sha256=encoder_hash,
+            source_manifest_sha256=manifest_sha256(rows), split_policy_sha256=policy_sha)
+        (args.output / "model-provenance.json").write_bytes(proof_bytes)
+        print(json.dumps({"output": str(args.output), "command": args.command, "encoder_config_sha256": encoder_hash}))
+        return 0
+    runtime = read_json(args.output / "runtime.json")
+    language_started = runtime["language_started_utc"]
+    if utc(cache["completed_utc"]) > utc(language_started):
+        raise ValueError("language worker started before cache completion")
     (args.output / "model-provenance.json").write_bytes(proof_bytes)
     (args.output / "inference-config.json").write_text(json.dumps(inference_config, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     prompt_path = args.output / "prompt.txt"
@@ -319,8 +380,14 @@ def main(argv: list[str] | None = None) -> int:
             "manifest_sha256": manifest_sha256(rows), "split_policy_sha256": policy_sha,
             "predictions_sha256": file_sha(args.output / "predictions.jsonl"),
             "selected_using": "train_validation_only", "checkpoint_frozen_utc": frozen,
-            "test_inference_started_utc": started, "inference_split": args.split,
+            "test_inference_started_utc": language_started, "language_started_utc": language_started, "inference_split": args.split,
+            "execution_policy": POLICY, "language_only": True, "vision_loaded": False,
+            "encoder_config_sha256": encoder_hash,
+            "encoder_config_path": artifact_relative(args.feature_cache.parent / cache["encoder_config_path"], args.artifact_root),
+            "feature_cache_sha256": file_sha(args.feature_cache), "feature_cache_path": artifact_relative(args.feature_cache, args.artifact_root),
         }
+        if admission_path:
+            metadata.update(cache_admission_selection_sha256=file_sha(admission_path), cache_admission_selection_path=artifact_relative(admission_path,args.artifact_root))
         if args.selection:
             metadata.update(selection_sha256=file_sha(args.selection), selection_path=artifact_relative(args.selection, args.artifact_root))
         if args.adapter:
