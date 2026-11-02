@@ -25,3 +25,7 @@ The frozen cohort has 250 distinct source photos in 227 connected product groups
 The real 30B model completed one image-conditioned Adam update at 128 image tokens: 70,656 trainable parameters, parameter delta L2 = 0.04166687986138062, exact tensor/logit agreement after save/reload. This is a preflight, not the full training run or an accuracy result. Evidence is in ai/beverage_training/reports/2026-11-02/preflight-128.json.
 
 The 512-image-token preflight was stopped by Codex root during language prefill after observed system-wide memory paging. No optimizer update, OOM or pre-stop guard failure occurred in that run. A scoped frozen-vision release patch is being tested before resuming higher-resolution work. Memory guards and OS limits remain unchanged. Baseline validation, full 150-image training and untouched 75-image test evaluation remain outstanding.
+
+## Runtime follow-up required by measured validation paging
+
+Preserve the two completed baseline validation predictions and operator-stop evidence from baseline-validation-512-001. Implement separate vision-only feature preparation and language-only adapter execution under the architecture addendum. Verify paired image conditioning, cache tampering/split/privacy failures, provenance and actual hardware behavior before resuming the 25-image baseline and full 150-image training. The frozen dataset and untouched test remain unchanged.

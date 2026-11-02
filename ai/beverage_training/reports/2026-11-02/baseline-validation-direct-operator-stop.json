@@ -1,0 +1,20 @@
+{
+  "schema_version": "beverage-operator-stop-v1",
+  "kind": "operator_stop_repeated_memory_paging",
+  "requested_by": "codex_root_agent",
+  "human_owner_specifically_requested_stop": false,
+  "observed_utc": "2026-11-02T20:53:15.579031+00:00",
+  "completed_validation_records": 2,
+  "phase": "language_prefill",
+  "no_pre_stop_guard_failure_observed": true,
+  "not_an_oom": true,
+  "reason": "Repeated vision/language coexistence peaks were followed by heavy system-wide paging and very slow third-case language prefill; preserve partial validation and implement separate frozen-vision feature preparation and language-only execution.",
+  "diagnostic_source": "runtime agent bounded native sample and vm_stat observation",
+  "system_wide_paging": {
+    "interval_seconds": 10.01,
+    "page_size_bytes": 16384,
+    "swap_in_pages": 118025,
+    "swap_out_pages": 126064,
+    "attribution_limit": "system-wide; not every page is attributable to this child"
+  }
+}

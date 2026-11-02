@@ -26,3 +26,13 @@ Primary references checked November2:
 - https://huggingface.co/mlx-community/Muse-Glimmer-30B-4bit
 - https://huggingface.co/datasets/openfoodfacts/product-database
 - https://openfoodfacts.github.io/openfoodfacts-server/api/aws-images-dataset/
+
+## Separate frozen-vision execution (November 2 runtime addendum)
+
+Repeated direct-pixel validation caused severe paging during the third language prefill despite releasing vision and staying within sampled guards. Preserve those partial validation artifacts as development results; they cannot satisfy final evaluation. Run frozen vision and language in separate sequential processes so their weights never coexist. Keep model weights, dataset, reference aliases, success metric, financial/privacy controls, memory guards and OS settings unchanged.
+
+Add a versioned local feature cache produced by the pinned Meta vision encoder from unannotated pixels and the fixed prompt only. Its descriptor must bind each original processed image SHA, split/ID, feature tensor path/SHA/dtype/shape, prompt/template/processor/tokenizer settings and exact base-model/encoder-runtime provenance. Cached text tokens contain only the fixed prompt/header and image placeholders; no reference brand, product, capacity, filenames or barcode metadata enters model input. Paths and tensor hashes must be validated before consumption. Cache files remain outside Git.
+
+The vision worker must load only frozen vision weights and tokenizer/processor data, not language weights. The language worker must load only language weights and validated frozen features, never silently reload vision or call a hosted provider. The cached-feature path must match direct-pixel conditioning in a meaningful tiny paired forward/update/reload test. Actual separate-process memory, updates and saved/reloaded tensors must also be measured on the pinned real checkpoint before full training is accepted. The trained adapter still updates actual last-layer q/v tensors; feature extraction alone is not training.
+
+Prepare train and validation caches separately using label-free projections. Never prepare or expose test pixels to training or validation processes. Test-cache creation starts only after checkpoint/configuration selection is frozen. Encoder settings/policy belong to the selected inference-config hash; split-specific cache manifests and their actual use are separately bound in each run's evidence, so validation and test may contain different images under the same selected pipeline. The final evaluator must verify those bindings and actual execution policy.
