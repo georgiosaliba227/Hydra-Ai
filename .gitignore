@@ -18,3 +18,9 @@ DerivedData/
 *.sqlite-shm
 xcuserdata/
 *.xcresult/
+
+# Beverage model experiment data, weights and local Swift build outputs
+ai/beverage_training/.build/
+ai/beverage_training/data/
+ai/beverage_training/weights/
+ai/beverage_training/runs/
