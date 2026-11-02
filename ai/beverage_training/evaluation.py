@@ -50,8 +50,8 @@ def freeze_split_policy(rows: list[Row], *, adjustment_reason: str | None = None
     policy: Row = dict(schema_version="beverage-split-v1", manifest_sha256=manifest_sha256(rows),
         assignments=[{key: row[key] for key in ("image_id", "image_sha256", "source_product_id", "split")}
                      for row in ordered],
-        aliases_sha256=canonical_sha256([{key: row[key] for key in ("image_id", "identity_aliases")}
-                                        for row in ordered]),
+        aliases_sha256=canonical_sha256([dict(image_id=row["image_id"], identity_aliases=row["identity_aliases"],
+                                             brand_aliases=row.get("brand_aliases", [])) for row in ordered]),
         split_counts={split: sum(row["split"] == split for row in rows) for split in SPLITS},
         diversity_requirements=dict(DIVERSITY_REQUIREMENTS), diversity_counts=dataset_diversity_counts(rows),
         drink_families=list(DRINK_FAMILIES), family_requirements=dict(FAMILY_REQUIREMENTS),
@@ -143,12 +143,18 @@ def validate_manifest(rows: list[Row], data_root: Path, policy: Row) -> dict[str
         if row.get("drink_family") not in DRINK_FAMILIES:
             raise ValueError("reviewed drink family enum required")
         aliases = row.get("identity_aliases")
-        brand = normalize_identity(row["brand"])
+        brand_aliases = row.get("brand_aliases", [])
+        if (not isinstance(brand_aliases, list)
+                or any(not _text(alias) or not normalize_identity(alias) for alias in brand_aliases)):
+            raise ValueError("preregistered brand aliases must be a list of nonempty names")
+        brands = {normalize_identity(brand) for brand in [row["brand"], *brand_aliases]}
+        if "" in brands:
+            raise ValueError("brand must contain a name")
         if not isinstance(aliases, list) or not aliases or any(not _text(alias) for alias in aliases):
             raise ValueError("preregistered full identity aliases required")
         for alias in aliases:
             normalized = normalize_identity(alias)
-            if not normalized.startswith(brand + " ") or len(normalized) <= len(brand) + 1:
+            if normalized in brands or not any(normalized.startswith(brand + " ") for brand in brands):
                 raise ValueError("identity alias must include full brand and product phrase")
         if row.get("capacity_ml") is None:
             if row.get("capacity_visible") is not False:
@@ -209,7 +215,8 @@ def _metric(correct: int, total: int) -> Row:
 
 def _valid_prediction(prediction: Row) -> bool:
     return (prediction.get("outcome") == "success"
-        and isinstance(prediction.get("brand"), str) and isinstance(prediction.get("product"), str)
+        and all(field in prediction and (prediction[field] is None or isinstance(prediction[field], str))
+                for field in ("brand", "product"))
         and (prediction.get("capacity_ml") is None or _capacity(prediction["capacity_ml"]))
         and type(prediction.get("latency_ms")) in (int, float)
         and math.isfinite(prediction["latency_ms"]) and prediction["latency_ms"] >= 0
@@ -249,10 +256,13 @@ def score_predictions(rows: list[Row], predictions: list[Row], *, strata: bool =
         else:
             counts["valid"] += 1
             status = "valid"
-            identity = normalize_identity(pred["brand"] + " " + pred["product"])
-            identity_ok = identity in {normalize_identity(alias) for alias in row["identity_aliases"]}
+            brand = normalize_identity(pred["brand"] or "")
+            product = normalize_identity(pred["product"] or "")
+            identity = normalize_identity((pred["brand"] or "") + " " + (pred["product"] or ""))
+            complete_identity = bool(brand and product)
+            identity_ok = complete_identity and identity in {normalize_identity(alias) for alias in row["identity_aliases"]}
             capacity_ok = known and pred["capacity_ml"] == row["capacity_ml"]
-            counts["abstained_identity"] += not bool(identity)
+            counts["abstained_identity"] += not complete_identity
             counts["abstained_capacity"] += pred["capacity_ml"] is None
             counts["unsupported_capacity"] += not known and pred["capacity_ml"] is not None
         counts["identity_correct"] += identity_ok
@@ -331,6 +341,75 @@ def _evidence(metadata: Row, path_field: str, hash_field: str, artifact_root: Pa
     return read_json(path)
 
 
+def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: Path) -> Row:
+    """Bind selected configuration and wrapper-produced provenance artifacts.
+
+    The scorer does not read multi-GB base weights or authenticate the provider.
+    The launcher verifies its pinned download; this checks the retained evidence.
+    """
+    model_provenance = _evidence(metadata, "model_provenance_path", "model_provenance_sha256", artifact_root)
+    if (model_provenance.get("schema_version") != "meta-base-provenance-v1"
+            or model_provenance.get("repo") != metadata["model_id"]
+            or model_provenance.get("revision") != metadata["base_revision"]
+            or not isinstance(model_provenance.get("files"), dict) or not model_provenance["files"]):
+        raise ValueError("base model provenance does not bind the declared model/revision")
+    for name, evidence in model_provenance["files"].items():
+        relative = Path(name)
+        if (relative.is_absolute() or not relative.parts or ".." in relative.parts
+                or not isinstance(evidence, dict) or type(evidence.get("bytes")) is not int
+                or evidence["bytes"] <= 0 or not _sha(evidence.get("sha256"))):
+            raise ValueError("invalid base model file provenance")
+        lfs = evidence.get("provider_lfs_sha256")
+        git = evidence.get("provider_git_blob_sha1")
+        if ((lfs is not None and lfs != evidence["sha256"])
+                or (git is not None and (not isinstance(git, str) or not re.fullmatch(r"[0-9a-f]{40}", git)))):
+            raise ValueError("provider file hash evidence is inconsistent")
+    expected_config_hash = metadata.get("inference_config_sha256")
+    config = read_json(safe_artifact_path(artifact_root, metadata.get("inference_config_path")))
+    if not _sha(expected_config_hash) or canonical_sha256(config) != expected_config_hash:
+        raise ValueError("inference config artifact hash mismatch")
+    if (config.get("schema_version") != "beverage-inference-config-v1"
+            or metadata.get("inference_split") != "test"
+            or config.get("decoding") != "greedy"
+            or not _text(config.get("generation_header"))
+            or not _text(config.get("template_current_date"))
+            or not _text(config.get("reasoning_strength"))):
+        raise ValueError("versioned frozen test inference configuration required")
+    for field in ("model_id", "base_revision", "runtime_revision", "executable_sha256",
+                  "model_provenance_sha256", "prompt_sha256", "adapter_config_sha256"):
+        if field not in metadata or field not in config or config[field] != metadata[field]:
+            raise ValueError("inference config differs from run provenance")
+    if (not _sha(metadata["executable_sha256"]) or not isinstance(metadata["runtime_revision"], str)
+            or not re.fullmatch(r"[0-9a-f]{40}", metadata["runtime_revision"])):
+        raise ValueError("pinned executable and runtime provenance required")
+    for field, low, high in (("image_tokens",16,512), ("prefill_step",1,128), ("max_output_tokens",16,192)):
+        if type(config.get(field)) is not int or not low <= config[field] <= high:
+            raise ValueError("invalid frozen inference bound")
+    if metadata["run_kind"] == "adapter":
+        _evidence(metadata, "adapter_config_path", "adapter_config_sha256", artifact_root)
+    elif metadata["adapter_config_sha256"] is not None:
+        raise ValueError("baseline cannot bind adapter configuration")
+    runtime = _evidence(metadata, "runtime_config_path", "runtime_config_sha256", artifact_root)
+    for field in ("model_id", "base_revision", "runtime_revision", "image_tokens", "prefill_step",
+                  "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
+                  "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding"):
+        if field not in runtime or runtime[field] != config[field]:
+            raise ValueError("actual runtime differs from selected inference configuration")
+    if runtime.get("predictions_sha256") != metadata["predictions_sha256"]:
+        raise ValueError("runtime predictions hash mismatch")
+    selection = _evidence(metadata, "selection_path", "selection_sha256", artifact_root)
+    for field in ("adapter_sha256", "adapter_config_sha256", "inference_config_sha256", "split_policy_sha256",
+                  "checkpoint_frozen_utc", "selected_using"):
+        if field not in selection or selection[field] != metadata.get(field):
+            raise ValueError("test selection does not bind this frozen configuration")
+    val_ids = {row["image_id"] for row in rows if row["split"] == "validation"}
+    selected_ids = selection.get("validation_image_ids")
+    if (not isinstance(selected_ids, list) or len(selected_ids) != len(val_ids)
+            or any(not isinstance(image_id, str) for image_id in selected_ids) or set(selected_ids) != val_ids):
+        raise ValueError("selection requires exact validation-only IDs")
+    return selection
+
+
 def validate_run_metadata(metadata: Row, rows: list[Row], predictions: list[Row],
                           policy: Row, predictions_path: Path, artifact_root: Path) -> str:
     if (metadata.get("schema_version") != "beverage-run-v1" or not _text(metadata.get("run_id"))
@@ -357,6 +436,7 @@ def validate_run_metadata(metadata: Row, rows: list[Row], predictions: list[Row]
         raise ValueError("selection must exclude test data")
     if _utc(metadata.get("checkpoint_frozen_utc")) > _utc(metadata.get("test_inference_started_utc")):
         raise ValueError("checkpoint must be frozen before test inference")
+    selection = validate_inference_evidence(metadata, rows, artifact_root)
     if kind == "adapter":
         if not _sha(metadata.get("adapter_sha256")):
             raise ValueError("adapter artifact SHA256 required")
@@ -364,7 +444,6 @@ def validate_run_metadata(metadata: Row, rows: list[Row], predictions: list[Row]
         if file_sha256(adapter) != metadata["adapter_sha256"]:
             raise ValueError("adapter artifact hash mismatch")
         training = _evidence(metadata, "training_run_path", "training_run_sha256", artifact_root)
-        selection = _evidence(metadata, "selection_path", "selection_sha256", artifact_root)
         train_rows = [row for row in rows if row["split"] == "train"]
         train_ids = {row["image_id"] for row in train_rows}
         val_ids = {row["image_id"] for row in rows if row["split"] == "validation"}
@@ -426,8 +505,12 @@ def evaluate_files(*, manifest_path: Path, predictions_path: Path, policy_path: 
         manifest_sha256=manifest_sha256(rows), split_policy_sha256=policy_sha256,
         predictions_sha256=file_sha256(predictions_path), run_metadata_sha256=file_sha256(run_metadata_path),
         adapter_sha256=metadata.get("adapter_sha256"),
+        adapter_config_sha256=metadata["adapter_config_sha256"],
+        inference_config_sha256=metadata["inference_config_sha256"],
+        model_provenance_sha256=metadata["model_provenance_sha256"],
+        executable_sha256=metadata["executable_sha256"],
         adapter_target_met=measurement_class == "measured_adapter" and report["above_70_percent"],
-        provenance_limit="Artifact hashes do not authenticate real training updates or independent photo labels.",
+        provenance_limit="Artifact hashes do not authenticate real training updates, independent photo labels or provider origin of base weights; the launcher verifies files against externally trusted provider provenance.",
         target_definition="Strictly >70% top1 full identity AND exact positive printed capacity over all test images; unknown capacity is not positive success.",
         generated_utc=datetime.now(timezone.utc).isoformat())
     return report

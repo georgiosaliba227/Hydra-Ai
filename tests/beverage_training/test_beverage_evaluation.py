@@ -87,6 +87,32 @@ class ScoringTests(unittest.TestCase):
         self.assertEqual(report["drink_families"]["soda"]["joint"]["correct"], 0)
         self.assertEqual(report["joint"]["total"], 3)
 
+    def test_null_identity_is_abstention_with_independent_capacity_success(self):
+        rows = [row(i) for i in range(4)]
+        predictions = [prediction(0, brand=None), prediction(1, product=None),
+            prediction(2, brand=None, product=None),
+            prediction(3, brand=None, product="Acme Lime sparkling water")]
+        report = ev.score_predictions(rows, predictions)
+        self.assertEqual(report["counts"]["valid"], 4)
+        self.assertEqual(report["counts"]["failed"], 0)
+        self.assertEqual(report["capacity"]["correct"], 4)
+        self.assertEqual(report["identity"]["correct"], 0)
+        self.assertEqual(report["joint"]["correct"], 0)
+        self.assertEqual(report["counts"]["abstained_identity"], 4)
+        self.assertEqual(report["identity_abstention"]["rate"], 1.0)
+
+    def test_invalid_identity_types_remain_failed_and_blank_component_abstains(self):
+        for field in ("brand", "product"):
+            for invalid in (42, True, ["Acme"], {"name": "Acme"}):
+                report = ev.score_predictions([row(0)], [prediction(0, **{field:invalid})])
+                self.assertEqual(report["counts"]["failed"], 1)
+                self.assertEqual(report["capacity"]["correct"], 0)
+            report = ev.score_predictions([row(0)], [prediction(0, **{field:"  "})])
+            self.assertEqual(report["counts"]["valid"], 1)
+            self.assertEqual(report["counts"]["abstained_identity"], 1)
+            self.assertEqual(report["capacity"]["correct"], 1)
+            self.assertEqual(report["joint"]["correct"], 0)
+
     def test_malformed_capacity_cannot_count_as_exact_integer_success(self):
         for capacity in (True, 330.0, "330", -1, 0):
             report = ev.score_predictions([row(0)], [prediction(0, capacity_ml=capacity)])
@@ -116,6 +142,31 @@ class ManifestTests(unittest.TestCase):
         self.rows[0]["identity_aliases"].append("anything")
         with self.assertRaisesRegex(ValueError, "frozen|fingerprint"):
             ev.validate_manifest(self.rows, self.root, self.policy)
+
+    def test_preregistered_full_brand_variant_is_accepted_and_frozen(self):
+        rows = copy.deepcopy(self.rows)
+        rows[0].update(brand="President's Choice", brand_aliases=["PC"], product="Lime sparkling water",
+            identity_aliases=["President's Choice Lime sparkling water", "PC Lime sparkling water"])
+        policy = ev.freeze_split_policy(rows)
+        self.assertEqual(ev.validate_manifest(rows, self.root, policy), dict(train=150, validation=25, test=75))
+        self.assertEqual(ev.score_predictions([rows[0]], [prediction(0, brand="PC")])["joint"]["correct"], 1)
+        old_alias_fingerprint = policy["aliases_sha256"]
+        rows[0]["brand_aliases"].append("President Choice")
+        self.assertNotEqual(ev.freeze_split_policy(rows)["aliases_sha256"], old_alias_fingerprint)
+        with self.assertRaisesRegex(ValueError, "frozen|fingerprint"):
+            ev.validate_manifest(rows, self.root, policy)
+
+    def test_bare_brand_variants_and_invalid_brand_alias_lists_are_rejected(self):
+        for bare in ("PC", "President's Choice"):
+            rows = copy.deepcopy(self.rows)
+            rows[0].update(brand="President's Choice", brand_aliases=["PC", "President"], identity_aliases=[bare])
+            with self.assertRaises(ValueError):
+                ev.validate_manifest(rows, self.root, ev.freeze_split_policy(rows))
+        for invalid in ("PC", None, [""], [42]):
+            rows = copy.deepcopy(self.rows)
+            rows[0]["brand_aliases"] = invalid
+            with self.assertRaises(ValueError):
+                ev.validate_manifest(rows, self.root, ev.freeze_split_policy(rows))
 
     def test_missing_reviews_bad_license_unsupported_capacity_or_alias_are_rejected(self):
         for changes in ({"review_status":"pending"}, {"license":"unknown"},
@@ -255,11 +306,92 @@ class ProvenanceTests(ManifestTests):
             split_policy_sha256=ev.canonical_sha256(self.policy), predictions_sha256=sha(predictions_path.read_bytes()),
             selected_using="train_validation_only", checkpoint_frozen_utc="2026-11-02T10:00:00Z",
             test_inference_started_utc="2026-11-02T11:00:00Z", adapter_sha256=None)
+        self.write_runtime_provenance(metadata)
         metadata_path = self.root / "run.json"
         metadata_path.write_text(json.dumps(metadata))
         return dict(manifest_path=manifest_path, predictions_path=predictions_path,
             policy_path=policy_path, policy_sha256=ev.canonical_sha256(self.policy),
             run_metadata_path=metadata_path, data_root=self.root, artifact_root=self.root), metadata
+
+    def write_runtime_provenance(self, metadata):
+        metadata.update(runtime_revision="c"*40, executable_sha256="d"*64, inference_split="test")
+        model = dict(schema_version="meta-base-provenance-v1", repo=metadata["model_id"],
+            revision=metadata["base_revision"], files={"model.safetensors":dict(bytes=10, sha256="e"*64,
+                provider_lfs_sha256="e"*64, provider_git_blob_sha1=None)})
+        model_path = self.root / "model-provenance.json"
+        model_path.write_text(json.dumps(model))
+        metadata.update(model_provenance_path=model_path.name, model_provenance_sha256=sha(model_path.read_bytes()),
+                        adapter_config_sha256=None)
+        if metadata.get("adapter_sha256") is not None:
+            adapter_config = self.root / "adapter_config.json"
+            adapter_config.write_text(json.dumps(dict(num_layers=1, lora_parameters=dict(rank=4, scale=8))))
+            metadata.update(adapter_config_path=adapter_config.name, adapter_config_sha256=sha(adapter_config.read_bytes()))
+        config = dict(schema_version="beverage-inference-config-v1", model_id=metadata["model_id"],
+            base_revision=metadata["base_revision"], runtime_revision=metadata["runtime_revision"],
+            executable_sha256=metadata["executable_sha256"], model_provenance_sha256=metadata["model_provenance_sha256"],
+            prompt_sha256=metadata["prompt_sha256"], generation_header=" to=user<|message|>",
+            template_current_date="2026-11-02", reasoning_strength="low", image_tokens=128,
+            prefill_step=32, max_output_tokens=96, decoding="greedy", adapter_config_sha256=metadata["adapter_config_sha256"])
+        config_path = self.root / "inference-config.json"
+        config_path.write_text(json.dumps(config))
+        metadata.update(inference_config_path=config_path.name, inference_config_sha256=ev.canonical_sha256(config))
+        runtime = {key: config[key] for key in ("model_id", "base_revision", "runtime_revision", "image_tokens",
+            "prefill_step", "max_output_tokens", "generation_header", "template_current_date", "reasoning_strength",
+            "prompt_sha256", "executable_sha256", "model_provenance_sha256", "adapter_config_sha256", "decoding")}
+        runtime["predictions_sha256"] = metadata["predictions_sha256"]
+        runtime_path = self.root / "runtime.json"
+        runtime_path.write_text(json.dumps(runtime))
+        metadata.update(runtime_config_path=runtime_path.name, runtime_config_sha256=sha(runtime_path.read_bytes()))
+        selection_path = self.root / "selection.json"
+        selection = dict(adapter_sha256=metadata.get("adapter_sha256"), selected_using="train_validation_only",
+            split_policy_sha256=metadata["split_policy_sha256"], checkpoint_frozen_utc=metadata["checkpoint_frozen_utc"],
+            validation_image_ids=[r["image_id"] for r in self.rows[150:175]],
+            inference_config_sha256=metadata["inference_config_sha256"], adapter_config_sha256=metadata["adapter_config_sha256"])
+        selection_path.write_text(json.dumps(selection))
+        metadata.update(selection_path=selection_path.name, selection_sha256=sha(selection_path.read_bytes()))
+
+    def test_inference_settings_or_binary_change_after_selection_is_rejected(self):
+        for field, value in (("image_tokens",256), ("prefill_step",64), ("max_output_tokens",192),
+            ("decoding","sample"), ("executable_sha256","f"*64), ("generation_header","different"),
+            ("template_current_date","2026-11-03"), ("reasoning_strength","high")):
+            args, metadata = self.prepare_run()
+            config_path = self.root / metadata["inference_config_path"]
+            config = json.loads(config_path.read_text())
+            config[field] = value
+            config_path.write_text(json.dumps(config))
+            metadata["inference_config_sha256"] = ev.canonical_sha256(config)
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+
+    def test_actual_runtime_provenance_must_match_selected_configuration(self):
+        for field, value in (("prompt_sha256","f"*64), ("executable_sha256","f"*64),
+                ("model_provenance_sha256","f"*64), ("adapter_config_sha256","f"*64), ("decoding","sample")):
+            args, metadata = self.prepare_run()
+            path = self.root / metadata["runtime_config_path"]
+            runtime = json.loads(path.read_text())
+            runtime[field] = value
+            path.write_text(json.dumps(runtime))
+            metadata["runtime_config_sha256"] = sha(path.read_bytes())
+            args["run_metadata_path"].write_text(json.dumps(metadata))
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+
+    def test_base_provenance_runtime_telemetry_and_baseline_selection_are_verified(self):
+        for field in ("model_provenance_path", "runtime_config_path", "selection_path"):
+            args, metadata = self.prepare_run()
+            (self.root / metadata[field]).write_text("{}")
+            with self.assertRaises(ValueError):
+                ev.evaluate_files(**args)
+        args, metadata = self.prepare_run()
+        model_path = self.root / metadata["model_provenance_path"]
+        model = json.loads(model_path.read_text())
+        model["revision"] = "f"*40
+        model_path.write_text(json.dumps(model))
+        metadata["model_provenance_sha256"] = sha(model_path.read_bytes())
+        args["run_metadata_path"].write_text(json.dumps(metadata))
+        with self.assertRaises(ValueError):
+            ev.evaluate_files(**args)
 
     def test_fixture_and_baseline_perfect_scores_cannot_claim_adapter_success(self):
         args, metadata = self.prepare_run()
@@ -306,13 +438,21 @@ class ProvenanceTests(ManifestTests):
             metadata[name + "_run_sha256" if name == "training" else "selection_sha256"] = sha(path.read_bytes())
         # field name is training_run_sha256, matching its evidence path
         args["run_metadata_path"].write_text(json.dumps(metadata))
+        self.write_runtime_provenance(metadata)
         # Predictions must identify exactly these adapter bytes.
         args["predictions_path"].write_text("".join(json.dumps(prediction(i, adapter_sha256=adapter_hash, prompt_sha256=metadata["prompt_sha256"])) + "\n" for i in range(175,250)))
         metadata["predictions_sha256"] = sha(args["predictions_path"].read_bytes())
+        self.write_runtime_provenance(metadata)
         args["run_metadata_path"].write_text(json.dumps(metadata))
         report = ev.evaluate_files(**args)
         self.assertTrue(report["adapter_target_met"])
         self.assertIn("not authenticate", report["provenance_limit"])
+        adapter_config_path = self.root / metadata["adapter_config_path"]
+        adapter_config_path.write_text('{"scale":16}')
+        with self.assertRaises(ValueError):
+            ev.evaluate_files(**args)
+        self.write_runtime_provenance(metadata)
+        args["run_metadata_path"].write_text(json.dumps(metadata))
         train["train_image_ids"].append("image-175")
         (self.root / "training.json").write_text(json.dumps(train))
         metadata["training_run_sha256"] = sha((self.root / "training.json").read_bytes())
