@@ -1,0 +1,14 @@
+{
+  "repo": "openfoodfacts/product-database",
+  "revision": "1eb91c4479d8dbbc047aaf54e479b71973997dca",
+  "file": {
+    "rfilename": "food.parquet",
+    "blobId": "6087084c1aa6f64bb91cb8c4eddd8f658a08c52f",
+    "size": 8028548050,
+    "lfs": {
+      "sha256": "b9fb55cdc349b98d907764a1469a38ab074d9942cb5ddaaba45dc108fcd22595",
+      "size": 8028548050,
+      "pointerSize": 135
+    }
+  }
+}
