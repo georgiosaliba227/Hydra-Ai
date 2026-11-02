@@ -25,7 +25,9 @@ final class SimpleCameraUITests: XCTestCase {
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
-        app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
+        app.tabBars.buttons["Settings"].tap()
+        XCTAssertTrue(app.buttons["saveConnection"].waitForExistence(timeout: 10))
+        app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 15))
@@ -99,4 +101,24 @@ final class SimpleCameraUITests: XCTestCase {
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         total(app, initial + 125)
     }
+    func test04PrintedOneLitreLabelUsesFullContainerAssumption() throws {
+        guard ProcessInfo.processInfo.environment["HYDRA_E2E_LABEL_CAMERA"] == "1" else {
+            throw XCTSkip("One-litre label fixture required")
+        }
+        let (app, initial) = try start(); analyze(app)
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.filter(\.isNumber), "1000")
+        XCTAssertTrue(app.staticTexts["photoVolume"].label.contains("mL"))
+        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.filter(\.isNumber), "1000")
+        XCTAssertTrue(app.staticTexts["photoLabelCapacity"].label.hasPrefix("Printed size:"))
+        XCTAssertTrue(app.staticTexts["consumptionAssumptionSummary"].label.contains("full container"))
+        XCTAssertTrue(app.buttons["editRecognitionEntry"].exists)
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        screenshot(app, "Printed one litre label review")
+        app.buttons["savePhotoBeverage"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        total(app, initial + 1000)
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "identifier == 'beverageRow' AND label CONTAINS 'Assumed full container consumed'")).firstMatch.waitForExistence(timeout: 10))
+    }
+
 }

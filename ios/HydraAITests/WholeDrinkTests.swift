@@ -81,4 +81,47 @@ final class WholeDrinkTests: XCTestCase {
         XCTAssertNil(RecognitionVolumeUnit.usFlOz.millilitres("0"))
         XCTAssertEqual(RecognitionVolumeUnit.usFlOz.millilitres("16.9"), 500)
     }
+    func testPrintedLitreLabelPrefillsExplicitFullContainerInsteadOf950Estimate() {
+        var candidate = coffee(900, 1000, capacity: 1000)
+        candidate.visibleLabelText = "DASANI PURIFIED WATER 1 LITER"
+        candidate.labelCapacityMl = 1000
+        let draft = RecognitionEntryDraft(candidate: candidate)
+        XCTAssertEqual(draft.consumedMl, 1000)
+        XCTAssertEqual(draft.assumption, "full_container")
+        XCTAssertNil(draft.correctedLiquidMl, "Full label capacity is a user assumption, never a measured training label")
+    }
+    func testPrintedCapacityWithHiddenFillUsesDisclosedFullContainerAssumption() {
+        var candidate = coffee(nil, nil, capacity: 1000)
+        candidate.labelCapacityMl = 1000
+        var draft = RecognitionEntryDraft(candidate: candidate)
+        XCTAssertEqual(draft.consumedMl, 1000)
+        XCTAssertEqual(draft.assumption, "full_container")
+        draft.setDrankAll(false)
+        XCTAssertNil(draft.consumedMl)
+        draft.setDrankAll(true)
+        XCTAssertEqual(draft.consumedMl, 1000)
+        XCTAssertEqual(draft.assumption, "full_container")
+    }
+    func testPartialLiquidAndExactPhotoCorrectionKeepPriorityOverPrintedCapacity() {
+        var candidate = coffee(300, 400, capacity: 1000)
+        candidate.labelCapacityMl = 1000
+        var draft = RecognitionEntryDraft(candidate: candidate)
+        XCTAssertEqual(draft.consumedMl, 350)
+        XCTAssertEqual(draft.assumption, "entire_liquid")
+        candidate.personalCorrection = PersonalRecognitionCorrection(identity: "Water", containerMl: 1000,
+            liquidMl: 500, matchBasis: "exact_image", confirmedAt: "2026-11-02T12:00:00Z")
+        draft = RecognitionEntryDraft(candidate: candidate)
+        XCTAssertEqual(draft.consumedMl, 500)
+        XCTAssertEqual(draft.assumption, "entire_liquid")
+        draft.setDrankAll(false)
+        draft.setDrankAll(true)
+        XCTAssertEqual(draft.consumedMl, 500)
+    }
+    func testConflictingLabelAndLiquidRangeDoesNotBecomeFullAssumption() {
+        var candidate = coffee(1100, 1200, capacity: 1500)
+        candidate.labelCapacityMl = 1000
+        let draft = RecognitionEntryDraft(candidate: candidate)
+        XCTAssertNil(draft.consumedMl)
+    }
+
 }
