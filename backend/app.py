@@ -85,7 +85,7 @@ class RequestGuard:
                 return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
-        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/wonder/workout/preview",
+        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/hydration-analysis", "/v1/wonder/workout/preview",
                                "/v1/wonder/workout"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
@@ -419,6 +419,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
     from .wonder_workout_routes import install_wonder_workout_routes
     install_wonder_workout_routes(app, error_response=error_response)  # shares the trend config and lock
+    from .hydration_analysis import install_hydration_analysis_routes
+    install_hydration_analysis_routes(app, to_engine, error_response=error_response)
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
     return app

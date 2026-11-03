@@ -1,0 +1,50 @@
+{
+  "timezone": "UTC",
+  "mode": "personal",
+  "calibration_processing_consent": true,
+  "exercise": {
+    "event_id": "00000000-0000-0000-0000-0000000003e7",
+    "starts_at": "2026-11-02T16:00:00+00:00",
+    "duration_minutes": 30.0,
+    "conditions": {
+      "activity": "running",
+      "intensity": "moderate",
+      "temperature_c": 20.0,
+      "humidity_percent": 60.0
+    },
+    "comparable_conditions_confirmed": true
+  },
+  "samples": [
+    {
+      "event_id": "00000000-0000-0000-0000-000000000001",
+      "observed_at": "2026-11-01T15:00:00+00:00",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 20.0,
+        "humidity_percent": 60.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.0,
+        "consumed_ml": 400.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 60.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "synthetic_test_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.05,
+        "post_mass_kg": 0.05,
+        "consumed_ml": 10.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "synthetic_test_instrument_bounds"
+        ]
+      }
+    }
+  ]
+}
