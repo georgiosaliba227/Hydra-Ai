@@ -28,7 +28,10 @@ local Mac hosting, not always-on deployment or public release.
   and token-only warning. These UI flows made no Meta call and left financial
   ledger bytes unchanged. Screenshots were inspected.
 - Updated original bundle builds and passes strict signature verification with
-  HealthKit entitlement. It was not installed on the physical phone.
+  HealthKit entitlement. It is now installed on the physical phone. One actual
+  physical UI test passes for connection/readiness, unverified-billing disclosure
+  and Home's own-goal-required state, without a paid action or financial write.
+  See the [physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
 
 The initial blocked-readiness UI run failed because the preceding field's keyboard
 toolbar obscured the next trailing input. Reusing the existing workout test's
@@ -87,8 +90,10 @@ experimental fit requires at least six qualified comparable sessions and may
 retain the baseline. The Home rubric is not physiological hydration; its product
 weights are not scientifically fitted.
 
-Physical installation, real HealthKit permissions/workout import, consented weather
-and final iPhone screens are deferred by the owner. The actual own-record Meta
+The owner resumed physical checks: installation and a scoped connection/UI test
+are complete. The owner reports real Health workout import and consented weather
+autofill working. The newly requested US units/automatic setup and populated final
+iPhone screens still need verification. The actual own-record Meta
 flow still needs in-app verification. The earlier comprehensive synthetic response
 and public-only plan do not substitute for that. The Mac must be on the same LAN;
 its local backend has an idle-sleep assertion ending with that process. Display

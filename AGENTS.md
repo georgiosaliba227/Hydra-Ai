@@ -1,6 +1,15 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 later physical direction (Georgio): the owner explicitly answered
+**"Proceed with iPhone checks"** and subsequently unlocked the device for testing.
+This supersedes the earlier Simulator-only preference for this continuation.
+The full HealthKit-signed original app is installed; one scoped physical UI
+connection/readiness check passes. Actual Health permission choices, workout
+import, consented weather and own-record Meta preview/consent remain separate
+checks. Do not uninstall/reset personal data or seed simulated personal records.
+See docs/PHYSICAL_HYDRATION_CHECK_2026-11-03.md.
+
 November 3 ongoing Wonder billing-wait override (Georgio, explicit later reply):
 to the question whether the waiver should cover the newly completed test and
 unverified billing on Amine's ledgers while every $0.25 reservation remains

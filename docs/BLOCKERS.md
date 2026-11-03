@@ -2,10 +2,12 @@
 
 ## November 3 — latest remaining gaps
 
-- **Real iPhone:** a fresh original-bundle build has valid HealthKit signing, but
-  installation/real permissions/workout import/weather/final screens remain
-  deferred by the owner. Four actual Simulator flows and 167 unit tests pass;
-  these do not establish hardware behavior.
+- **Remaining iPhone checks:** the HealthKit-signed original bundle is installed.
+  One actual physical UI test passes for backend readiness, billing disclosure
+  and the goal-required Home state. The owner reports successful real workout
+  import and consented weather autofill. US units and first-use/automatic context
+  setup are newly requested; populated personal screens still need verification.
+  Four actual Simulator flows and 167 unit tests retain their separate scope.
 - **Real personal evidence:** the owner needs to collect measurements. Actual
   Muse-guided simulation/training is complete and byte-reproduced, but synthetic
   rows cannot fill personal history or validate real-person accuracy. The Home

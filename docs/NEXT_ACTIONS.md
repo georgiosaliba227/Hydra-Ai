@@ -7,10 +7,13 @@
    PR #65/#71/#72 dependencies and human merge. Home research score, ongoing
    owner-risk admission and actual Muse-guided research training are implemented
    and verified. Camera branches remain separate.
-2. Physical installation remains deferred at the owner's request. When chosen,
-   install the updated HealthKit-signed original bundle and verify real workout
-   import, permission prompts, weather and final Home/analysis screens. Do not
-   repeat requests for the owner to stay awake or reconnect during Simulator work.
+2. The owner resumed physical checks. The HealthKit-signed original app is now
+   installed; one actual physical UI test verifies owner-backend readiness,
+   billing disclosure and the goal-required Home state. The owner reports real
+   workout import and consented weather autofill working. Add the requested US
+   units and first-use setup/automatic context refresh, then verify the updated
+   populated Home/analysis flow. Keep owner-assisted outcomes separate from the
+   automated connection evidence in the scoped physical report.
 3. On the real profile, choose a personal beverage goal and log actual drinks.
    Collect protocol-confirmed manual workout measurements with error bounds;
    at least six qualified comparable records are needed for experimental fitting,

@@ -36,8 +36,16 @@ score 38→34 with goal-change consent reset, manual logging/relaunch persistenc
 and activated ready status with unverified billing disclosed. Read-only UI runs
 left financial ledger bytes unchanged. Independent backend/financial/ML reviews
 are resolved. The updated original-bundle app builds with valid HealthKit signing.
-It has **not** been installed or hardware-tested in this continuation; the owner
-chose Simulator. No real personal calibration records exist, and the full actual
+The owner subsequently resumed physical checks: the updated original app is
+installed and **one actual physical UI test passes**, confirming phone-to-Mac
+readiness, unverified-billing disclosure and Home's own-goal-required state.
+Financial ledger bytes were unchanged; no paid action was tapped. The owner then
+reported successful real Health workout import and consented weather autofill on
+the phone. These are owner-assisted outcomes; populated personal screens and the
+actual own-record Meta flow remain pending. US units and automatic context setup
+are the owner's next requested changes;
+see the [scoped physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+No real personal calibration records exist, and the full actual
 personal-data Meta flow still needs its own in-app preview/consent and verification.
 No automatic merge or always-on deployment occurred.
 
