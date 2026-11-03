@@ -907,7 +907,7 @@ struct WorkoutForecastView: View {
                         .foregroundStyle(Color.hydraTint)
                         .accessibilityLabel("Estimated exercise sweat loss: \(HydraFormat.milliliters(value)) mL")
                         .accessibilityIdentifier("workoutPrediction")
-                    Text(result.learning != nil ? "estimated sweat loss · research envelope \(HydraFormat.milliliterRange(lower, upper))" : "estimated sweat loss · likely \(HydraFormat.milliliterRange(lower, upper))")
+                    Text("estimated sweat loss · research envelope \(HydraFormat.milliliterRange(lower, upper))")
                         .accessibilityIdentifier("workoutPredictionRange")
                         .font(.subheadline)
                     Text(result.synthetic

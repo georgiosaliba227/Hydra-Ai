@@ -175,6 +175,13 @@ supports that compiler. A fresh local **145 XCTest passed** after the correction
 The PR's check runs record the remote result separately; no runner or verification
 was disabled to hide the failure.
 
+Final forecast labels uniformly say “research envelope,” including the default
+baseline; the former “likely” label did not have validated future coverage.
+A fresh **145 XCTest passed** after this wording change:
+`/tmp/hydra-intelligence-final-range-label-ios-unit.log`, artifact
+`/tmp/hydra-intelligence-final-ios/Logs/Test/Test-HydraAI-2026.11.03_01-38-23--0500.xcresult`.
+The selected-fit UI already used the same research-envelope wording.
+
 ## Review boundaries
 
 The numerical engine is authoritative. Keep research labels, explicit provenance,
