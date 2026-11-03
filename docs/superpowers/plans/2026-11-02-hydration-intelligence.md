@@ -82,3 +82,18 @@
 - [ ] Obtain independent branch review; fix important defects with regression tests.
 - [ ] Update PROJECT_STATUS, NEXT_ACTIONS, BLOCKERS, DECISION_LOG and scientific evaluation.
 - [ ] Commit, push, prepare review PR for Amine; report physical/live gates truthfully.
+
+### Task 6: Fit a personal model in the app workflow (November 3)
+
+**Contract:** `docs/architecture/PERSONAL_RUNTIME_API.md`.
+
+- [ ] Implement and test the fixed stationary regularized duration regression,
+  earlier-only model selection, domain/freshness gates and conservative envelopes.
+- [ ] Reproduce software stress evaluation, including baseline wins and failures;
+  report synthetic evidence separately from measured study validation.
+- [ ] Add authenticated v3 forecast/analysis/Wonder routes using one predictor,
+  preserving legacy output, consent hashes, shared financial controls and privacy.
+- [ ] Integrate typed runtime metadata, method/fallback labels and exact numerical
+  binding into the iPhone flow; rerun XCTest and real simulator UI.
+- [ ] Independently review the fit/selection and boundary integration, then run
+  physical-device checks when connected and record actual evidence.

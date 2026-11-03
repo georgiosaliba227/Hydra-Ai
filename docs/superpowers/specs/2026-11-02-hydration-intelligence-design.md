@@ -30,6 +30,25 @@ No new runtime dependency, paid call, credential change or private ledger operat
 4. Present the analysis in the existing workout screen, keeping numerical authority
    and the exact preview/consent/hash/replay gates of the existing Wonder endpoints.
 
+## November 3 runtime learning extension
+
+The offline calendar-time regression has not earned app promotion. A separate,
+stationary within-person regression will instead fit loss against duration, with
+fixed regularization toward an earlier same-person median rate. It has no learned
+weather, calendar, heart-rate or cohort effect. Require six qualified nonoverlapping
+sessions, three earlier-only validation folds, observed duration support and an
+explicit observed-cadence support gate. Select it only when its earlier absolute
+errors improve on the exact v2 baseline beyond the paired-error standard-error
+heuristic. Otherwise retain the baseline, recording the reason. Preserve all
+measurement bounds and historical error envelopes. This is an experimental fitted
+model; it does not establish prospective accuracy or nominal interval coverage.
+
+Serve it through additive v3 forecast, local analysis and comprehensive Wonder
+routes. Legacy routes retain their numerical engines and exact consent payloads.
+All v3 numerical screens and explanation facts use this one predictor. The phone
+persists only explicitly saved measurements; the server fits in request memory.
+Do not send coefficients, training hashes or raw calibration records to Wonder.
+
 The current Muse Wonder model is the sole explanation model. No model comparison,
 new billing path or automatic retry is introduced. Comprehensive local analysis
 must clearly identify which parts Wonder actually received and explained.
