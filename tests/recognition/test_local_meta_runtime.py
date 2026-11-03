@@ -24,12 +24,34 @@ def test_child_has_no_provider_or_app_credentials_and_no_retry(tmp_path,monkeypa
     assert attempts.read_text()=='attempt'
 
 
-def test_timeout_reaps_child_and_returns_no_private_output(tmp_path):
+def test_timeout_reaps_child_and_returns_no_private_output(tmp_path,monkeypatch):
     from backend.local_meta_runtime import run_bounded
+    # Isolate the deadline from the macOS-only RSS sampler. On Ubuntu the
+    # production sampler correctly fails closed before this timeout expires.
+    monkeypatch.setattr('backend.local_meta_runtime.child_resident_bytes',lambda _: 0)
     pid=tmp_path/'pid'
     with pytest.raises(ValueError,match='local_runtime_timeout'):
         run_bounded([sys.executable,'-c','import os,time,sys;open(sys.argv[1],"w").write(str(os.getpid()));print("PRIVATE",flush=True);time.sleep(10)',str(pid)],timeout=.3)
     with pytest.raises(ProcessLookupError): os.kill(int(pid.read_text()),0)
+
+
+def test_monitor_failure_reaps_live_child_without_retry(monkeypatch):
+    from backend import local_meta_runtime as runtime
+    children=[]
+    popen=subprocess.Popen
+    def track_child(*args,**kwargs):
+        child=popen(*args,**kwargs)
+        children.append(child)
+        return child
+    def unavailable(_):
+        raise runtime.LocalProcessError('resident_measurement_unavailable')
+    monkeypatch.setattr(runtime.subprocess,'Popen',track_child)
+    monkeypatch.setattr(runtime,'child_resident_bytes',unavailable)
+    with pytest.raises(ValueError,match='local_runtime_monitor_failed'):
+        runtime.run_bounded([sys.executable,'-c','import time;time.sleep(10)'],timeout=5)
+    assert len(children)==1
+    assert children[0].poll() is not None
+    with pytest.raises(ProcessLookupError): os.kill(children[0].pid,0)
 
 
 def test_runtime_lock_covers_whole_multistage_request_and_releases_on_error(tmp_path):
