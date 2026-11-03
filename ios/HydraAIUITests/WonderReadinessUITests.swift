@@ -12,7 +12,7 @@ final class WonderReadinessUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch(); addTeardownBlock { app.terminate() }
+        app.launchHydra(); addTeardownBlock { app.terminate() }
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         let check = app.buttons["checkWonderReadiness"]; reveal(check, in: app); check.tap()
@@ -39,7 +39,7 @@ final class WonderReadinessUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token,
                                  "HYDRA_SAMPLE_HEALTH_WORKOUTS": "1"]
-        app.launch()
+        app.launchHydra()
         addTeardownBlock { app.terminate() }
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
@@ -60,7 +60,7 @@ final class WonderReadinessUITests: XCTestCase {
         let provenance = app.staticTexts["workoutProvenance"]
         XCTAssertTrue(provenance.waitForExistence(timeout: 10))
         XCTAssertTrue(provenance.label.hasPrefix("Sample workout (not your data) on "))
-        fill("22", field: "Temperature, °C", in: app); fill("55", field: "Humidity, %", in: app)
+        fill("22", field: "Temperature", in: app); fill("55", field: "Humidity, %", in: app)
         if app.buttons["Done"].exists { app.buttons["Done"].tap() }
         let estimate = app.buttons["estimateWorkout"]; reveal(estimate, in: app); estimate.tap()
         let analysis = app.staticTexts["hydrationAnalysisProvenance"]; reveal(analysis, in: app, attempts: 14)

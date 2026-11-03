@@ -11,13 +11,14 @@ struct ExportDocument: FileDocument {
 
 struct BackendSettingsView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
+    @EnvironmentObject private var context: DailyContextCoordinator
     @State private var url = ""
     @State private var token = ""
     @State private var offline = false
     @State private var error: String?
-    @State private var goalText = ""
+    @State private var goalValue: Double?
     @State private var goalMessage: String?
-    @FocusState private var goalFocused: Bool
     @State private var export: ExportDocument?
     @State private var confirmingDeleteAll = false
     @State private var dataMessage: String?
@@ -55,19 +56,22 @@ struct BackendSettingsView: View {
                 Text(offline ? "Offline demo records stay on this iPhone and are not uploaded."
                              : "Use your Hydra backend access token, not a Meta API key. It's stored in the Keychain.")
             }
+            Section("Display units") {
+                Picker("Units", selection: $units.system) {
+                    ForEach(DisplayUnitSystem.allCases, id: \.self) { system in
+                        Text(system.label).tag(system)
+                    }
+                }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("displayUnitsPicker")
+            }
+            DailyContextSettingsSections()
             if !store.isOffline && store.isConfigured {
                 Section {
-                    HStack {
-                        TextField("e.g. 2000", text: $goalText)
-                            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
-                            .keyboardType(.numberPad)
-                            .focused($goalFocused)
-                            .accessibilityLabel("Daily goal in milliliters")
-                            .accessibilityIdentifier("goalField")
-                        Text("mL").foregroundStyle(.secondary).accessibilityHidden(true)
-                    }
-                    Button("Save goal") { goalFocused = false; Task { await saveGoal(Int(goalText)) } }
-                        .disabled(Int(goalText).map { !(100...10_000).contains($0) } ?? true)
+                    CanonicalQuantityField("Daily goal", value: $goalValue, quantity: .volume,
+                                           accessibilityIdentifier: "goalField")
+                    Button("Save goal") { Task { await saveGoal(parsedGoal) } }
+                        .disabled(parsedGoal == nil)
                         .accessibilityIdentifier("saveGoal")
                     Button("Clear goal", role: .destructive) { Task { await saveGoal(nil) } }
                     if let goalMessage { Text(goalMessage).font(.footnote).accessibilityIdentifier("goalMessage") }
@@ -131,13 +135,15 @@ struct BackendSettingsView: View {
         } message: {
             Text("Every logged drink and your goal are erased from the backend. All saved manual measurement profiles on this iPhone are also erased. This cannot be undone.")
         }
-        .toolbar { ToolbarItemGroup(placement: .keyboard) {
-            Spacer(); Button("Done") { goalFocused = false }
-        } }
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }
         .task {
-            if let goal = try? await store.currentGoal() { goalText = String(goal) }
+            if let goal = try? await store.currentGoal() { goalValue = Double(goal) }
         }
+    }
+
+    private var parsedGoal: Int? {
+        guard let value = goalValue, value.isFinite, (100...10_000).contains(value) else { return nil }
+        return Int(value.rounded())
     }
 
     private var statusText: String {
@@ -158,7 +164,7 @@ struct BackendSettingsView: View {
     private func saveGoal(_ milliliters: Int?) async {
         do {
             try await store.setGoal(milliliters)
-            goalText = milliliters.map(String.init) ?? ""
+            goalValue = milliliters.map(Double.init)
             goalMessage = milliliters == nil ? "Goal cleared." : "Goal saved."
         } catch {
             goalMessage = "Could not save the goal. \(error.localizedDescription)"
@@ -175,8 +181,10 @@ struct BackendSettingsView: View {
     private func deleteAll() async {
         do {
             let count = try await store.deleteAllData()
-            goalText = ""
-            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal, plus all saved manual measurement history on this iPhone."
+            goalValue = nil
+            context.disableAutomaticWeather()
+            await context.setHealthAutoEnabled(false)
+            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal, plus saved manual history and automatic context on this iPhone."
         } catch ServiceError.server(409) {
             dataMessage = "Saved manual measurements on this iPhone were cleared. Your backend is busy with another request, so backend data has not been deleted. Wait for that request to finish, then choose Delete again."
         } catch {

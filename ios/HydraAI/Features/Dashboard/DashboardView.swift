@@ -29,6 +29,7 @@ struct DashboardView: View {
                 }
                 HydrationScoreCard(history: store.calibrationHistory)
                 QuickAddCard(showingManualLog: $showingManualLog)
+                DailyContextCard()
                 insightsSection
                 recentSection
                 weekSection
