@@ -1,0 +1,72 @@
+{
+  "dataset_sha256": "404df884c6f4f5bc60b4301c7a962eff4d1212e0a2dbd866ab79f6bcc6511be4",
+  "feature_bounds": {
+    "age_years": [
+      22.0,
+      54.0
+    ],
+    "duration_minutes": [
+      90.0,
+      90.0
+    ],
+    "pre_mass_kg": [
+      44.1,
+      109.59999999999998
+    ]
+  },
+  "features": [
+    "duration_minutes",
+    "pre_mass_kg",
+    "age_years"
+  ],
+  "fit_partition_sha256": "1cad76ce643661fddd8fb24b385cbd20c4b6276c4cbe745abe40135e7e47e40e",
+  "imputation": [
+    90.0,
+    71.17499999999998,
+    34.0
+  ],
+  "interval": {
+    "calibration_participants": 39,
+    "kind": "participant_split_conformal",
+    "limitation": "Same-source exchangeable participant groups only; no external or clinical coverage guarantee.",
+    "nominal_coverage": 0.9,
+    "radius_ml": 190.17890239429204
+  },
+  "means": [
+    90.0,
+    73.00013661202185,
+    35.18852459016394
+  ],
+  "model": {
+    "coefficients": [
+      0.0,
+      89.91761797569849,
+      -7.45251694128805
+    ],
+    "intercept": 444.80054640983604,
+    "kind": "ridge"
+  },
+  "model_version": "spectrophon-v1-grouped-research-v2",
+  "provenance": [
+    "https://data.mendeley.com/datasets/jt22782wjh/1",
+    "CC BY 4.0",
+    "source_sha256:479a34372203db550fa9d8b55c1ba7f0fe9dbaa88cb870072ea477db4a123ea3"
+  ],
+  "runtime_use": "offline_research_only",
+  "scales": [
+    1.0,
+    13.544512814967403,
+    9.934483714598603
+  ],
+  "schema_version": "offline-forecast-json-v1",
+  "seed": 20261028,
+  "selected_model": "ridge",
+  "selection_protocol": "repeated-grouped-paired-gain-one-se-v2",
+  "study_id": "spectrophon-v1",
+  "synthetic": false,
+  "target_name": "corrected_mass_loss_proxy_ml",
+  "training_versions": {
+    "numpy": "2.2.6",
+    "scikit_learn": "1.6.1"
+  }
+}
