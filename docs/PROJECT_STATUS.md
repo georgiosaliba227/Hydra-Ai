@@ -1,5 +1,27 @@
 # Hydra AI project status
 
+## November 3 — US units and automatic context installed
+
+`codex/us-units-daily-context` adds US fl oz/°F/lb defaults with metric preference,
+canonical-quantity preservation, optional first-use Health/weather setup and
+consented automatic context refresh. Current and planned-hour weather stay
+separate; Health remains on device. Background execution is best effort, and
+actual freshness stays visible. No automatic Meta request, invented measurement,
+goal multiplier or scientific-model change is introduced.
+
+Final verification: **217 XCTest, 1,509 pytest +32 subtests, six actual Simulator
+UI flows**, and independent task/whole-branch reviews pass. The full original app
+is installed with valid HealthKit signing. The owner reports both automatic
+sources update in US units. A **25.567-second physical saved-connection test**
+passes without injected credentials or Save connection; actual financial ledger
+bytes were unchanged. See the [feature report](US_UNITS_DAILY_CONTEXT_2026-11-03.md).
+
+The latest goal also requests profile-guided starting-goal calculation using
+birthday/age, height, weight and supplements. That follow-up is being researched;
+this installed milestone still has a user-confirmed custom goal. Actual own-record
+Wonder and genuine calibration measurements remain outstanding. No merge or
+always-on deployment occurred.
+
 ## November 3 — Home score, personal Wonder and actual Muse-guided training
 
 [PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
@@ -42,8 +64,8 @@ readiness, unverified-billing disclosure and Home's own-goal-required state.
 Financial ledger bytes were unchanged; no paid action was tapped. The owner then
 reported successful real Health workout import and consented weather autofill on
 the phone. These are owner-assisted outcomes; populated personal screens and the
-actual own-record Meta flow remain pending. US units and automatic context setup
-are the owner's next requested changes;
+actual own-record Meta flow remain pending. The subsequent US-unit and automatic-
+context update is recorded above;
 see the [scoped physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
 No real personal calibration records exist, and the full actual
 personal-data Meta flow still needs its own in-app preview/consent and verification.

@@ -15,7 +15,7 @@ final class PhysicalRecognitionTests: XCTestCase {
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": env["HYDRA_E2E_BACKEND_URL"]!,
                                  "HYDRA_TEST_API_TOKEN": env["HYDRA_E2E_API_TOKEN"]!, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         if libraryFixture { app.launchEnvironment["HYDRA_TEST_LIBRARY_FIXTURE"] = "1" }
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         let settings = app.tabBars.buttons["Settings"]
         settings.tap()
@@ -27,12 +27,12 @@ final class PhysicalRecognitionTests: XCTestCase {
         return app
     }
     private func total(_ app: XCUIApplication) throws -> Int {
-        try XCTUnwrap(Int(app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch.value as? String ?? ""))
+        try XCTUnwrap(app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch.metricMillilitersValue)
     }
     private func assertTotal(_ app: XCUIApplication, _ expected: Int) {
         let label = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(label.waitForExistence(timeout: 15))
-        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", String(expected)), object: label)
+        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "\(expected) mL"), object: label)
         XCTAssertEqual(XCTWaiter.wait(for: [check], timeout: 20), .completed)
     }
     private func analyze(_ app: XCUIApplication) {
@@ -116,7 +116,7 @@ final class PhysicalRecognitionTests: XCTestCase {
             let pendingMessage = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Retry pending beverage'")).firstMatch
             XCTAssertTrue(pendingMessage.waitForExistence(timeout: 5))
             cancel.tap()
-            app.terminate(); app.launchEnvironment = [:]; app.launch()
+            app.terminate(); app.launchEnvironment = [:]; app.launchHydra()
             XCTAssertTrue(app.buttons["retryPending"].waitForExistence(timeout: 20))
         } catch {
             try? control("resume")
@@ -125,7 +125,7 @@ final class PhysicalRecognitionTests: XCTestCase {
         try control("resume")
         app.buttons["retryPending"].tap(); assertTotal(app, initial + 125)
         XCTAssertFalse(app.buttons["retryPending"].exists)
-        app.terminate(); app.launch()
+        app.terminate(); app.launchHydra()
         assertTotal(app, initial + 125)
     }
 }

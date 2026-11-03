@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BeverageRow: View {
+    @EnvironmentObject private var units: DisplayUnits
     let log: BeverageLog
 
     var body: some View {
@@ -22,12 +23,12 @@ struct BeverageRow: View {
 
             Spacer()
 
-            Text("\(log.consumedMl.formatted()) mL")
+            Text("\(units.volume(log.consumedMl))")
                 .font(.body.monospacedDigit().weight(.semibold))
         }
         .frame(minHeight: 44)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("beverageRow")
-        .accessibilityLabel("\(log.category.capitalized), \(log.consumedMl) milliliters, \(log.consumedAt.formatted(date: .omitted, time: .shortened))")
+        .accessibilityLabel("\(log.category.capitalized), \(units.volumeAccessibility(log.consumedMl)), \(log.consumedAt.formatted(date: .omitted, time: .shortened))")
     }
 }

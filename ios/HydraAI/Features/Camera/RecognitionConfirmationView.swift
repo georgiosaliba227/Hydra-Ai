@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RecognitionConfirmationView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @Environment(\.dismiss) private var dismiss
     let candidate: RecognitionCandidate
@@ -8,8 +9,8 @@ struct RecognitionConfirmationView: View {
     let recognitionId: UUID?
     @FocusState private var inputFocused: Bool
     @State private var identity: String
-    @State private var container: String
-    @State private var consumed = ""
+    @State private var container: Double?
+    @State private var consumed: Double?
     @State private var confirmed = false
     @State private var saving = false
     @State private var error: String?
@@ -20,10 +21,11 @@ struct RecognitionConfirmationView: View {
         self.mode = mode; self.recognitionId = recognitionId
         self.candidate = candidate; self.onSaved = onSaved
         _identity = State(initialValue: candidate.identity)
-        _container = State(initialValue: candidate.containerMl.map(String.init) ?? "")
+        _container = State(initialValue: candidate.containerMl.map(Double.init))
     }
     private var valid: Bool {
-        guard let capacity = Int(container), let amount = Int(consumed) else { return false }
+        guard let capacity = CanonicalQuantityInput.wholeMilliliters(container), let amount = CanonicalQuantityInput.wholeMilliliters(consumed) else { return false }
+        guard let container, let consumed, consumed <= container else { return false }
         return (1...5000).contains(capacity) && (1...capacity).contains(amount) && !identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && identity.count <= 80
     }
     var body: some View {
@@ -34,19 +36,15 @@ struct RecognitionConfirmationView: View {
                 LabeledContent("Beverage identity") {
                     TextField("Identity", text: $identity).focused($inputFocused).multilineTextAlignment(.trailing).accessibilityIdentifier("photoIdentity")
                 }
-                LabeledContent("Capacity (mL)") {
-                    TextField("mL", text: $container).keyboardType(.numberPad).focused($inputFocused).multilineTextAlignment(.trailing).accessibilityIdentifier("photoContainer")
-                }
-                LabeledContent("Consumed (mL)") {
-                    TextField("mL", text: $consumed).keyboardType(.numberPad).focused($inputFocused).multilineTextAlignment(.trailing).accessibilityIdentifier("photoConsumed")
-                }
+                CanonicalQuantityField("Capacity", value: $container, quantity: .volume, accessibilityIdentifier: "photoContainer")
+                CanonicalQuantityField("Consumed", value: $consumed, quantity: .volume, accessibilityIdentifier: "photoConsumed")
                 DatePicker("Consumed at", selection: $consumedAt, in: ...Date.now)
                 Toggle("I confirm identity, capacity and amount consumed", isOn: $confirmed).accessibilityIdentifier("confirmPhotoDetails")
             }
             Section("Nutrition") {
                 if candidate.productId != nil && identity == candidate.identity {
                     if let nutrition = candidate.nutrition {
-                        Text("Serving basis: \(nutrition.basisMl.formatted()) mL")
+                        Text("Serving basis: \(units.volume(nutrition.basisMl))")
                         if let sodium = nutrition.sodiumMg { Text("Sodium: \(sodium.formatted()) mg per serving") }
                         if let carbs = nutrition.carbohydrateG { Text("Carbohydrate: \(carbs.formatted()) g per serving") }
                         ForEach(nutrition.provenance, id: \.self) { Text($0).font(.caption).textSelection(.enabled) }
@@ -66,9 +64,11 @@ struct RecognitionConfirmationView: View {
         .navigationTitle("Confirm beverage")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { inputFocused = false }.accessibilityIdentifier("photoKeyboardDone")
+            if inputFocused {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { inputFocused = false }.accessibilityIdentifier("photoKeyboardDone")
+                }
             }
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(saving) }
             ToolbarItem(placement: .confirmationAction) {
@@ -79,7 +79,7 @@ struct RecognitionConfirmationView: View {
         .interactiveDismissDisabled(saving)
     }
     @MainActor private func save() async {
-        guard valid, confirmed, let capacity = Int(container), let amount = Int(consumed), !saving else { return }
+        guard valid, confirmed, let capacity = CanonicalQuantityInput.wholeMilliliters(container), let amount = CanonicalQuantityInput.wholeMilliliters(consumed), !saving else { return }
         saving = true; error = nil
         defer { saving = false }
         do {

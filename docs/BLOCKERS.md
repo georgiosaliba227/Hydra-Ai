@@ -1,6 +1,20 @@
 # Hydra AI blockers
 
-## November 3 — latest remaining gaps
+## Latest remaining gaps after the US-unit installation
+
+The US/automatic-context update is installed and owner-assisted setup passes.
+The saved phone connection has a fresh automated physical pass; 217 native tests
+and six Simulator flows pass. These earlier hardware gaps are closed within that
+scope. Actual unattended background delivery and a populated own-record Meta flow
+are not established by those tests.
+
+The owner added profile-guided starting-goal calculation. Evidence and privacy
+design are in progress; height/weight/supplements cannot become invented numerical
+adjustments. Genuine manual calibration and independent personal accuracy evidence
+remain absent. Existing financial uncertainty is accepted under the recorded owner
+waiver, with holds/limits and other admission gates retained.
+
+## Earlier November 3 gaps — before the US-unit update
 
 - **Remaining iPhone checks:** the HealthKit-signed original bundle is installed.
   One actual physical UI test passes for backend readiness, billing disclosure

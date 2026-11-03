@@ -15,7 +15,7 @@ final class WorkoutFlowUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token,
                                  "HYDRA_SAMPLE_HEALTH_WORKOUTS": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
 
@@ -45,7 +45,7 @@ final class WorkoutFlowUITests: XCTestCase {
         let consent = app.switches["weatherConsent"]
         XCTAssertTrue(consent.exists)
         XCTAssertEqual(consent.value as? String, "0", "Weather consent is off by default")
-        type("22", into: "Temperature, °C", in: app)
+        type("22", into: "Temperature", in: app)
         type("55", into: "Humidity, %", in: app)
         if app.buttons["Done"].exists { app.buttons["Done"].tap() }
 
@@ -93,7 +93,7 @@ final class WorkoutFlowUITests: XCTestCase {
         XCTAssertTrue(unavailable.label.contains("isn't set up on this backend"), unavailable.label)
         let preview = app.descendants(matching: .any).matching(identifier: "workoutWonderPreview").firstMatch
         XCTAssertTrue(preview.exists)
-        XCTAssertTrue(app.staticTexts["What would be sent to Meta"].exists)
+        XCTAssertTrue(app.staticTexts["What would be sent to Meta (canonical mL/°C)"].exists)
         XCTAssertFalse(app.buttons["workoutWonderExplain"].exists, "Nothing can be sent from a mock backend")
         XCTAssertFalse(app.switches["workoutWonderConsent"].exists)
         attach(app, "Wonder explains this workout on a mock backend")
@@ -107,7 +107,7 @@ final class WorkoutFlowUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token, "HYDRA_SAMPLE_HEALTH_WORKOUTS": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Insights"].tap()
@@ -120,7 +120,7 @@ final class WorkoutFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["experimentalPersonalModelNotice"].label.contains("may perform worse"))
         let last = app.buttons["useLastWorkout"]; reveal(last, in: app); last.tap()
         XCTAssertTrue(app.staticTexts["workoutProvenance"].waitForExistence(timeout: 10))
-        type("22", into: "Temperature, °C", in: app); type("55", into: "Humidity, %", in: app)
+        type("22", into: "Temperature", in: app); type("55", into: "Humidity, %", in: app)
         if app.buttons["Done"].exists { app.buttons["Done"].tap() }
         let estimate = app.buttons["estimateWorkout"]; reveal(estimate, in: app); estimate.tap()
         let selection = app.staticTexts["runtimeLearningSelection"]
@@ -165,7 +165,7 @@ final class WorkoutFlowUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": "http://127.0.0.1:19998",
                                  "HYDRA_TEST_API_TOKEN": "synthetic-calibration-ui-token-not-a-secret"]
-        app.launch()
+        app.launchHydra()
         addTeardownBlock { app.terminate() }
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
@@ -181,7 +181,7 @@ final class WorkoutFlowUITests: XCTestCase {
         model.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
         XCTAssertEqual(model.value as? String, "1")
         type("60", into: "Duration, min", in: app)
-        type("22", into: "Temperature, °C", in: app)
+        type("22", into: "Temperature", in: app)
         type("55", into: "Humidity, %", in: app)
         if app.buttons["Done"].exists { app.buttons["Done"].tap() }
         let conditions = app.switches["Conditions match my past measurements"]

@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 /// Saving is a separate explicit choice from using measurements for one backend estimate.
 struct CalibrationHistorySection: View {
+    @EnvironmentObject private var units: DisplayUnits
     @ObservedObject var history: CalibrationHistoryStore
     let session: [WorkoutForecastRequest.Sample]
     let use: ([WorkoutForecastRequest.Sample]) -> Void
@@ -90,9 +91,9 @@ struct CalibrationHistorySection: View {
         let m = sample.measurement, e = sample.errors, c = sample.conditions
         Text("Manual measurement · comparable dry weighing confirmed")
             .font(.caption.weight(.semibold))
-        Text("Conditions reviewed at entry: \(c.temperature_c.formatted()) °C · \(c.humidity_percent.formatted())% humidity")
-        Text("Weight before \(m.pre_mass_kg.formatted()) ± \(e.pre_mass_kg.formatted()) kg; after \(m.post_mass_kg.formatted()) ± \(e.post_mass_kg.formatted()) kg")
-        Text("Drank \(m.consumed_ml.formatted()) ± \(e.consumed_ml.formatted()) mL; urine \(m.urine_ml.formatted()) ± \(e.urine_ml.formatted()) mL")
+        Text("Conditions reviewed at entry: \(units.temperature(c.temperature_c)) · \(c.humidity_percent.formatted())% humidity")
+        Text("Weight before \(units.mass(m.pre_mass_kg)) ± \(units.mass(e.pre_mass_kg)); after \(units.mass(m.post_mass_kg)) ± \(units.mass(e.post_mass_kg))")
+        Text("Drank \(units.volume(m.consumed_ml)) ± \(units.volume(e.consumed_ml)); urine \(units.volume(m.urine_ml)) ± \(units.volume(e.urine_ml))")
         Text("Measured duration \(m.duration_minutes.formatted()) ± \(e.duration_minutes.formatted()) min")
         Text("User-entered manual weighing. User-reported instrument error bounds. These are observations for calibration, not a measurement of total body hydration.")
             .font(.caption).foregroundStyle(.secondary)

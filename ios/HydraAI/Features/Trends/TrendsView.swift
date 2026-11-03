@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Muse Wonder explains the user's own 14-day trends. The exact data is shown before anything is sent.
 struct TrendsView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = WonderTrendsController()
     @State private var consent = false
@@ -60,7 +61,7 @@ struct TrendsView: View {
                 Label("Muse Wonder 1.0", systemImage: "sparkles")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.hydraTint)
-                Text(result.summary)
+                Text(Self.summary(result, system: units.system))
                     .font(.title3.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("trendsSummary")
@@ -72,7 +73,7 @@ struct TrendsView: View {
                     IconBadge(systemName: Self.symbol(for: insight.id))
                     VStack(alignment: .leading, spacing: 4) {
                         Text(insight.title).font(.headline)
-                        Text(insight.text)
+                        Text(units.text(insight.text))
                             .font(.subheadline)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("trendsInsight-\(insight.id)")
@@ -101,6 +102,12 @@ struct TrendsView: View {
         }
     }
 
+    static func summary(_ result: WonderTrends, system: DisplayUnitSystem) -> String { system.displayText(result.summary) }
+    static func canonicalFacts(_ facts: TrendFacts) -> String {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return (try? encoder.encode(facts)).map { String(decoding: $0, as: UTF8.self) } ?? "Exact facts unavailable; do not send."
+    }
+
     private static func symbol(for insight: String) -> String {
         switch insight {
         case "week_over_week": "arrow.left.arrow.right"
@@ -124,12 +131,12 @@ struct TrendsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 SectionTitle("What would be sent to Meta")
                 VStack(alignment: .leading, spacing: 0) {
-                    factRow("Last 7 days", "\(facts.last_7_days.total_ml.formatted()) mL · \(facts.last_7_days.logged_days) of 7 days logged")
+                    factRow("Last 7 days", "\(units.volume(facts.last_7_days.total_ml)) · \(facts.last_7_days.logged_days) of 7 days logged")
                     Divider()
-                    factRow("Previous 7 days", "\(facts.previous_7_days.total_ml.formatted()) mL · \(facts.previous_7_days.logged_days) of 7 days logged")
+                    factRow("Previous 7 days", "\(units.volume(facts.previous_7_days.total_ml)) · \(facts.previous_7_days.logged_days) of 7 days logged")
                     if let goal = facts.goal_ml, let met = facts.goal_met_days_last_7 {
                         Divider()
-                        factRow("Your goal", "\(goal.formatted()) mL · reached \(met) of the last 7 days")
+                        factRow("Your goal", "\(units.volume(goal)) · reached \(met) of the last 7 days")
                     }
                     if !facts.categories.isEmpty {
                         Divider()
@@ -139,6 +146,11 @@ struct TrendsView: View {
                 .hydraCard(padding: 14)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("trendsPreview")
+                HydraDisclosure(title: "Exact canonical facts to be shared (mL)", identifier: "trendsCanonicalFacts") {
+                    Text(Self.canonicalFacts(facts))
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                }
                 Text("Daily totals, drink types, times of day and your goal for the 14 days through \(facts.through_date). Nothing else.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

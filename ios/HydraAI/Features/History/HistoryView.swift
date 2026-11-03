@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HistoryView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @State private var editing: BeverageLog?
     @State private var pendingDeletion: BeverageLog?
@@ -58,7 +59,7 @@ struct HistoryView: View {
                     HStack {
                         Text(Calendar.current.isDateInToday(day) ? "Today" : day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                         Spacer()
-                        Text("\(dayLogs.reduce(0) { $0 + $1.consumedMl }.formatted()) mL")
+                        Text("\(units.volume(dayLogs.reduce(0) { $0 + $1.consumedMl }))")
                             .monospacedDigit()
                     }
                 } footer: {
@@ -75,7 +76,7 @@ struct HistoryView: View {
         .confirmationDialog("Delete this beverage?", isPresented: Binding(
             get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } }
         ), titleVisibility: .visible, presenting: pendingDeletion) { log in
-            Button("Delete \(log.consumedMl.formatted()) mL \(log.category)", role: .destructive) {
+            Button("Delete \(units.volume(log.consumedMl)) \(log.category)", role: .destructive) {
                 Task { await delete(log) }
             }
         } message: { _ in

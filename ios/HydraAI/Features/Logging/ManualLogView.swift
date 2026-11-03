@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct ManualLogView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @Environment(\.dismiss) private var dismiss
 
     @State private var category = "Water"
-    @State private var volumeText = ""
+    @State private var volumeMl: Double?
     @State private var consumedAt = Date()
     @State private var isSaving = false
     @State private var errorMessage: String?
@@ -14,8 +15,7 @@ struct ManualLogView: View {
     private let volumePresets = [150, 250, 330, 500]
 
     private var parsedVolumeMl: Int? {
-        guard let value = Int(volumeText), value > 0 else { return nil }
-        return value
+        CanonicalQuantityInput.wholeMilliliters(volumeMl)
     }
 
     var body: some View {
@@ -44,20 +44,13 @@ struct ManualLogView: View {
             }
 
             Section {
-                HStack {
-                    TextField("Amount", text: $volumeText)
-                        .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
-                        .keyboardType(.numberPad)
-                        .font(.title2.weight(.semibold).monospacedDigit())
-                        .accessibilityLabel("Consumed beverage volume in milliliters")
-                        .accessibilityIdentifier("consumedVolume")
-                    Text("mL").foregroundStyle(.secondary).accessibilityHidden(true)
-                }
+                CanonicalQuantityField("Consumed beverage volume", value: $volumeMl, quantity: .volume, accessibilityIdentifier: "consumedVolume")
+                    .font(.title2.weight(.semibold).monospacedDigit())
                 HStack(spacing: 8) {
                     ForEach(volumePresets, id: \.self) { preset in
                         let selected = parsedVolumeMl == preset
-                        Button { volumeText = String(preset) } label: {
-                            Text("\(preset)")
+                        Button { volumeMl = Double(preset) } label: {
+                            Text(units.format(Double(preset), quantity: .volume, includeUnit: false))
                                 .font(.subheadline.weight(.semibold).monospacedDigit())
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .foregroundStyle(selected ? Color.white : Color.hydraTint)
@@ -65,7 +58,7 @@ struct ManualLogView: View {
                                 .contentShape(Capsule())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("\(preset) milliliters")
+                        .accessibilityLabel(units.volumeAccessibility(preset))
                         .accessibilityAddTraits(selected ? .isSelected : [])
                     }
                 }

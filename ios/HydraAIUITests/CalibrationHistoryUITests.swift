@@ -7,22 +7,22 @@ final class CalibrationHistoryUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": "http://127.0.0.1:19998",
                                  "HYDRA_TEST_API_TOKEN": "synthetic-calibration-ui-token-not-a-secret"]
-        app.launch()
+        app.launchHydra()
         openForecast(app)
         let deleteAll = app.buttons["deleteAllCalibrationHistory"]
         reveal(deleteAll, app)
         deleteAll.tap()
         app.buttons.matching(NSPredicate(format: "label == %@", "Delete all saved manual measurements")).allElementsBoundByIndex.first(where: { $0.isHittable })!.tap()
         top(app)
-        type("22", field: "Temperature, °C", app); done(app)
+        type("22", field: "Temperature", app); done(app)
         type("55", field: "Humidity, %", app)
         done(app)
         let addGroup = app.buttons["Add a measured workout"]
         reveal(addGroup, app); addGroup.tap()
-        for (field, value) in [("Weight before, kg", "70"), ("Weight after, kg", "69.6"),
-                               ("Drank during, mL", "200"), ("Urine during, mL", "10"),
-                               ("Measured duration, min", "45"), ("Each weighing ±, kg", "0.05"),
-                               ("Amount drunk ±, mL", "10"), ("Urine ±, mL", "1"), ("Duration ±, min", "1")] {
+        for (field, value) in [("Weight before", "70"), ("Weight after", "69.6"),
+                               ("Drank during", "200"), ("Urine during", "10"),
+                               ("Measured duration, min", "45"), ("Each weighing ±", "0.05"),
+                               ("Amount drunk ±", "10"), ("Urine ±", "1"), ("Duration ±, min", "1")] {
             type(value, field: field, app); done(app)
         }
         let protocolConsent = app.switches["calibrationProtocolConfirmed"]
@@ -47,7 +47,7 @@ final class CalibrationHistoryUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["calibrationHistoryMessage"].label.contains("saved on this iPhone"), app.staticTexts["calibrationHistoryMessage"].label)
         attach(app, "Explicit local manual calibration save")
 
-        app.terminate(); app.launch()
+        app.terminate(); app.launchHydra()
         openForecast(app)
         let savedCount = app.descendants(matching: .any).matching(identifier: "savedCalibrationCount").firstMatch
         reveal(savedCount, app)
@@ -67,7 +67,7 @@ final class CalibrationHistoryUITests: XCTestCase {
         top(app); reveal(savedCount, app)
         XCTAssertEqual(savedCount.value as? String, "0")
         attach(app, "Restored manual history deleted with no restored consent")
-        app.terminate(); app.launch(); openForecast(app); reveal(savedCount, app)
+        app.terminate(); app.launchHydra(); openForecast(app); reveal(savedCount, app)
         XCTAssertEqual(savedCount.value as? String, "0")
     }
     private func openForecast(_ app: XCUIApplication) {

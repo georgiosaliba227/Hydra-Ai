@@ -56,6 +56,8 @@ struct WorkoutDraft: Equatable {
         let temperature: String
         let humidity: String
         let provenance: String
+        var requestedTime: Date?
+        var forecastHour: Date?
     }
 
     static let activities = ["running", "cycling", "walking", "strength", "other"]
@@ -70,6 +72,7 @@ struct WorkoutDraft: Equatable {
     /// The Open-Meteo provenance, while the form still shows its temperature and humidity.
     var weatherProvenance: String? {
         guard let appliedWeather, appliedWeather.temperature == temperature, appliedWeather.humidity == humidity else { return nil }
+        if let requested = appliedWeather.requestedTime, requested != startsAt { return nil }
         return appliedWeather.provenance
     }
 
@@ -104,14 +107,33 @@ struct WorkoutDraft: Equatable {
     mutating func applyWeatherSuggestion(_ suggestion: WorkoutContextDraft) {
         guard let temperatureC = suggestion.temperatureC, let humidityPercent = suggestion.humidityPercent,
               let provenance = suggestion.weatherProvenance else { return }
+        if let requested = suggestion.weatherRequestedTime, requested != startsAt { return }
+        if let hour = suggestion.weatherForecastHour, abs(hour.timeIntervalSince(startsAt)) > 90 * 60 { return }
         applyWeather(temperatureC: temperatureC, humidityPercent: humidityPercent)
-        appliedWeather = AppliedWeather(temperature: temperature, humidity: humidity, provenance: provenance)
+        appliedWeather = AppliedWeather(temperature: temperature, humidity: humidity, provenance: provenance,
+                                        requestedTime: suggestion.weatherRequestedTime, forecastHour: suggestion.weatherForecastHour)
     }
 
     /// Weather consent withdrawn: clear values that still came from Open-Meteo; keep anything the user typed.
     mutating func clearAppliedWeather() {
-        if weatherProvenance != nil { temperature = ""; humidity = "" }
+        if let appliedWeather {
+            if appliedWeather.temperature == temperature { temperature = "" }
+            if appliedWeather.humidity == humidity { humidity = "" }
+        }
         appliedWeather = nil
+    }
+
+    /// An automatic reply may fill only the still-untouched form it was requested for.
+    mutating func applyAutomaticWorkout(_ suggestion: WorkoutContextDraft, unchangedSince original: WorkoutDraft) -> Bool {
+        guard self == original, duration.isEmpty, appliedWorkout == nil else { return false }
+        applyLastWorkout(suggestion)
+        return appliedWorkout != nil
+    }
+
+    mutating func applyAutomaticWeather(_ suggestion: WorkoutContextDraft, unchangedSince original: WorkoutDraft) -> Bool {
+        guard self == original, temperature.isEmpty, humidity.isEmpty else { return false }
+        applyWeatherSuggestion(suggestion)
+        return appliedWeather != nil
     }
 
     /// Text the form's parser reads back in any locale: no grouping, "." decimals.
@@ -188,6 +210,9 @@ extension WorkoutContextProvider {
 /// Guided flow: try the demo, or 1. your workout → 2. conditions → 3. your estimate.
 struct WorkoutForecastView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
+    @EnvironmentObject private var dailyContext: DailyContextCoordinator
+    @EnvironmentObject private var context: WorkoutContextProvider
     @StateObject private var controller = WorkoutForecastController()
     @StateObject private var wonder = RecordedWonderController()
     @StateObject private var analysis = HydrationAnalysisController()
@@ -207,9 +232,11 @@ struct WorkoutForecastView: View {
     @State private var lastRequestWasDemo = true
     @FocusState private var focusedField: String?
     /// Apple Health workouts (on device) and, with consent, Open-Meteo weather.
-    @StateObject private var context = WorkoutContextProvider.live()
     @State private var workoutTask: Task<Void, Never>?
     @State private var weatherTask: Task<Void, Never>?
+    @State private var isFetchingPlannedWeather = false
+    @State private var plannedWeatherMessage: String?
+    @State private var automaticContextTask: Task<Void, Never>?
     /// "Wonder explains this workout": preview at the user's backend, then one consented request.
     @StateObject private var explainer = WonderWorkoutController()
     @State private var explainerTask: Task<Void, Never>?
@@ -246,7 +273,7 @@ struct WorkoutForecastView: View {
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
-            Spacer(); Button("Done") { focusedField = nil }
+            if focusedField != nil { Spacer(); Button("Done") { focusedField = nil } }
         } }
         .onChange(of: draft) { previous, next in
             var consentOnly = previous; consentOnly.consent = next.consent
@@ -254,15 +281,36 @@ struct WorkoutForecastView: View {
                 invalidate(); draft.consent = false
                 if previous.workflow != next.workflow { invalidateWonder() }
             }
+            if previous.startsAt != next.startsAt {
+                if draft.appliedWeather?.requestedTime != next.startsAt { draft.clearAppliedWeather() }
+                context.invalidateWeather(for: next.startsAt)
+                plannedWeatherMessage = nil
+            }
             inputError = nil
         }
-        .onAppear { if connected { try? store.calibrationHistory.reload() } }
+        .onAppear {
+            if connected { try? store.calibrationHistory.reload() }
+            let original = draft
+            automaticContextTask = Task {
+                await dailyContext.refreshIfNeeded()
+                guard !Task.isCancelled else { return }
+                if dailyContext.healthAutoEnabled, context.workoutState == .loaded {
+                    _ = draft.applyAutomaticWorkout(context.draft, unchangedSince: original)
+                }
+                let weatherDraft = draft
+                guard dailyContext.weatherAutoEnabled,
+                      weatherDraft.temperature.isEmpty, weatherDraft.humidity.isEmpty,
+                      let suggestion = await dailyContext.plannedWeatherSuggestion(startsAt: weatherDraft.startsAt),
+                      !Task.isCancelled else { return }
+                _ = draft.applyAutomaticWeather(suggestion, unchangedSince: weatherDraft)
+            }
+        }
         .onChange(of: store.configurationGeneration) { _, _ in
             invalidate(); invalidateWonder(); draft.consent = false; draft.experimentalPersonalModel = false; samples = []; inputError = nil
         }
         .onDisappear {
             invalidate(); invalidateWonder(); samples = []; draft = WorkoutDraft()
-            workoutTask?.cancel(); weatherTask?.cancel(); context.clear()
+            workoutTask?.cancel(); weatherTask?.cancel(); automaticContextTask?.cancel()
         }
     }
 
@@ -369,7 +417,7 @@ struct WorkoutForecastView: View {
                 Toggle(isOn: Binding(get: { context.isWeatherConsentGranted }, set: setWeatherConsent)) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Use my location to fill in the weather")
-                        Text("Your approximate location (rounded to about 1 km) goes to Open-Meteo, only when you tap Fill in the weather.")
+                        Text("This manual option sends your rounded approximate area to Open-Meteo when you tap Fill in the weather. Automatic weather has its own setting.")
                             .font(.caption).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -378,15 +426,16 @@ struct WorkoutForecastView: View {
                 Button { fillWeather() } label: {
                     HStack {
                         Label("Fill in the weather", systemImage: "cloud.sun")
-                        if context.weatherState == .loading { Spacer(); ProgressView() }
+                        if context.weatherState == .loading || isFetchingPlannedWeather { Spacer(); ProgressView() }
                     }
                 }
-                .disabled(!context.canFillWeather)
+                .disabled(isFetchingPlannedWeather || (!context.canFillWeather && !dailyContext.weatherAutoEnabled))
                 .accessibilityIdentifier("fillWeather")
                 if case .failed(let message) = context.weatherState {
                     Text(message).font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("weatherError")
                 }
+                if let plannedWeatherMessage { Text(plannedWeatherMessage).font(.footnote).foregroundStyle(.secondary) }
                 if let provenance = draft.weatherProvenance {
                     Text(provenance).font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("weatherProvenance")
@@ -476,8 +525,13 @@ struct WorkoutForecastView: View {
         if case .failed(let message) = controller.state { Text(message).foregroundStyle(.secondary) }
     }
 
-    private func numberField(_ title: String, unit: String, text: Binding<String>, signed: Bool = false) -> some View {
-        LabeledContent {
+    @ViewBuilder private func numberField(_ title: String, unit: String, text: Binding<String>, signed: Bool = false) -> some View {
+        if let quantity = quantity(for: unit) {
+            LabeledContent(title) { CanonicalQuantityField(title, value: Binding(
+                get: { Double(text.wrappedValue.replacingOccurrences(of: ",", with: ".")) },
+                set: { text.wrappedValue = $0.map { String($0) } ?? "" }
+            ), quantity: quantity).multilineTextAlignment(.trailing) }
+        } else { LabeledContent {
             HStack(spacing: 4) {
                 TextField("0", text: text)
                     .multilineTextAlignment(.trailing)
@@ -488,6 +542,15 @@ struct WorkoutForecastView: View {
             }
         } label: {
             Text(title)
+        } }
+    }
+
+    private func quantity(for unit: String) -> DisplayQuantity? {
+        switch unit {
+        case "mL": .volume
+        case "kg": .mass
+        case "°C": .temperature
+        default: nil
         }
     }
 
@@ -549,7 +612,7 @@ struct WorkoutForecastView: View {
             Label("Muse Wonder 1.0", systemImage: "sparkles")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(Color.hydraTint)
-            Text(result.summary)
+            Text(units.text(result.summary))
                 .font(.title3.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("workoutWonderSummary")
@@ -560,7 +623,7 @@ struct WorkoutForecastView: View {
                 IconBadge(systemName: Self.insightSymbol(insight.id))
                 VStack(alignment: .leading, spacing: 4) {
                     Text(insight.title).font(.headline)
-                    Text(insight.text)
+                    Text(units.text(insight.text))
                         .font(.subheadline)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("workoutWonderInsight-\(insight.id)")
@@ -589,7 +652,7 @@ struct WorkoutForecastView: View {
     @ViewBuilder private func wonderPreview(_ preview: WorkoutWonderPreview) -> some View {
         let facts = preview.facts
         VStack(alignment: .leading, spacing: 8) {
-            Text("What would be sent to Meta").font(.headline)
+            Text("What would be sent to Meta (canonical mL/°C)").font(.headline)
             factRow("Planned workout", Self.plannedText(facts.planned))
             factRow("Your previous sessions", Self.historyText(facts.history, activity: facts.planned.activity))
             if let typical = Self.typicalText(facts.history) { factRow("Your typical session", typical) }
@@ -717,10 +780,21 @@ struct WorkoutForecastView: View {
 
     /// Looks up the weather only with consent, for the hour nearest the planned start.
     private func fillWeather() {
-        guard context.canFillWeather else { return }
+        guard !isFetchingPlannedWeather, context.canFillWeather || dailyContext.weatherAutoEnabled else { return }
         weatherTask?.cancel()
+        let startsAt = draft.startsAt
+        isFetchingPlannedWeather = true
+        plannedWeatherMessage = nil
         weatherTask = Task {
-            guard let suggestion = await context.weatherSuggestion(startsAt: draft.startsAt), !Task.isCancelled else { return }
+            defer { isFetchingPlannedWeather = false }
+            let suggestion = dailyContext.weatherAutoEnabled
+                ? await dailyContext.plannedWeatherSuggestion(startsAt: startsAt)
+                : await context.weatherSuggestion(startsAt: startsAt)
+            guard !Task.isCancelled, startsAt == draft.startsAt else { return }
+            guard let suggestion else {
+                plannedWeatherMessage = "Weather for this planned time could not be updated. You can enter the conditions yourself."
+                return
+            }
             draft.applyWeatherSuggestion(suggestion)
         }
     }
@@ -857,7 +931,7 @@ struct WorkoutForecastView: View {
                     Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.bold())
                         .foregroundStyle(Color.hydraTint)
                     ForEach(Array(texts.enumerated()), id: \.offset) { _, text in
-                        Text(text).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                        Text(units.text(text)).font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -881,10 +955,27 @@ struct WorkoutForecastView: View {
         .foregroundStyle(.secondary)
     }
 
-    /// Millilitre factors as whole mL; everything else as the backend reported it.
-    nonisolated static func factorText(key: String, _ factor: WorkoutForecast.Factor) -> String {
-        if case .number(let value) = factor, key.hasSuffix("_ml") { return "\(HydraFormat.milliliters(value)) mL" }
-        return factor.display
+    /// Typed presentation only; saved factors and exact canonical disclosures remain unchanged.
+    nonisolated static func factorText(key: String, _ factor: WorkoutForecast.Factor,
+                                       system: DisplayUnitSystem = .metric) -> String {
+        guard case .number(let value) = factor, let quantity = factorQuantity(key: key) else { return factor.display }
+        if quantity == .volume { return system.volumeFact(value, key: key) }
+        return system.number(value, quantity: quantity) + " " + system.symbol(for: quantity)
+    }
+
+    nonisolated static func factorLabel(key: String, system: DisplayUnitSystem = .metric) -> String {
+        guard let quantity = factorQuantity(key: key), let separator = key.lastIndex(of: "_") else {
+            return key.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+        return key[..<separator].replacingOccurrences(of: "_", with: " ").capitalized
+            + " (" + system.symbol(for: quantity) + ")"
+    }
+
+    nonisolated private static func factorQuantity(key: String) -> DisplayQuantity? {
+        if key.hasSuffix("_ml") { return .volume }
+        if key.hasSuffix("_kg") { return .mass }
+        if key.hasSuffix("_c"), key.contains("temperature") { return .temperature }
+        return nil
     }
 
     /// A backend UTC timestamp shown as a local date and time; the raw text if it can't be read.
@@ -902,12 +993,12 @@ struct WorkoutForecastView: View {
         Section {
             if let value = result.valueMl, let lower = result.lowerMl, let upper = result.upperMl {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(HydraFormat.milliliters(value)) mL")
+                    Text(units.volume(value))
                         .font(.system(.largeTitle, design: .rounded).bold())
                         .foregroundStyle(Color.hydraTint)
-                        .accessibilityLabel("Estimated exercise sweat loss: \(HydraFormat.milliliters(value)) mL")
+                        .accessibilityLabel("Estimated exercise sweat loss: \(units.volume(value))")
                         .accessibilityIdentifier("workoutPrediction")
-                    Text("estimated sweat loss · research envelope \(HydraFormat.milliliterRange(lower, upper))")
+                    Text("estimated sweat loss · research envelope \(units.range(lower, upper))")
                         .accessibilityIdentifier("workoutPredictionRange")
                         .font(.subheadline)
                     Text(result.synthetic
@@ -951,8 +1042,8 @@ struct WorkoutForecastView: View {
                 LabeledContent("Measurements used", value: result.sampleCount.formatted())
                 LabeledContent("Model", value: result.modelVersion)
                 ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
-                    LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized,
-                                   value: Self.factorText(key: key, result.inputFactors[key]!))
+                    LabeledContent(Self.factorLabel(key: key, system: units.system),
+                                   value: Self.factorText(key: key, result.inputFactors[key]!, system: units.system))
                 }
                 ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source).font(.caption) }
                 ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in
@@ -976,7 +1067,7 @@ struct WorkoutForecastView: View {
             if let explanation = result.mockExplanation {
                 DisclosureGroup("Meta explanation integration · mock only") {
                     Text("No live Meta request was made. These are reviewed local explanation fixtures.").font(.caption)
-                    ForEach(Array(explanation.explanations.enumerated()), id: \.offset) { _, text in Text(text).font(.footnote) }
+                    ForEach(Array(explanation.explanations.enumerated()), id: \.offset) { _, text in Text(units.text(text)).font(.footnote) }
                 }
                 .font(.footnote)
             }

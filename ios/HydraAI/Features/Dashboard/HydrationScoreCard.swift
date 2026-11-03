@@ -7,6 +7,7 @@ import SwiftUI
 }
 
 struct HydrationScoreCard: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @ObservedObject var history: CalibrationHistoryStore
     static let meaning = "Logged goal alignment, consistency and measurement support — not hydration status or a drinking requirement."
@@ -33,7 +34,7 @@ struct HydrationScoreCard: View {
                         scorePart("Consistency", points: facts.components.consistency_points, maximum: 30)
                         scorePart("Measurements", points: facts.components.measurement_points, maximum: 20)
                     }
-                    Text("\(facts.local_date) · current chosen goal \(facts.goal_ml) mL")
+                    Text("\(facts.local_date) · current chosen goal \(units.volume(facts.goal_ml))")
                         .font(.caption).foregroundStyle(.secondary)
                 case .goalRequired:
                     Text("Choose your own logged-drink goal to calculate this research score.")
@@ -72,6 +73,7 @@ struct HydrationScoreCard: View {
 }
 
 struct HydrationScoreDetailsView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @ObservedObject var history: CalibrationHistoryStore
     @StateObject private var wonder = HydrationScoreWonderController()
@@ -93,8 +95,8 @@ struct HydrationScoreDetailsView: View {
                         LabeledContent("Research score", value: "\(facts.score)/100")
                         LabeledContent("Local date", value: facts.local_date)
                         LabeledContent("Timezone", value: facts.timezone)
-                        LabeledContent("Current chosen goal", value: "\(facts.goal_ml) mL")
-                        LabeledContent("Today's logged volume", value: "\(HydraFormat.milliliters(facts.today_ml)) mL")
+                        LabeledContent("Current chosen goal", value: "\(units.volume(facts.goal_ml))")
+                        LabeledContent("Today's logged volume", value: "\(units.volume(facts.today_ml))")
                         LabeledContent("Today points", value: "\(HydrationScoreCard.points(facts.components.today_points))/50")
                         LabeledContent("Consistency points", value: "\(HydrationScoreCard.points(facts.components.consistency_points))/30")
                         LabeledContent("Valid manual sessions", value: "\(facts.measurement_count)")
@@ -103,7 +105,7 @@ struct HydrationScoreDetailsView: View {
                     }
                     Section("Previous local dates") {
                         ForEach(facts.previous_days, id: \.local_date) { day in
-                            LabeledContent(day.local_date, value: day.logged ? "\(HydraFormat.milliliters(day.total_ml)) mL logged" : "No logs · actual intake unknown")
+                            LabeledContent(day.local_date, value: day.logged ? "\(units.volume(day.total_ml)) logged" : "No logs · actual intake unknown")
                         }
                         Text("Your current goal is the retrospective reference for every date here. Historical goal versions are unavailable. Extra volume above the goal earns no extra points.").font(.caption)
                     }
@@ -143,7 +145,7 @@ struct HydrationScoreDetailsView: View {
             if wonder.state == .loading { ProgressView("Preparing exact score facts…") }
             if case .failed(let message) = wonder.state { Text(message).font(.footnote) }
             if let preview = wonder.preview {
-                HydraDisclosure(title: "Exact score facts to be shared", identifier: "scoreWonderExactFacts") {
+                HydraDisclosure(title: "Exact canonical score facts to be shared (mL)", identifier: "scoreWonderExactFacts") {
                     Text(Self.json(preview.facts)).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
                 }
                 Text("Reference token cost bound: \(HydraFormat.usd(micro: Double(preview.worst_case_micro_usd))). Provider extras and final charges may be unverified.").font(.caption)
@@ -170,7 +172,7 @@ struct HydrationScoreDetailsView: View {
                 Text("Wonder selects and ranks reviewed wording; Hydra computes the figures.").font(.caption)
                 Text("Snapshot: \(result.facts.local_date) · \(result.facts.timezone)").font(.caption)
                 ForEach(result.insights) { insight in
-                    VStack(alignment: .leading, spacing: 3) { Text(insight.title).font(.subheadline.weight(.medium)); Text(insight.text).font(.subheadline) }
+                    VStack(alignment: .leading, spacing: 3) { Text(insight.title).font(.subheadline.weight(.medium)); Text(units.text(insight.text)).font(.subheadline) }
                 }
                 ForEach(result.limitations, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
             }

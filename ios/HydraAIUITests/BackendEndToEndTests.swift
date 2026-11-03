@@ -11,7 +11,7 @@ final class BackendEndToEndTests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
         let save = app.buttons["saveConnection"]
@@ -20,7 +20,7 @@ final class BackendEndToEndTests: XCTestCase {
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 20), "Backend summary must be loaded before logging.")
-        guard let value = total.value as? String, let initial = Int(value) else {
+        guard let initial = total.metricMillilitersValue else {
             XCTFail("Daily total must expose its integer mL value."); return
         }
         XCTAssertTrue(app.staticTexts["historyCoverage"].waitForExistence(timeout: 15), "History-only forecast must load from the combined backend")
@@ -33,14 +33,14 @@ final class BackendEndToEndTests: XCTestCase {
         XCTAssertTrue(volume.waitForExistence(timeout: 10))
         volume.tap(); volume.typeText("125")
         app.buttons["saveBeverage"].tap()
-        let updated = String(initial + 125)
+        let updated = "\(initial + 125) mL"
         let updatedExpectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", updated), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [updatedExpectation], timeout: 20), .completed, "Server total must increase by the actual consumed amount.")
 
         // Do not pass connection overrides again: success requires saved URL + Keychain.
         app.terminate()
         app.launchEnvironment = [:]
-        app.launch()
+        app.launchHydra()
         let restored = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(restored.waitForExistence(timeout: 20))
         let persistence = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", updated), object: restored)
@@ -54,13 +54,13 @@ final class BackendEndToEndTests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 15))
-        let initial = try XCTUnwrap(Int(total.value as? String ?? ""))
+        let initial = try XCTUnwrap(total.metricMillilitersValue)
         app.tabBars.buttons["Camera"].tap()
         let header = app.staticTexts["recognitionHeader"]
         XCTAssertTrue(header.waitForExistence(timeout: 10))
@@ -93,7 +93,7 @@ final class BackendEndToEndTests: XCTestCase {
         XCTAssertTrue(save.isEnabled); save.tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Today"].tap()
-        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", String(initial + 125)), object: total)
+        let expected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "\(initial + 125) mL"), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [expected], timeout: 20), .completed)
     }
 

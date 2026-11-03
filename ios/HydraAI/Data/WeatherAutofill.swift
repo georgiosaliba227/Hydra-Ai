@@ -75,7 +75,7 @@ enum WeatherAutofillError: LocalizedError, Equatable {
 // MARK: - Consent
 
 /// The stored "Use my location to fill in the weather" preference. Off by default.
-/// Granting it is the only thing that allows a location lookup and the Open-Meteo request.
+/// Grants tap-initiated lookups only. DailyContextPreferences holds the separate automatic opt-in.
 @MainActor
 final class WeatherLocationConsentStore {
     static let key = "hydra.weatherLocationConsent"
@@ -97,6 +97,17 @@ final class WeatherLocationConsentStore {
 protocol ApproximateLocationProvider: AnyObject {
     /// Requests when-in-use permission if needed, then returns one reduced-accuracy fix, rounded.
     func approximateCoordinate() async throws -> RoundedCoordinate
+    /// Never requests permission. Automatic foreground refresh only; background uses a saved area.
+    func approximateCoordinateWithoutPrompt() async throws -> RoundedCoordinate
+    var hasExistingAuthorization: Bool { get }
+}
+
+extension ApproximateLocationProvider {
+    // Existing manual-only providers fail closed for automatic use.
+    var hasExistingAuthorization: Bool { false }
+    func approximateCoordinateWithoutPrompt() async throws -> RoundedCoordinate {
+        throw WeatherAutofillError.locationDenied
+    }
 }
 
 /// When-in-use, reduced-accuracy, one-shot location. No continuous updates, nothing is stored.
@@ -112,12 +123,25 @@ final class CoreLocationApproximateLocationProvider: NSObject, ApproximateLocati
         manager.desiredAccuracy = kCLLocationAccuracyReduced
     }
 
+    var hasExistingAuthorization: Bool {
+        manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways
+    }
+
+    func approximateCoordinateWithoutPrompt() async throws -> RoundedCoordinate {
+        guard hasExistingAuthorization else { throw WeatherAutofillError.locationDenied }
+        return try await coordinate(requestPermission: false)
+    }
+
     func approximateCoordinate() async throws -> RoundedCoordinate {
+        try await coordinate(requestPermission: true)
+    }
+
+    private func coordinate(requestPermission: Bool) async throws -> RoundedCoordinate {
         guard authorizationContinuation == nil, locationContinuation == nil else {
             throw WeatherAutofillError.locationUnavailable
         }
         var status = manager.authorizationStatus
-        if status == .notDetermined {
+        if status == .notDetermined && requestPermission {
             status = await withCheckedContinuation { continuation in
                 authorizationContinuation = continuation
                 manager.requestWhenInUseAuthorization()

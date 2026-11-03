@@ -10,7 +10,7 @@ final class HydrationScoreUITests: XCTestCase {
             throw XCTSkip("Requires disposable synthetic Home score backend")
         }
         let app = XCUIApplication(); app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch(); addTeardownBlock { app.terminate() }
+        app.launchHydra(); addTeardownBlock { app.terminate() }
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
