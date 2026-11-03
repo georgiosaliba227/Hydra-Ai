@@ -347,6 +347,9 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         canonical = payload.model_dump(mode="json", exclude_none=True)
         canonical["consumed_at"] = utc_string(payload.consumed_at)
         fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        replay=request.app.state.repository.replay("local-demo",str(idempotency_key),fingerprint)
+        if replay is not None:
+            return JSONResponse(replay,status_code=200)
         provenance = ["user_confirmed_manual"] if payload.source == "manual" else ["user_confirmed_photo", "recognition-v1:mock"]
         local_receipt = (request.app.state.repository.local_recognition("local-demo",str(payload.recognition_id))
                          if payload.recognition_id is not None else None)

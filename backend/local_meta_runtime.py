@@ -1,5 +1,6 @@
 """Credential-free, bounded local native workers; temporary photos are never logs."""
 from contextlib import contextmanager
+from contextvars import ContextVar
 import fcntl
 import json
 import os
@@ -17,6 +18,7 @@ from .local_meta import ADAPTER_SHA256, BASE_ID, BASE_REVISION
 BINARY_SHA256 = '59f248a701f4486c64ab122edfda0d5295d12e89f07766d3199140e715d2c9dd'
 PROOF_SHA256 = '4054d969789f644ea36594bca2acbb109b5b2a2b1249fa150dd2c68ce2a38d9d'
 ENCODER_SHA256 = '777f849b425a75d6e1910686cb8e41f9f71cdce4721c0ef5aba953571e190791'
+_request_fd: ContextVar[int | None] = ContextVar('local_camera_request_fd',default=None)
 
 
 @contextmanager
@@ -25,7 +27,9 @@ def request_lock(path: Path):
     try:
         try: fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError: raise ValueError('local_runtime_busy') from None
-        yield
+        token=_request_fd.set(fd)
+        try: yield
+        finally: _request_fd.reset(token)
     finally:
         os.close(fd)
 
@@ -37,7 +41,11 @@ def run_bounded(command: list[str], *, timeout: float) -> None:
     # Do not inherit provider credentials or the phone's backend token.
     env={key:os.environ[key] for key in ('HOME','TMPDIR','LANG') if key in os.environ}
     env['PATH']='/usr/bin:/bin:/usr/sbin:/sbin'
-    child=subprocess.Popen(command,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    lease=_request_fd.get()
+    # The child retains the same flock even if its backend parent is killed.
+    # Startup cannot remove its inputs or admit another camera while it runs.
+    child=subprocess.Popen(command,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
+                           pass_fds=() if lease is None else (lease,))
     deadline=time.monotonic()+timeout
     try:
         while child.poll() is None:

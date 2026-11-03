@@ -4,6 +4,8 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
+import time
 
 import pytest
 
@@ -57,3 +59,29 @@ def test_decoder_command_binds_the_actual_encoded_cache_bytes(tmp_path):
     args=native_cache_arguments(descriptor)
     assert args[args.index('--feature-cache')+1]==str(descriptor)
     assert args[args.index('--feature-cache-sha256')+1]=='ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
+
+
+def test_orphan_worker_keeps_request_locked_after_backend_death(tmp_path):
+    from backend.local_meta_runtime import request_lock
+    lock=tmp_path/'lock';pid=tmp_path/'worker-pid'
+    worker='import os,time,sys;open(sys.argv[1],"w").write(str(os.getpid()));time.sleep(10)'
+    parent='''from pathlib import Path
+import sys
+from backend.local_meta_runtime import request_lock,run_bounded
+with request_lock(Path(sys.argv[1])):
+ run_bounded([sys.executable,'-c',sys.argv[3],sys.argv[2]],timeout=15)
+'''
+    process=subprocess.Popen([sys.executable,'-c',parent,str(lock),str(pid),worker])
+    worker_pid=None
+    try:
+        deadline=time.monotonic()+5
+        while not pid.exists() and time.monotonic()<deadline: time.sleep(.02)
+        assert pid.exists(),'Worker did not start'
+        worker_pid=int(pid.read_text());process.kill();process.wait(timeout=2)
+        with pytest.raises(ValueError,match='local_runtime_busy'):
+            with request_lock(lock): pass
+    finally:
+        if process.poll() is None: process.kill();process.wait()
+        if worker_pid is not None:
+            try: os.kill(worker_pid,15)
+            except ProcessLookupError: pass

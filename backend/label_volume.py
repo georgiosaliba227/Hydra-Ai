@@ -36,3 +36,11 @@ def label_capacity_ml(text: str | None) -> int | None:
                 return None
             sizes.add(int(value))
     return sizes.pop() if len(sizes)==1 else None
+
+
+def label_capacity_evidence(text: str, capacity: int | None) -> str | None:
+    """Return only literal supported unit spans, never unrelated OCR sentences."""
+    if capacity is None or label_capacity_ml(text)!=capacity:
+        return None
+    spans=dict.fromkeys(match[0] for match in _METRIC.finditer(text) if label_capacity_ml(match[0])==capacity)
+    return " / ".join(spans) or None

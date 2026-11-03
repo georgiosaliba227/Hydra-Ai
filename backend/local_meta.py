@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, ValidationError
 
-from .label_volume import label_capacity_ml
+from .label_volume import label_capacity_ml, label_capacity_evidence
 from .meta_images import sanitized_jpeg
 from .recognition import AnalysisRequest, AnalysisResult, Candidate, LOCAL_MODEL, RecognitionUnavailable
 
@@ -44,8 +44,7 @@ def local_result(prediction: dict, label_text: str) -> AnalysisResult:
         capacity = printed if printed is not None and printed == value.capacity_ml else None
         # Keep unit/size context only. OCR can also see private background text;
         # it must not become a durable recognition receipt or correction label.
-        evidence = "\n".join(line for line in label_text.splitlines() if re.search(
-            r"\d\s*(?:m[lL]\b|[lL]\b|lit(?:er|re)|millilit)|\b(?:net|servings?|portions?|nutrition|per)\b|\d\s*[x×]",line,re.I))
+        evidence = label_capacity_evidence(label_text,capacity)
         reasons = ["Local trained Meta suggestion; verify the brand, variant and printed size",
                    "Printed capacity is not measured liquid or the amount consumed"]
         if capacity is None:

@@ -178,6 +178,20 @@ class BeverageRepository:
         except sqlite3.Error:
             raise StorageUnavailable() from None
 
+    def replay(self, owner: str, key: str, fingerprint: str) -> dict | None:
+        """Read a durable replay before validating an ephemeral model receipt."""
+        try:
+            with closing(self._connect()) as connection:
+                row=connection.execute("SELECT fingerprint,record_json FROM beverages WHERE owner=? AND idempotency_key=?",(owner,key)).fetchone()
+            if row is None:
+                return None
+            record=_decode(row[1])
+            if row[0]!=fingerprint or record.get("deleted"):
+                raise IdempotencyConflict()
+            return record
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
     def list_all(self, owner: str) -> list[dict]:
         """Read one complete owned snapshot; pagination is a backend concern."""
         try:
@@ -233,9 +247,15 @@ class BeverageRepository:
                 connection.execute("BEGIN IMMEDIATE")
                 connection.execute("INSERT INTO local_recognition_receipts VALUES (?,?,?,?)",
                                    (receipt["recognition_id"],owner,receipt["created_at"],json.dumps(receipt,allow_nan=False)))
-                connection.execute("""DELETE FROM local_recognition_receipts WHERE owner=? AND id NOT IN (
-                    SELECT id FROM local_recognition_receipts WHERE owner=? ORDER BY created_at DESC,id DESC LIMIT 100
-                )""",(owner,owner))
+                connection.execute("""WITH confirmed(id) AS (
+                    SELECT json_extract(record_json,'$.recognition_id') FROM beverages
+                    WHERE owner=? AND json_type(record_json,'$.recognition_id')='text'
+                ), recent(id) AS (
+                    SELECT id FROM local_recognition_receipts WHERE owner=? AND id NOT IN (SELECT id FROM confirmed)
+                    ORDER BY created_at DESC,id DESC LIMIT 100
+                ) DELETE FROM local_recognition_receipts WHERE owner=?
+                    AND id NOT IN (SELECT id FROM confirmed) AND id NOT IN (SELECT id FROM recent)
+                """,(owner,owner,owner))
         except (sqlite3.Error,TypeError,ValueError):
             raise StorageUnavailable() from None
 
@@ -359,5 +379,10 @@ class BeverageRepository:
                     (tombstone, owner, beverage_id),
                 )
                 self._delete_feedback(connection,owner,beverage_id)
+                if self.feedback_enabled and current.get("recognition_id"):
+                    connection.execute("""DELETE FROM local_recognition_receipts WHERE owner=? AND id=?
+                        AND NOT EXISTS (SELECT 1 FROM beverages WHERE owner=?
+                            AND json_extract(record_json,'$.recognition_id')=?)""",
+                        (owner,current["recognition_id"],owner,current["recognition_id"]))
         except sqlite3.Error:
             raise StorageUnavailable() from None

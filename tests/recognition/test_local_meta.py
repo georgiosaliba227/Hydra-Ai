@@ -88,6 +88,55 @@ def test_ocr_background_text_is_not_returned_or_kept_with_the_result():
     assert label=='1 LITER'
 
 
+def test_generic_ocr_context_does_not_retain_private_background_sentences():
+    from backend.local_meta import local_result
+    result=local_result(prediction(),'Synthetic Jane takes medication twice per day\nNet private chat\n1 LITER')
+    assert result.candidates[0].visible_label_text=='1 LITER'
+
+
+def test_confirmed_receipt_survives_unconfirmed_eviction_and_replays_after_restart(local_camera):
+    client,path,_=local_camera
+    result=client.post('/v1/recognitions',headers=AUTH,json=photo()).json()
+    key=str(uuid4());body=confirmation(result)
+    first=client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body)
+    assert first.status_code==201,first.text
+    for _ in range(105):
+        response=client.post('/v1/recognitions',headers=AUTH,json=photo())
+        assert response.status_code==200
+    restarted=TestClient(create_app(path,TOKEN))
+    replay=restarted.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body)
+    assert replay.status_code==200,replay.text
+    assert replay.json()==first.json()
+    assert len(restarted.get('/v1/export',headers=AUTH).json()['local_recognition_receipts'])==101
+
+
+def test_durable_confirmation_replay_does_not_depend_on_an_auxiliary_receipt(local_camera):
+    import sqlite3
+    client,path,_=local_camera
+    result=client.post('/v1/recognitions',headers=AUTH,json=photo()).json()
+    key=str(uuid4());body=confirmation(result)
+    first=client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body)
+    assert first.status_code==201
+    with sqlite3.connect(path) as db: db.execute('DELETE FROM local_recognition_receipts')
+    replay=client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body)
+    assert replay.status_code==200,replay.text
+    assert replay.json()==first.json()
+    conflict=client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body|{'category':'Different water'})
+    assert conflict.status_code==409
+
+
+def test_deleting_confirmed_drink_removes_its_local_receipt_without_resurrection(local_camera):
+    client,_,_=local_camera
+    result=client.post('/v1/recognitions',headers=AUTH,json=photo()).json()
+    key=str(uuid4());body=confirmation(result)
+    first=client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body)
+    assert first.status_code==201
+    deleted=client.delete('/v1/beverages/'+first.json()['id'],headers=AUTH)
+    assert deleted.status_code==204,deleted.text
+    assert client.get('/v1/export',headers=AUTH).json()['local_recognition_receipts']==[]
+    assert client.post('/v1/beverages',headers=AUTH|{'Idempotency-Key':key},json=body).status_code==409
+
+
 def test_local_receipts_and_photos_follow_data_deletion(local_camera):
     client,path,_=local_camera
     assert client.post('/v1/recognitions',headers=AUTH,json=photo()).status_code==200
