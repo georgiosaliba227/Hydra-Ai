@@ -8,12 +8,14 @@ struct HydrationAnalysis: Decodable, Sendable {
         let interval_kind: String, personalization_status: String
         let sample_count: Int
         let synthetic: Bool
+        let learning: PersonalRuntimeLearning?
+        let research_only: Bool?
         func matches(_ forecast: WorkoutForecast) -> Bool {
             version == forecast.version && status == forecast.status && model_version == forecast.modelVersion
                 && quantity == forecast.quantity && units == forecast.units && value_ml == forecast.valueMl
                 && lower_ml == forecast.lowerMl && upper_ml == forecast.upperMl && interval_kind == forecast.intervalKind
                 && sample_count == forecast.sampleCount && synthetic == forecast.synthetic
-                && personalization_status == forecast.personalizationStatus
+                && personalization_status == forecast.personalizationStatus && learning == forecast.learning && research_only == forecast.researchOnly
         }
     }
     struct Intake: Decodable, Sendable {
@@ -74,21 +76,41 @@ struct HydrationAnalysis: Decodable, Sendable {
     let wonder: Wonder
     let limitations: [String]
 
-    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast) throws {
+    private enum CodingKeys: String, CodingKey {
+        case version, generated_at, timezone, mode, text_origin, research_only, numerical_forecast
+        case intake, exercise_accounting, environmental_context, calibration, missing_inputs, sections, wonder, limitations
+        case learning
+    }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        // Learning belongs only to numerical_forecast, never a second unbound analysis root.
+        guard !c.contains(.learning) else { throw ServiceError.invalidResponse }
+        version = try c.decode(String.self, forKey: .version); generated_at = try c.decode(String.self, forKey: .generated_at)
+        timezone = try c.decode(String.self, forKey: .timezone); mode = try c.decode(String.self, forKey: .mode)
+        text_origin = try c.decode(String.self, forKey: .text_origin); research_only = try c.decode(Bool.self, forKey: .research_only)
+        numerical_forecast = try c.decode(Numerical.self, forKey: .numerical_forecast)
+        intake = try c.decode(Intake.self, forKey: .intake); exercise_accounting = try c.decode(Accounting.self, forKey: .exercise_accounting)
+        environmental_context = try c.decode(Environment.self, forKey: .environmental_context)
+        calibration = try c.decode(Calibration.self, forKey: .calibration)
+        missing_inputs = try c.decode([String].self, forKey: .missing_inputs); sections = try c.decode([Section].self, forKey: .sections)
+        wonder = try c.decode(Wonder.self, forKey: .wonder); limitations = try c.decode([String].self, forKey: .limitations)
+    }
+
+    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast, workflow: ForecastWorkflow = .legacy) throws {
         try request.validate()
-        try forecast.validate(request: request)
+        try forecast.validate(request: request, workflow: workflow)
         let synthetic = mode == "synthetic_demo"
         func nonnegative(_ value: Double?) -> Bool { value.map { $0.isFinite && $0 >= 0 } ?? true }
         func bounded(_ values: [String], count: Int = 64, length: Int = 1000) -> Bool {
             values.count <= count && values.allSatisfy { !$0.isEmpty && $0.count <= length }
         }
-        guard version == "hydration-analysis-v1", timezone == request.timezone, mode == request.mode,
+        guard version == (workflow.isRuntime ? "hydration-analysis-v3" : "hydration-analysis-v1"), timezone == request.timezone, mode == request.mode,
               research_only, text_origin == "deterministic_local",
               (generated_at.hasSuffix("Z") || generated_at.hasSuffix("+00:00")),
               CalibrationHistoryValidation.date(generated_at) != nil, numerical_forecast.matches(forecast),
               intake.timezone == timezone, intake.completeness == "unverified",
               let start = CalibrationHistoryValidation.date(intake.start_utc),
-              let end = CalibrationHistoryValidation.date(intake.end_utc), start <= end,
+              let end = CalibrationHistoryValidation.date(intake.end_utc), DateOrdering.notAfter(start, end),
               intake.local_date.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil,
               nonnegative(intake.beverage_volume_ml), nonnegative(intake.water_ml),
               nonnegative(intake.composition.sodium_mg), nonnegative(intake.composition.potassium_mg),
@@ -180,6 +202,9 @@ struct HydrationAnalysis: Decodable, Sendable {
                   numberMatches(activity["duration_minutes"], exercise?.duration_minutes)
             else { throw ServiceError.invalidResponse }
         }
+        if workflow.isRuntime {
+            guard wonder.preview == nil, wonder.saved == nil, wonder.status == "not_applicable" else { throw ServiceError.invalidResponse }
+        }
         if let preview = wonder.preview {
             guard wonder.status == "preview_only", !synthetic, request.exercise != nil,
                   preview.version == "wonder-workout-v1", preview.facts.isValid,
@@ -202,12 +227,12 @@ struct HydrationAnalysis: Decodable, Sendable {
     @Published private(set) var state: LoadState = .idle
     private var generation = UUID()
     func invalidate() { generation = UUID(); result = nil; state = .idle }
-    func load(_ request: WorkoutForecastRequest, forecast: WorkoutForecast, service: any BeverageService) async {
+    func load(_ request: WorkoutForecastRequest, forecast: WorkoutForecast, service: any BeverageService, workflow: ForecastWorkflow = .legacy) async {
         guard !Task.isCancelled else { return }
         invalidate(); let current = generation; state = .loading
         do {
-            let result = try await service.hydrationAnalysis(request)
-            try result.validate(request: request, forecast: forecast)
+            let result = try await (workflow.isRuntime ? service.hydrationAnalysisV3(request) : service.hydrationAnalysis(request))
+            try result.validate(request: request, forecast: forecast, workflow: workflow)
             guard generation == current, !Task.isCancelled else { return }
             self.result = result; state = .loaded
         } catch {

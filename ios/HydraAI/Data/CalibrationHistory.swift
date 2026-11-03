@@ -32,7 +32,7 @@ enum CalibrationHistoryValidation {
         guard samples.count <= 32 else { throw CalibrationHistoryError.limit }
         var events = Set<UUID>(), instants = Set<Date>()
         for sample in samples {
-            guard let observed = date(sample.observed_at), observed <= now else { throw CalibrationHistoryError.invalid }
+            guard let observed = date(sample.observed_at), DateOrdering.notAfter(observed, now) else { throw CalibrationHistoryError.invalid }
             guard events.insert(sample.event_id).inserted, instants.insert(observed).inserted else { throw CalibrationHistoryError.duplicate }
             let c = sample.conditions, m = sample.measurement, e = sample.errors
             func valid(_ value: Double, _ lower: Double, _ upper: Double) -> Bool { value.isFinite && (lower...upper).contains(value) }

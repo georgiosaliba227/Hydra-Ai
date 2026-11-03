@@ -99,6 +99,62 @@ final class WorkoutFlowUITests: XCTestCase {
         attach(app, "Wonder explains this workout on a mock backend")
     }
 
+    func testExperimentalModelRequiresExplicitChoiceAndResetsItsReviewWhenSwitched() throws {
+        continueAfterFailure = false
+        let environment = ProcessInfo.processInfo.environment
+        guard let backend = environment["HYDRA_E2E_BACKEND_URL"], let token = environment["HYDRA_E2E_API_TOKEN"], token.count >= 32 else {
+            throw XCTSkip("Requires opt-in local synthetic-data backend")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token, "HYDRA_SAMPLE_HEALTH_WORKOUTS": "1"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
+        app.tabBars.buttons["Insights"].tap()
+        let card = app.buttons["insightsWorkout"]; reveal(card, in: app); card.tap()
+        let model = app.switches["experimentalPersonalModel"]
+        reveal(model, in: app)
+        XCTAssertEqual(model.value as? String, "0", "The existing baseline stays the default")
+        model.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertEqual(model.value as? String, "1")
+        XCTAssertTrue(app.staticTexts["experimentalPersonalModelNotice"].label.contains("may perform worse"))
+        let last = app.buttons["useLastWorkout"]; reveal(last, in: app); last.tap()
+        XCTAssertTrue(app.staticTexts["workoutProvenance"].waitForExistence(timeout: 10))
+        type("22", into: "Temperature, °C", in: app); type("55", into: "Humidity, %", in: app)
+        if app.buttons["Done"].exists { app.buttons["Done"].tap() }
+        let estimate = app.buttons["estimateWorkout"]; reveal(estimate, in: app); estimate.tap()
+        let selection = app.staticTexts["runtimeLearningSelection"]
+        reveal(selection, in: app, attempts: 10)
+        XCTAssertEqual(selection.label, "Baseline retained", "Cold start is an honest v3 abstention/fallback")
+        XCTAssertFalse(app.staticTexts["workoutWonderPlaceholder"].exists)
+        attach(app, "Opt-in experimental runtime retains baseline without measurements")
+        let consent = app.switches["richAnalysisBackendConsent"]; reveal(consent, in: app, attempts: 12)
+        XCTAssertEqual(consent.value as? String, "0")
+        let prepare = app.buttons["prepareRichAnalysis"]; XCTAssertFalse(prepare.isEnabled)
+        consent.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap(); prepare.tap()
+        let preview = app.staticTexts["richAnalysisPreview"]; reveal(preview, in: app, attempts: 10)
+        XCTAssertTrue(preview.exists)
+        let unavailable = app.staticTexts["richAnalysisUnavailable"]; reveal(unavailable, in: app, attempts: 14)
+        XCTAssertTrue(unavailable.label.contains("isn't enabled"))
+        XCTAssertFalse(app.buttons["explainRichAnalysis"].exists)
+        XCTAssertFalse(app.switches["richAnalysisMetaConsent"].exists)
+        attach(app, "V3 detailed preview is explicitly reviewed with live dispatch disabled")
+        for _ in 0..<18 {
+            if model.exists && model.isHittable { break }
+            app.swipeDown()
+        }
+        XCTAssertTrue(model.isHittable)
+        model.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertEqual(model.value as? String, "0")
+        let calibrationConsent = app.switches["workoutCalibrationConsent"]; reveal(calibrationConsent, in: app)
+        XCTAssertEqual(calibrationConsent.value as? String, "0")
+        reveal(estimate, in: app)
+        XCTAssertFalse(app.staticTexts["runtimeLearningSelection"].exists)
+        XCTAssertFalse(app.staticTexts["richAnalysisPreview"].exists)
+        XCTAssertFalse(app.switches["richAnalysisMetaConsent"].exists)
+        attach(app, "Changing the model clears results and all review consent")
+    }
+
     /// Form rows below the fold are created lazily; scroll until the element is on screen.
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, attempts: Int = 6) {
         for _ in 0..<attempts {

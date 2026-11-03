@@ -351,6 +351,28 @@ actor HTTPBeverageService: BeverageService {
         return response
     }
 
+    func workoutForecastV3(_ payload: WorkoutForecastRequest) async throws -> WorkoutForecast {
+        try payload.validate()
+        let result: WorkoutForecast = try await richAnalysisPost("v3/workout-forecasts", body: JSONEncoder().encode(payload))
+        try result.validate(request: payload, workflow: .experimentalRuntime)
+        return result
+    }
+    func hydrationAnalysisV3(_ payload: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        try payload.validate()
+        return try await richAnalysisPost("v3/hydration-analysis", body: JSONEncoder().encode(payload))
+    }
+    func wonderAnalysisPreviewV3(_ payload: WorkoutForecastRequest) async throws -> WonderAnalysisPreview {
+        try payload.validate()
+        return try await richAnalysisPost("v3/wonder/analysis/preview", body: JSONEncoder().encode(payload))
+    }
+    func explainHydrationAnalysisV3(_ payload: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse {
+        try payload.forecast.validate()
+        guard payload.forecast.mode == "personal", validAnalysisHash(payload.payload_sha256) else { throw ServiceError.invalidResponse }
+        let response: WonderAnalysisResponse = try await richAnalysisPost("v3/wonder/analysis", body: JSONEncoder().encode(payload))
+        try response.result.validate()
+        guard response.result.payload_sha256 == payload.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
     func wonderAnalysisPreview(_ payload: WorkoutForecastRequest) async throws -> WonderAnalysisPreview {
         try payload.validate()
         return try await richAnalysisPost("v1/wonder/analysis/preview", body: JSONEncoder().encode(payload))

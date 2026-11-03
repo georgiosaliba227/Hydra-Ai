@@ -75,7 +75,7 @@ enum WonderAnalysisRenderer {
             "trends_timing": context != nil && timing > 0,
             "trends_calibration": (number("calibration", "comparable_samples") ?? 0) > 0,
             "uncertainty_missing": missing,
-            "uncertainty_history": text("forecast", "interval_kind") == "historical_error_envelope",
+            "uncertainty_history": ["historical_error_envelope", "personal_runtime_measurement_error_envelope"].contains(text("forecast", "interval_kind") ?? ""),
             "uncertainty_actual": actual, "uncertainty_synthetic": synthetic,
             "uncertainty_accounting": accounting, "uncertainty_no_accounting": !accounting,
             "measurement_comparable": true,

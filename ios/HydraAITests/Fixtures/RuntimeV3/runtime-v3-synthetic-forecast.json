@@ -1,0 +1,84 @@
+{
+  "version": "workout-forecast-v1",
+  "status": "estimated",
+  "model_version": "synthetic-workout-demo-v1",
+  "quantity": "estimated_sweat_loss",
+  "units": "mL",
+  "value_ml": 281.00120877211225,
+  "lower_ml": 0.0,
+  "upper_ml": 683.2725278674206,
+  "interval_kind": "synthetic_participant_split_conformal",
+  "data_sufficiency": "synthetic_demo_only",
+  "personalization_status": "simulated_population_only",
+  "sample_count": 0,
+  "provenance": [
+    "Hydra synthetic mass-balance scenarios v1, seed 8317; targets simulated; baseline covariates bootstrapped from attributed real training anchors",
+    "https://data.mendeley.com/datasets/jt22782wjh/1",
+    "CC BY 4.0"
+  ],
+  "input_factors": {
+    "duration_minutes": 60.0,
+    "pre_mass_kg": 70.0,
+    "age_years": 30.0,
+    "temperature_c": 24.0,
+    "humidity_percent": 50.0,
+    "intensity": "moderate"
+  },
+  "limitations": [
+    "Not a drinking target or daily fluid requirement.",
+    "Not clinically validated; unmeasured mass changes remain unresolved.",
+    "No dehydration diagnosis or adjustment from HR, HRV, caffeine or creatine.",
+    "Synthetic targets; baseline covariates come from deidentified study training anchors. No physiological validation.",
+    "Synthetic interval coverage says nothing about real-world accuracy.",
+    "Only duration, initial body mass and age enter this model; temperature, humidity and intensity are context only."
+  ],
+  "synthetic": true,
+  "generated_at": "2026-11-03T15:00:00+00:00",
+  "timezone": "UTC",
+  "mode": "synthetic_demo",
+  "mock_explanation": {
+    "version": "hydration-explanation-v1",
+    "mode": "mock",
+    "provider": null,
+    "model": null,
+    "account_id": null,
+    "attempt_id": null,
+    "context": {
+      "version": "hydration-context-v1",
+      "synthetic": true,
+      "disclosure_consent": true,
+      "beverage_total_ml": 0.0,
+      "estimated_water_ml": null,
+      "workout_minutes": 60,
+      "workout_intensity": "moderate",
+      "temperature_c": 24.0,
+      "humidity_percent": 50.0,
+      "estimated_sweat_loss_ml": 281.00120877211225,
+      "creatine_reported": null,
+      "feedback": "missing",
+      "intake_pattern": "missing",
+      "method": "hydration-accounting-v1"
+    },
+    "signals": [
+      "review_intake",
+      "activity_context",
+      "weather_context",
+      "composition_missing"
+    ],
+    "discarded_signal_count": 0,
+    "explanations": [
+      "Review confirmed beverage intake alongside your activity and feedback.",
+      "Activity and weather provide context; they do not establish dehydration or a fluid prescription.",
+      "Reported temperature and humidity add context; weather alone does not determine fluid needs.",
+      "Missing verified beverage composition limits water and electrolyte estimates."
+    ],
+    "prediction": null,
+    "missing_information": [
+      "estimated_water_ml",
+      "creatine_reported",
+      "feedback",
+      "intake_pattern"
+    ]
+  },
+  "explanation_policy": "Meta_may_explain_reviewed_results_only_no_numeric_recalculation"
+}

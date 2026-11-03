@@ -45,7 +45,7 @@ extension WonderAnalysisFacts {
         }
         let forecast = values["forecast"]!.object!, intake = values["intake"]!.object!
         try require(["estimated", "insufficient_data"].contains(forecast["status"]?.text ?? ""))
-        try require(["historical_error_envelope", "conditional_measurement_envelope", "synthetic_participant_split_conformal", "synthetic_empirical_calibration_envelope"].contains(forecast["interval_kind"]?.text ?? ""))
+        try require(["historical_error_envelope", "conditional_measurement_envelope", "personal_runtime_measurement_error_envelope", "synthetic_participant_split_conformal", "synthetic_empirical_calibration_envelope"].contains(forecast["interval_kind"]?.text ?? ""))
         if forecast["status"] == .text("estimated") {
             let point = try number("forecast", "value_ml")!, lower = try number("forecast", "lower_ml")!, upper = try number("forecast", "upper_ml")!
             try require(lower <= point && point <= upper)

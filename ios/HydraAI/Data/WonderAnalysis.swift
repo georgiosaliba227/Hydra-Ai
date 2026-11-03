@@ -31,15 +31,15 @@ struct WonderAnalysisFacts: Codable, Equatable, Sendable {
     let values: [String: WonderAnalysisValue]
     init(from decoder: Decoder) throws { values = try decoder.singleValueContainer().decode([String: WonderAnalysisValue].self) }
     func encode(to encoder: Encoder) throws { var c = encoder.singleValueContainer(); try c.encode(values) }
-    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast) throws {
+    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast, workflow: ForecastWorkflow = .legacy) throws {
         try validateShape()
-        try request.validate(); try forecast.validate(request: request)
+        try request.validate(); try forecast.validate(request: request, workflow: workflow)
         guard values["mode"] == .text(request.mode),
               values["forecast"]?.object?["status"] == .text(forecast.status),
               values["forecast"]?.object?["interval_kind"] == .text(forecast.intervalKind),
-              matches(values["forecast"]?.object?["value_ml"], forecast.valueMl),
-              matches(values["forecast"]?.object?["lower_ml"], forecast.lowerMl),
-              matches(values["forecast"]?.object?["upper_ml"], forecast.upperMl),
+              matches(values["forecast"]?.object?["value_ml"], forecast.valueMl.map { workflow.isRuntime ? $0.rounded(.toNearestOrEven) : $0 }),
+              matches(values["forecast"]?.object?["lower_ml"], forecast.lowerMl.map { workflow.isRuntime ? floor($0) : $0 }),
+              matches(values["forecast"]?.object?["upper_ml"], forecast.upperMl.map { workflow.isRuntime ? ceil($0) : $0 }),
               values["calibration"]?.object?["total_samples"]?.number == Double(request.samples.count)
         else { throw ServiceError.invalidResponse }
         if request.mode == "personal" {
@@ -52,9 +52,9 @@ struct WonderAnalysisFacts: Codable, Equatable, Sendable {
             else { throw ServiceError.invalidResponse }
             if let comparison = values["workout_comparison"]?.object {
                 guard let exercise,
-                      comparison["planned_duration_minutes"]?.number == max(1, exercise.duration_minutes.rounded(.toNearestOrAwayFromZero)),
-                      comparison["planned_temperature_c"]?.number == exercise.conditions.temperature_c.rounded(.toNearestOrAwayFromZero),
-                      comparison["planned_humidity_percent"]?.number == exercise.conditions.humidity_percent.rounded(.toNearestOrAwayFromZero)
+                      comparison["planned_duration_minutes"]?.number == max(1, exercise.duration_minutes.rounded(.toNearestOrEven)),
+                      comparison["planned_temperature_c"]?.number == exercise.conditions.temperature_c.rounded(.toNearestOrEven),
+                      comparison["planned_humidity_percent"]?.number == exercise.conditions.humidity_percent.rounded(.toNearestOrEven)
                 else { throw ServiceError.invalidResponse }
             }
         }
@@ -80,6 +80,7 @@ struct WonderAnalysisResult: Decodable, Sendable {
 }
 struct WonderAnalysisPreview: Decodable, Sendable {
     let version: String, model: String, payload_sha256: String, status: String
+    let numerical_contract: String?
     let facts: WonderAnalysisFacts
     let explainable: Bool
     let reason: String?
@@ -88,8 +89,9 @@ struct WonderAnalysisPreview: Decodable, Sendable {
     let cost_estimate_policy: String
     let account_id: String?
     let saved: WonderAnalysisResult?
-    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast) throws {
-        try facts.validate(request: request, forecast: forecast)
+    func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast, workflow: ForecastWorkflow = .legacy) throws {
+        try facts.validate(request: request, forecast: forecast, workflow: workflow)
+        guard numerical_contract == (workflow.isRuntime ? "personal-runtime-api-v3" : nil) else { throw ServiceError.invalidResponse }
         guard version == "wonder-analysis-preview-v2", model == "muse-wonder-1.0", validAnalysisHash(payload_sha256),
               ["available", "unavailable"].contains(status), !verified_for_billing,
               cost_estimate_policy == "existing_reference_prices_not_a_verified_live_quote",
@@ -123,6 +125,7 @@ struct WonderAnalysisResponse: Decodable, Sendable {
     private var attemptedDigests: Set<String> = []
     private var generation = UUID()
     private var request: WorkoutForecastRequest?
+    private var activeWorkflow: ForecastWorkflow = .legacy
     var isQuarantined: Bool { preview.map { attemptedDigests.contains($0.payload_sha256) && result == nil } ?? false }
     var canOffer: Bool {
         guard let preview, request?.mode == "personal", preview.explainable, preview.live_available,
@@ -130,17 +133,17 @@ struct WonderAnalysisResponse: Decodable, Sendable {
         return !attemptedDigests.contains(preview.payload_sha256)
     }
     func invalidate() {
-        generation = UUID(); preview = nil; result = nil; state = .idle; request = nil
+        generation = UUID(); preview = nil; result = nil; state = .idle; request = nil; activeWorkflow = .legacy
         explaining = false; explainError = nil; replayed = false; resultSaved = false
     }
-    func loadPreview(_ request: WorkoutForecastRequest, forecast: WorkoutForecast, service: any BeverageService) async {
+    func loadPreview(_ request: WorkoutForecastRequest, forecast: WorkoutForecast, service: any BeverageService, workflow: ForecastWorkflow = .legacy) async {
         guard !Task.isCancelled else { return }
         invalidate(); let current = generation; state = .loading
         do {
-            let preview = try await service.wonderAnalysisPreview(request)
-            try preview.validate(request: request, forecast: forecast)
+            let preview = try await (workflow.isRuntime ? service.wonderAnalysisPreviewV3(request) : service.wonderAnalysisPreview(request))
+            try preview.validate(request: request, forecast: forecast, workflow: workflow)
             guard generation == current, !Task.isCancelled else { return }
-            self.request = request; self.preview = preview
+            self.request = request; self.preview = preview; self.activeWorkflow = workflow
             result = preview.saved; replayed = preview.saved != nil; resultSaved = preview.saved != nil
             state = .loaded
         } catch {
@@ -155,7 +158,8 @@ struct WonderAnalysisResponse: Decodable, Sendable {
         explaining = true; explainError = nil
         defer { if current == generation { explaining = false } }
         do {
-            let response = try await service.explainHydrationAnalysis(.init(forecast: request, payload_sha256: digest))
+            let payload = WorkoutExplanationRequest(forecast: request, payload_sha256: digest)
+            let response = try await (activeWorkflow.isRuntime ? service.explainHydrationAnalysisV3(payload) : service.explainHydrationAnalysis(payload))
             try response.result.validate()
             guard response.result.payload_sha256 == digest, response.result.facts == preview.facts,
                   response.result.provenance.account_id == preview.account_id else { throw ServiceError.invalidResponse }
