@@ -1,0 +1,35 @@
+{
+  "now": "2026-11-03T17:00:00+00:00",
+  "records": [
+    {
+      "consumed_at": "2026-10-28T12:00:00+00:00",
+      "consumed_ml": 250
+    },
+    {
+      "consumed_at": "2026-10-29T12:00:00+00:00",
+      "consumed_ml": 1000
+    },
+    {
+      "consumed_at": "2026-10-30T12:00:00+00:00",
+      "consumed_ml": 2200
+    },
+    {
+      "consumed_at": "2026-10-31T12:00:00+00:00",
+      "consumed_ml": 777
+    },
+    {
+      "consumed_at": "2026-11-02T12:00:00+00:00",
+      "consumed_ml": 1350
+    },
+    {
+      "consumed_at": "2026-11-03T12:00:00+00:00",
+      "consumed_ml": 725
+    }
+  ],
+  "goal_ml": 1800,
+  "request": {
+    "timezone": "America/New_York",
+    "measurement_count": 2,
+    "processing_consent": true
+  }
+}

@@ -11,7 +11,6 @@ from pydantic import Field, field_validator
 
 from ai.hydration.models import CalculationError
 from .hydration_analysis import build_analysis
-from .meta_experiments import ExperimentQuote
 from .recognition import RecognitionUnavailable
 from .wonder_results import load_analysis, save_result
 from . import wonder_analysis
@@ -79,7 +78,8 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
                         else "synthetic_live_dispatch_not_supported")
         config = app.state.wonder_live_config
         view.update(dispatch_supported=enabled,
-                    live_available=bool(enabled and view["explainable"] and config and app.state.wonder_trends_gateway),
+                    live_available=bool(enabled and view["explainable"] and config and app.state.wonder_trends_gateway
+                                        and config.readiness()["status"] == "ready"),
                     account_id=config.account if config else None, saved=None)
         if numerical_contract is not None:
             view["numerical_contract"] = numerical_contract
@@ -111,9 +111,11 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
             factory, config = app.state.wonder_trends_gateway, app.state.wonder_live_config
             if not enabled or factory is None or config is None:
                 return error_response("wonder_unavailable", 503, request_id)
+            if config.financial_policy == "owner_accepted_risk" and config.readiness()["status"] != "ready":
+                return error_response("wonder_blocked", 409, request_id)
             gateway = factory()
             try:
-                quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
+                quote = config.read_quote()
                 result = gateway.explain_analysis(view["facts"], quote,
                     f"in-app-analysis-consent:{request_id}:{payload.payload_sha256}")
             except (RecognitionUnavailable, OSError, ValueError):
@@ -127,6 +129,12 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
                 saved = True
             except (OSError, ValueError):
                 saved = False
+                if hasattr(gateway, "record_save_failure"):
+                    try: gateway.record_save_failure()
+                    except Exception: pass
+            if saved and hasattr(gateway, "record_result_saved"):
+                try: gateway.record_result_saved(result)
+                except Exception: pass  # A publication audit failure cannot invalidate the saved file.
             return {"replayed": False, "saved": saved, "result": result}
         finally:
             app.state.wonder_lock.release()

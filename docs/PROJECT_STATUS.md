@@ -1,5 +1,54 @@
 # Hydra AI project status
 
+## November 3 — Home score, personal Wonder and actual Muse-guided training
+
+[PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
+`codex/wonder-personal-risk-admission`, is open with Amine requested as reviewer.
+It adds the owner-selected experimental Home
+score: 50 points for current chosen-goal alignment, 30 for recorded seven-day
+consistency and 20 for valid manual-session support. The weights are visible
+product rules, not physiological inference. Missing/corrupt sources remain
+unavailable; no goal is invented. The exact aggregate preview, separate Meta
+consent, strict reviewed-wording selection, free replay and export/deletion share
+the existing Wonder authority. See [score contract](architecture/HYDRATION_SCORE.md).
+
+The owner explicitly extended the billing-wait waiver to ongoing Wonder. The
+additive opt-in policy preserves every old row, frozen flag, hold and cutoff;
+unknown final billing and Amine status remain unverified. Valid usage plus
+checked-output/publication linkage is required before another request; failures,
+in-flight attempts and duplicate sends still block. Genuine account/pricing and
+GitHub notification-delivery observations were recorded privately. The owner's
+local backend now reports **ready** under this policy, with all-charge verification
+explicitly false. The earlier default-off operational statements below are
+historical. Default verified admission is unchanged.
+
+One actual public-only Muse request selected simulation weights, then the frozen
+pipeline trained **2,752 simulated records**. Selected random-forest synthetic
+test MAE is **80.26 mL** versus control **92.18 mL**; all five output files were
+reproduced byte-for-byte without another request. This is not improved real-person
+accuracy and is excluded from personal serving/history. Provider token estimate:
+**$0.005300**; actual final charge remains null and the $0.25 reservation stays
+held. See [actual run](MUSE_GUIDED_TRAINING_2026-11-03.md).
+
+Fresh verification: **1,509 pytest tests +32 subtests**, **167 XCTest**, and
+**four actual Simulator UI flows** pass: blocked readiness/rich preview, Home
+score 38→34 with goal-change consent reset, manual logging/relaunch persistence,
+and activated ready status with unverified billing disclosed. Read-only UI runs
+left financial ledger bytes unchanged. Independent backend/financial/ML reviews
+are resolved. The updated original-bundle app builds with valid HealthKit signing.
+The owner subsequently resumed physical checks: the updated original app is
+installed and **one actual physical UI test passes**, confirming phone-to-Mac
+readiness, unverified-billing disclosure and Home's own-goal-required state.
+Financial ledger bytes were unchanged; no paid action was tapped. The owner then
+reported successful real Health workout import and consented weather autofill on
+the phone. These are owner-assisted outcomes; populated personal screens and the
+actual own-record Meta flow remain pending. US units and automatic context setup
+are the owner's next requested changes;
+see the [scoped physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+No real personal calibration records exist, and the full actual
+personal-data Meta flow still needs its own in-app preview/consent and verification.
+No automatic merge or always-on deployment occurred.
+
 ## November 3 operational continuation — live synthetic Wonder
 
 The owner chose Simulator and explicitly waived prior billing waits for the

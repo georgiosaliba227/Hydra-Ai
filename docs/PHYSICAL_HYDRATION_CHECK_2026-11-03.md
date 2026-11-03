@@ -1,5 +1,61 @@
 # Physical hydration milestone verification
 
+## Latest continuation — original app installed and connected
+
+The owner later resumed physical checks and unlocked the connected iPhone 17 Pro
+(iOS 27.2). The complete original `com.georgiosaliba.hydraai` app was installed
+and launched successfully, with HealthKit entitlement intact and strict signature
+verification passing. The build uses the cached development profile for team
+`DH2JX3X8S9`; no repository signing identifiers or entitlements were changed.
+This supersedes the earlier installation-deferred status below.
+
+One actual physical UI test passed in **21.620 seconds**, with zero failures:
+`WonderReadinessUITests.testReadyOwnerRiskStatusStillDisclosesUnverifiedBillingWithoutDispatch`.
+It saved the owner backend connection, reached that backend from the phone,
+verified **Ready for a previewed, consented request**, checked the unverified-final-
+billing/token-only warning, and verified that Home asks for the owner's own goal
+instead of inventing one. No paid action was tapped, and financial ledger bytes
+were identical before and after the run. The first attempt failed before test
+initialization with LocalAuthentication cancellation while the phone was locked;
+the passing run followed the owner's explicit unlock, with no app-code change.
+
+The Mac's LAN address changed during the pause. The existing owner backend was
+restarted on the current interface, and genuinely observed account/pricing
+evidence was renewed using the existing standing waiver. Historical attempts,
+holds and finality values remain unchanged. No new provider request was made in
+this physical connection check. The app was then reopened without injected
+connection environment variables for owner-assisted HealthKit/weather checks.
+Connection persistence after that normal launch is not yet independently checked.
+
+The original bundle was updated without an uninstall or data reset. Its reported
+data-container absolute path changed across installation; this alone does not
+prove data loss. Apple documents container-path changes across updates and
+preservation of Documents/Library excluding Caches in
+[TN2285](https://developer.apple.com/library/archive/technotes/tn2285/_index.html).
+No pre-update content inventory exists, so byte-for-byte preservation of personal
+files is not claimed. Raw personal files were not copied to the Mac for this check.
+
+Private local evidence is retained under the owner-only operational directory:
+`physical-full-app-install.json`, `physical-full-app-launch.json`,
+`physical-ready-native-verification.json` (failed initialization), and
+`physical-ready-unlocked-native-verification.json` plus its `.xcresult` and log
+(passing run). Device diagnostics and screenshots are not committed or uploaded.
+
+The owner then completed the permission choices on the phone and reported
+**A real workout imports**. For the consented location/Open-Meteo check the owner
+reported that everything fills. These are **owner-assisted hardware outcomes**,
+separate from the automated connection test; no workout values, weather values
+or location were requested in chat or copied for the report. The owner requested
+US units and first-use setup with subsequent automatic context updates.
+
+Still unverified: populated Home score, final personal forecast/analysis screens,
+normal-launch backend connection persistence, and the actual own-record Meta
+preview/consent/result/replay flow. No real calibration measurements have been
+substituted with simulated training records. A future units/setup build needs
+its own post-change verification; these outcomes apply to the installed milestone.
+
+## Earlier signing-only continuation
+
 Later November 3 continuation: the original app identifier's cached development
 profile was found to include HealthKit and the paired phone. The complete updated
 app successfully built using automatic signing and that profile, without removing

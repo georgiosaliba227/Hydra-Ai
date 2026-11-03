@@ -1,6 +1,35 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 later physical direction (Georgio): the owner explicitly answered
+**"Proceed with iPhone checks"** and subsequently unlocked the device for testing.
+This supersedes the earlier Simulator-only preference for this continuation.
+The full HealthKit-signed original app is installed; one scoped physical UI
+connection/readiness check passes. Actual Health permission choices, workout
+import, consented weather and own-record Meta preview/consent remain separate
+checks. Do not uninstall/reset personal data or seed simulated personal records.
+See docs/PHYSICAL_HYDRATION_CHECK_2026-11-03.md.
+
+November 3 ongoing Wonder billing-wait override (Georgio, explicit later reply):
+to the question whether the waiver should cover the newly completed test and
+unverified billing on Amine's ledgers while every $0.25 reservation remains
+counted against the existing $30 allocation, the owner answered **"Extend the
+billing-wait waiver to ongoing Wonder"**. This supersedes only the invoice-wait
+and cross-ledger billing-status gates for explicitly configured owner-risk
+Wonder requests. Record a separate explicit boolean and genuine authorization
+reference; default policies retain the existing gates. Successful recorded
+`billing_pending` replies may proceed only with valid provider identity, checked
+usage and durable validated-output/publication linkage. Reserved/dispatched/
+sending attempts, nonlegacy unresolved attempts, missing or malformed usage,
+output rejection and publication failures still block. Never mark unknown
+Amine status clear, invent finality, reduce any old hold, reset spending or
+increase limits. Preserve all $0.25 holds, the original eight identity-bound
+waivers, frozen flag, $30 allocation, account cutoffs, no retries/duplicates and
+fresh account/key/price/exact-input-consent gates. The fixed synthetic training
+plan remains once only, with a $0.019308 published-token upper bound and
+separately accepted unverified extras. See
+docs/architecture/WONDER_PERSONAL_OWNER_POLICY.md.
+
 November 3 owner direction (Georgio): continue the current verification in Xcode
 Simulator; physical installation is deferred. The owner explicitly directed the
 agent to ignore prior unresolved billing for the controlled Wonder verification,

@@ -369,7 +369,11 @@ class WonderMetaTransport(OfficialMetaTransport):
             try:
                 wonder_workout.facts_from_payload(payload)
             except ValueError:
-                wonder_analysis.facts_from_payload(payload)  # exact aggregate/scaffold contract only
+                try:
+                    wonder_analysis.facts_from_payload(payload)
+                except ValueError:
+                    from . import wonder_score
+                    wonder_score.facts_from_payload(payload)  # exact aggregate contract only
 
     def input_bound(self, payload: dict) -> int:
         self.validate_payload(payload)
@@ -550,3 +554,17 @@ class WonderHydrationGateway:
             lambda reply: wonder_analysis.parse_selection(reply, facts), freeze_on_rejected_output=False)
         return wonder_analysis.analysis_result(facts, selection, account=self.account, attempt_id=attempt,
                                                observations=observations, generated_at=stamp())
+
+    def explain_score(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
+        """One exact Home research rubric; own-data consent and ordinary verified gates."""
+        from . import wonder_score
+        try:
+            facts = wonder_score.validate_facts(facts)
+            payload = wonder_score.score_payload(facts)
+            case = self.ledger.register_workout_case(payload_sha256(payload), consent_reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
+        explanation, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+            lambda reply: wonder_score.parse_explanation(reply, facts), freeze_on_rejected_output=False)
+        return wonder_score.score_result(facts, explanation, account=self.account, attempt_id=attempt,
+            observations=observations, generated_at=stamp())
