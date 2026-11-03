@@ -34,6 +34,17 @@ def test_model_selects_different_supported_information_not_cosmetic_prefixes():
     assert "1 comparable" in b
 
 
+@pytest.mark.parametrize("duration,label", [(.5, "0.5"), (1.5, "1.5"), (.01, "0.01")])
+def test_activity_duration_keeps_fractional_minutes(duration, label):
+    facts = api.build_facts(source())
+    facts["activity"]["duration_minutes"] = duration
+    facts["workout_comparison"] = None
+    request = selection(facts)
+    request["sections"]["activity"] = ["activity_context"]
+    text = api.validate_selection(request, facts)["activity"]["text"]
+    assert label + " minutes" in text
+
+
 def test_rank_is_preserved_and_duplicates_cross_section_or_inapplicable_ids_rejected():
     facts = api.build_facts(source())
     request = selection(facts)

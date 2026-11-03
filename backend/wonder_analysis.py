@@ -414,7 +414,9 @@ def placeholder_values(facts: dict) -> dict[str, str]:
             if f["status"] == "estimated" else "no numerical estimate is available")
     beverage = (f"{_n(i['beverage_volume_ml'])} mL of logged beverage volume" if i["beverage_volume_ml"] is not None
                 else "personal beverage logs are excluded from this synthetic case")
-    activity = (f"{_n(a['duration_minutes'])} minutes of {a['intensity'] or 'unspecified-intensity'} {a['activity'] or 'exercise'}"
+    duration = a["duration_minutes"]
+    duration_text = (str(int(duration)) if duration.is_integer() else str(duration)) if duration is not None else None
+    activity = (f"{duration_text} minutes of {a['intensity'] or 'unspecified-intensity'} {a['activity'] or 'exercise'}"
                 if a["duration_minutes"] is not None else "workout duration and activity are unavailable")
     environmental = "; ".join([
         f"temperature {_decimal(e['temperature_c'])} °C" if e["temperature_c"] is not None else "temperature unavailable",
