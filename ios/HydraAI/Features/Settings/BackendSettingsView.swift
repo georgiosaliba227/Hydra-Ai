@@ -55,7 +55,7 @@ struct BackendSettingsView: View {
                 Text(offline ? "Offline demo records stay on this iPhone and are not uploaded."
                              : "Use your Hydra backend access token, not a Meta API key. It's stored in the Keychain.")
             }
-            if !store.isOffline && store.isConfigured {
+            if store.isConfigured {
                 Section {
                     HStack {
                         TextField("e.g. 2000", text: $goalText)
@@ -124,7 +124,8 @@ struct BackendSettingsView: View {
             Spacer(); Button("Done") { goalFocused = false }
         } }
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }
-        .task {
+        .task(id: store.configurationGeneration) {
+            goalText = ""
             if let goal = try? await store.currentGoal() { goalText = String(goal) }
         }
     }

@@ -24,6 +24,8 @@ HTTP is permitted only for localhost/private IPv4/LAN `.local` development hosts
 
 ## Tests/build
 
+Today fills its progress ring toward an optional daily beverage goal you choose. Use **Set your own goal** on Today or **Settings → Daily goal**; without a goal, Today shows the logged total without an empty progress ring. Offline demo goals and drinks persist locally, separately from backend data. Logging, correcting, or deleting a drink refreshes progress; clearing a goal preserves the drinks.
+
 ```sh
 xcodebuild -project ios/HydraAI.xcodeproj -scheme HydraAI \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' \
@@ -37,6 +39,8 @@ The suite covers inherited mock persistence/validation plus HTTP pagination/auth
 For DEBUG simulator verification only, launch-time `HYDRA_TEST_BACKEND_URL` and `HYDRA_TEST_API_TOKEN` override connection settings. With `simctl launch`, pass them through the documented `SIMCTL_CHILD_` environment prefix; never put a real token in source or a committed command. Release builds do not read these overrides.
 
 Accessibility identifiers: `backendURL`, `backendToken`, `saveConnection`, `offlineMode`, `logBeverage`, `consumedVolume`, `saveBeverage`, `dailyTotal`, `retryPending`, `connectionError`.
+
+`GoalTests` covers offline goal persistence, progress after logging/restart, clearing, invalid goals, and store isolation. The self-contained `GoalUITests/testOfflineDrinkLoggingFillsGoalAndSurvivesRelaunch` enables offline mode, chooses a 1000 mL test goal, logs 250 + 500 mL, checks progress, and relaunches. Run it on a dedicated simulator: it leaves synthetic demo drinks and the goal in place and requires no backend or AI calls.
 
 ## Opt-in real backend UI test
 
