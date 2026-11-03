@@ -1,5 +1,68 @@
 # Hydra AI project status
 
+## November 3 continuation — review branch
+
+[Review PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with
+Amine requested as reviewer, stacked on PR #65. The branch and worktree remain
+available for review fixes; no merge or deployment occurred.
+
+`codex/hydration-intelligence-complete` starts from PR #65 at `c8e4a77`, preserving
+Amine's Apple Health, consented weather and Wonder integration. PR #65 remains a
+dependency; camera PRs #66–#70 are separate. No automatic merge, deployment,
+private-ledger operation or provider request occurred. Older dated account rows
+below are historical evidence, not a fresh financial audit.
+
+Implemented and Python-verified: local eight-section analysis, documented nullable
+composition, exact completed-workout accounting, comprehensive Wonder ranking of
+supported findings, replay/export/deletion and additive v3 personal research
+routes. All explanation numbers come from the corresponding numerical engine.
+Default-off comprehensive dispatch reuses the existing financial gateway and
+one-use, finality, shared-lock and exact-payload consent controls.
+
+Real-study experiments remain separate: 200 SpectroPhon records / 198 conservative
+groups, 80 cumulative QDE records / 10 people and 31 EPL records / 31 people.
+SpectroPhon ridge historical-holdout MAE is 71.41 mL versus refitted cohort 85.72.
+QDE boosting is worse than its comparator (315.09 versus 281.28 mL), and EPL retains
+its learned cohort baseline (355.70 mL test MAE). No study model becomes a personal
+physiological prior. See [grouped evaluation](FORECAST_GROUPED_EVALUATION.md) and
+[EPL evaluation](FORECAST_EPL_EVALUATION.md); reused holdouts and narrow targets
+prevent independent physiological-improvement claims.
+
+A stationary personal duration regression is fitted in request memory, with fixed
+regularization, strictly earlier validation, duration/cadence support gates and
+full measurement/error envelopes. Its frozen synthetic abrupt-shift MAE worsens
+57.73→70.49 mL; no retuning followed. V2 remains the app default. Native v3 is
+available as an explicit experimental option, not an accuracy upgrade. The
+calendar-time learner remains offline. See [runtime report](FORECAST_PERSONAL_RUNTIME.md)
+and [runtime contract](architecture/PERSONAL_RUNTIME_API.md).
+
+Final native verification: **145 XCTest and three actual mock-backend UI flows pass**
+on Simulator, including the default workflow, explicit experimental cold start,
+fresh detailed-preview consent, absent live controls and model-switch reset.
+The additional selected-fit flow loads six saved synthetic measurements with fresh
+consent, displays the actual backend fit **442 mL [280–700]**, verifies matching
+local analysis and rich preview, then deletes all six records through the app.
+Its external empty-profile fixture helper adds no production startup behavior.
+Protected opt-in connection-scoped manual history passed save/relaunch/restore/
+selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
+3,200 rendered sections and 384 rejected adversarial selections, with zero provider
+calls; these are software checks, not live model-quality scores.
+
+Fresh integrated Python verification: **1,284 tests and 32 subtests passed**.
+Independent numerical and API reviews have no outstanding findings. Physical
+milestone: **132 XCTest passed** on the iPhone after an isolated Date comparison
+crash was reproduced and corrected in a temporary copy. Its separate wildcard-
+signed bundle omitted HealthKit. The original app was preserved; physical UI,
+production HealthKit permissions and final v3 hardware checks are unverified.
+Remaining tests use Simulator at the user's request. See the
+[physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md) and
+[review handoff](HYDRATION_INTELLIGENCE_REVIEW.md).
+
+Native runtime/date compatibility and independent reviews are complete; the
+verified branch is published for Amine. Live Wonder account/input/price/finality evidence
+has not been audited or changed; real explanation quality and independent personal
+prediction accuracy remain unverified.
+
 Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
 ## Current state — October 29 (Amine)

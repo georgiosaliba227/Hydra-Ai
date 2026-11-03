@@ -55,6 +55,8 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "trends_insufficient_data": "Log drinks in the last 14 days before asking for trends.",
         "workout_preview_stale": "Your planned workout or history changed since the preview. Review the new preview first.",
         "workout_insufficient_history": "Add at least one previous session of this activity before asking for an explanation.",
+        "analysis_preview_stale": "The included workout, history or beverage totals changed. Review the new preview first.",
+        "analysis_insufficient_data": "The analysis is unavailable for this record. Review its missing information and cost bound.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -77,7 +79,7 @@ class RequestGuard:
         request_id = str(uuid4())
         scope.setdefault("state", {})["request_id"] = request_id
         headers = {key.lower(): value for key, value in scope.get("headers", [])}
-        if scope["path"].startswith(("/v1", "/v2")):
+        if scope["path"].startswith(("/v1", "/v2", "/v3")):
             provided = headers.get(b"authorization", b"")
             expected = ("Bearer " + self.token).encode()
             if not hmac.compare_digest(provided, expected):
@@ -85,8 +87,10 @@ class RequestGuard:
                 return
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
-        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/wonder/workout/preview",
-                               "/v1/wonder/workout"):
+        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/hydration-analysis", "/v1/wonder/workout/preview",
+                               "/v1/wonder/workout", "/v1/wonder/analysis/preview", "/v1/wonder/analysis",
+                               "/v3/workout-forecasts", "/v3/hydration-analysis", "/v3/wonder/analysis/preview",
+                               "/v3/wonder/analysis"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
             body_limit = MAX_BODY_BYTES
@@ -184,8 +188,10 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
     hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
     wonder_live = os.getenv("HYDRA_WONDER_LIVE", "false").lower()
+    analysis_enabled = os.getenv("HYDRA_WONDER_ANALYSIS_ENABLED", "false").lower()
     if (mode not in ("mock", "guarded_meta") or billable not in ("false", "true")
-            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
+            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")
+            or analysis_enabled not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
     live_feature = mode == "guarded_meta" or hydration_enabled == "true" or wonder_live == "true"
     if (billable == "true") != live_feature:
@@ -376,24 +382,34 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import saved_trends, saved_workouts
+        from .wonder_results import saved_trends, saved_workouts, saved_analyses
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
                 "wonder_trends": saved_trends(results_dir) if results_dir else [],
-                "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else []}
+                "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else [],
+                "wonder_analysis_explanations": saved_analyses(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
         # An explicit phrase guards against an accidental or replayed bulk deletion.
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
-        results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import delete_trends, delete_workouts
-        deleted = request.app.state.repository.delete_all("local-demo")
-        return {"deleted_beverages": deleted, "settings_cleared": True,
-                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
-                "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0}
+        lock = request.app.state.wonder_lock
+        if not lock.acquire(blocking=False):
+            return error_response("wonder_busy", 409, request.state.request_id, retryable=True)
+        try:
+            results_dir = getattr(request.app.state, "wonder_results_dir", None)
+            from .wonder_results import delete_trends, delete_workouts, delete_analyses, delete_pending_results
+            deleted = request.app.state.repository.delete_all("local-demo")
+            if results_dir:
+                delete_pending_results(results_dir)
+            return {"deleted_beverages": deleted, "settings_cleared": True,
+                    "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
+                    "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0,
+                    "deleted_analysis_explanations": delete_analyses(results_dir) if results_dir else 0}
+        finally:
+            lock.release()
 
     @app.get("/v1/settings")
     def get_settings(request: Request):
@@ -419,6 +435,12 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
     from .wonder_workout_routes import install_wonder_workout_routes
     install_wonder_workout_routes(app, error_response=error_response)  # shares the trend config and lock
+    from .hydration_analysis import install_hydration_analysis_routes
+    install_hydration_analysis_routes(app, to_engine, error_response=error_response)
+    from .wonder_analysis_routes import install_wonder_analysis_routes
+    install_wonder_analysis_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
+    from .personal_runtime_routes import install_personal_runtime_routes
+    install_personal_runtime_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
     return app

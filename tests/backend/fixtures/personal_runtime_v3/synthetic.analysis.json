@@ -1,0 +1,240 @@
+{
+  "version": "hydration-analysis-v3",
+  "generated_at": "2026-11-03T15:00:00.000000Z",
+  "timezone": "UTC",
+  "mode": "synthetic_demo",
+  "research_only": true,
+  "text_origin": "deterministic_local",
+  "numerical_forecast": {
+    "version": "workout-forecast-v1",
+    "status": "estimated",
+    "model_version": "synthetic-workout-demo-v1",
+    "quantity": "estimated_sweat_loss",
+    "units": "mL",
+    "value_ml": 281.00120877211225,
+    "lower_ml": 0.0,
+    "upper_ml": 683.2725278674206,
+    "interval_kind": "synthetic_participant_split_conformal",
+    "data_sufficiency": "synthetic_demo_only",
+    "personalization_status": "simulated_population_only",
+    "sample_count": 0,
+    "provenance": [
+      "Hydra synthetic mass-balance scenarios v1, seed 8317; targets simulated; baseline covariates bootstrapped from attributed real training anchors",
+      "https://data.mendeley.com/datasets/jt22782wjh/1",
+      "CC BY 4.0"
+    ],
+    "input_factors": {
+      "duration_minutes": 60.0,
+      "pre_mass_kg": 70.0,
+      "age_years": 30.0,
+      "temperature_c": 24.0,
+      "humidity_percent": 50.0,
+      "intensity": "moderate"
+    },
+    "limitations": [
+      "Not a drinking target or daily fluid requirement.",
+      "Not clinically validated; unmeasured mass changes remain unresolved.",
+      "No dehydration diagnosis or adjustment from HR, HRV, caffeine or creatine.",
+      "Synthetic targets; baseline covariates come from deidentified study training anchors. No physiological validation.",
+      "Synthetic interval coverage says nothing about real-world accuracy.",
+      "Only duration, initial body mass and age enter this model; temperature, humidity and intensity are context only."
+    ],
+    "synthetic": true
+  },
+  "intake": {
+    "status": "unavailable_in_synthetic",
+    "local_date": "2026-11-03",
+    "start_utc": "2026-11-03T00:00:00.000000Z",
+    "end_utc": "2026-11-03T15:00:00.000000Z",
+    "timezone": "UTC",
+    "beverage_count": null,
+    "beverage_volume_ml": null,
+    "water_ml": null,
+    "composition": {
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "status": "unknown",
+      "provenance": [],
+      "sodium_status": "unknown",
+      "potassium_status": "unknown"
+    },
+    "completeness": "unverified",
+    "provenance": []
+  },
+  "exercise_accounting": {
+    "status": "unavailable",
+    "quantity": "logged_intake_minus_measured_exercise_loss",
+    "start_utc": null,
+    "end_utc": null,
+    "timezone": "UTC",
+    "value_ml": null,
+    "lower_ml": null,
+    "upper_ml": null,
+    "logged_beverage_volume_ml": null,
+    "reasons": [
+      "actual_measurement_required"
+    ],
+    "provenance": []
+  },
+  "environmental_context": {
+    "temperature_c": 24.0,
+    "humidity_percent": 50.0,
+    "intensity": "moderate",
+    "context_only": true,
+    "source": "server_synthetic"
+  },
+  "calibration": {
+    "total_samples": 0,
+    "comparable_samples": 0,
+    "recent_samples": 0,
+    "personalization_status": "simulated_population_only",
+    "history_retained_by_caller": true
+  },
+  "missing_inputs": [],
+  "sections": [
+    {
+      "id": "summary",
+      "title": "Hydration-related summary",
+      "facts": {
+        "forecast_status": "estimated",
+        "logged_beverage_volume_ml": null,
+        "intake_completeness": "unverified",
+        "research_only": true
+      },
+      "text": "The available record combines logged beverage volume with a separate research exercise-loss estimate. It does not establish total body hydration or a required intake amount.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "workout_loss",
+      "title": "Workout fluid-loss estimate",
+      "facts": {
+        "status": "estimated",
+        "model_version": "synthetic-workout-demo-v1",
+        "value_ml": 281.00120877211225,
+        "lower_ml": 0.0,
+        "upper_ml": 683.2725278674206,
+        "units": "mL",
+        "interval_kind": "synthetic_participant_split_conformal",
+        "sample_count": 0
+      },
+      "text": "The numerical engine supplies this conditional mass-balance loss proxy and its uncertainty envelope. A planned estimate is separate from an observed loss.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "activity",
+      "title": "Activity context",
+      "facts": {
+        "activity": null,
+        "duration_minutes": 60.0,
+        "intensity": "moderate",
+        "prior_activity_sessions": 0,
+        "completed_measurement_present": false
+      },
+      "text": "Duration and activity describe the supplied workout. Prior sessions support a projection only when their conditions, protocol and measurement errors meet the numerical engine's comparability checks.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "environment",
+      "title": "Environmental context",
+      "facts": {
+        "temperature_c": 24.0,
+        "humidity_percent": 50.0,
+        "intensity": "moderate",
+        "context_only": true,
+        "source": "server_synthetic"
+      },
+      "text": "Supplied temperature and humidity are context. Different or missing conditions can prevent matching; these values do not create an additional numerical loss adjustment.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "beverages",
+      "title": "Beverage and electrolyte context",
+      "facts": {
+        "status": "unavailable_in_synthetic",
+        "local_date": "2026-11-03",
+        "start_utc": "2026-11-03T00:00:00.000000Z",
+        "end_utc": "2026-11-03T15:00:00.000000Z",
+        "timezone": "UTC",
+        "beverage_count": null,
+        "beverage_volume_ml": null,
+        "water_ml": null,
+        "composition": {
+          "sodium_mg": null,
+          "potassium_mg": null,
+          "status": "unknown",
+          "provenance": [],
+          "sodium_status": "unknown",
+          "potassium_status": "unknown"
+        },
+        "completeness": "unverified",
+        "provenance": []
+      },
+      "text": "Logged beverage volume is separate from documented water content and retention. Electrolyte totals are shown only when every included entry has that documented nutrient; unknown values remain absent.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "trends",
+      "title": "Personal trends",
+      "facts": {
+        "window_days": 14,
+        "logged_days": null,
+        "beverage_lower_ml": null,
+        "beverage_upper_ml": null,
+        "kind": "descriptive_logged_intake_not_needs",
+        "completeness": "unverified",
+        "comparable_measured_sessions": 0,
+        "recent_comparable_sessions": 0
+      },
+      "text": "Historical logged-day totals describe records, not physiological needs. Days without logs are not measured zero-intake days. Comparable measurements, rather than intake alone, support calibration.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "uncertainty",
+      "title": "Prediction uncertainty",
+      "facts": {
+        "data_sufficiency": "synthetic_demo_only",
+        "interval_kind": "synthetic_participant_split_conformal",
+        "missing_inputs": [],
+        "accounting_status": "unavailable",
+        "accounting_reasons": [
+          "actual_measurement_required"
+        ]
+      },
+      "text": "Measurement error, incomplete logging and incompatible conditions limit interpretation. More history does not guarantee a narrower range. A historical envelope is not a validated future coverage guarantee.",
+      "evidence_status": "synthetic"
+    },
+    {
+      "id": "measurement",
+      "title": "Measurement insights",
+      "facts": {
+        "suggestions": [
+          "comparable_dry_pre_post_workout_mass",
+          "same_window_consumed_fluid_and_urine_including_measured_zeros",
+          "independently_supported_instrument_error_bounds",
+          "record_activity_intensity_and_environment"
+        ],
+        "history_retained_by_caller": true
+      },
+      "text": "A comparable completed workout with dry before-and-after weighing, recorded consumption and urine, timing and instrument error bounds can improve the evidence available for later predictions. Check mismatched windows and protocols before comparing measurements.",
+      "evidence_status": "synthetic"
+    }
+  ],
+  "wonder": {
+    "status": "not_applicable",
+    "preview": null,
+    "saved": null,
+    "reason": "comprehensive_v3_preview_required",
+    "provider_called": false
+  },
+  "limitations": [
+    "Research-only exercise loss proxy; not clinically validated or a measure of total body hydration.",
+    "Logged intake is an incomplete record; no log does not establish no consumption.",
+    "Beverage volume, composition water and physiological retention are different quantities.",
+    "A planned forecast is never counted as an already incurred loss.",
+    "Exercise accounting omits urine and other losses and is not a full fluid balance or drinking target.",
+    "Environmental values describe supplied conditions; no unvalidated weather adjustment is applied.",
+    "Heart rate, HRV, caffeine and creatine do not trigger hydration diagnoses or automatic adjustments.",
+    "Local sections are deterministic; only a separately labeled saved explanation was generated by Muse Wonder.",
+    "Calibration history is retained by the caller; this endpoint does not persist the request or send it to Meta."
+  ]
+}

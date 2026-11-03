@@ -2,13 +2,13 @@ import Foundation
 
 /// Explicit manual inputs. No HealthKit fields or arbitrary model prompt are encoded.
 struct WorkoutForecastRequest: Encodable, Sendable {
-    struct Conditions: Encodable, Sendable {
+    struct Conditions: Codable, Sendable {
         let activity: String
         let intensity: String
         let temperature_c: Double
         let humidity_percent: Double
     }
-    struct Measurement: Encodable, Sendable {
+    struct Measurement: Codable, Sendable {
         let pre_mass_kg: Double
         let post_mass_kg: Double
         let consumed_ml: Double
@@ -17,7 +17,7 @@ struct WorkoutForecastRequest: Encodable, Sendable {
         let protocol_confirmed = true
         let provenance = ["user_entered_manual_weighing"]
     }
-    struct Errors: Encodable, Sendable {
+    struct Errors: Codable, Sendable {
         let pre_mass_kg: Double
         let post_mass_kg: Double
         let consumed_ml: Double
@@ -25,7 +25,7 @@ struct WorkoutForecastRequest: Encodable, Sendable {
         let duration_minutes: Double
         let provenance = ["user_reported_instrument_error_bounds"]
     }
-    struct Sample: Encodable, Sendable {
+    struct Sample: Codable, Sendable {
         let event_id: UUID
         let observed_at: String
         let conditions: Conditions
@@ -51,7 +51,8 @@ struct WorkoutForecastRequest: Encodable, Sendable {
     }
 
     func validate() throws {
-        guard TimeZone(identifier: timezone) != nil, samples.count <= 32 else { throw ServiceError.invalidResponse }
+        guard TimeZone(identifier: timezone) != nil else { throw ServiceError.invalidResponse }
+        try CalibrationHistoryValidation.validate(samples)
         if mode == "synthetic_demo" {
             guard exercise == nil, samples.isEmpty, !calibration_processing_consent else { throw ServiceError.invalidResponse }
         } else {
@@ -126,9 +127,12 @@ struct WorkoutForecast: Decodable, Sendable {
     let contextComparison: HydrationContextComparison?
     let longitudinalHistory: LongitudinalHistory?
     let missingInputs: [String]?
+    let learning: PersonalRuntimeLearning?
+    let researchOnly: Bool?
 
     enum CodingKeys: String, CodingKey {
         case version, status, quantity, units, provenance, limitations, synthetic, timezone, mode
+        case learning, researchOnly = "research_only"
         case modelVersion = "model_version", valueMl = "value_ml", lowerMl = "lower_ml", upperMl = "upper_ml"
         case intervalKind = "interval_kind", dataSufficiency = "data_sufficiency", personalizationStatus = "personalization_status"
         case sampleCount = "sample_count", inputFactors = "input_factors", generatedAt = "generated_at"
@@ -136,8 +140,11 @@ struct WorkoutForecast: Decodable, Sendable {
         case contextComparison = "context_comparison", longitudinalHistory = "longitudinal_history", missingInputs = "missing_inputs"
     }
 
-    func validate(request: WorkoutForecastRequest) throws {
+    func validate(request: WorkoutForecastRequest, workflow: ForecastWorkflow = .legacy) throws {
         try request.validate()
+        if workflow.isRuntime && !synthetic {
+            guard researchOnly == true, learning != nil else { throw ServiceError.invalidResponse }
+        } else if learning != nil { throw ServiceError.invalidResponse }
         guard version == "workout-forecast-v1", quantity == "estimated_sweat_loss", units == "mL",
               timezone == request.timezone, mode == request.mode, synthetic == (mode == "synthetic_demo"),
               !modelVersion.isEmpty, modelVersion.count <= 200,
@@ -160,6 +167,7 @@ struct WorkoutForecast: Decodable, Sendable {
             } else {
                 let supported = (modelVersion == "personal-exercise-loss-v1" && intervalKind == "conditional_measurement_envelope")
                     || (modelVersion == "personal-longitudinal-v2" && intervalKind == "historical_error_envelope" && longitudinalHistory != nil)
+                    || (workflow.isRuntime && modelVersion == "personal-runtime-rate-v1" && intervalKind == "personal_runtime_measurement_error_envelope" && learning?.selectedMethod == .fitted && longitudinalHistory != nil)
                 guard supported, sampleCount > 0, sampleCount <= request.samples.count else { throw ServiceError.invalidResponse }
             }
         } else {
@@ -168,6 +176,7 @@ struct WorkoutForecast: Decodable, Sendable {
         if let contextComparison { try contextComparison.validate(forecast: self) }
         if modelVersion == "personal-longitudinal-v2", longitudinalHistory == nil { throw ServiceError.invalidResponse }
         if let longitudinalHistory { try longitudinalHistory.validate(request: request, forecast: self) }
+        if let learning { try learning.validate(request: request, forecast: self) }
         if let missingInputs, missingInputs.count > 32 { throw ServiceError.invalidResponse }
         if let explanation = mockExplanation {
             guard synthetic, explanation.version == "hydration-explanation-v1", explanation.mode == "mock",
@@ -188,15 +197,15 @@ struct WorkoutForecast: Decodable, Sendable {
         generation = UUID(); result = nil; state = .idle
     }
 
-    func load(_ request: WorkoutForecastRequest, service: any BeverageService) async {
+    func load(_ request: WorkoutForecastRequest, service: any BeverageService, workflow: ForecastWorkflow = .legacy) async {
         guard !Task.isCancelled else { return }
         invalidate()
         let current = generation
         state = .loading
         do {
             try request.validate()
-            let result = try await service.workoutForecast(request)
-            try result.validate(request: request)
+            let result = try await (workflow.isRuntime ? service.workoutForecastV3(request) : service.workoutForecast(request))
+            try result.validate(request: request, workflow: workflow)
             guard current == generation, !Task.isCancelled else { return }
             self.result = result; state = .loaded
         } catch {

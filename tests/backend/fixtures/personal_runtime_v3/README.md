@@ -1,0 +1,5 @@
+These frozen v3 boundary fixtures use the actual offline personal runtime at 2026-11-03 15:00 UTC and entirely invented manual measurements. They demonstrate method selection, baseline retention and wire behavior, not accuracy on real people. No provider request generated them.
+
+`selected` has six comparable 60-minute sessions, two days apart, with corrected losses 300, 500, 400, 500, 400 and 500 mL. `fallback` has six constant 400 mL observations; the candidate ties the existing baseline and is retained only as transient metadata. `synthetic` retains the existing fixed server demonstration without fitting or reading personal logs.
+
+The forecast and local analysis retain full runtime numerics and learning metadata. Rich preview facts retain the existing v2 schema, round the point with ties to even, and round interval endpoints outward; learning state, fitted coefficients, training fingerprints and raw measurements are omitted. Its outer `numerical_contract` identifies the v3 projection. Live dispatch is disabled.

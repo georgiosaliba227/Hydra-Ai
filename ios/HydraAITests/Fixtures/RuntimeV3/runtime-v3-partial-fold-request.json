@@ -1,0 +1,205 @@
+{
+  "mode": "personal",
+  "timezone": "UTC",
+  "calibration_processing_consent": true,
+  "exercise": {
+    "event_id": "00000000-0000-0000-0000-0000000003e7",
+    "starts_at": "2026-11-03T06:52:42.370798Z",
+    "duration_minutes": 60.0,
+    "conditions": {
+      "activity": "running",
+      "intensity": "moderate",
+      "temperature_c": 22.0,
+      "humidity_percent": 55.0
+    },
+    "comparable_conditions_confirmed": true
+  },
+  "samples": [
+    {
+      "event_id": "00000000-0000-0000-0000-000000000001",
+      "observed_at": "2026-10-13T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.8,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 30.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    },
+    {
+      "event_id": "00000000-0000-0000-0000-000000000002",
+      "observed_at": "2026-10-17T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.7,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 45.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    },
+    {
+      "event_id": "00000000-0000-0000-0000-000000000003",
+      "observed_at": "2026-10-21T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.6,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 60.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    },
+    {
+      "event_id": "00000000-0000-0000-0000-000000000004",
+      "observed_at": "2026-10-25T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.4,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 90.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    },
+    {
+      "event_id": "00000000-0000-0000-0000-000000000005",
+      "observed_at": "2026-10-29T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.2,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 120.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    },
+    {
+      "event_id": "00000000-0000-0000-0000-000000000006",
+      "observed_at": "2026-11-02T05:52:42.370798Z",
+      "conditions": {
+        "activity": "running",
+        "intensity": "moderate",
+        "temperature_c": 22.0,
+        "humidity_percent": 55.0
+      },
+      "measurement": {
+        "pre_mass_kg": 70.0,
+        "post_mass_kg": 69.4,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 90.0,
+        "protocol_confirmed": true,
+        "provenance": [
+          "user_entered_manual_weighing"
+        ]
+      },
+      "errors": {
+        "pre_mass_kg": 0.01,
+        "post_mass_kg": 0.01,
+        "consumed_ml": 0.0,
+        "urine_ml": 0.0,
+        "duration_minutes": 0.0,
+        "provenance": [
+          "user_reported_instrument_error_bounds"
+        ]
+      }
+    }
+  ]
+}

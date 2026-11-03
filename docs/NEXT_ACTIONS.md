@@ -1,5 +1,29 @@
 # Hydra AI next actions
 
+## November 3 continuation
+
+1. Review [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) with Amine, preserving PR #65 as its
+   dependency and requiring human merge. Native experimental mode, the Date
+   correction, 145 XCTest and three actual mock Simulator flows are verified,
+   including the selected fit from saved synthetic history through deletion.
+   Screens were inspected; camera branches remain separate.
+2. Collect consented, dated, protocol-confirmed repeat workouts with consumed fluid,
+   urine and independently supported error bounds for prospective personal-model
+   evaluation. Do not retune against the published synthetic failures or describe
+   historical-error envelopes as calibrated future coverage.
+3. Retain the current baseline default. Evaluate the stationary v3 model only as
+   explicit research; the calendar-time learner remains offline. Keep the three
+   real-study targets separate and study artifacts out of personal serving.
+4. When the developers have a suitable Xcode account/profile, verify the original
+   HealthKit entitlement and permission path on hardware. Physical milestone
+   storage tests passed in a separate bundle; final v3 and UI checks use Simulator
+   at the user's request. Do not ask the user to stay awake for further tests.
+5. After separately verified account identity, exact-payload disclosure, price,
+   budget authority and project-wide invoice finality, perform an explicitly
+   authorized one-use Wonder request and evaluate actual groundedness/usefulness.
+   No private state was audited or modified here; older assertions below cannot
+   substitute for current evidence.
+
 ## Next actions — Georgio's key on Amine's Mac, $20 (October 29, Amine)
 
 Owner override in AGENTS.md. Spending is recorded as Georgio's account.

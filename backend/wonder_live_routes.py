@@ -110,11 +110,13 @@ def install_wonder_live_routes(app, *, error_response) -> None:
                 response = error_response("wonder_attempt_unresolved", 502, request_id)
                 return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
                                     status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
+            # Publication shares the lock with confirmed deletion. An active
+            # temporary result must not be mistaken for an orphan and removed.
+            try:
+                save_result(app.state.wonder_results_dir, result)
+                stored = True
+            except (OSError, ValueError):
+                stored = False
+            return {"replayed": False, "saved": stored, "result": result}
         finally:
             app.state.wonder_lock.release()
-        try:
-            save_result(app.state.wonder_results_dir, result)
-            stored = True
-        except (OSError, ValueError):
-            stored = False
-        return {"replayed": False, "saved": stored, "result": result}

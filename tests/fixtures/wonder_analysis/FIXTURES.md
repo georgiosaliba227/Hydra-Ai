@@ -1,0 +1,5 @@
+These are synthetic software fixtures, frozen at 2026-11-02 15:00 UTC. No provider call generated them. Files ending in `.fake_transport.json` contain deliberately fabricated provider/attempt/usage fields for client decoding and recorded-result validation; they are not evidence of a real Meta attempt or spending.
+
+The `http_preview` files are the route shape. Other `preview` files exercise the pure offline contract, whose missing-data explanations are broader than live admission. Ranked IDs choose substantive, applicable factual insights; Hydra renders their numbers and required caveats. `personal_trends` adds a constructed, internally consistent logged-volume and timing history. It does not represent a real person or physiological evidence.
+
+The grounding evaluation exercises every permitted per-section ranking against fixed choices in the remaining sections. It does not enumerate the complete cross-section Cartesian product, measure numerical prediction accuracy or evaluate actual Muse Wonder quality.

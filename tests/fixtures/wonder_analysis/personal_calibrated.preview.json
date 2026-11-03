@@ -1,0 +1,80 @@
+{
+  "version": "wonder-analysis-preview-v2",
+  "facts": {
+    "version": "wonder-analysis-facts-v2",
+    "mode": "personal",
+    "research_only": true,
+    "forecast": {
+      "status": "estimated",
+      "value_ml": 700.0,
+      "lower_ml": 645.0,
+      "upper_ml": 755.0,
+      "interval_kind": "historical_error_envelope"
+    },
+    "intake": {
+      "beverage_count": 0,
+      "beverage_volume_ml": 0.0,
+      "water_ml": null,
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "sodium_status": "unknown",
+      "potassium_status": "unknown",
+      "completeness": "unverified"
+    },
+    "activity": {
+      "activity": "running",
+      "duration_minutes": 30.0,
+      "intensity": "moderate"
+    },
+    "environment": {
+      "temperature_c": 20.0,
+      "humidity_percent": 60.0,
+      "context_only": true
+    },
+    "calibration": {
+      "total_samples": 1,
+      "comparable_samples": 1,
+      "recent_samples": 1
+    },
+    "trends": {
+      "window_days": 14,
+      "logged_days": 0,
+      "beverage_lower_ml": null,
+      "beverage_upper_ml": null
+    },
+    "accounting": {
+      "status": "unavailable",
+      "quantity": "logged_intake_minus_measured_exercise_loss",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null
+    },
+    "workout_comparison": {
+      "planned_duration_minutes": 30,
+      "typical_duration_minutes": 60,
+      "planned_temperature_c": 20,
+      "typical_temperature_c": 20,
+      "planned_humidity_percent": 60,
+      "typical_humidity_percent": 60
+    },
+    "trend_context": null,
+    "missing_inputs": [
+      "intake_completeness",
+      "documented_water_composition",
+      "complete_electrolyte_composition"
+    ]
+  },
+  "model": "muse-wonder-1.0",
+  "payload_sha256": "814ec0c7b3a3823e22a3e51328d378e32114e568900a12faf5e9300f1398338c",
+  "status": "available",
+  "explainable": true,
+  "reason": null,
+  "input_bound_tokens": 6683,
+  "max_output_tokens": 2048,
+  "worst_case_micro_usd": 67692,
+  "per_request_cap_micro_usd": 250000,
+  "live_available": false,
+  "dispatch_supported": false,
+  "verified_for_billing": false,
+  "cost_estimate_policy": "existing_reference_prices_not_a_verified_live_quote"
+}

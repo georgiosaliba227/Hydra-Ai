@@ -1,0 +1,131 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sections"
+  ],
+  "properties": {
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "workout_loss",
+        "activity",
+        "environment",
+        "beverages",
+        "trends",
+        "uncertainty",
+        "measurement"
+      ],
+      "properties": {
+        "summary": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "summary_record",
+              "summary_estimate",
+              "summary_missing"
+            ]
+          }
+        },
+        "workout_loss": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "loss_estimate",
+              "loss_history",
+              "loss_limited_history"
+            ]
+          }
+        },
+        "activity": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "activity_context",
+              "activity_duration_comparison",
+              "activity_history"
+            ]
+          }
+        },
+        "environment": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "string",
+            "enum": [
+              "environment_reported",
+              "environment_context"
+            ]
+          }
+        },
+        "beverages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "beverage_no_logs",
+              "beverage_water_unknown",
+              "beverage_electrolytes_incomplete"
+            ]
+          }
+        },
+        "trends": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "trends_logged_days",
+              "trends_week_change",
+              "trends_week_missing",
+              "trends_timing",
+              "trends_calibration"
+            ]
+          }
+        },
+        "uncertainty": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "uncertainty_missing",
+              "uncertainty_history",
+              "uncertainty_no_accounting"
+            ]
+          }
+        },
+        "measurement": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "measurement_comparable",
+              "measurement_composition",
+              "measurement_repeat",
+              "measurement_timing"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

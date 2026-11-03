@@ -1,5 +1,36 @@
 # Hydra AI blockers
 
+## November 3 evidence gaps
+
+- **Independent personal accuracy:** a stationary model now fits earlier manual
+  measurements through v3 research routes, but real dated repeat-workout validation
+  is missing. Frozen synthetic abrupt shifts worsen MAE; keep the existing default
+  and an explicit experimental option. The temporal learner remains offline. More
+  records do not establish better accuracy or calibrated future coverage.
+- **Independent population evidence:** the three study targets are incompatible.
+  SpectroPhon's reused same-study holdout is not external validation; QDE loses to
+  its comparator; EPL retains its baseline and has only six test people. No
+  validated drinking requirement or body-hydration percentage follows.
+- **Physical HealthKit and final UI:** the connected iPhone passed 132 milestone
+  unit tests after a reproduced Date-comparison crash was corrected in a temporary
+  copy. Available signing lacks HealthKit for the separate bundle. Production
+  HealthKit permissions, physical UI and final v3 hardware behavior remain
+  unverified; the user requests Simulator for remaining tests. See the physical
+  report rather than treating the earlier connection failure as current.
+- **Live comprehensive Wonder evidence:** mock/checked-template tests do not
+  establish actual model usefulness, account authorization, pricing or project-wide
+  invoice finality. Comprehensive dispatch remains separately off by default. No
+  provider request or private financial operation was attempted.
+- **Human integration review:** v3/date compatibility integration, 145 native
+  tests and three actual Simulator flows pass, including a fitted forecast from
+  six saved synthetic records through local analysis, preview and deletion. Numerical/backend/native reviews
+  have no outstanding findings, and the integrated 1,284-test Python suite passes.
+  [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with Amine
+  requested as reviewer. PR #65 remains its dependency; human merge is required.
+
+Earlier dated account reports below are historical and may conflict; current user
+instructions and fresh private evidence govern future live operation.
+
 Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
 ## Top blocker: no way to lift an account freeze

@@ -1,0 +1,92 @@
+{
+  "version": "wonder-analysis-grounding-software-evaluation-v2",
+  "origin": "repository_synthetic_test_fixtures",
+  "cases": [
+    {
+      "case": "personal_cold_start",
+      "valid_selections_checked": 77,
+      "applicable_insights": {
+        "summary": 2,
+        "workout_loss": 2,
+        "activity": 1,
+        "environment": 2,
+        "beverages": 3,
+        "trends": 1,
+        "uncertainty": 3,
+        "measurement": 4
+      },
+      "input_bound_tokens": 5920,
+      "reference_worst_case_micro_usd": 64640,
+      "live_available": false,
+      "dispatch_supported": false
+    },
+    {
+      "case": "personal_calibrated",
+      "valid_selections_checked": 116,
+      "applicable_insights": {
+        "summary": 3,
+        "workout_loss": 3,
+        "activity": 3,
+        "environment": 2,
+        "beverages": 3,
+        "trends": 2,
+        "uncertainty": 3,
+        "measurement": 4
+      },
+      "input_bound_tokens": 6683,
+      "reference_worst_case_micro_usd": 67692,
+      "live_available": false,
+      "dispatch_supported": false
+    },
+    {
+      "case": "synthetic_demo",
+      "valid_selections_checked": 10,
+      "applicable_insights": {
+        "summary": 2,
+        "workout_loss": 1,
+        "activity": 1,
+        "environment": 2,
+        "beverages": 1,
+        "trends": 1,
+        "uncertainty": 2,
+        "measurement": 1
+      },
+      "input_bound_tokens": 4750,
+      "reference_worst_case_micro_usd": 59960,
+      "live_available": false,
+      "dispatch_supported": false
+    },
+    {
+      "case": "personal_trends",
+      "valid_selections_checked": 197,
+      "applicable_insights": {
+        "summary": 3,
+        "workout_loss": 3,
+        "activity": 3,
+        "environment": 2,
+        "beverages": 3,
+        "trends": 5,
+        "uncertainty": 3,
+        "measurement": 4
+      },
+      "input_bound_tokens": 7289,
+      "reference_worst_case_micro_usd": 70116,
+      "live_available": false,
+      "dispatch_supported": false
+    }
+  ],
+  "valid_ranked_selections_checked": 400,
+  "rendered_sections_checked": 3200,
+  "adversarial_selections": 384,
+  "adversarial_selections_rejected": 384,
+  "all_per_section_rankings_checked": true,
+  "cross_section_product_exhaustive": false,
+  "numerical_predictive_accuracy_evaluated": false,
+  "live_model_quality_evaluated": false,
+  "provider_calls": 0,
+  "limitations": [
+    "Finite applicable-ID grammar and consistency evaluation only; not live Muse Wonder reasoning or usefulness.",
+    "All per-section rankings are exercised against fixed selections in the other sections; the complete cross-section Cartesian product is not enumerated.",
+    "Numerical predictive accuracy and physiological validity are not evaluated."
+  ]
+}

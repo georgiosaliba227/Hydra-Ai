@@ -4,7 +4,14 @@ protocol BeverageService: Sendable {
     func listBeverages() async throws -> [BeverageLog]
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
+    func workoutForecastV3(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
+    func hydrationAnalysisV3(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis
+    func wonderAnalysisPreviewV3(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview
+    func explainHydrationAnalysisV3(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
+    func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis
+    func wonderAnalysisPreview(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview
+    func explainHydrationAnalysis(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
@@ -95,6 +102,17 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func workoutForecastV3(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast { throw ServiceError.invalidResponse }
+    func hydrationAnalysisV3(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis { throw ServiceError.invalidResponse }
+    func wonderAnalysisPreviewV3(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview { throw ServiceError.invalidResponse }
+    func explainHydrationAnalysisV3(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse { throw ServiceError.invalidResponse }
+
+    func wonderAnalysisPreview(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview { throw ServiceError.invalidResponse }
+    func explainHydrationAnalysis(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse { throw ServiceError.invalidResponse }
+    func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        throw ServiceError.invalidResponse
+    }
+
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast {
         throw ServiceError.invalidResponse
     }

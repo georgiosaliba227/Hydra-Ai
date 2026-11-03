@@ -1,0 +1,1455 @@
+{
+  "baseline_test": {
+    "bias_ml": -241.07142857142858,
+    "interval_coverage": null,
+    "mae_ml": 355.70238095238096,
+    "n": 6,
+    "participant_mae_ml": 355.70238095238096,
+    "participant_simultaneous_coverage": null,
+    "participants": 6,
+    "rmse_ml": 464.79563664425405
+  },
+  "calibration_curve": [
+    {
+      "nominal_coverage": 0.5,
+      "radius_ml": 891.0,
+      "test": {
+        "bias_ml": -241.07142857142858,
+        "interval_coverage": 0.8333333333333334,
+        "mae_ml": 355.70238095238096,
+        "n": 6,
+        "participant_mae_ml": 355.70238095238096,
+        "participant_simultaneous_coverage": 0.8333333333333334,
+        "participants": 6,
+        "rmse_ml": 464.79563664425405
+      }
+    },
+    {
+      "nominal_coverage": 0.8,
+      "radius_ml": 1475.107142857143,
+      "test": {
+        "bias_ml": -241.07142857142858,
+        "interval_coverage": 1,
+        "mae_ml": 355.70238095238096,
+        "n": 6,
+        "participant_mae_ml": 355.70238095238096,
+        "participant_simultaneous_coverage": 1,
+        "participants": 6,
+        "rmse_ml": 464.79563664425405
+      }
+    },
+    {
+      "nominal_coverage": 0.9,
+      "radius_ml": null,
+      "test": {
+        "bias_ml": -241.07142857142858,
+        "interval_coverage": null,
+        "mae_ml": 355.70238095238096,
+        "n": 6,
+        "participant_mae_ml": 355.70238095238096,
+        "participant_simultaneous_coverage": null,
+        "participants": 6,
+        "rmse_ml": 464.79563664425405
+      }
+    }
+  ],
+  "data_sha256": "3d2a3dd4611867274d0d4c497aea959aaba912cfd46132b77536b5b405a20a02",
+  "folds": [
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -426.72,
+          "interval_coverage": null,
+          "mae_ml": 567.5,
+          "n": 4,
+          "participant_mae_ml": 567.5,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 658.8516197141812
+        },
+        "gradient_boosting": {
+          "bias_ml": -263.7124626597475,
+          "interval_coverage": null,
+          "mae_ml": 465.6601223562388,
+          "n": 4,
+          "participant_mae_ml": 465.6601223562388,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 542.7799917419849
+        },
+        "random_forest": {
+          "bias_ml": -409.6995969742064,
+          "interval_coverage": null,
+          "mae_ml": 472.6147259424603,
+          "n": 4,
+          "participant_mae_ml": 472.6147259424603,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 589.454072414787
+        },
+        "ridge": {
+          "bias_ml": -406.78736888521337,
+          "interval_coverage": null,
+          "mae_ml": 621.1091564053105,
+          "n": 4,
+          "participant_mae_ml": 621.1091564053105,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 674.389431400495
+        }
+      },
+      "fit_partition_sha256": "c3bc8a8e21c70021b27b1aa15552eac4022790565e6fdf674ccc03b4e203b4ae",
+      "fold": 0,
+      "repeat": 0,
+      "training_participants": [
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027"
+      ],
+      "validation_participants": [
+        "epl-v1:001",
+        "epl-v1:009",
+        "epl-v1:021",
+        "epl-v1:030"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 423.74,
+          "interval_coverage": null,
+          "mae_ml": 509.74,
+          "n": 4,
+          "participant_mae_ml": 509.74,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 611.7940627368004
+        },
+        "gradient_boosting": {
+          "bias_ml": 283.10958786971906,
+          "interval_coverage": null,
+          "mae_ml": 481.05734717948343,
+          "n": 4,
+          "participant_mae_ml": 481.05734717948343,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 603.1535912778504
+        },
+        "random_forest": {
+          "bias_ml": 361.60234149531027,
+          "interval_coverage": null,
+          "mae_ml": 495.7519779265873,
+          "n": 4,
+          "participant_mae_ml": 495.7519779265873,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 646.8819118913273
+        },
+        "ridge": {
+          "bias_ml": 276.2140651520427,
+          "interval_coverage": null,
+          "mae_ml": 416.1308333777494,
+          "n": 4,
+          "participant_mae_ml": 416.1308333777494,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 450.240217687544
+        }
+      },
+      "fit_partition_sha256": "be95be190ff4a790dd7929c5e4d4209d4862bffa26ec557f9d89f7a57b5853d6",
+      "fold": 1,
+      "repeat": 0,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:009",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:007",
+        "epl-v1:010",
+        "epl-v1:020",
+        "epl-v1:024"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -534.0892857142857,
+          "interval_coverage": null,
+          "mae_ml": 534.0892857142857,
+          "n": 4,
+          "participant_mae_ml": 534.0892857142857,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 613.5147846171903
+        },
+        "gradient_boosting": {
+          "bias_ml": -430.5827777651464,
+          "interval_coverage": null,
+          "mae_ml": 499.3118981390676,
+          "n": 4,
+          "participant_mae_ml": 499.3118981390676,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 579.7838905147287
+        },
+        "random_forest": {
+          "bias_ml": -537.1364698886183,
+          "interval_coverage": null,
+          "mae_ml": 537.1364698886183,
+          "n": 4,
+          "participant_mae_ml": 537.1364698886183,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 614.9354357088903
+        },
+        "ridge": {
+          "bias_ml": -512.1904778840351,
+          "interval_coverage": null,
+          "mae_ml": 512.1904778840351,
+          "n": 4,
+          "participant_mae_ml": 512.1904778840351,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 546.8893807039713
+        }
+      },
+      "fit_partition_sha256": "6f2639352e4eeb7910f19236f383e039b2f5c8e1d52dbddb6b2d642f7ce794fb",
+      "fold": 2,
+      "repeat": 0,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:018",
+        "epl-v1:022"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 318.37,
+          "interval_coverage": null,
+          "mae_ml": 338.87,
+          "n": 4,
+          "participant_mae_ml": 338.87,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 431.620675593744
+        },
+        "gradient_boosting": {
+          "bias_ml": 415.0345831049158,
+          "interval_coverage": null,
+          "mae_ml": 415.0345831049158,
+          "n": 4,
+          "participant_mae_ml": 415.0345831049158,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 529.6008111900313
+        },
+        "random_forest": {
+          "bias_ml": 406.51010974702376,
+          "interval_coverage": null,
+          "mae_ml": 406.51010974702376,
+          "n": 4,
+          "participant_mae_ml": 406.51010974702376,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 456.3091216802142
+        },
+        "ridge": {
+          "bias_ml": 507.80287393797016,
+          "interval_coverage": null,
+          "mae_ml": 507.80287393797016,
+          "n": 4,
+          "participant_mae_ml": 507.80287393797016,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 597.7385041173153
+        }
+      },
+      "fit_partition_sha256": "b5db45f523b26b713c93454a28379510ae387e82c9865522cf2d9aa242c3a83a",
+      "fold": 3,
+      "repeat": 0,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:005",
+        "epl-v1:016",
+        "epl-v1:026",
+        "epl-v1:027"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 123.11309523809511,
+          "interval_coverage": null,
+          "mae_ml": 297.48214285714283,
+          "n": 3,
+          "participant_mae_ml": 297.48214285714283,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 304.2976444886265
+        },
+        "gradient_boosting": {
+          "bias_ml": 550.1556128460358,
+          "interval_coverage": null,
+          "mae_ml": 550.1556128460358,
+          "n": 3,
+          "participant_mae_ml": 550.1556128460358,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 621.3477371527919
+        },
+        "random_forest": {
+          "bias_ml": 207.81124751984134,
+          "interval_coverage": null,
+          "mae_ml": 333.9218212632275,
+          "n": 3,
+          "participant_mae_ml": 333.9218212632275,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 367.94242072955484
+        },
+        "ridge": {
+          "bias_ml": 296.44905122219865,
+          "interval_coverage": null,
+          "mae_ml": 296.44905122219865,
+          "n": 3,
+          "participant_mae_ml": 296.44905122219865,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 372.3648290629685
+        }
+      },
+      "fit_partition_sha256": "c30c0bacd081f2d266be3826ae43f7f7687290681a4734d12d77bafd65726174",
+      "fold": 4,
+      "repeat": 0,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:015",
+        "epl-v1:019",
+        "epl-v1:023"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -574.0,
+          "interval_coverage": null,
+          "mae_ml": 613.5,
+          "n": 4,
+          "participant_mae_ml": 613.5,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 730.2592005582675
+        },
+        "gradient_boosting": {
+          "bias_ml": -653.5681238384817,
+          "interval_coverage": null,
+          "mae_ml": 662.3513808082844,
+          "n": 4,
+          "participant_mae_ml": 662.3513808082844,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 803.9195687232552
+        },
+        "random_forest": {
+          "bias_ml": -578.1585193452381,
+          "interval_coverage": null,
+          "mae_ml": 610.4495721726191,
+          "n": 4,
+          "participant_mae_ml": 610.4495721726191,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 727.262976459763
+        },
+        "ridge": {
+          "bias_ml": -615.0174512784498,
+          "interval_coverage": null,
+          "mae_ml": 615.0174512784498,
+          "n": 4,
+          "participant_mae_ml": 615.0174512784498,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 705.2823351285094
+        }
+      },
+      "fit_partition_sha256": "fbbb53fabc366f5f173be6e85a9b20015cbdbc7e1c14680a1309fe67711719a6",
+      "fold": 0,
+      "repeat": 1,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 61.66964285714283,
+          "interval_coverage": null,
+          "mae_ml": 527.7232142857142,
+          "n": 4,
+          "participant_mae_ml": 527.7232142857142,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 598.8416867190786
+        },
+        "gradient_boosting": {
+          "bias_ml": 213.07979588602342,
+          "interval_coverage": null,
+          "mae_ml": 748.3385973387715,
+          "n": 4,
+          "participant_mae_ml": 748.3385973387715,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 872.9019073393212
+        },
+        "random_forest": {
+          "bias_ml": 178.66649615575398,
+          "interval_coverage": null,
+          "mae_ml": 636.169404141865,
+          "n": 4,
+          "participant_mae_ml": 636.169404141865,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 729.0125564835176
+        },
+        "ridge": {
+          "bias_ml": 176.44564678969994,
+          "interval_coverage": null,
+          "mae_ml": 575.514451623296,
+          "n": 4,
+          "participant_mae_ml": 575.514451623296,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 655.7910943881066
+        }
+      },
+      "fit_partition_sha256": "39410ba9c2acdfb4828b0ce2cb5885fcc8812ff44291b0bb742d0e1a1ad1790d",
+      "fold": 1,
+      "repeat": 1,
+      "training_participants": [
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:001",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:024"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 299.36,
+          "interval_coverage": null,
+          "mae_ml": 360.62,
+          "n": 4,
+          "participant_mae_ml": 360.62,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 449.1735219266603
+        },
+        "gradient_boosting": {
+          "bias_ml": 20.04684384056327,
+          "interval_coverage": null,
+          "mae_ml": 474.84680231930975,
+          "n": 4,
+          "participant_mae_ml": 474.84680231930975,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 542.046136776634
+        },
+        "random_forest": {
+          "bias_ml": 55.79370772456707,
+          "interval_coverage": null,
+          "mae_ml": 389.67935098755413,
+          "n": 4,
+          "participant_mae_ml": 389.67935098755413,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 430.542179382821
+        },
+        "ridge": {
+          "bias_ml": 61.193768555002464,
+          "interval_coverage": null,
+          "mae_ml": 423.61519344146603,
+          "n": 4,
+          "participant_mae_ml": 423.61519344146603,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 465.16144759378767
+        }
+      },
+      "fit_partition_sha256": "f2bf435237fe98d314fc2faf982554f7b1a59327434e877bde881271c2a6c904",
+      "fold": 2,
+      "repeat": 1,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:023"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 183.49,
+          "interval_coverage": null,
+          "mae_ml": 331.99,
+          "n": 4,
+          "participant_mae_ml": 331.99,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 352.04577145592873
+        },
+        "gradient_boosting": {
+          "bias_ml": 193.3937443953493,
+          "interval_coverage": null,
+          "mae_ml": 325.93901741132794,
+          "n": 4,
+          "participant_mae_ml": 325.93901741132794,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 339.58482881897953
+        },
+        "random_forest": {
+          "bias_ml": 191.34996899801587,
+          "interval_coverage": null,
+          "mae_ml": 311.35169270833336,
+          "n": 4,
+          "participant_mae_ml": 311.35169270833336,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 325.4749772772171
+        },
+        "ridge": {
+          "bias_ml": 104.48314141549383,
+          "interval_coverage": null,
+          "mae_ml": 352.80920540351474,
+          "n": 4,
+          "participant_mae_ml": 352.80920540351474,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 375.56112403482234
+        }
+      },
+      "fit_partition_sha256": "1019bfd8955fed80623342b30db5496e8da59408466864b854b8d047a6a7ff09",
+      "fold": 3,
+      "repeat": 1,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:009",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:007",
+        "epl-v1:010",
+        "epl-v1:018",
+        "epl-v1:027"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -5.10904761904779,
+          "interval_coverage": null,
+          "mae_ml": 234.96238095238095,
+          "n": 3,
+          "participant_mae_ml": 234.96238095238095,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 248.0270990358159
+        },
+        "gradient_boosting": {
+          "bias_ml": 84.99928986151765,
+          "interval_coverage": null,
+          "mae_ml": 219.48939941446102,
+          "n": 3,
+          "participant_mae_ml": 219.48939941446102,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 242.79345895584584
+        },
+        "random_forest": {
+          "bias_ml": 55.66517857142859,
+          "interval_coverage": null,
+          "mae_ml": 88.52018849206358,
+          "n": 3,
+          "participant_mae_ml": 88.52018849206358,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 98.36433507770847
+        },
+        "ridge": {
+          "bias_ml": -154.01448305523618,
+          "interval_coverage": null,
+          "mae_ml": 482.90263258521804,
+          "n": 3,
+          "participant_mae_ml": 482.90263258521804,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 552.5773350837648
+        }
+      },
+      "fit_partition_sha256": "52d723be474d2716cb210ed93a00cdcff3f7db18d38dd343cdf6bfccd649400a",
+      "fold": 4,
+      "repeat": 1,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:027"
+      ],
+      "validation_participants": [
+        "epl-v1:009",
+        "epl-v1:026",
+        "epl-v1:030"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -31.580357142857167,
+          "interval_coverage": null,
+          "mae_ml": 592.0267857142858,
+          "n": 4,
+          "participant_mae_ml": 592.0267857142858,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 672.245842601803
+        },
+        "gradient_boosting": {
+          "bias_ml": 73.61495659589951,
+          "interval_coverage": null,
+          "mae_ml": 528.8435337867807,
+          "n": 4,
+          "participant_mae_ml": 528.8435337867807,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 717.0081003691743
+        },
+        "random_forest": {
+          "bias_ml": 34.38241567460318,
+          "interval_coverage": null,
+          "mae_ml": 587.4869233630952,
+          "n": 4,
+          "participant_mae_ml": 587.4869233630952,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 732.0997049518559
+        },
+        "ridge": {
+          "bias_ml": -35.927596402235,
+          "interval_coverage": null,
+          "mae_ml": 490.19356687391524,
+          "n": 4,
+          "participant_mae_ml": 490.19356687391524,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 538.8946356623571
+        }
+      },
+      "fit_partition_sha256": "2e51347a89cde38c6cccbec4cff50dc19ba77d8b6e471772e9994cd47f867daa",
+      "fold": 0,
+      "repeat": 2,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:023",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:010",
+        "epl-v1:018",
+        "epl-v1:022",
+        "epl-v1:024"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 337.84999999999997,
+          "interval_coverage": null,
+          "mae_ml": 337.84999999999997,
+          "n": 4,
+          "participant_mae_ml": 337.84999999999997,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 356.7989489894834
+        },
+        "gradient_boosting": {
+          "bias_ml": 422.30872405353864,
+          "interval_coverage": null,
+          "mae_ml": 422.30872405353864,
+          "n": 4,
+          "participant_mae_ml": 422.30872405353864,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 484.2678685083451
+        },
+        "random_forest": {
+          "bias_ml": 374.6482032941017,
+          "interval_coverage": null,
+          "mae_ml": 397.7537041734307,
+          "n": 4,
+          "participant_mae_ml": 397.7537041734307,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 458.4085391425097
+        },
+        "ridge": {
+          "bias_ml": 499.9440135836668,
+          "interval_coverage": null,
+          "mae_ml": 520.5967420397637,
+          "n": 4,
+          "participant_mae_ml": 520.5967420397637,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 645.934816498997
+        }
+      },
+      "fit_partition_sha256": "5fe697c16e0bea65e210850eff6fdb6a9a0c01f16569ed6e7d73a92a419a33da",
+      "fold": 1,
+      "repeat": 2,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:018",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:004",
+        "epl-v1:016",
+        "epl-v1:019",
+        "epl-v1:023"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -383.97,
+          "interval_coverage": null,
+          "mae_ml": 524.75,
+          "n": 4,
+          "participant_mae_ml": 524.75,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 601.7261726067763
+        },
+        "gradient_boosting": {
+          "bias_ml": -541.252086666922,
+          "interval_coverage": null,
+          "mae_ml": 643.9097434201259,
+          "n": 4,
+          "participant_mae_ml": 643.9097434201259,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 747.2575065697719
+        },
+        "random_forest": {
+          "bias_ml": -437.54644604527414,
+          "interval_coverage": null,
+          "mae_ml": 477.89818215638525,
+          "n": 4,
+          "participant_mae_ml": 477.89818215638525,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 548.3586577247337
+        },
+        "ridge": {
+          "bias_ml": -301.8902825034878,
+          "interval_coverage": null,
+          "mae_ml": 357.0837104008956,
+          "n": 4,
+          "participant_mae_ml": 357.0837104008956,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 412.73065595728383
+        }
+      },
+      "fit_partition_sha256": "2ff71711d909234c9b38031a55a635f5f98e0884f2d2545818749358f302d4de",
+      "fold": 2,
+      "repeat": 2,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:010",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:002",
+        "epl-v1:009",
+        "epl-v1:015",
+        "epl-v1:021"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -255.92857142857133,
+          "interval_coverage": null,
+          "mae_ml": 255.92857142857133,
+          "n": 4,
+          "participant_mae_ml": 255.92857142857133,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 291.51178565105965
+        },
+        "gradient_boosting": {
+          "bias_ml": -191.36289755919762,
+          "interval_coverage": null,
+          "mae_ml": 305.3142963971463,
+          "n": 4,
+          "participant_mae_ml": 305.3142963971463,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 424.69996966640053
+        },
+        "random_forest": {
+          "bias_ml": -31.019145416215736,
+          "interval_coverage": null,
+          "mae_ml": 206.37057770788243,
+          "n": 4,
+          "participant_mae_ml": 206.37057770788243,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 274.539061395165
+        },
+        "ridge": {
+          "bias_ml": -272.2066156844258,
+          "interval_coverage": null,
+          "mae_ml": 301.10536008315097,
+          "n": 4,
+          "participant_mae_ml": 301.10536008315097,
+          "participant_simultaneous_coverage": null,
+          "participants": 4,
+          "rmse_ml": 377.3215597616456
+        }
+      },
+      "fit_partition_sha256": "1fa3a9be0ae0cbdd060e0128d1a0ca38396417be2ca5d996babae1d260e73b11",
+      "fold": 3,
+      "repeat": 2,
+      "training_participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024"
+      ],
+      "validation_participants": [
+        "epl-v1:020",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ]
+    },
+    {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 205.40666666666667,
+          "interval_coverage": null,
+          "mae_ml": 579.58,
+          "n": 3,
+          "participant_mae_ml": 579.58,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 587.8107299689813
+        },
+        "gradient_boosting": {
+          "bias_ml": 59.72830071234421,
+          "interval_coverage": null,
+          "mae_ml": 564.3101962549803,
+          "n": 3,
+          "participant_mae_ml": 564.3101962549803,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 586.9059520823365
+        },
+        "random_forest": {
+          "bias_ml": 77.7562748015874,
+          "interval_coverage": null,
+          "mae_ml": 561.6231150793651,
+          "n": 3,
+          "participant_mae_ml": 561.6231150793651,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 581.0348916856703
+        },
+        "ridge": {
+          "bias_ml": 57.39964864046965,
+          "interval_coverage": null,
+          "mae_ml": 501.399973372638,
+          "n": 3,
+          "participant_mae_ml": 501.399973372638,
+          "participant_simultaneous_coverage": null,
+          "participants": 3,
+          "rmse_ml": 520.6837343399521
+        }
+      },
+      "fit_partition_sha256": "b2d1604df7c4a0fbfb67e073826b580b1c6c535d9ff9ff9422dc77e1d5a868a2",
+      "fold": 4,
+      "repeat": 2,
+      "training_participants": [
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "validation_participants": [
+        "epl-v1:001",
+        "epl-v1:005",
+        "epl-v1:007"
+      ]
+    }
+  ],
+  "holdout_origin": "new_same_study_participants",
+  "input_perturbation_sensitivity": {
+    "description": "Software-only +/-1 kg mass and +/-1 year age probes; not measured sensor error or physiological counterfactual accuracy.",
+    "maximum_prediction_shift_ml": 0.0
+  },
+  "interval": {
+    "calibration_participants": 6,
+    "kind": "empirical_calibration_envelope",
+    "limitation": "Same-source exchangeable participant groups only; no external or clinical coverage guarantee.",
+    "nominal_coverage": null,
+    "radius_ml": 1475.107142857143
+  },
+  "limitations": [
+    "First model scores for these prespecified held-out participants; not an external study or clinical validation.",
+    "Reported shared session duration is retrospectively supplied; availability as a prospective plan was not established.",
+    "Only 31 elite male professional football players in two shared sessions; no repeated-workout or longitudinal personal validation.",
+    "Intake-corrected minimal-clothing mass-loss proxy, known no urination; respiratory, metabolic and clothing mass changes unresolved.",
+    "Only duration, initial body mass and age enter the fixed models; post mass, intake, GPS, modeled body water and sodium guidance are excluded.",
+    "Weather and session intensity are shared and confounded; no learned weather adjustment or causal environmental interpretation.",
+    "Six calibration people cannot support a finite nominal 90% conformal interval; empirical envelope only.",
+    "Development-only grouped selection and fixed hyperparameters; test and shifted-session outcomes never trigger retuning or reselection.",
+    "No pooling with SpectroPhon, QDE or synthetic records; no intake prescription or application serving enabled."
+  ],
+  "missing_input_tests": {
+    "age_years": {
+      "bias_ml": -241.07142857142858,
+      "interval_coverage": 1,
+      "mae_ml": 355.70238095238096,
+      "n": 6,
+      "participant_mae_ml": 355.70238095238096,
+      "participant_simultaneous_coverage": 1,
+      "participants": 6,
+      "rmse_ml": 464.79563664425405
+    },
+    "pre_mass_kg": {
+      "bias_ml": -241.07142857142858,
+      "interval_coverage": 1,
+      "mae_ml": 355.70238095238096,
+      "n": 6,
+      "participant_mae_ml": 355.70238095238096,
+      "participant_simultaneous_coverage": 1,
+      "participants": 6,
+      "rmse_ml": 464.79563664425405
+    }
+  },
+  "missing_mass_and_age_test": {
+    "bias_ml": -241.07142857142858,
+    "interval_coverage": 1,
+    "mae_ml": 355.70238095238096,
+    "n": 6,
+    "participant_mae_ml": 355.70238095238096,
+    "participant_simultaneous_coverage": 1,
+    "participants": 6,
+    "rmse_ml": 464.79563664425405
+  },
+  "out_of_training_feature_range_test": {
+    "bias_ml": -120.0,
+    "interval_coverage": 1,
+    "mae_ml": 120.0,
+    "n": 1,
+    "participant_mae_ml": 120.0,
+    "participant_simultaneous_coverage": 1,
+    "participants": 1,
+    "rmse_ml": 120.0
+  },
+  "partitions": {
+    "calibration": {
+      "participants": [
+        "epl-v1:008",
+        "epl-v1:011",
+        "epl-v1:012",
+        "epl-v1:013",
+        "epl-v1:014",
+        "epl-v1:017"
+      ],
+      "record_ids": [
+        "epl-v1:008:01",
+        "epl-v1:011:01",
+        "epl-v1:012:01",
+        "epl-v1:013:01",
+        "epl-v1:014:01",
+        "epl-v1:017:01"
+      ],
+      "records": 6
+    },
+    "development": {
+      "participants": [
+        "epl-v1:001",
+        "epl-v1:002",
+        "epl-v1:004",
+        "epl-v1:005",
+        "epl-v1:007",
+        "epl-v1:009",
+        "epl-v1:010",
+        "epl-v1:015",
+        "epl-v1:016",
+        "epl-v1:018",
+        "epl-v1:019",
+        "epl-v1:020",
+        "epl-v1:021",
+        "epl-v1:022",
+        "epl-v1:023",
+        "epl-v1:024",
+        "epl-v1:026",
+        "epl-v1:027",
+        "epl-v1:030"
+      ],
+      "record_ids": [
+        "epl-v1:001:01",
+        "epl-v1:002:01",
+        "epl-v1:004:01",
+        "epl-v1:005:01",
+        "epl-v1:007:01",
+        "epl-v1:009:01",
+        "epl-v1:010:01",
+        "epl-v1:015:01",
+        "epl-v1:016:01",
+        "epl-v1:018:01",
+        "epl-v1:019:01",
+        "epl-v1:020:01",
+        "epl-v1:021:01",
+        "epl-v1:022:01",
+        "epl-v1:023:01",
+        "epl-v1:024:01",
+        "epl-v1:026:01",
+        "epl-v1:027:01",
+        "epl-v1:030:01"
+      ],
+      "records": 19
+    },
+    "test": {
+      "participants": [
+        "epl-v1:003",
+        "epl-v1:006",
+        "epl-v1:025",
+        "epl-v1:028",
+        "epl-v1:029",
+        "epl-v1:031"
+      ],
+      "record_ids": [
+        "epl-v1:003:01",
+        "epl-v1:006:01",
+        "epl-v1:025:01",
+        "epl-v1:028:01",
+        "epl-v1:029:01",
+        "epl-v1:031:01"
+      ],
+      "records": 6
+    }
+  },
+  "promotion_status": "offline_only_baseline_retained",
+  "protocol_version": "grouped-proxy-evaluation-v2",
+  "seed": 20261028,
+  "selected_model": "cohort_rate_baseline",
+  "selected_test": {
+    "bias_ml": -241.07142857142858,
+    "interval_coverage": 1,
+    "mae_ml": 355.70238095238096,
+    "n": 6,
+    "participant_mae_ml": 355.70238095238096,
+    "participant_simultaneous_coverage": 1,
+    "participants": 6,
+    "rmse_ml": 464.79563664425405
+  },
+  "selection": {
+    "evidence": {
+      "cohort_rate_baseline": {
+        "eligible": true,
+        "gain_standard_error_ml": 0.0,
+        "paired_gain_ml": 0.0,
+        "participant_mae_ml": 444.1127192982456
+      },
+      "gradient_boosting": {
+        "eligible": false,
+        "gain_standard_error_ml": 51.41088915391029,
+        "paired_gain_ml": -45.24745282116482,
+        "participant_mae_ml": 489.36017211941044
+      },
+      "random_forest": {
+        "eligible": false,
+        "gain_standard_error_ml": 34.75619776219016,
+        "paired_gain_ml": 4.307699330396678,
+        "participant_mae_ml": 439.8050199678489
+      },
+      "ridge": {
+        "eligible": false,
+        "gain_standard_error_ml": 61.82522274717121,
+        "paired_gain_ml": -22.81589583400411,
+        "participant_mae_ml": 466.9286151322497
+      }
+    },
+    "folds_per_repeat": 5,
+    "limitation": "One-SE heuristic; repeated overlapping fits are not independent evidence or a significance test.",
+    "participants": 19,
+    "repeats": 3,
+    "rule": "lowest participant MAE among candidates with mean paired gain over baseline greater than one participant-level SE; ties prefer simplicity"
+  },
+  "shifted_session_audit": {
+    "session-1-to-session-2": {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": -352.0546218487395,
+          "interval_coverage": null,
+          "mae_ml": 507.6764705882353,
+          "n": 17,
+          "participant_mae_ml": 507.6764705882353,
+          "participant_simultaneous_coverage": null,
+          "participants": 17,
+          "rmse_ml": 671.0274774181606
+        },
+        "gradient_boosting": {
+          "bias_ml": -39.529343753904264,
+          "interval_coverage": null,
+          "mae_ml": 464.811752919734,
+          "n": 17,
+          "participant_mae_ml": 464.811752919734,
+          "participant_simultaneous_coverage": null,
+          "participants": 17,
+          "rmse_ml": 542.6818822174611
+        },
+        "random_forest": {
+          "bias_ml": -114.83983645541548,
+          "interval_coverage": null,
+          "mae_ml": 442.5356800011671,
+          "n": 17,
+          "participant_mae_ml": 442.5356800011671,
+          "participant_simultaneous_coverage": null,
+          "participants": 17,
+          "rmse_ml": 530.559928421066
+        },
+        "ridge": {
+          "bias_ml": -69.06303622640047,
+          "interval_coverage": null,
+          "mae_ml": 427.10383492579336,
+          "n": 17,
+          "participant_mae_ml": 427.10383492579336,
+          "participant_simultaneous_coverage": null,
+          "participants": 17,
+          "rmse_ml": 511.67507324755013
+        }
+      },
+      "fit_partition_sha256": "f68002c49c48784827ec1889f4c089c71bc4982ecf90941929ec01f3203e0623",
+      "interpretation": "Shifted-session sensitivity only; duration, conditions, intensity and participant cohort change together. No causal weather effect, external-study validation, or coverage guarantee.",
+      "interval_kind": null,
+      "model_selection": "none; all four fixed candidates reported",
+      "out_of_training_feature_range_participants": 17,
+      "test_participants": 17,
+      "train_participants": 14
+    },
+    "session-2-to-session-1": {
+      "comparison": {
+        "cohort_rate_baseline": {
+          "bias_ml": 346.7428571428571,
+          "interval_coverage": null,
+          "mae_ml": 474.0571428571428,
+          "n": 14,
+          "participant_mae_ml": 474.0571428571428,
+          "participant_simultaneous_coverage": null,
+          "participants": 14,
+          "rmse_ml": 589.100297063242
+        },
+        "gradient_boosting": {
+          "bias_ml": -42.09247186738772,
+          "interval_coverage": null,
+          "mae_ml": 399.40543743638057,
+          "n": 14,
+          "participant_mae_ml": 399.40543743638057,
+          "participant_simultaneous_coverage": null,
+          "participants": 14,
+          "rmse_ml": 467.10701158010073
+        },
+        "random_forest": {
+          "bias_ml": 55.20106381094104,
+          "interval_coverage": null,
+          "mae_ml": 383.0480203018708,
+          "n": 14,
+          "participant_mae_ml": 383.0480203018708,
+          "participant_simultaneous_coverage": null,
+          "participants": 14,
+          "rmse_ml": 442.87931450943336
+        },
+        "ridge": {
+          "bias_ml": -16.01851817430023,
+          "interval_coverage": null,
+          "mae_ml": 409.6931318763053,
+          "n": 14,
+          "participant_mae_ml": 409.6931318763053,
+          "participant_simultaneous_coverage": null,
+          "participants": 14,
+          "rmse_ml": 470.29058049943285
+        }
+      },
+      "fit_partition_sha256": "b8315b80577149c1da78874d907c5a00fa002598f3dc909c184b634c56a11efa",
+      "interpretation": "Shifted-session sensitivity only; duration, conditions, intensity and participant cohort change together. No causal weather effect, external-study validation, or coverage guarantee.",
+      "interval_kind": null,
+      "model_selection": "none; all four fixed candidates reported",
+      "out_of_training_feature_range_participants": 14,
+      "test_participants": 14,
+      "train_participants": 17
+    }
+  },
+  "source": {
+    "attribution": "Foo, Tester, Markakis, Sabou, Close, McCubbin and Morton (2025), Fluid Balance and Sweat Sodium Study Data, doi:10.6084/m9.figshare.28498148; study doi:10.1177/17479541251353603",
+    "landing_url": "https://figshare.com/articles/dataset/Fluid_Balance_and_Sweat_Sodium_Study_Data/28498148",
+    "license": "CC-BY-4.0",
+    "paper_url": "https://journals.sagepub.com/doi/full/10.1177/17479541251353603",
+    "sha256": "b7c0ca278355ab9c37a4eed4b22d0be4e67964929eaf5914edf24ede9fb396df",
+    "size_bytes": 166216
+  },
+  "source_summary": {
+    "environment": "shared_session_context_only; duration/weather/intensity/session confounded",
+    "individual_measurement_error_bounds": "not_available",
+    "participants": 31,
+    "prospective_planned_duration_availability": "not_verified; conditional supplied-duration evaluation",
+    "records": 31,
+    "repeated_participants": 0,
+    "sessions": 2,
+    "target_origin": "derived_from_measured_mass_and_fluid_intake",
+    "urine_correction": "protocol_observed_no_urination"
+  },
+  "study_id": "epl-v1",
+  "synthetic": false,
+  "target_name": "intake_corrected_mass_loss_proxy_ml",
+  "test_session_subgroups": {
+    "epl-v1:session-1": {
+      "bias_ml": -294.0,
+      "interval_coverage": 1,
+      "mae_ml": 294.0,
+      "n": 2,
+      "participant_mae_ml": 294.0,
+      "participant_simultaneous_coverage": 1,
+      "participants": 2,
+      "rmse_ml": 341.6313802916822
+    },
+    "epl-v1:session-2": {
+      "bias_ml": -214.6071428571429,
+      "interval_coverage": 1,
+      "mae_ml": 386.55357142857144,
+      "n": 4,
+      "participant_mae_ml": 386.55357142857144,
+      "participant_simultaneous_coverage": 1,
+      "participants": 4,
+      "rmse_ml": 515.4575402157836
+    }
+  },
+  "workload_speed_subgroups": {}
+}

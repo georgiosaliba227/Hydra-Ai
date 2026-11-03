@@ -1,0 +1,96 @@
+{
+  "version": "wonder-analysis-preview-v2",
+  "facts": {
+    "version": "wonder-analysis-facts-v2",
+    "mode": "personal",
+    "research_only": true,
+    "forecast": {
+      "status": "estimated",
+      "value_ml": 700.0,
+      "lower_ml": 645.0,
+      "upper_ml": 755.0,
+      "interval_kind": "historical_error_envelope"
+    },
+    "intake": {
+      "beverage_count": 0,
+      "beverage_volume_ml": 0.0,
+      "water_ml": null,
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "sodium_status": "unknown",
+      "potassium_status": "unknown",
+      "completeness": "unverified"
+    },
+    "activity": {
+      "activity": "running",
+      "duration_minutes": 30.0,
+      "intensity": "moderate"
+    },
+    "environment": {
+      "temperature_c": 20.0,
+      "humidity_percent": 60.0,
+      "context_only": true
+    },
+    "calibration": {
+      "total_samples": 1,
+      "comparable_samples": 1,
+      "recent_samples": 1
+    },
+    "trends": {
+      "window_days": 14,
+      "logged_days": 7,
+      "beverage_lower_ml": 200.0,
+      "beverage_upper_ml": 800.0
+    },
+    "accounting": {
+      "status": "unavailable",
+      "quantity": "logged_intake_minus_measured_exercise_loss",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null
+    },
+    "workout_comparison": {
+      "planned_duration_minutes": 30,
+      "typical_duration_minutes": 60,
+      "planned_temperature_c": 20,
+      "typical_temperature_c": 20,
+      "planned_humidity_percent": 60,
+      "typical_humidity_percent": 60
+    },
+    "trend_context": {
+      "last_7_days": {
+        "total_ml": 2000.0,
+        "logged_days": 4
+      },
+      "previous_7_days": {
+        "total_ml": 1000.0,
+        "logged_days": 3
+      },
+      "change_pct": 100,
+      "time_of_day_ml": {
+        "morning_ml": 2000.0,
+        "afternoon_ml": 1000.0,
+        "evening_ml": 0.0,
+        "night_ml": 0.0
+      }
+    },
+    "missing_inputs": [
+      "intake_completeness",
+      "documented_water_composition",
+      "complete_electrolyte_composition"
+    ]
+  },
+  "model": "muse-wonder-1.0",
+  "payload_sha256": "f9f3112a4a9f41a8c455bc26a1b471e149fbdd738754bf46746db83f3766e3f9",
+  "status": "available",
+  "explainable": true,
+  "reason": null,
+  "input_bound_tokens": 7289,
+  "max_output_tokens": 2048,
+  "worst_case_micro_usd": 70116,
+  "per_request_cap_micro_usd": 250000,
+  "live_available": false,
+  "dispatch_supported": false,
+  "verified_for_billing": false,
+  "cost_estimate_policy": "existing_reference_prices_not_a_verified_live_quote"
+}

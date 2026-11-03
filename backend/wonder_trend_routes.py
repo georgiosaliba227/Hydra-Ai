@@ -111,19 +111,19 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
     @app.post("/v1/wonder/trends")
     def explain_trends(payload: TrendRequest, request: Request):
         request_id = request.scope["state"]["request_id"]
-        view = preview(facts_for(request, payload.timezone))
-        if not view["explainable"]:
-            return error_response("trends_insufficient_data", 422, request_id)
-        if view["payload_sha256"] != payload.payload_sha256:
-            return error_response("trends_preview_stale", 409, request_id, retryable=True)
-        if (recorded := saved(payload.payload_sha256)) is not None:
-            return {"replayed": True, "saved": True, "result": recorded}
-        factory = request.app.state.wonder_trends_gateway
-        if factory is None:
-            return error_response("wonder_unavailable", 503, request_id)
         if not in_flight.acquire(blocking=False):
             return error_response("wonder_busy", 409, request_id, retryable=True)
         try:
+            view = preview(facts_for(request, payload.timezone))
+            if not view["explainable"]:
+                return error_response("trends_insufficient_data", 422, request_id)
+            if view["payload_sha256"] != payload.payload_sha256:
+                return error_response("trends_preview_stale", 409, request_id, retryable=True)
+            if (recorded := saved(payload.payload_sha256)) is not None:
+                return {"replayed": True, "saved": True, "result": recorded}
+            factory = request.app.state.wonder_trends_gateway
+            if factory is None:
+                return error_response("wonder_unavailable", 503, request_id)
             gateway = factory()
             try:
                 quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
@@ -136,11 +136,11 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
                 # A billable request may have been sent: name the attempt so a developer can reconcile it.
                 return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
                                     status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
+            try:
+                save_result(results_dir, result)
+                stored = True
+            except (OSError, ValueError):
+                stored = False  # The settled attempt stays in the ledger; still show what was paid for.
+            return {"replayed": False, "saved": stored, "result": result}
         finally:
             in_flight.release()
-        try:
-            save_result(results_dir, result)
-            stored = True
-        except (OSError, ValueError):
-            stored = False  # The settled attempt stays in the ledger; still show what was paid for.
-        return {"replayed": False, "saved": stored, "result": result}
