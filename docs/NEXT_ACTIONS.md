@@ -9,10 +9,10 @@
 2. Review [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77), the
    implemented guided starting-goal branch stacked on PR #76. The
    protected local profile, explicit adult beverage reference and confirmation
-   have 254 native/1509 Python checks plus three passing Simulator flows; finish
-   the owner-assisted status check. No height/weight/creatine multiplier is used.
-3. After that flow, verify the actual chosen goal/Home score and a previewed,
-   consented comprehensive Wonder request on genuine intake records; keep all
+   have 254 native/1509 Python checks plus three passing Simulator flows. The
+   owner also confirms the goal and populated Home score on the phone. No height/weight/creatine multiplier is used.
+3. With the goal/Home score confirmed and live readiness renewed, verify a
+   previewed, consented comprehensive Wonder request on genuine intake records; keep all
    existing holds and risk labels. Real manual calibration still needs collection.
 
 ## Earlier November 3 handoff — before the US-unit update

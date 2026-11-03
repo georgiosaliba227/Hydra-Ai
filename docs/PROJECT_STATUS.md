@@ -10,8 +10,9 @@ supplement context adds no invented multiplier. Profiles stay on the iPhone;
 only the confirmed goal integer reaches the backend. Custom goals remain.
 254 native tests, 1509 pytest +32 subtests, and three actual Simulator flows
 pass, including offline boundaries, populated Home score and profile restoration.
-The final HealthKit-signed app is installed; owner-assisted guided confirmation
-remains pending. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
+The final HealthKit-signed app is installed; the owner reports Goal confirmed
+and Home score appears. Runtime readiness has been genuinely renewed and is
+ready for the separately previewed/consented personal Wonder flow. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
 
 Actual own-record Wonder, genuine manual calibration and always-on hosting remain
 separate outstanding work. No paid call, ledger reset, merge or deployment was

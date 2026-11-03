@@ -42,6 +42,7 @@ profile and explains that the backend may have accepted the goal.
   input, exact goal-only HTTP JSON, connection changes and both deletion/write
   orderings. New lifecycle tests first failed against the old behavior.
 - Full pytest: 1509 passed +32 subtests; one existing Starlette/httpx warning.
+- GitHub checks passed for verified head `f942246`: [iOS](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41731842834) and [Python 3.13/3.14](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41731842805). Later edits only record the owner-assisted outcome and readiness renewal.
 - Three actual Simulator UI flows pass (125.889 seconds total): custom-goal
   progress; offline age-only calculation with storage/confirmation disabled;
   US birthday/height/weight/creatine review, explicit confirmation, populated
@@ -55,7 +56,8 @@ profile and explains that the backend may have accepted the goal.
 - The complete app built with valid HealthKit signing and installed over the
   existing original bundle without uninstall/reset. Programmatic launch timed
   out while the device was unavailable for UI control; owner-assisted guided-form
-  confirmation remains pending. The final signed build was installed again after
+  confirmation subsequently passed: the owner reported Goal confirmed and Home
+  score appears. No personal values were requested. The final signed build was installed again after
   the presentation/test-isolation fixes, with strict signature verification.
 
 Earlier US-unit/automatic-context verification remains separately recorded in
@@ -64,12 +66,15 @@ financial-ledger mutation, synthetic real-profile seed, merge or deployment was
 made for this feature. Genuine calibration measurements still need collection;
 the actual personal aggregate-preview/consent/Wonder/replay flow remains open.
 
-At this continuation's read-only live-readiness check, the owner backend returned
-`blocked` with only `account_observation_stale`; financial ledger bytes were
-unchanged. The authenticated billing observation must be genuinely renewed
-before the next request. The Mac is locked, so browser renewal is currently
-unavailable. Existing accepted-risk/invoice-wait waivers remain in force and
-were not requested again.
+An earlier read-only check returned `account_observation_stale` while the Mac
+was locked. Once it became available, the authenticated billing observation and
+official pricing were genuinely renewed, preserving every existing financial row
+and event and appending only one fresh immutable policy authorization. Runtime
+readiness now reports ready. The usage dashboard was blank, so no fresh usage or
+invoice-finality claim was created. Standing accepted-risk/invoice-wait waivers
+remain unchanged. The owner has been asked to perform the actual personal
+preview/consent/analysis flow on the phone; no operator-side provider request was
+sent.
 
 ## Review handoff
 

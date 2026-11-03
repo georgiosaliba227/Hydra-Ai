@@ -9,15 +9,18 @@ scope. Actual unattended background delivery and a populated own-record Meta flo
 are not established by those tests.
 
 The requested profile-guided form and reviewed adult beverage reference are
-implemented and installed; three actual Simulator flows pass. Owner-assisted
-guided confirmation remains. Height/weight/supplements apply no numerical
+implemented and installed; three actual Simulator flows pass. The owner also
+confirms the goal and populated Home score on the phone. Height/weight/supplements apply no numerical
 adjustments. Genuine manual calibration and independent personal accuracy evidence
 remain absent. Existing financial uncertainty is accepted under the recorded owner
 waiver, with holds/limits and other admission gates retained.
 
-Current owner readiness is blocked by `account_observation_stale` only. The Mac
-must be unlocked for the authenticated account observation to be renewed. This
-does not reopen the accepted billing/extras waivers or permit invented freshness.
+The earlier stale-observation gate was cleared by a genuine authenticated billing
+and official-pricing renewal after the Mac became available; runtime readiness
+now reports ready. All prior financial history is preserved and only a fresh
+immutable authorization event was appended. Actual usage/finality and cross-ledger
+status remain unverified. The remaining personal preview/consent/result/replay
+check needs the owner's on-phone action; standing waivers were not requested again.
 
 ## Earlier November 3 gaps — before the US-unit update
 

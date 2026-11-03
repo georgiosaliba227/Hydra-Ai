@@ -1,5 +1,24 @@
 # Physical hydration milestone verification
 
+## Guided goal and Home score update
+
+The final HealthKit-signed guided-goal build (Swift source `84b7ba6`) was installed
+without uninstall/reset. The owner entered answers privately on the phone and
+reported **Goal confirmed and Home score appears**. A read-only backend check
+independently confirms that a goal is set, without recording its value or any
+profile answers. This is owner-assisted hardware evidence, separate from the
+three passing synthetic Simulator flows. No raw profile, Health or location
+values were requested in chat.
+
+The current account observation was subsequently renewed from the authenticated
+Meta billing page and published token pricing. The backend now reports ready.
+All existing financial rows/events remain unchanged; only one fresh immutable
+authorization event was appended. Billing/extra-charge and cross-ledger uncertainty
+labels remain unverified under the standing waiver. The usage dashboard was blank,
+so no fresh usage figures or final charges were attested. No provider request was
+made in that renewal. The actual personal preview/consent/result/replay check is
+now pending the owner's on-phone action.
+
 ## US units and automatic-context update
 
 The reviewed update at `1ef152d` was installed over the original bundle and
