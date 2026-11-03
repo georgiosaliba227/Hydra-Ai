@@ -3,7 +3,7 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Explicitly consented recognition; images stay transient unless the user exports them.
+/// Consented analysis; durable photo storage additionally requires training opt-in.
 struct CameraCaptureView: View {
     @EnvironmentObject private var store: BeverageStore
     let onLogManually: () -> Void
@@ -28,7 +28,17 @@ struct CameraCaptureView: View {
     @State private var scenario = "ambiguous"
     private var isAnalyzing: Bool { cameraSession.isAnalyzing }
     private var result: RecognitionResult? { cameraSession.result }
-    @State private var selectedCandidate: RecognitionCandidate?
+    private struct CandidateSelection: Identifiable {
+        let id = UUID()
+        let candidate: RecognitionCandidate
+        let editing: Bool
+        let mode: String
+        let recognitionId: UUID?
+        let feedback: RecognitionFeedbackContext?
+    }
+    @State private var selectedCandidate: CandidateSelection?
+    @State private var memoryAvailable = false
+    @State private var trainingAvailable = false
 
     private let maximumImageBytes = 12 * 1_024 * 1_024
 
@@ -82,19 +92,21 @@ struct CameraCaptureView: View {
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("analyzePhoto")
                     .disabled(!consent || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
+                    if isAnalyzing && recognitionMode == "local_meta" {
+                        Text("Your Mac is reading the label and running the trained model. Keep Hydra open; this can take up to 3 minutes.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                     if let result {
                         Text(RecognitionPresentation(mode: result.mode).resultTitle).font(.headline)
                             .accessibilityIdentifier("recognitionResultSource")
                         ForEach(result.candidates) { candidate in
-                            Button("Review \(candidate.identity) (\(candidate.confidence) confidence)") { selectedCandidate = candidate }
-                                .buttonStyle(.bordered)
-                                .accessibilityIdentifier("recognitionCandidate-\(candidate.id.uuidString)")
+                            candidateCard(candidate)
                         }
                         if result.candidates.isEmpty {
                             Text("No confident match. Retake the photo or enter the identity and capacity yourself.")
                         }
                         Button("Enter or correct beverage details") {
-                            selectedCandidate = RecognitionCandidate(identity: "", productId: nil, containerMl: nil, confidence: "low", uncertaintyReasons: ["Identity, capacity and nutrients are unknown"])
+                            present(RecognitionCandidate(identity: "", productId: nil, containerMl: nil, confidence: "low", uncertaintyReasons: ["Identity, capacity and nutrients are unknown"]), editing: true)
                         }
                     }
 
@@ -115,7 +127,7 @@ struct CameraCaptureView: View {
                     captureOptions
                 }
 
-                Text("Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Only an export you choose saves or shares a separate copy. Confirmed logs contain details you approve.")
+                Text("Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Analysis does not save the photo. A separate training opt-in on confirmation lets your backend retain that photo and corrected details. Confirmed logs contain details you approve.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -127,13 +139,15 @@ struct CameraCaptureView: View {
             SystemCameraPicker(image: Binding(get: { capturedImage }, set: { selectPhoto($0) }), isPresented: $showingCamera)
                 .ignoresSafeArea()
         }
-        .sheet(item: $selectedCandidate) { candidate in
-            NavigationStack { RecognitionConfirmationView(candidate: candidate, mode: result?.mode ?? "mock", recognitionId: result?.recognitionId, onSaved: clearPhoto) }
+        .sheet(item: $selectedCandidate) { selection in
+            NavigationStack { RecognitionConfirmationView(candidate: selection.candidate, mode: selection.mode, recognitionId: selection.recognitionId,
+                initiallyEditing: selection.editing, feedbackContext: selection.feedback, onSaved: clearPhoto) }.id(selection.id)
         }
         .task(id: store.configurationGeneration) { await loadCapabilities() }
         .onChange(of: store.configurationGeneration) { _, generation in
             cameraSession.bind(to: generation)
             selectedCandidate = nil; alertMessage = nil
+            memoryAvailable = false; trainingAvailable = false
         }
         .onChange(of: scenario) { _, _ in cameraSession.discardResult() }
         .alert(alertTitle, isPresented: Binding(
@@ -150,6 +164,48 @@ struct CameraCaptureView: View {
                 await loadSelectedPhoto(newItem)
             }
         }
+    }
+
+    private var feedbackContext: RecognitionFeedbackContext? {
+        guard let hash = result?.imageSha256, let preparedPhoto else { return nil }
+        return RecognitionFeedbackContext(imageSha256: hash, jpeg: preparedPhoto.export.jpeg,
+            memoryAvailable: memoryAvailable, trainingAvailable: trainingAvailable)
+    }
+
+    private func present(_ candidate: RecognitionCandidate, editing: Bool) {
+        selectedCandidate = CandidateSelection(candidate: candidate, editing: editing, mode: result?.mode ?? "mock",
+            recognitionId: result?.recognitionId, feedback: feedbackContext)
+    }
+
+    private func candidateCard(_ candidate: RecognitionCandidate) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(candidate.suggestedIdentity).font(.headline)
+            if let brand = candidate.brand { Text("Brand: \(brand)") }
+            if let product = candidate.product { Text("Product: \(product)") }
+            Text(candidate.suggestedCapacity.map { "Container suggestion: \($0) mL" } ?? "Container capacity: unknown")
+            Text(candidate.liquidEstimateText).font(.subheadline)
+            Text("\(RecognitionPresentation(mode: result?.mode).modelName) confidence: \(candidate.confidence) · verify the details").font(.footnote)
+            if candidate.personalCorrection != nil {
+                Text("\(RecognitionPresentation(mode: result?.mode).modelName) suggested: \(candidate.identity)").font(.footnote)
+                Text("Your previous correction: \(candidate.suggestedIdentity)")
+                    .font(.footnote).accessibilityIdentifier("personalCorrectionSuggestion")
+                if let liquid = candidate.personalLiquidText {
+                    Text(liquid).font(.footnote).accessibilityIdentifier("personalLiquidCorrection")
+                }
+            }
+            HStack {
+                Button("Confirm") { present(candidate, editing: false) }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityLabel("Confirm \(candidate.suggestedIdentity) (\(candidate.confidence) confidence)")
+                    .accessibilityIdentifier("recognitionCandidate-\(candidate.id.uuidString)")
+                Button("No, edit entry") { present(candidate, editing: true) }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("editRecognition-\(candidate.id.uuidString)")
+            }
+            Text("Confirm logs the whole drink. Edit its details if needed.").font(.caption).foregroundStyle(.secondary)
+        }
+        .padding().frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
     }
 
     private func clearPhoto() {
@@ -188,6 +244,9 @@ struct CameraCaptureView: View {
                     return
                 }
             }
+            let proposed = next.candidates.first ?? RecognitionCandidate(identity: "", productId: nil, containerMl: nil,
+                confidence: "low", uncertaintyReasons: ["Identity and volume are unknown; enter corrected details"])
+            present(proposed, editing: false)
         } catch {
             guard cameraSession.completeAnalysis(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Analysis unavailable"
@@ -200,11 +259,14 @@ struct CameraCaptureView: View {
         let configuration = store.configuration
         guard let ticket = cameraSession.beginCapabilities(generation: generation) else { return }
         selectedCandidate = nil
+        memoryAvailable = false; trainingAvailable = false
         do {
             guard !configuration.offline else { throw ServiceError.configuration }
             let service = try HTTPBeverageService(configuration: configuration)
-            let mode = try await service.recognitionCapabilities().mode
-            _ = cameraSession.completeCapabilities(mode, ticket: ticket, currentGeneration: store.configurationGeneration)
+            let capabilities = try await service.recognitionCapabilities()
+            guard cameraSession.completeCapabilities(capabilities.mode, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
+            memoryAvailable = capabilities.correctionMemoryAvailable == true
+            trainingAvailable = capabilities.trainingExamplesAvailable == true
         } catch {
             guard cameraSession.completeCapabilities(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Recognition unavailable"

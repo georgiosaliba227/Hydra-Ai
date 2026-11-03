@@ -1,0 +1,96 @@
+{
+  "repo": "mlx-community/Muse-Glimmer-30B-4bit",
+  "revision": "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+  "files": [
+    {
+      "rfilename": ".gitattributes",
+      "blobId": "52373fe24473b1aa44333d318f578ae6bf04b49b",
+      "size": 1570
+    },
+    {
+      "rfilename": "README.md",
+      "blobId": "b19a8acbd25121c764402b42fb041c5f558f216a",
+      "size": 683
+    },
+    {
+      "rfilename": "chat_template.jinja",
+      "blobId": "8a8673897ed588c171d50088c89e25360130abe6",
+      "size": 7167
+    },
+    {
+      "rfilename": "config.json",
+      "blobId": "d9a91d7b4a0256adaf39464d11a25d0eef2fb3b1",
+      "size": 6796
+    },
+    {
+      "rfilename": "generation_config.json",
+      "blobId": "3495c31ea76c03c093a1d14e8221c3410b76ded2",
+      "size": 148
+    },
+    {
+      "rfilename": "model-00001-of-00004.safetensors",
+      "blobId": "996014d4ab05f5b095663132cace4abc6309606c",
+      "size": 5310085129,
+      "lfs": {
+        "sha256": "72c99dc670867308f70aab212331e4dd0e19d46bf409a134da1848b9dbe47c91",
+        "size": 5310085129,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "model-00002-of-00004.safetensors",
+      "blobId": "56fb8ada7a0f1ef49a6db6d9f6f98adad3e419ba",
+      "size": 5366299665,
+      "lfs": {
+        "sha256": "f2af4b82d578cee5eeeef3f0d3f139eae3adfc2fc2a27b52ec2ac5886e131cf4",
+        "size": 5366299665,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "model-00003-of-00004.safetensors",
+      "blobId": "1c6cc3d158a812c3d2df88f1037e9af74dc3db4e",
+      "size": 5343216475,
+      "lfs": {
+        "sha256": "2892bb7971d20a7ecfd84a51404e0ae1f0863580562ccef58fdf444da25bc5a2",
+        "size": 5343216475,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "model-00004-of-00004.safetensors",
+      "blobId": "da52cb5c39f3f0bfefc748865241e0b60f50fb2c",
+      "size": 3395202844,
+      "lfs": {
+        "sha256": "6496c62ac6a229be31c784835c43077224e80750182c2693e29c08ddae455a31",
+        "size": 3395202844,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "model.safetensors.index.json",
+      "blobId": "5cc67683bfbcd38ac7d10d1bbfe5b8349a642841",
+      "size": 218191
+    },
+    {
+      "rfilename": "processor_config.json",
+      "blobId": "82e0b73bcf751936da5acdd82fb89d0257eec2e0",
+      "size": 395
+    },
+    {
+      "rfilename": "tokenizer.json",
+      "blobId": "9489d8dc16cfee56aab409ad31c1796b71f81a13",
+      "size": 28129897,
+      "lfs": {
+        "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+        "size": 28129897,
+        "pointerSize": 133
+      }
+    },
+    {
+      "rfilename": "tokenizer_config.json",
+      "blobId": "d1b80588d3aadbf3a7c538249aecc99d75e52e6c",
+      "size": 79985
+    }
+  ]
+}

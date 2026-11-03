@@ -1,0 +1,39 @@
+{
+  "actual_adapter_sha256": "d3c1cc51bea9a73cc12df1719e473122de768851e2c61b565d99e352ca32c7a7",
+  "adapter_sha256": "d3c1cc51bea9a73cc12df1719e473122de768851e2c61b565d99e352ca32c7a7",
+  "initial_adapter_sha256": "d442a64980641591e71828c1be0439fe3fbd933449ab2f726095957663ab768e",
+  "loss_history": [
+    1.3242889642715454
+  ],
+  "memory": {
+    "mlx_active_bytes": 15734159220,
+    "mlx_cache_bytes": 76327668,
+    "mlx_peak_bytes": 20303917826,
+    "phase": "training_finished",
+    "process_peak_rss_bytes": 1063878656,
+    "resident_bytes": 46252032
+  },
+  "parameter_delta_l2": 0.0416671921718168,
+  "runtime_provenance": {
+    "executable_sha256": "e5cbf76ba140b7f8af944478a2e6a8144af66f81320df831248cd8682a895627",
+    "image_tokens": 512,
+    "memory_limit_bytes": 20401094656,
+    "prefill_step": 128,
+    "rss_limit_bytes": 21474836480,
+    "runtime_patch_sha256": "fb0b9d72af315b40867c23e2b2f270172fae560724c7582335dbf6baaf5e596f",
+    "vision_release_enabled": true,
+    "vision_release_policy": "hydra-frozen-vision-release-v1"
+  },
+  "save_reload_max_abs_error": 0,
+  "timing_estimates_seconds": {
+    "checkpoint_saved_to_verified_training_record": 0.7270450592041016,
+    "controller_total": 72.92615016712807,
+    "initial_adapter_to_prefix_ready": 47.959420919418335,
+    "prefix_ready_to_optimizer_ready": 3.464698076248169,
+    "vision_embedding": 8.349231004714966,
+    "vision_release_to_prefix_ready": 39.35084891319275
+  },
+  "trainable_parameter_count": 70656,
+  "training_wall_seconds": 52.082895040512085,
+  "updated_steps": 1
+}

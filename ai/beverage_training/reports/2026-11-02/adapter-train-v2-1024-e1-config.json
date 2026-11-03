@@ -1,0 +1,13 @@
+{
+  "fine_tune_type" : "lora",
+  "lora_parameters" : {
+    "dropout" : 0,
+    "keys" : [
+      "self_attn.q_proj",
+      "self_attn.v_proj"
+    ],
+    "rank" : 16,
+    "scale" : 8
+  },
+  "num_layers" : 8
+}

@@ -84,7 +84,7 @@ def test_simultaneous_duplicate_creates_one_record(client):
     {'timezone': 'no/such_timezone'}, {'consumed_at': '2025-01-01T12:00:00'},
     {'consumed_at': '1999-12-31T23:59:59Z'},
     {'consumed_at': (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()},
-    {'source': 'confirmed_recognition'}, {'user_id': 'other'},
+    {'source': 'automatic_recognition'}, {'user_id': 'other'},
     {'nutrition': {'water_ml': 250}}, {'consumed_at': 1700000000},
 ])
 def test_invalid_request_never_persists(client, change):

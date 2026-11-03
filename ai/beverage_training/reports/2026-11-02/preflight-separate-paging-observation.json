@@ -1,0 +1,8 @@
+{
+  "schema_version": "system-paging-observation-v1",
+  "scope": "system-wide, not process-specific",
+  "seconds": 10.008706874912605,
+  "page_bytes": 16384,
+  "swapin_pages": 90046,
+  "swapout_pages": 109292
+}

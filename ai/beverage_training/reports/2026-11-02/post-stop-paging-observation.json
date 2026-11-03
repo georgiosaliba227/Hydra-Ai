@@ -1,0 +1,12 @@
+{
+  "phase": "after_operator_stop_no_model_job",
+  "sample_seconds": 15.01,
+  "page_size_bytes": 16384,
+  "delta_pages": {
+    "Pageins": 189,
+    "Pageouts": 0,
+    "Swapins": 434,
+    "Swapouts": 0
+  },
+  "scope": "system-wide observational counters; no attribution to a single process"
+}

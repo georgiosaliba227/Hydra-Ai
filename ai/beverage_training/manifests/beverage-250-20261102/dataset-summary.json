@@ -1,0 +1,63 @@
+{
+  "final_source_verified": true,
+  "frozen": true,
+  "selected": 250,
+  "split_counts": {
+    "train": 150,
+    "validation": 25,
+    "test": 75
+  },
+  "backgrounds": {
+    "plain": 116,
+    "natural": 120,
+    "studio": 14
+  },
+  "families": {
+    "wine": 9,
+    "juice": 56,
+    "plant_milk": 22,
+    "milk": 38,
+    "beer": 23,
+    "other": 5,
+    "water": 46,
+    "coffee": 7,
+    "energy": 4,
+    "soda": 15,
+    "tea": 22,
+    "sports": 3
+  },
+  "diversity": {
+    "natural_overall": 120,
+    "natural_test": 46,
+    "natural_test_settings": 7,
+    "natural_test_setting_names": [
+      "home other",
+      "in hand",
+      "indoor table",
+      "kitchen counter",
+      "outdoor surface",
+      "retail shelf",
+      "vehicle"
+    ]
+  },
+  "test_families": {
+    "water": 10,
+    "soda": 3,
+    "juice": 21,
+    "sports": 1,
+    "energy": 2,
+    "milk": 11,
+    "plant_milk": 7,
+    "tea": 5,
+    "coffee": 2,
+    "beer": 8,
+    "wine": 3,
+    "other": 2
+  },
+  "connected_product_groups": 227,
+  "largest_group": 5,
+  "reserved_smoke_image_split": "train",
+  "seed": 20261102,
+  "grouping": "source product OR shared normalized full identity alias OR dHash64 Hamming<=2, transitive closure; grouped across sizes",
+  "manifest_canonical_sha256": "8f7c9d0fcc6ce0e5719fd99b464eb2ee3ddc5c674734dee7bcf219a577838f59"
+}

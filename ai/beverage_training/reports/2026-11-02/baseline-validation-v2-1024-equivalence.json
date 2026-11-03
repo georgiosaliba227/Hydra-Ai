@@ -1,0 +1,3062 @@
+{
+  "above_70_percent": true,
+  "adapter_sha256": null,
+  "adapter_target_met": false,
+  "backgrounds": {
+    "natural": {
+      "above_70_percent": false,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 11,
+        "rate": 0.7857142857142857,
+        "total": 14,
+        "wilson95": [
+          0.524107694133997,
+          0.9242861328730683
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076850099013-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0068274346613-3",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": true,
+          "image_id": "off-0016229917630-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0896221000314-2",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0613008719524-9",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011110008107-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011152225654-4",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0025616102504-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0122114780811-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0041800202362-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0708236951096-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0017077001328-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0680569891808-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0041800490004-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 3,
+        "abstained_identity": 1,
+        "capacity_correct": 11,
+        "failed": 0,
+        "identity_correct": 10,
+        "joint_correct": 9,
+        "known_capacity": 14,
+        "missing": 0,
+        "received": 14,
+        "total": 14,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 14
+      },
+      "coverage": {
+        "correct": 14,
+        "rate": 1.0,
+        "total": 14,
+        "wilson95": [
+          0.7846891972623643,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 10,
+        "rate": 0.7142857142857143,
+        "total": 14,
+        "wilson95": [
+          0.4535091567010681,
+          0.8827862135542308
+        ]
+      },
+      "joint": {
+        "correct": 9,
+        "rate": 0.6428571428571429,
+        "total": 14,
+        "wilson95": [
+          0.38764423103907397,
+          0.8365526824644587
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 11,
+          "rate": 0.7857142857142857,
+          "total": 14,
+          "wilson95": [
+            0.524107694133997,
+            0.9242861328730683
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 3,
+          "rate": 0.21428571428571427,
+          "total": 14,
+          "wilson95": [
+            0.07571386712693184,
+            0.47589230586600295
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0076850099013-1",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0068274346613-3",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0016229917630-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0896221000314-2",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0613008719524-9",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0011110008107-2",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0011152225654-4",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0025616102504-6",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0122114780811-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0041800202362-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0708236951096-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0017077001328-5",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0680569891808-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0041800490004-6",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 3,
+          "abstained_identity": 1,
+          "capacity_correct": 11,
+          "failed": 0,
+          "identity_correct": 2,
+          "joint_correct": 2,
+          "known_capacity": 14,
+          "missing": 0,
+          "received": 14,
+          "total": 14,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 14
+        },
+        "coverage": {
+          "correct": 14,
+          "rate": 1.0,
+          "total": 14,
+          "wilson95": [
+            0.7846891972623643,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 2,
+          "rate": 0.14285714285714285,
+          "total": 14,
+          "wilson95": [
+            0.040093921271464966,
+            0.39941379496970353
+          ]
+        },
+        "identity_abstention": {
+          "correct": 1,
+          "rate": 0.07142857142857142,
+          "total": 14,
+          "wilson95": [
+            0.012722215247890939,
+            0.31468704424151117
+          ]
+        },
+        "joint": {
+          "correct": 2,
+          "rate": 0.14285714285714285,
+          "total": 14,
+          "wilson95": [
+            0.040093921271464966,
+            0.39941379496970353
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 14,
+          "wilson95": [
+            1.3877787807814457e-17,
+            0.2153108027376358
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 14,
+        "exact_verdict_agreement": 14,
+        "total": 14,
+        "unanimous_equivalent": 10
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "plain": {
+      "above_70_percent": true,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 11,
+        "rate": 1.0,
+        "total": 11,
+        "wilson95": [
+          0.7411670330319684,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-3760030050013-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0621433007741-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0025293600270-10",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200444813-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200610331-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-2000000021470-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076183001813-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0055872106015-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872515176-6",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0021130070107-11",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011150159609-3",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 1,
+        "capacity_correct": 11,
+        "failed": 0,
+        "identity_correct": 9,
+        "joint_correct": 9,
+        "known_capacity": 11,
+        "missing": 0,
+        "received": 11,
+        "total": 11,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 11
+      },
+      "coverage": {
+        "correct": 11,
+        "rate": 1.0,
+        "total": 11,
+        "wilson95": [
+          0.7411670330319684,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 9,
+        "rate": 0.8181818181818182,
+        "total": 11,
+        "wilson95": [
+          0.523019438039156,
+          0.9486323102539149
+        ]
+      },
+      "joint": {
+        "correct": 9,
+        "rate": 0.8181818181818182,
+        "total": 11,
+        "wilson95": [
+          0.523019438039156,
+          0.9486323102539149
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 11,
+          "rate": 1.0,
+          "total": 11,
+          "wilson95": [
+            0.7411670330319684,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 11,
+          "wilson95": [
+            0.0,
+            0.2588329669680317
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-3760030050013-2",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0621433007741-2",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0025293600270-10",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0031200444813-5",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0031200610331-5",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-2000000021470-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0076183001813-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0055872106015-6",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0055872515176-6",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0021130070107-11",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0011150159609-3",
+            "joint_correct": true,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 1,
+          "capacity_correct": 11,
+          "failed": 0,
+          "identity_correct": 6,
+          "joint_correct": 6,
+          "known_capacity": 11,
+          "missing": 0,
+          "received": 11,
+          "total": 11,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 11
+        },
+        "coverage": {
+          "correct": 11,
+          "rate": 1.0,
+          "total": 11,
+          "wilson95": [
+            0.7411670330319684,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 6,
+          "rate": 0.5454545454545454,
+          "total": 11,
+          "wilson95": [
+            0.280091537409322,
+            0.7872872837754024
+          ]
+        },
+        "identity_abstention": {
+          "correct": 1,
+          "rate": 0.09090909090909091,
+          "total": 11,
+          "wilson95": [
+            0.016232172885884855,
+            0.37735843645159567
+          ]
+        },
+        "joint": {
+          "correct": 6,
+          "rate": 0.5454545454545454,
+          "total": 11,
+          "wilson95": [
+            0.280091537409322,
+            0.7872872837754024
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 11,
+          "wilson95": [
+            0.0,
+            0.2588329669680317
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 11,
+        "exact_verdict_agreement": 11,
+        "total": 11,
+        "unanimous_equivalent": 9
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    }
+  },
+  "capacity": {
+    "correct": 22,
+    "rate": 0.88,
+    "total": 25,
+    "wilson95": [
+      0.7004420607907267,
+      0.9583318284955964
+    ]
+  },
+  "cases": [
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-3760030050013-2",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0621433007741-2",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0076850099013-1",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0068274346613-3",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": true,
+      "image_id": "off-0016229917630-1",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0025293600270-10",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0896221000314-2",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0031200444813-5",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0031200610331-5",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-2000000021470-1",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0076183001813-1",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0613008719524-9",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0055872106015-6",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0055872515176-6",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0021130070107-11",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0011110008107-2",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0011150159609-3",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0011152225654-4",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0025616102504-6",
+      "joint_correct": true,
+      "legacy_name_alias_correct": true,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0122114780811-1",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0041800202362-1",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0708236951096-1",
+      "joint_correct": false,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "meaningful_identity_error",
+        "meaningful_identity_error"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0017077001328-5",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0680569891808-1",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0041800490004-6",
+      "joint_correct": true,
+      "legacy_name_alias_correct": false,
+      "review_verdicts": [
+        "full_identity_equivalent",
+        "full_identity_equivalent"
+      ],
+      "status": "valid"
+    }
+  ],
+  "counts": {
+    "abstained_capacity": 3,
+    "abstained_identity": 2,
+    "capacity_correct": 22,
+    "failed": 0,
+    "identity_correct": 19,
+    "joint_correct": 18,
+    "known_capacity": 25,
+    "missing": 0,
+    "received": 25,
+    "total": 25,
+    "unknown_capacity": 0,
+    "unsupported_capacity": 0,
+    "valid": 25
+  },
+  "coverage": {
+    "correct": 25,
+    "rate": 1.0,
+    "total": 25,
+    "wilson95": [
+      0.8668077490609515,
+      0.9999999999999999
+    ]
+  },
+  "drink_families": {
+    "beer": {
+      "above_70_percent": false,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 3,
+        "rate": 0.75,
+        "total": 4,
+        "wilson95": [
+          0.30064184258240184,
+          0.9544127391902995
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0621433007741-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0896221000314-2",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-2000000021470-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0680569891808-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 2,
+        "capacity_correct": 3,
+        "failed": 0,
+        "identity_correct": 2,
+        "joint_correct": 2,
+        "known_capacity": 4,
+        "missing": 0,
+        "received": 4,
+        "total": 4,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 4
+      },
+      "coverage": {
+        "correct": 4,
+        "rate": 1.0,
+        "total": 4,
+        "wilson95": [
+          0.5101091635454027,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 2,
+        "rate": 0.5,
+        "total": 4,
+        "wilson95": [
+          0.15003898915214947,
+          0.8499610108478506
+        ]
+      },
+      "joint": {
+        "correct": 2,
+        "rate": 0.5,
+        "total": 4,
+        "wilson95": [
+          0.15003898915214947,
+          0.8499610108478506
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 3,
+          "rate": 0.75,
+          "total": 4,
+          "wilson95": [
+            0.30064184258240184,
+            0.9544127391902995
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 1,
+          "rate": 0.25,
+          "total": 4,
+          "wilson95": [
+            0.04558726080970055,
+            0.6993581574175981
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0621433007741-2",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0896221000314-2",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-2000000021470-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0680569891808-1",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 1,
+          "abstained_identity": 2,
+          "capacity_correct": 3,
+          "failed": 0,
+          "identity_correct": 1,
+          "joint_correct": 1,
+          "known_capacity": 4,
+          "missing": 0,
+          "received": 4,
+          "total": 4,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 4
+        },
+        "coverage": {
+          "correct": 4,
+          "rate": 1.0,
+          "total": 4,
+          "wilson95": [
+            0.5101091635454027,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 1,
+          "rate": 0.25,
+          "total": 4,
+          "wilson95": [
+            0.04558726080970055,
+            0.6993581574175981
+          ]
+        },
+        "identity_abstention": {
+          "correct": 2,
+          "rate": 0.5,
+          "total": 4,
+          "wilson95": [
+            0.15003898915214947,
+            0.8499610108478506
+          ]
+        },
+        "joint": {
+          "correct": 1,
+          "rate": 0.25,
+          "total": 4,
+          "wilson95": [
+            0.04558726080970055,
+            0.6993581574175981
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 4,
+          "wilson95": [
+            0.0,
+            0.4898908364545973
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 4,
+        "exact_verdict_agreement": 4,
+        "total": 4,
+        "unanimous_equivalent": 2
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "coffee": {
+      "above_70_percent": true,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0025616102504-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 1,
+        "joint_correct": 1,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": true,
+        "capacity": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0025616102504-6",
+            "joint_correct": true,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 0,
+          "capacity_correct": 1,
+          "failed": 0,
+          "identity_correct": 1,
+          "joint_correct": 1,
+          "known_capacity": 1,
+          "missing": 0,
+          "received": 1,
+          "total": 1,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 1
+        },
+        "coverage": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "joint": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 1,
+        "exact_verdict_agreement": 1,
+        "total": 1,
+        "unanimous_equivalent": 1
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "juice": {
+      "above_70_percent": true,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 5,
+        "rate": 1.0,
+        "total": 5,
+        "wilson95": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-3760030050013-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200444813-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200610331-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0041800202362-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0041800490004-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 5,
+        "failed": 0,
+        "identity_correct": 5,
+        "joint_correct": 5,
+        "known_capacity": 5,
+        "missing": 0,
+        "received": 5,
+        "total": 5,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 5
+      },
+      "coverage": {
+        "correct": 5,
+        "rate": 1.0,
+        "total": 5,
+        "wilson95": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 5,
+        "rate": 1.0,
+        "total": 5,
+        "wilson95": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 5,
+        "rate": 1.0,
+        "total": 5,
+        "wilson95": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 5,
+          "rate": 1.0,
+          "total": 5,
+          "wilson95": [
+            0.5655175352168251,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 5,
+          "wilson95": [
+            0.0,
+            0.43448246478317476
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-3760030050013-2",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0031200444813-5",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0031200610331-5",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0041800202362-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0041800490004-6",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 0,
+          "capacity_correct": 5,
+          "failed": 0,
+          "identity_correct": 3,
+          "joint_correct": 3,
+          "known_capacity": 5,
+          "missing": 0,
+          "received": 5,
+          "total": 5,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 5
+        },
+        "coverage": {
+          "correct": 5,
+          "rate": 1.0,
+          "total": 5,
+          "wilson95": [
+            0.5655175352168251,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 3,
+          "rate": 0.6,
+          "total": 5,
+          "wilson95": [
+            0.2307242812760128,
+            0.882379225767352
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 5,
+          "wilson95": [
+            0.0,
+            0.43448246478317476
+          ]
+        },
+        "joint": {
+          "correct": 3,
+          "rate": 0.6,
+          "total": 5,
+          "wilson95": [
+            0.2307242812760128,
+            0.882379225767352
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 5,
+          "wilson95": [
+            0.0,
+            0.43448246478317476
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 5,
+        "exact_verdict_agreement": 5,
+        "total": 5,
+        "unanimous_equivalent": 5
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "milk": {
+      "above_70_percent": false,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 7,
+        "rate": 0.875,
+        "total": 8,
+        "wilson95": [
+          0.5291118177871464,
+          0.9775825085499433
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076850099013-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0055872106015-6",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872515176-6",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0021130070107-11",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011150159609-3",
+          "joint_correct": true,
+          "legacy_name_alias_correct": true,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0122114780811-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0708236951096-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0017077001328-5",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 0,
+        "capacity_correct": 7,
+        "failed": 0,
+        "identity_correct": 5,
+        "joint_correct": 5,
+        "known_capacity": 8,
+        "missing": 0,
+        "received": 8,
+        "total": 8,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 8
+      },
+      "coverage": {
+        "correct": 8,
+        "rate": 1.0,
+        "total": 8,
+        "wilson95": [
+          0.6755924351161198,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 5,
+        "rate": 0.625,
+        "total": 8,
+        "wilson95": [
+          0.30574239460262737,
+          0.8631557141764026
+        ]
+      },
+      "joint": {
+        "correct": 5,
+        "rate": 0.625,
+        "total": 8,
+        "wilson95": [
+          0.30574239460262737,
+          0.8631557141764026
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 7,
+          "rate": 0.875,
+          "total": 8,
+          "wilson95": [
+            0.5291118177871464,
+            0.9775825085499433
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 1,
+          "rate": 0.125,
+          "total": 8,
+          "wilson95": [
+            0.02241749145005667,
+            0.4708881822128535
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0076850099013-1",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0055872106015-6",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0055872515176-6",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0021130070107-11",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": true,
+            "image_id": "off-0011150159609-3",
+            "joint_correct": true,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0122114780811-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0708236951096-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0017077001328-5",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 1,
+          "abstained_identity": 0,
+          "capacity_correct": 7,
+          "failed": 0,
+          "identity_correct": 3,
+          "joint_correct": 3,
+          "known_capacity": 8,
+          "missing": 0,
+          "received": 8,
+          "total": 8,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 8
+        },
+        "coverage": {
+          "correct": 8,
+          "rate": 1.0,
+          "total": 8,
+          "wilson95": [
+            0.6755924351161198,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 3,
+          "rate": 0.375,
+          "total": 8,
+          "wilson95": [
+            0.13684428582359742,
+            0.6942576053973727
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 8,
+          "wilson95": [
+            0.0,
+            0.32440756488388023
+          ]
+        },
+        "joint": {
+          "correct": 3,
+          "rate": 0.375,
+          "total": 8,
+          "wilson95": [
+            0.13684428582359742,
+            0.6942576053973727
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 8,
+          "wilson95": [
+            0.0,
+            0.32440756488388023
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 8,
+        "exact_verdict_agreement": 8,
+        "total": 8,
+        "unanimous_equivalent": 5
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "plant_milk": {
+      "above_70_percent": true,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0025293600270-10",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 1,
+        "joint_correct": 1,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0025293600270-10",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 0,
+          "capacity_correct": 1,
+          "failed": 0,
+          "identity_correct": 0,
+          "joint_correct": 0,
+          "known_capacity": 1,
+          "missing": 0,
+          "received": 1,
+          "total": 1,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 1
+        },
+        "coverage": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "joint": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 1,
+        "exact_verdict_agreement": 1,
+        "total": 1,
+        "unanimous_equivalent": 1
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "soda": {
+      "above_70_percent": true,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011152225654-4",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 1,
+        "joint_correct": 1,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0011152225654-4",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 0,
+          "capacity_correct": 1,
+          "failed": 0,
+          "identity_correct": 0,
+          "joint_correct": 0,
+          "known_capacity": 1,
+          "missing": 0,
+          "received": 1,
+          "total": 1,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 1
+        },
+        "coverage": {
+          "correct": 1,
+          "rate": 1.0,
+          "total": 1,
+          "wilson95": [
+            0.20654931437723745,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "joint": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 1,
+          "wilson95": [
+            0.0,
+            0.7934506856227626
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 1,
+        "exact_verdict_agreement": 1,
+        "total": 1,
+        "unanimous_equivalent": 1
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "tea": {
+      "above_70_percent": false,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076183001813-1",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0613008719524-9",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "meaningful_identity_error",
+            "meaningful_identity_error"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 2,
+        "failed": 0,
+        "identity_correct": 1,
+        "joint_correct": 1,
+        "known_capacity": 2,
+        "missing": 0,
+        "received": 2,
+        "total": 2,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 2
+      },
+      "coverage": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 1,
+        "rate": 0.5,
+        "total": 2,
+        "wilson95": [
+          0.09453120573423074,
+          0.9054687942657693
+        ]
+      },
+      "joint": {
+        "correct": 1,
+        "rate": 0.5,
+        "total": 2,
+        "wilson95": [
+          0.09453120573423074,
+          0.9054687942657693
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 2,
+          "rate": 1.0,
+          "total": 2,
+          "wilson95": [
+            0.34238022750665303,
+            1.0
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 2,
+          "wilson95": [
+            0.0,
+            0.6576197724933469
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0076183001813-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0613008719524-9",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 0,
+          "abstained_identity": 0,
+          "capacity_correct": 2,
+          "failed": 0,
+          "identity_correct": 0,
+          "joint_correct": 0,
+          "known_capacity": 2,
+          "missing": 0,
+          "received": 2,
+          "total": 2,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 2
+        },
+        "coverage": {
+          "correct": 2,
+          "rate": 1.0,
+          "total": 2,
+          "wilson95": [
+            0.34238022750665303,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 2,
+          "wilson95": [
+            0.0,
+            0.6576197724933469
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 2,
+          "wilson95": [
+            0.0,
+            0.6576197724933469
+          ]
+        },
+        "joint": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 2,
+          "wilson95": [
+            0.0,
+            0.6576197724933469
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 2,
+          "wilson95": [
+            0.0,
+            0.6576197724933469
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 2,
+        "exact_verdict_agreement": 2,
+        "total": 2,
+        "unanimous_equivalent": 1
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    },
+    "water": {
+      "above_70_percent": false,
+      "adapter_target_met": false,
+      "capacity": {
+        "correct": 2,
+        "rate": 0.6666666666666666,
+        "total": 3,
+        "wilson95": [
+          0.2076596008020477,
+          0.9385080552796037
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0068274346613-3",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": true,
+          "image_id": "off-0016229917630-1",
+          "joint_correct": false,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011110008107-2",
+          "joint_correct": true,
+          "legacy_name_alias_correct": false,
+          "review_verdicts": [
+            "full_identity_equivalent",
+            "full_identity_equivalent"
+          ],
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 0,
+        "capacity_correct": 2,
+        "failed": 0,
+        "identity_correct": 3,
+        "joint_correct": 2,
+        "known_capacity": 3,
+        "missing": 0,
+        "received": 3,
+        "total": 3,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 3
+      },
+      "coverage": {
+        "correct": 3,
+        "rate": 1.0,
+        "total": 3,
+        "wilson95": [
+          0.4385029682449546,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 3,
+        "rate": 1.0,
+        "total": 3,
+        "wilson95": [
+          0.4385029682449546,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 2,
+        "rate": 0.6666666666666666,
+        "total": 3,
+        "wilson95": [
+          0.2076596008020477,
+          0.9385080552796037
+        ]
+      },
+      "legacy_name_alias_metrics": {
+        "above_70_percent": false,
+        "capacity": {
+          "correct": 2,
+          "rate": 0.6666666666666666,
+          "total": 3,
+          "wilson95": [
+            0.2076596008020477,
+            0.9385080552796037
+          ]
+        },
+        "capacity_abstention": {
+          "correct": 1,
+          "rate": 0.3333333333333333,
+          "total": 3,
+          "wilson95": [
+            0.06149194472039621,
+            0.7923403991979522
+          ]
+        },
+        "cases": [
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0068274346613-3",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": false,
+            "identity_correct": false,
+            "image_id": "off-0016229917630-1",
+            "joint_correct": false,
+            "status": "valid"
+          },
+          {
+            "capacity_correct": true,
+            "identity_correct": false,
+            "image_id": "off-0011110008107-2",
+            "joint_correct": false,
+            "status": "valid"
+          }
+        ],
+        "counts": {
+          "abstained_capacity": 1,
+          "abstained_identity": 0,
+          "capacity_correct": 2,
+          "failed": 0,
+          "identity_correct": 0,
+          "joint_correct": 0,
+          "known_capacity": 3,
+          "missing": 0,
+          "received": 3,
+          "total": 3,
+          "unknown_capacity": 0,
+          "unsupported_capacity": 0,
+          "valid": 3
+        },
+        "coverage": {
+          "correct": 3,
+          "rate": 1.0,
+          "total": 3,
+          "wilson95": [
+            0.4385029682449546,
+            1.0
+          ]
+        },
+        "identity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        "identity_abstention": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        "joint": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        },
+        "unsupported_capacity": {
+          "correct": 0,
+          "rate": 0.0,
+          "total": 3,
+          "wilson95": [
+            5.551115123125783e-17,
+            0.5614970317550454
+          ]
+        }
+      },
+      "measurement_class": "unverified_review_assessment",
+      "review_agreement": {
+        "equivalence_decision_agreement": 3,
+        "exact_verdict_agreement": 3,
+        "total": 3,
+        "unanimous_equivalent": 3
+      },
+      "schema_version": "beverage-equivalence-assessment-v1"
+    }
+  },
+  "generated_utc": "2026-11-03T05:40:38.119471+00:00",
+  "identity": {
+    "correct": 19,
+    "rate": 0.76,
+    "total": 25,
+    "wilson95": [
+      0.5657031664457093,
+      0.8850368630659855
+    ]
+  },
+  "inference_split": "validation",
+  "joint": {
+    "correct": 18,
+    "rate": 0.72,
+    "total": 25,
+    "wilson95": [
+      0.5242339480963842,
+      0.8571614614904344
+    ]
+  },
+  "legacy_name_alias_metrics": {
+    "above_70_percent": false,
+    "capacity": {
+      "correct": 22,
+      "rate": 0.88,
+      "total": 25,
+      "wilson95": [
+        0.7004420607907267,
+        0.9583318284955964
+      ]
+    },
+    "cases": [
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-3760030050013-2",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0621433007741-2",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0076850099013-1",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0068274346613-3",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": false,
+        "identity_correct": false,
+        "image_id": "off-0016229917630-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0025293600270-10",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": false,
+        "identity_correct": false,
+        "image_id": "off-0896221000314-2",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0031200444813-5",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0031200610331-5",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-2000000021470-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0076183001813-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0613008719524-9",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0055872106015-6",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0055872515176-6",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0021130070107-11",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0011110008107-2",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0011150159609-3",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0011152225654-4",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": true,
+        "image_id": "off-0025616102504-6",
+        "joint_correct": true,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0122114780811-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0041800202362-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": false,
+        "identity_correct": false,
+        "image_id": "off-0708236951096-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0017077001328-5",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0680569891808-1",
+        "joint_correct": false,
+        "status": "valid"
+      },
+      {
+        "capacity_correct": true,
+        "identity_correct": false,
+        "image_id": "off-0041800490004-6",
+        "joint_correct": false,
+        "status": "valid"
+      }
+    ],
+    "counts": {
+      "abstained_capacity": 3,
+      "abstained_identity": 2,
+      "capacity_correct": 22,
+      "failed": 0,
+      "identity_correct": 8,
+      "joint_correct": 8,
+      "known_capacity": 25,
+      "missing": 0,
+      "received": 25,
+      "total": 25,
+      "unknown_capacity": 0,
+      "unsupported_capacity": 0,
+      "valid": 25
+    },
+    "identity": {
+      "correct": 8,
+      "rate": 0.32,
+      "total": 25,
+      "wilson95": [
+        0.17205190306907978,
+        0.5158973072689775
+      ]
+    },
+    "joint": {
+      "correct": 8,
+      "rate": 0.32,
+      "total": 25,
+      "wilson95": [
+        0.17205190306907978,
+        0.5158973072689775
+      ]
+    }
+  },
+  "measurement_class": "development_validation",
+  "model_id": "mlx-community/Muse-Glimmer-30B-4bit",
+  "owner_authorization": {
+    "question_item_id": "request_user_input_async/call_51aa52e417204228a90b186dd252cf0e/0",
+    "quote": "Count equivalent full identities; keep exact volume",
+    "source": "owner conversation reply; not an external signature"
+  },
+  "primary_metric": "Full beverage identity equivalent under the frozen owner rubric AND exact positive printed capacity mL; all cases retained.",
+  "provenance_limit": "Hashes bind artifact consistency, not factual visual judgments or reviewer independence; isolated recorded review tasks support those attestations. Public photos may have appeared in base pretraining.",
+  "review_agreement": {
+    "equivalence_decision_agreement": 25,
+    "exact_verdict_agreement": 25,
+    "total": 25,
+    "unanimous_equivalent": 19
+  },
+  "review_evidence": {
+    "identity_policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+    "packet_map_sha256": "f7cd7948dac60c935d66995bf44cea38467ffbe6db1292c27ea1ebeeaefc3b8a",
+    "packet_sha256": "95194c645054c92b1135a7dc4f1197b1a6b0b57c234fce085aab73d9e4363db9",
+    "policy_frozen_utc": "2026-11-03T02:06:33.368409+00:00",
+    "policy_version": "full-identity-exact-volume-v1",
+    "reviews": [
+      {
+        "review_sha256": "495456bb2e2a20767ee735411ff04cefd06e0ed39ec0496ee630718e54d3cdbc",
+        "reviewed_utc": "2026-11-03T05:37:59.023373+00:00",
+        "reviewer_id": "/root/identity_judge_a_01",
+        "reviewer_kind": "codex_agent"
+      },
+      {
+        "review_sha256": "d871d9e95fa07296215c26ca6dc19f3ded71c91de1786b5fc37e13f451b15c16",
+        "reviewed_utc": "2026-11-03T05:38:05.000177+00:00",
+        "reviewer_id": "/root/identity_judge_b_01",
+        "reviewer_kind": "codex_agent"
+      }
+    ]
+  },
+  "reviewer_kind": "Two independently instructed Codex agents; not a human study.",
+  "run_id": "baseline-validation-cache-v2-1024-001",
+  "run_kind": "baseline",
+  "schema_version": "beverage-equivalence-evaluation-v1",
+  "source_evidence": {
+    "manifest_sha256": "8f7c9d0fcc6ce0e5719fd99b464eb2ee3ddc5c674734dee7bcf219a577838f59",
+    "predictions_sha256": "5527c870645f3fb18057dc943d31192eb951491c92af58e05127d050f72aa14d",
+    "run_metadata_sha256": "ddde63fe2bedcade34d6ce09587064764366b1b22dd53dd7adf457886ab22f3d",
+    "split_policy_sha256": "29d9637427ac73549335897101132c2bae6ad25e5a209d92d168e41b92170b7d"
+  }
+}

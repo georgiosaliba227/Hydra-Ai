@@ -72,22 +72,17 @@ final class BackendEndToEndTests: XCTestCase {
         XCTAssertEqual(analyze.label, "Analyze with mock Meta response")
         app.switches["photoConsent"].tap()
         analyze.tap()
-        let enter = app.buttons["Enter or correct beverage details"]
-        if !enter.isHittable { app.swipeUp() }
+        let enter = app.buttons["editRecognitionEntry"]
         XCTAssertTrue(enter.waitForExistence(timeout: 15)); enter.tap()
         let save = app.buttons["savePhotoBeverage"]
         XCTAssertTrue(save.waitForExistence(timeout: 10)); XCTAssertFalse(save.isEnabled)
         let identity = app.textFields["photoIdentity"]
         identity.tap(); identity.typeText("Corrected tea")
-        let capacity = app.textFields["photoContainer"]
-        capacity.tap(); capacity.typeText("300")
+        app.buttons["photoKeyboardDone"].tap()
+        app.buttons["logDifferentAmount"].tap()
         let consumed = app.textFields["photoConsumed"]
         consumed.tap(); consumed.typeText("125")
-        XCTAssertFalse(save.isEnabled)
         app.buttons["photoKeyboardDone"].tap()
-        let confirm = app.switches["confirmPhotoDetails"]
-        if !confirm.isHittable { app.swipeUp() }
-        confirm.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: save)
         XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 5), .completed)
         XCTAssertTrue(save.isEnabled); save.tap()

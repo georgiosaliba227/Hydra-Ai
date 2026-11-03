@@ -1,0 +1,17 @@
+{
+  "adapter_path": "/Users/georgiosaliba/Library/Application Support/HydraAI/training/beverage-250-20261102/artifacts/adapter-train-v2-1024-e1-001/adapters.safetensors",
+  "adapter_sha256": "71a361e862c5e1399b25098601fd7d974253a5f5d285e9ad194f90e38028d48f",
+  "base_revision": "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+  "created_utc": "2026-11-03T07:42:19.241155+00:00",
+  "frozen_selection_path": "/Users/georgiosaliba/Library/Application Support/HydraAI/training/beverage-250-20261102/artifacts/final-selection-v2-1024-e1-001/adapter-selection.json",
+  "identity_policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+  "model_id": "mlx-community/Muse-Glimmer-30B-4bit",
+  "native_executable_sha256": "59f248a701f4486c64ab122edfda0d5295d12e89f07766d3199140e715d2c9dd",
+  "public_comparison_path": "ai/beverage_training/reports/2026-11-02/final-comparison-v2-e1.json",
+  "schema_version": "beverage-artifact-index-v1",
+  "source_commit_before_final_exports": "a9d3af1",
+  "test_report_path": "/Users/georgiosaliba/Library/Application Support/HydraAI/training/beverage-250-20261102/artifacts/adapter-test-v2-1024-e1-001/equivalence-report-v1.json",
+  "test_report_sha256": "8070febf6afac2ad2f1ad7f902286e8defc9864b9e81e11dd861237f006d7af9",
+  "training_evidence_path": "/Users/georgiosaliba/Library/Application Support/HydraAI/training/beverage-250-20261102/artifacts/adapter-train-v2-1024-e1-001/training.json",
+  "training_evidence_sha256": "d341574d3eaf0b5f1a81fc91627d90b5212f683ea86b1b599f34e8a472d6b40e"
+}

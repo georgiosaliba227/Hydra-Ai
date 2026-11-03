@@ -1,0 +1,294 @@
+diff --git a/Libraries/MLXLMCommon/ModelComponent.swift b/Libraries/MLXLMCommon/ModelComponent.swift
+index 734c2be..ad0d953 100644
+--- a/Libraries/MLXLMCommon/ModelComponent.swift
++++ b/Libraries/MLXLMCommon/ModelComponent.swift
+@@ -77,7 +77,7 @@ public class AnyOnDemandComponent: @unchecked Sendable {
+     private enum State {
+         case unavailable
+         case pending(Source)
+-        case loaded(Module)
++        case loaded(Module, Source)
+     }
+ 
+     init(_ component: ModelComponent, make: @escaping @Sendable () -> Module) {
+@@ -94,7 +94,7 @@ public class AnyOnDemandComponent: @unchecked Sendable {
+ 
+     func loadedTensors() -> [MLXArray]? {
+         let module: Module? = stateLock.withLock {
+-            if case .loaded(let module) = state { return module }
++            if case .loaded(let module, _) = state { return module }
+             return nil
+         }
+         return module?.innerState()
+@@ -122,11 +122,25 @@ public class AnyOnDemandComponent: @unchecked Sendable {
+         stateLock.withLock { state = source.map(State.pending) ?? .unavailable }
+     }
+ 
++    /// Release a fully evaluated, quiescent component while retaining its original
++    /// checkpoint source for the next input. Callers must have evaluated every
++    /// array that used the component and released all borrowed module references.
++    @discardableResult
++    public func releaseLoaded() -> Bool {
++        loadLock.withLock {
++            stateLock.withLock {
++                guard case .loaded(_, let source) = state else { return false }
++                state = .pending(source)
++                return true
++            }
++        }
++    }
++
+     /// A failed load leaves the component pending, and the next call tries again.
+     func loadModule() throws -> Module {
+         try loadLock.withLock {
+             switch stateLock.withLock({ state }) {
+-            case .loaded(let module):
++            case .loaded(let module, _):
+                 return module
+             case .unavailable:
+                 throw OnDemandComponentError.unavailable(component)
+@@ -138,7 +152,7 @@ public class AnyOnDemandComponent: @unchecked Sendable {
+                     eval(module)
+                     return module
+                 }
+-                stateLock.withLock { state = .loaded(module) }
++                stateLock.withLock { state = .loaded(module, source) }
+                 return module
+             }
+         }
+diff --git a/Libraries/MLXVLM/Models/MuseGlimmer.swift b/Libraries/MLXVLM/Models/MuseGlimmer.swift
+index 4f95642..4f077b7 100644
+--- a/Libraries/MLXVLM/Models/MuseGlimmer.swift
++++ b/Libraries/MLXVLM/Models/MuseGlimmer.swift
+@@ -1113,6 +1113,33 @@ private final class MuseGlimmerVision: Module {
+     }
+ }
+ 
++/// Frozen vision facade: the component loader excludes language tensor namespaces
++/// before reading tensor data. No language module is constructed by this type.
++public final class MuseGlimmerFrozenVisionEncoder: Module, BaseLanguageModel {
++    @ModuleInfo(key: "vision_tower") private var tower: MuseGlimmerVisionModel
++    @ModuleInfo(key: "vision_adapter") private var adapter: MuseGlimmerVisionAdapter
++    @ModuleInfo(key: "vision_projection") private var projection: Linear
++    @ModuleInfo(key: "perception_emb_norm") private var norm: MuseRMSNormNoScale
++
++    public var excludedCheckpointNamespaces: [String] {
++        ["language_model", "model.language_model", "lm_head", "model.lm_head"]
++    }
++
++    public init(_ config: MuseGlimmerConfiguration) {
++        _tower.wrappedValue = MuseGlimmerVisionModel(config.visionConfiguration)
++        _adapter.wrappedValue = MuseGlimmerVisionAdapter(config)
++        _projection.wrappedValue = Linear(
++            config.projectorHiddenSize, config.textConfiguration.hiddenSize, bias: false)
++        _norm.wrappedValue = MuseRMSNormNoScale(eps: config.textConfiguration.rmsNormEps)
++        super.init()
++    }
++
++    public func callAsFunction(_ pixelValues: MLXArray, grid: [THW]) throws -> MLXArray {
++        let dtype = tower.patchEmbedder.patchEmbedding.weight.dtype
++        return norm(projection(adapter(tower(pixelValues.asType(dtype), grid: grid))))
++    }
++}
++
+ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+     @ModuleInfo(key: "language_model") private var languageModel: MuseGlimmerLanguageModel
+     @ModuleInfo(key: "vision_tower") private var visionTower: MuseGlimmerVisionModel?
+@@ -1124,6 +1151,17 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+ 
+     public let config: MuseGlimmerConfiguration
+ 
++    /// Hydra's opt-in frozen-prefix policy; ordinary upstream behavior is unchanged.
++    public static let hydraFrozenVisionReleasePolicy = "hydra-frozen-vision-release-v1"
++
++    /// Only enable for frozen vision and embedding evaluation outside gradient traces.
++    /// Requires the factory's on-first-use vision loading; attached vision is rejected.
++    public var releaseFrozenVisionAfterEmbedding = false
++    public static let hydraSeparateFrozenVisionPolicy = "separate-frozen-vision-v1"
++    /// Cache-only workers reject every pixel input instead of loading vision.
++    public var frozenVisionFeaturesOnly = false
++
++
+     /// Loads the vision stack on the first image when the factory loads the model without it.
+     private let onDemandVision: OnDemandComponent<MuseGlimmerVision>
+ 
+@@ -1136,13 +1174,24 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+             promptStrategy: .none, isSpecialToken: true)
+     }
+ 
+-    public init(_ config: MuseGlimmerConfiguration) {
++    public convenience init(_ config: MuseGlimmerConfiguration) {
++        self.init(config, frozenVisionFeaturesOnly: false)
++    }
++
++    public init(_ config: MuseGlimmerConfiguration, frozenVisionFeaturesOnly: Bool) {
+         self.config = config
++        self.frozenVisionFeaturesOnly = frozenVisionFeaturesOnly
+         self._languageModel.wrappedValue = MuseGlimmerLanguageModel(config.textConfiguration)
+-        let vision = MuseGlimmerVision(config)
+-        self._visionTower.wrappedValue = vision.tower
+-        self._visionAdapter.wrappedValue = vision.adapter
+-        self._visionProjection.wrappedValue = vision.projection
++        if frozenVisionFeaturesOnly {
++            self._visionTower.wrappedValue = nil
++            self._visionAdapter.wrappedValue = nil
++            self._visionProjection.wrappedValue = nil
++        } else {
++            let vision = MuseGlimmerVision(config)
++            self._visionTower.wrappedValue = vision.tower
++            self._visionAdapter.wrappedValue = vision.adapter
++            self._visionProjection.wrappedValue = vision.projection
++        }
+         self.onDemandVision = OnDemandComponent(.vision) { MuseGlimmerVision(config) }
+         self._perceptionEmbNorm.wrappedValue = MuseRMSNormNoScale(
+             eps: config.textConfiguration.rmsNormEps)
+@@ -1178,7 +1227,7 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+     /// chunks along axis 1, so a 2-D result would silently chunk along the hidden
+     /// dimension instead of the sequence.
+     private func inputEmbeddings(
+-        inputIds: MLXArray, pixelValues: MLXArray?, grid: [THW]
++        inputIds: MLXArray, pixelValues: MLXArray?, grid: [THW], frozenFeatures: MLXArray? = nil
+     ) throws -> MLXArray {
+         let ids = inputIds.ndim == 1 ? inputIds.expandedDimensions(axis: 0) : inputIds
+         let textModel = languageModel.model
+@@ -1187,11 +1236,20 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+             embeddings = embeddings.expandedDimensions(axis: 0)
+         }
+ 
+-        guard let pixelValues else { return embeddings }
+-
+-        // Image features are already normalized by `perception_emb_norm`; they
+-        // deliberately do not go through `embed_norm`.
+-        let imageFeatures = try encodeImage(pixelValues, grid: grid).asType(embeddings.dtype)
++        // Both paths supply the encoder's already-normalized image features;
++        // neither applies the text embedding norm to visual positions.
++        let imageFeatures: MLXArray
++        if let frozenFeatures {
++            guard frozenFeatures.ndim == 2,
++                frozenFeatures.dim(1) == config.textConfiguration.hiddenSize else {
++                throw VLMError.processing("Frozen vision features have an invalid shape")
++            }
++            imageFeatures = frozenFeatures.asType(embeddings.dtype)
++        } else if let pixelValues {
++            imageFeatures = try encodeImage(pixelValues, grid: grid).asType(embeddings.dtype)
++        } else {
++            return embeddings
++        }
+ 
+         let imageTokenId = config.imageTokenId
+         let videoTokenId = config.videoTokenId
+@@ -1217,17 +1275,81 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+         _ input: LMInput, cache: [any KVCache], state: LMOutput.State?,
+         prefill: PrefillParameters
+     ) throws -> PrepareResult {
++        guard !frozenVisionFeaturesOnly || input.image == nil else {
++            throw VLMError.processing("Pixel inputs are disabled in the frozen-feature language worker")
++        }
+         let convertedCache = cache.compactMap { $0 as KVCache }
+ 
+         var tokens = input.text.tokens
+         if tokens.ndim == 1 { tokens = tokens.expandedDimensions(axis: 0) }
+ 
++        let shouldReleaseVision = releaseFrozenVisionAfterEmbedding && input.image != nil
++        if shouldReleaseVision && (visionTower != nil || visionAdapter != nil || visionProjection != nil) {
++            throw VLMError.processing("Frozen vision release requires on-first-use component loading")
++        }
++        let visionStart = Date()
++        let embeddings: MLXArray
++        if shouldReleaseVision {
++            // Build and synchronously materialize the complete spliced embeddings
++            // in one error scope before dropping vision or starting language prefill.
++            embeddings = try withError { error in
++                let value = try inputEmbeddings(
++                    inputIds: tokens,
++                    pixelValues: input.image?.pixels,
++                    grid: input.image?.frames ?? []
++                )
++                try error.check()
++                eval(value)
++                try error.check()
++                return value
++            }
++            let before = Memory.activeMemory
++            guard onDemandVision.releaseLoaded() else {
++                throw VLMError.processing("Frozen vision component was not loaded on demand")
++            }
++            Memory.clearCache()
++            let after = Memory.activeMemory
++            let observation: [String: Any] = [
++                "phase": "vision_released",
++                "vision_policy": Self.hydraFrozenVisionReleasePolicy,
++                "observed_epoch": Date().timeIntervalSince1970,
++                "vision_embedding_seconds": Date().timeIntervalSince(visionStart),
++                "mlx_before_bytes": before,
++                "mlx_after_bytes": after,
++                "mlx_released_bytes": before - after,
++                "prefix_positions": embeddings.dim(1),
++            ]
++            if let data = try? JSONSerialization.data(withJSONObject: observation, options: [.sortedKeys]) {
++                FileHandle.standardError.write(data + Data([10]))
++            }
++        } else {
++            embeddings = try inputEmbeddings(
++                inputIds: tokens,
++                pixelValues: input.image?.pixels,
++                grid: input.image?.frames ?? []
++            )
++        }
++
++        return try prefillEmbeddings(embeddings, cache: convertedCache, prefill: prefill)
++    }
++
++    /// Splice validated frozen image features without a pixel/vision fallback.
++    public func prepareWithFrozenVisionFeatures(
++        tokens: MLXArray, features: MLXArray, cache: [any KVCache], prefill: PrefillParameters
++    ) throws -> PrepareResult {
++        guard frozenVisionFeaturesOnly,
++            visionTower == nil, visionAdapter == nil, visionProjection == nil,
++            !onDemandVision.isLoaded else {
++            throw VLMError.processing("Frozen-feature language execution requires excluded vision")
++        }
+         let embeddings = try inputEmbeddings(
+-            inputIds: tokens,
+-            pixelValues: input.image?.pixels,
+-            grid: input.image?.frames ?? []
+-        )
++            inputIds: tokens, pixelValues: nil, grid: [], frozenFeatures: features)
++        return try prefillEmbeddings(embeddings, cache: cache, prefill: prefill)
++    }
+ 
++    private func prefillEmbeddings(
++        _ embeddings: MLXArray, cache: [any KVCache], prefill: PrefillParameters
++    ) throws -> PrepareResult {
+         // Chunked prefill is not optional here: a full-resolution image can add
+         // thousands of tokens on top of the prompt, and a single pass through 52
+         // layers at hidden 6656 will exhaust memory.
+@@ -1238,12 +1360,12 @@ public class MuseGlimmer: Module, VLMModel, KVCacheDimensionProvider {
+         let totalPositions = embeddings.dim(1)
+         let processed = try prefill.forEachChunk(total: totalPositions) { range in
+             _ = languageModel(
+-                nil, cache: convertedCache, inputEmbedding: embeddings[0..., range, 0...])
++                nil, cache: cache, inputEmbedding: embeddings[0..., range, 0...])
+             asyncEval(cache)
+         }
+         if processed > 0 { eval(cache) }
+         let result = languageModel(
+-            nil, cache: convertedCache, inputEmbedding: embeddings[0..., processed..., 0...])
++            nil, cache: cache, inputEmbedding: embeddings[0..., processed..., 0...])
+         prefill.progress?(totalPositions, totalPositions)
+         return .logits(result)
+     }
+@@ -1285,7 +1407,13 @@ extension MuseGlimmer: LoRAModel {
+ extension MuseGlimmer: ModelComponentsProviding {
+     // The bf16 vision stack is ~3.7 GB. With it, the 4-bit model exceeds the wired limit of a
+     // 24 GB Mac.
++    public var excludedCheckpointNamespaces: [String] {
++        frozenVisionFeaturesOnly
++            ? ["vision_tower", "vision_adapter", "vision_projection",
++               "model.vision_tower", "model.vision_adapter", "model.vision_projection"] : []
++    }
+     public var modelComponents: [ModelComponent: [CheckpointComponent]] {
++        if frozenVisionFeaturesOnly { return [:] }
+         let modules = ["vision_tower", "vision_adapter", "vision_projection"]
+         return [
+             .vision: modules.map {

@@ -1,0 +1,80 @@
+{
+  "actual_feature_uses" : [
+    {
+      "feature_sha256" : "85bad5de78562529cce2c9c40da5b59193d996a2aec4fdcab9f5dd86ea798fb2",
+      "image_id" : "off-3760025780086-1"
+    }
+  ],
+  "adapter_sha256" : "aa6e0282a5e93ceac50367516f0712eb0ef42f780d773197e3bf6a55961b7bec",
+  "completed_utc" : "2026-11-03T01:27:59Z",
+  "encoder_config_path" : "smoke-vision-v2-1024-001/encoder-config.json",
+  "encoder_config_sha256" : "777f849b425a75d6e1910686cb8e41f9f71cdce4721c0ef5aba953571e190791",
+  "execution_policy" : "separate-frozen-vision-v1",
+  "feature_cache_path" : "smoke-vision-v2-1024-001/feature-cache.json",
+  "feature_cache_sha256" : "5effc8b3de880a8d4026ddbfb9329e7d10c8441301f81b45595775d77ea39b74",
+  "initial_adapter_sha256" : "7e9e4d54ef93ee069a5fa580b66e63b71a359668a5fd01089f0dcec58c8714b5",
+  "language_only" : true,
+  "language_started_utc" : "2026-11-03T01:27:30Z",
+  "layers" : 8,
+  "learning_rate" : 2.9999999242136255e-05,
+  "loss_history" : [
+    1.7990162372589111
+  ],
+  "memory" : {
+    "mlx_active_bytes" : 15803185112,
+    "mlx_cache_bytes" : 76193932,
+    "mlx_peak_bytes" : 16244700602,
+    "phase" : "training_finished",
+    "process_peak_rss_bytes" : 7671758848,
+    "resident_bytes" : 384532480
+  },
+  "parameter_delta_l2" : 0.070730153389737746,
+  "rank" : 16,
+  "save_reload_max_abs_error" : 0,
+  "schema_version" : "beverage-preflight-v1",
+  "settings" : {
+    "adapter_config_sha256" : null,
+    "base_revision" : "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+    "decoding" : "greedy",
+    "encoder_config_path" : "smoke-vision-v2-1024-001/encoder-config.json",
+    "encoder_config_sha256" : "777f849b425a75d6e1910686cb8e41f9f71cdce4721c0ef5aba953571e190791",
+    "executable_sha256" : "59f248a701f4486c64ab122edfda0d5295d12e89f07766d3199140e715d2c9dd",
+    "execution_policy" : "separate-frozen-vision-v1",
+    "feature_cache_path" : "smoke-vision-v2-1024-001/feature-cache.json",
+    "feature_cache_sha256" : "5effc8b3de880a8d4026ddbfb9329e7d10c8441301f81b45595775d77ea39b74",
+    "generation_header" : " to=user<|message|>",
+    "gpu_residency_budget_bytes" : 17179869184,
+    "gpu_residency_policy" : "process-local-max16gib-under-device-recommendation-v1",
+    "image_tokens" : 1024,
+    "language_only" : true,
+    "language_started_utc" : "2026-11-03T01:27:30Z",
+    "max_answer_tokens" : 96,
+    "max_output_tokens" : 96,
+    "memory_guard" : "sampled 50ms MLX/RSS plus independent launcher RSS; advisory MLX allocator limit",
+    "memory_limit_bytes" : 20401094656,
+    "model_id" : "mlx-community/Muse-Glimmer-30B-4bit",
+    "model_provenance_sha256" : "4054d969789f644ea36594bca2acbb109b5b2a2b1249fa150dd2c68ce2a38d9d",
+    "prefill_step" : 128,
+    "prompt_sha256" : "0d9b19529813b8effc401618f529df66c1967f13238fde5d675a204b882defa1",
+    "reasoning_strength" : "low",
+    "rss_limit_bytes" : 21474836480,
+    "runtime_patch_sha256" : "22e4772423c40fda65239c2f6e6585934245b76d39593df87b27bc73225d6e76",
+    "runtime_revision" : "b8d4935ab152169ac8cb0da5414b51447e78efb1",
+    "seed" : 42,
+    "template_current_date" : "2026-11-02",
+    "vision_loaded" : false,
+    "vision_release_enabled" : false,
+    "vision_release_policy" : "separate-frozen-vision-v1"
+  },
+  "split_policy_sha256" : "569eb491b98becf34b724c2eec38f752e352d89cf23c2e038b4b2e79834c68ae",
+  "train_image_ids" : [
+    "off-3760025780086-1"
+  ],
+  "train_manifest_sha256" : "bfd356ab62f0a2326efd8a40a78cdc81d101968f04ab76b99c1ef18c4f157a25",
+  "trainable_parameter_count" : 2260992,
+  "training_method" : "image-conditioned-detached-prefix-response-only-lora",
+  "training_wall_seconds" : 15.529966950416565,
+  "updated_steps" : 1,
+  "vision_loaded" : false,
+  "visual_conditioning" : "frozen image encoder and frozen prompt prefix KV caches; gradients only through response positions in last language layer adapters"
+}

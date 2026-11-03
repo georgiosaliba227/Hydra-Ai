@@ -72,7 +72,7 @@ actor HTTPBeverageService: BeverageService {
         self.delegate = NoRedirectDelegate()
         let options = URLSessionConfiguration.ephemeral
         options.timeoutIntervalForRequest = 15
-        options.timeoutIntervalForResource = 60
+        options.timeoutIntervalForResource = 240
         self.session = session ?? URLSession(configuration: options, delegate: delegate, delegateQueue: nil)
     }
 
@@ -114,11 +114,11 @@ actor HTTPBeverageService: BeverageService {
     }
 
     func analyzePhoto(_ jpeg: Data, scenario: String, mode: String = "mock", metaConsent: Bool = false) async throws -> RecognitionResult {
-        guard ["mock", "meta_live"].contains(mode) else { throw ServiceError.invalidResponse }
+        guard ["mock", "meta_live", "local_meta"].contains(mode) else { throw ServiceError.invalidResponse }
         guard mode != "meta_live" || metaConsent else { throw ServiceError.consent }
         guard jpeg.count <= 1_048_576 else { throw ServiceError.invalidResponse }
         var request = URLRequest(url: baseURL.appendingPathComponent("v1/recognitions"))
-        request.timeoutInterval = mode == "meta_live" ? 45 : 15
+        request.timeoutInterval = mode == "local_meta" ? 210 : mode == "meta_live" ? 45 : 15
         request.httpMethod = "POST"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

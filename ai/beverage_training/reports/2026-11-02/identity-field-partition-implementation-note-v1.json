@@ -1,0 +1,31 @@
+{
+  "checkpoint_selection_changed": false,
+  "correction": "Apply the already-frozen brand/range field-partition rule: at least one valid nonempty identity field is eligible, with full semantic completeness still requiring two bound visual reviews. No text, invalid output, missing semantic identity, uncertainty and disagreement fail.",
+  "criterion_changed": false,
+  "denominator_test": 75,
+  "denominator_validation": 25,
+  "development_joint_counts_unchanged": {
+    "adapter_two_epochs": 17,
+    "baseline": 18,
+    "selected_one_epoch": 18
+  },
+  "discovery": "The first held-out baseline report was rejected because two valid identities were fully written in product with brand=null; both independent raw reviewers accepted their complete semantic identity.",
+  "existing_saved_predictions_modified": false,
+  "identity_policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+  "implementation_file_sha256": "9d650a93c4056de3bbe4c5240fe4f3c90f615e2c5bdb89bf49dc9d89b1982c28",
+  "inference_configuration_changed": false,
+  "pre_fix_final_score": null,
+  "raw_review_sha256": {
+    "a": "3b067f84d69d0e401572dac975615c08e141dc089f082f5083fa0fc6b8e852d3",
+    "b": "008596b5863629c0fe93ad7d782cdbaff9fd47b353a6c553313a884716699786"
+  },
+  "raw_review_verdicts_modified": false,
+  "recorded_utc": "2026-11-03T07:30:19.526109+00:00",
+  "reference_labels_or_aliases_modified": false,
+  "schema_version": "beverage-evaluation-implementation-note-v1",
+  "verification": {
+    "focused": "23 passed, 13 subtests",
+    "full_python": "1284 passed, 5 skipped, 58 subtests; existing FastAPI/httpx deprecation warning",
+    "independent_source_review": "/root/review_identity_partition: fix implements frozen policy; no code defects"
+  }
+}

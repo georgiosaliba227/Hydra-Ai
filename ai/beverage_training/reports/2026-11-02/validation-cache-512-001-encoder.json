@@ -1,0 +1,124 @@
+{
+  "actual_feature_writes" : [
+    {
+      "feature_sha256" : "e35cbc174d352f8cee40df1a454e6afed924b3234ba5e1d8b5eba375850be52e",
+      "image_id" : "off-0011110008107-2"
+    },
+    {
+      "feature_sha256" : "9f76436038bb1c5f00df861dc7108f0e8db017cb385b64349c5551f8b38657f2",
+      "image_id" : "off-0011150159609-3"
+    },
+    {
+      "feature_sha256" : "7d20d27b7284132329848d0fa7b9563574a010cee2424d0546b3ae9273ae68b6",
+      "image_id" : "off-0011152225654-4"
+    },
+    {
+      "feature_sha256" : "a3a5aca910480194fddd38efcc4ef95833e9b46044119bfa0deed4806fdf66db",
+      "image_id" : "off-0016229917630-1"
+    },
+    {
+      "feature_sha256" : "288fe3d7ede0a6689cde7c1ec7d1fcbe98b8ad85f66baf38309f0c94049ae1d6",
+      "image_id" : "off-0017077001328-5"
+    },
+    {
+      "feature_sha256" : "dfd22723dce09a62494bf1bee5ccc530fc224ac286edfbf78abda70cf5e0788b",
+      "image_id" : "off-0021130070107-11"
+    },
+    {
+      "feature_sha256" : "8981e34d3267f83dc4fc8ad7c5d229c357329d0353de34e67884148429dff819",
+      "image_id" : "off-0025293600270-10"
+    },
+    {
+      "feature_sha256" : "b4020ec84e344fbbacd1d935fa0f69125810be71a8869a2ad57e6f5a459316f4",
+      "image_id" : "off-0025616102504-6"
+    },
+    {
+      "feature_sha256" : "ca583dac111d864216e6dc32e63a10892e011c308feb705ee86d60f7efab0dbf",
+      "image_id" : "off-0031200444813-5"
+    },
+    {
+      "feature_sha256" : "ccc0465998026f73be1b964144f24aa45839c20bee8420200cfb69ee118f057a",
+      "image_id" : "off-0031200610331-5"
+    },
+    {
+      "feature_sha256" : "78d595d6ea60d4762cde94026cc1ebf4ebd1e3a3c9770327b875b130b2b20715",
+      "image_id" : "off-0041800202362-1"
+    },
+    {
+      "feature_sha256" : "51a6267e5c43a306acb69b9fdc3a5622b595d2d60cf6c47b4d5458ecead244a0",
+      "image_id" : "off-0041800490004-6"
+    },
+    {
+      "feature_sha256" : "a5a49606d9d7cba2e0c468f7f26454a4ea19bb0b1ac4b2bd896e37e7b36c009d",
+      "image_id" : "off-0055872106015-6"
+    },
+    {
+      "feature_sha256" : "d36a102c508632f305c46a2e8a33410bff60a6ec490ca10c68c448a28f414d3e",
+      "image_id" : "off-0055872515176-6"
+    },
+    {
+      "feature_sha256" : "4e857c2bb76d7bc367563263b2f414269fd8c14d1c70328d7b4a8d1062942c72",
+      "image_id" : "off-0068274346613-3"
+    },
+    {
+      "feature_sha256" : "26723f8f5b1ba9c6ce17e275f6b82414def60f4170cc78360b0e7a28a2fdf1da",
+      "image_id" : "off-0076183001813-1"
+    },
+    {
+      "feature_sha256" : "6d9fb21f2c8cfd0ec17ffb7fd5c58cc7ecef62893dbff4d3e2d93794460fcd3d",
+      "image_id" : "off-0076850099013-1"
+    },
+    {
+      "feature_sha256" : "bee4e26aa3f1b3fbe7361400293d9374c08b80b4aa7e8930fd2a48512c1a2c8b",
+      "image_id" : "off-0122114780811-1"
+    },
+    {
+      "feature_sha256" : "62818c2a61832877bcf6ee25fc0bcfc542230fd5e5382a1ad798493389bbb931",
+      "image_id" : "off-0613008719524-9"
+    },
+    {
+      "feature_sha256" : "bd2d453c67cc72a1c2f69c3c10c5f66b2a31517db8a9f6f9e55c67cb050a99d6",
+      "image_id" : "off-0621433007741-2"
+    },
+    {
+      "feature_sha256" : "4de0cdb7224dd1d7f56e033d2687e61fbd4402cabc6610ee1493a57ba8240383",
+      "image_id" : "off-0680569891808-1"
+    },
+    {
+      "feature_sha256" : "06ee156ac713ded5a5e1e4178eb369ba58e91578bb6bc84dc6addd70a83c29ab",
+      "image_id" : "off-0708236951096-1"
+    },
+    {
+      "feature_sha256" : "64c9ec87fcb76609a71fa015643a446fd90607bb02e235c7c333757512f02823",
+      "image_id" : "off-0896221000314-2"
+    },
+    {
+      "feature_sha256" : "cfa89c85a964f5fc43f2379b05a19d5d1bdfcd415134c7b7c32d6d06c23a7a34",
+      "image_id" : "off-2000000021470-1"
+    },
+    {
+      "feature_sha256" : "a6aa3f22a4a4116cc546b960fa3f831c60cd244e325a101fc5383f57c9d22cd6",
+      "image_id" : "off-3760030050013-2"
+    }
+  ],
+  "completed_utc" : "2026-11-02T21:28:27Z",
+  "encoder_config_sha256" : "39f01637908ef18548a31a17dd793ff9cfcc1f7c80b55e93b914d1864ce106dd",
+  "execution_policy" : "separate-frozen-vision-v1",
+  "language_loaded" : false,
+  "loaded_weight_namespaces" : [
+    "vision_adapter",
+    "vision_projection",
+    "vision_tower"
+  ],
+  "memory" : {
+    "mlx_active_bytes" : 3744958496,
+    "mlx_cache_bytes" : 0,
+    "mlx_peak_bytes" : 4700542748,
+    "phase" : "encoder_finished",
+    "process_peak_rss_bytes" : 4336287744,
+    "resident_bytes" : 4331782144
+  },
+  "schema_version" : "beverage-encoder-run-v1",
+  "started_utc" : "2026-11-02T21:27:44Z",
+  "vision_only" : true
+}

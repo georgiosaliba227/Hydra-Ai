@@ -51,7 +51,7 @@ actor MockBeverageService: BeverageService {
         let log = BeverageLog(
             id: idempotencyKey, consumedMl: submitted.consumedMl, category: submitted.category,
             consumedAt: submitted.consumedAt, timezone: submitted.timezone,
-            source: submitted.source, revision: 1
+            source: submitted.source, revision: 1, consumptionAssumption: submitted.consumptionAssumption, beverageType: submitted.beverageType
         )
         var logs = try listBeverages()
         if let existing = logs.first(where: { $0.id == idempotencyKey }) {
@@ -71,7 +71,9 @@ actor MockBeverageService: BeverageService {
         let updated = BeverageLog(id: id, consumedMl: request.consumedMl ?? current.consumedMl,
                                   category: request.category ?? current.category,
                                   consumedAt: request.consumedAt ?? current.consumedAt, timezone: current.timezone,
-                                  source: current.source, revision: current.revision + 1)
+                                  source: current.source, revision: current.revision + 1,
+                                  consumptionAssumption: request.consumedMl.map({ $0 != current.consumedMl }) == true ? nil : current.consumptionAssumption,
+                                  beverageType: current.beverageType)
         logs[index] = updated
         try save(logs)
         return updated
