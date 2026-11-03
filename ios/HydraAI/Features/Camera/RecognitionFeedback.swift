@@ -18,7 +18,7 @@ struct RecognitionFeedback: Codable, Sendable {
     }
     func validate() throws {
         guard imageSha256.count == 64, imageSha256.allSatisfy({ "0123456789abcdef".contains($0) }),
-              ["mock", "meta_live"].contains(sourceMode),
+              ["mock", "meta_live", "local_meta"].contains(sourceMode),
               correctedLiquidMl.map({ (1...5000).contains($0) }) ?? true else { throw ServiceError.invalidResponse }
         try originalCandidate.validate()
         if shareForTraining {

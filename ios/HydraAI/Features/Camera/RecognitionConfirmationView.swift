@@ -52,12 +52,12 @@ struct RecognitionConfirmationView: View {
                         .font(.subheadline).accessibilityIdentifier("consumptionAssumptionSummary")
                     if draft.consumedMl == nil { Text("Edit the volume, or retake a photo showing the size label.").font(.footnote) }
                     if !editing {
-                        Text(mode == "meta_live" ? "Muse suggestion · please verify" : "Demo suggestion · does not interpret this photo")
+                        Text(mode == "mock" ? "Demo suggestion · does not interpret this photo" : "\(RecognitionPresentation(mode: mode).modelName) suggestion · please verify")
                             .font(.caption).foregroundStyle(.secondary)
                         Text(candidate.liquidEstimateText).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("photoEstimate")
                         if candidate.personalCorrection != nil {
                             Text("Your previous correction: \(candidate.suggestedIdentity)").font(.caption).accessibilityIdentifier("personalCorrectionSuggestion")
-                            Text("\(mode == "meta_live" ? "Muse" : "Demo") suggested: \(candidate.identity)").font(.caption)
+                            Text("\(RecognitionPresentation(mode: mode).modelName) suggested: \(candidate.identity)").font(.caption)
                             if let liquid = candidate.personalLiquidText {
                                 Text(liquid).font(.caption).accessibilityIdentifier("personalLiquidCorrection")
                             }
@@ -112,7 +112,7 @@ struct RecognitionConfirmationView: View {
                 Section {
                     DisclosureGroup("Photo details") {
                         Text(RecognitionPresentation(mode: mode).suggestionTitle)
-                        Text("\(mode == "meta_live" ? "Muse" : "Demo") confidence: \(candidate.confidence) (uncalibrated)")
+                        Text("\(RecognitionPresentation(mode: mode).modelName) confidence: \(candidate.confidence) (uncalibrated)")
                         Text(candidate.suggestedCapacity.map { "Container size: \($0) mL" } ?? "Container size: unknown")
                             .accessibilityIdentifier("photoCapacity")
                         if let label = candidate.labelCapacityMl { Text("Label reads \(label) mL (unverified).") }

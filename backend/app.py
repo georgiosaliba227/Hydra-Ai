@@ -23,7 +23,7 @@ from ai.hydration import BeverageLog, calculate_contribution, summarize_day
 from ai.hydration.models import Composition, METHOD_VERSION
 from database.repository import (BeverageNotFound, BeverageRepository, IdempotencyConflict, RevisionConflict,
                                  StorageUnavailable)
-from .recognition import AnalysisRequest, AnalysisResult, Candidate, MockMetaRecognizer, RecognitionUnavailable
+from .recognition import AnalysisRequest, AnalysisResult, Candidate, MockMetaRecognizer, RecognitionUnavailable, LOCAL_MODEL
 from .recognition_feedback import candidate_key, product_signature
 from .label_volume import label_capacity_ml
 from .meta_images import sanitized_jpeg
@@ -205,10 +205,12 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     camera_policy = os.getenv("HYDRA_META_CAMERA_POLICY", "legacy")
     if camera_policy not in ("legacy", "georgio-camera-cutoff-v1"):
         raise ValueError("Unsupported camera policy")
-    if (mode not in ("mock", "guarded_meta") or billable not in ("false", "true")
+    if (mode not in ("mock", "guarded_meta", "local_meta") or billable not in ("false", "true")
             or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
     live_feature = mode == "guarded_meta" or hydration_enabled == "true" or wonder_live == "true"
+    if mode == "local_meta" and (billable != "false" or hydration_enabled != "false" or wonder_live != "false"):
+        raise ValueError("Local Meta camera cannot enable hosted providers")
     if (billable == "true") != live_feature:
         raise ValueError("Mode and billable gate conflict")
     token = api_token if api_token is not None else os.getenv("HYDRA_API_TOKEN", "")
@@ -216,7 +218,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         raise ValueError("HYDRA_API_TOKEN must be at least 32 non-whitespace ASCII characters")
     app = FastAPI(title="Hydra AI Local Prototype", version="1.0.0")
     app.state.repository = BeverageRepository(db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
-    app.state.recognition_mode = "mock" if mode == "mock" else "meta_live"
+    app.state.recognition_mode = "meta_live" if mode == "guarded_meta" else mode
     app.state.meta_ledger = AccountLedger(os.getenv("HYDRA_META_LEDGER_PATH") or db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
     if mode == "guarded_meta":
         account = os.getenv("HYDRA_META_ACCOUNT", "")
@@ -237,6 +239,11 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             # Existing evidence is mandatory; do not create a zero baseline at startup.
             app.state.meta_ledger.project_view()
             app.state.recognizer = GuardedMetaGateway(app.state.meta_ledger, account, transport, notifier)
+    elif mode == "local_meta":
+        from .local_meta import LocalMetaRecognizer
+        if not app.state.repository.feedback_enabled:
+            raise ValueError("Local camera requires the separate beverage database")
+        app.state.recognizer = LocalMetaRecognizer.from_environment()
     else:
         app.state.recognizer = MockMetaRecognizer()
     app.add_middleware(RequestGuard, token=token)
@@ -279,9 +286,10 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         return {"version": "recognition-v1", "mode": app.state.recognition_mode,
                 "correction_memory_available": app.state.repository.feedback_enabled,
                 "training_examples_available": app.state.repository.feedback_enabled,
-                "provider": "Meta" if mode == "guarded_meta" else None,
-                "model": "muse-spark-1.3", "dispatch_requires_account_permit_and_verified_bound": True,
-                "privacy": "Meta may retain content under its service, safety and legal terms; no zero-retention claim."}
+                "provider": "Meta (local trained adapter)" if mode == "local_meta" else "Meta" if mode == "guarded_meta" else None,
+                "model": LOCAL_MODEL if mode == "local_meta" else "muse-spark-1.3",
+                "dispatch_requires_account_permit_and_verified_bound": mode != "local_meta",
+                "privacy": "Photo is processed locally on your configured Mac; no hosted model request." if mode == "local_meta" else "Meta may retain content under its service, safety and legal terms; no zero-retention claim."}
 
     @app.get("/v1/meta/spending")
     def meta_spending():
@@ -313,10 +321,18 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
                 if memory is not None:
                     result["candidates"].append(unknown)
             for candidate in result["candidates"]:
-                candidate["label_capacity_ml"]=label_capacity_ml(candidate.get("visible_label_text"))
+                if result["mode"] != "local_meta":
+                    candidate["label_capacity_ml"]=label_capacity_ml(candidate.get("visible_label_text"))
                 candidate["nutrition"] = lookup(candidate["product_id"], candidate["identity"])
                 candidate["personal_correction"]=request.app.state.repository.correction_for(
                     "local-demo",result["mode"],result["image_sha256"],candidate_key(candidate),product_signature(candidate))
+            if result["mode"] == "local_meta":
+                from .local_meta import ADAPTER_SHA256
+                original=[{k:v for k,v in item.items() if k not in ("nutrition","personal_correction")} for item in result["candidates"]]
+                request.app.state.repository.record_local_recognition("local-demo",{
+                    "recognition_id":result["recognition_id"],"image_sha256":result["image_sha256"],
+                    "mode":"local_meta","model":LOCAL_MODEL,"adapter_sha256":ADAPTER_SHA256,
+                    "created_at":utc_string(datetime.now(dt_timezone.utc)),"candidates":original})
             return result
         except (ValidationError, ValueError):
             raise RecognitionUnavailable() from None
@@ -332,8 +348,23 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         canonical["consumed_at"] = utc_string(payload.consumed_at)
         fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         provenance = ["user_confirmed_manual"] if payload.source == "manual" else ["user_confirmed_photo", "recognition-v1:mock"]
-        if payload.recognition_id is not None:
+        local_receipt = (request.app.state.repository.local_recognition("local-demo",str(payload.recognition_id))
+                         if payload.recognition_id is not None else None)
+        if local_receipt is not None:
+            from .local_meta import ADAPTER_SHA256
+            if (local_receipt.get("mode"),local_receipt.get("model"),local_receipt.get("adapter_sha256")) != ("local_meta",LOCAL_MODEL,ADAPTER_SHA256):
+                raise HTTPException(422,"invalid_request")
+            if payload.recognition_feedback is not None:
+                feedback=payload.recognition_feedback
+                reference=feedback.original_candidate.model_dump(exclude={"personal_correction"})
+                if (feedback.source_mode != "local_meta" or feedback.image_sha256 != local_receipt["image_sha256"]
+                        or reference not in local_receipt["candidates"]):
+                    raise HTTPException(422,"invalid_request")
+            provenance=["user_confirmed_photo","recognition-v1:local_meta",LOCAL_MODEL,ADAPTER_SHA256]
+        elif payload.recognition_id is not None:
             try:
+                if payload.recognition_feedback is not None and payload.recognition_feedback.source_mode != "meta_live":
+                    raise BudgetDenied("Correction source differs from hosted receipt")
                 receipt = request.app.state.meta_ledger.receipt(str(payload.recognition_id))
                 if payload.recognition_feedback is not None:
                     from .meta_observations import read_observation
@@ -437,6 +468,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         corrections,training=repository.export_corrections("local-demo")
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "recognition_corrections":corrections,"training_examples":training,
+                "local_recognition_receipts":repository.export_local_recognitions("local-demo"),
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
                 "wonder_trends": saved_trends(results_dir) if results_dir else [],

@@ -110,6 +110,10 @@ class BeverageRepository:
                     )
                 """)
                 if self.feedback_enabled:
+                    connection.execute("""CREATE TABLE IF NOT EXISTS local_recognition_receipts (
+                        id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL,
+                        created_at TEXT NOT NULL, receipt_json TEXT NOT NULL
+                    )""")
                     for table in ("recognition_corrections", "recognition_training_examples"):
                         connection.execute(f"""CREATE TABLE IF NOT EXISTS {table} (
                             beverage_id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL,
@@ -221,8 +225,43 @@ class BeverageRepository:
         except (sqlite3.Error,TypeError):
             raise StorageUnavailable() from None
 
+    def record_local_recognition(self, owner: str, receipt: dict) -> None:
+        if not self.feedback_enabled:
+            raise StorageUnavailable()
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute("BEGIN IMMEDIATE")
+                connection.execute("INSERT INTO local_recognition_receipts VALUES (?,?,?,?)",
+                                   (receipt["recognition_id"],owner,receipt["created_at"],json.dumps(receipt,allow_nan=False)))
+                connection.execute("""DELETE FROM local_recognition_receipts WHERE owner=? AND id NOT IN (
+                    SELECT id FROM local_recognition_receipts WHERE owner=? ORDER BY created_at DESC,id DESC LIMIT 100
+                )""",(owner,owner))
+        except (sqlite3.Error,TypeError,ValueError):
+            raise StorageUnavailable() from None
+
+    def local_recognition(self, owner: str, identifier: str) -> dict | None:
+        if not self.feedback_enabled:
+            return None
+        try:
+            with closing(self._connect()) as connection:
+                row=connection.execute("SELECT receipt_json FROM local_recognition_receipts WHERE owner=? AND id=?",(owner,identifier)).fetchone()
+            return _decode(row[0]) if row else None
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
+    def export_local_recognitions(self, owner: str) -> list[dict]:
+        if not self.feedback_enabled:
+            return []
+        try:
+            with closing(self._connect()) as connection:
+                return [_decode(row[0]) for row in connection.execute("SELECT receipt_json FROM local_recognition_receipts WHERE owner=? ORDER BY created_at,id",(owner,))]
+        except sqlite3.Error:
+            raise StorageUnavailable() from None
+
     def _delete_feedback(self, connection: sqlite3.Connection, owner: str, beverage_id: str | None = None) -> None:
         if self.feedback_enabled:
+            if beverage_id is None:
+                connection.execute("DELETE FROM local_recognition_receipts WHERE owner=?",(owner,))
             for table in ("recognition_corrections","recognition_training_examples"):
                 if beverage_id is None:
                     connection.execute(f"DELETE FROM {table} WHERE owner=?",(owner,))

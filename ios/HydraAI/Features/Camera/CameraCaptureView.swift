@@ -92,6 +92,10 @@ struct CameraCaptureView: View {
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("analyzePhoto")
                     .disabled(!consent || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
+                    if isAnalyzing && recognitionMode == "local_meta" {
+                        Text("Your Mac is reading the label and running the trained model. Keep Hydra open; this can take up to 3 minutes.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
                     if let result {
                         Text(RecognitionPresentation(mode: result.mode).resultTitle).font(.headline)
                             .accessibilityIdentifier("recognitionResultSource")
@@ -180,9 +184,9 @@ struct CameraCaptureView: View {
             if let product = candidate.product { Text("Product: \(product)") }
             Text(candidate.suggestedCapacity.map { "Container suggestion: \($0) mL" } ?? "Container capacity: unknown")
             Text(candidate.liquidEstimateText).font(.subheadline)
-            Text("\(result?.mode == "meta_live" ? "Muse" : "Demo") confidence: \(candidate.confidence) · verify the details").font(.footnote)
+            Text("\(RecognitionPresentation(mode: result?.mode).modelName) confidence: \(candidate.confidence) · verify the details").font(.footnote)
             if candidate.personalCorrection != nil {
-                Text("\(result?.mode == "meta_live" ? "Muse" : "Demo") suggested: \(candidate.identity)").font(.footnote)
+                Text("\(RecognitionPresentation(mode: result?.mode).modelName) suggested: \(candidate.identity)").font(.footnote)
                 Text("Your previous correction: \(candidate.suggestedIdentity)")
                     .font(.footnote).accessibilityIdentifier("personalCorrectionSuggestion")
                 if let liquid = candidate.personalLiquidText {

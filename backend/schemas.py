@@ -31,7 +31,7 @@ class CreateBeverageRequest(BaseModel):
         if self.recognition_feedback is not None:
             feedback=self.recognition_feedback
             if (self.source!="confirmed_recognition"
-                    or (feedback.source_mode=="meta_live")!=(self.recognition_id is not None)
+                    or (feedback.source_mode!="mock")!=(self.recognition_id is not None)
                     or (feedback.corrected_liquid_ml is not None and self.container_ml is not None
                         and feedback.corrected_liquid_ml>self.container_ml)):
                 raise ValueError("Correction must match confirmed photo source and capacity")

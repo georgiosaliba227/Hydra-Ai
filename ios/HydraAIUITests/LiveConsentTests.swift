@@ -2,6 +2,56 @@ import XCTest
 
 /// Only the dedicated local fake-provider server may enable this case.
 final class LiveConsentTests: XCTestCase {
+    /// Opt-in local adapter test. The sole selectable asset is the owner's
+    /// one-litre example, imported with a unique 2051 date by the Mac driver.
+    func testLocalTrainedMetaLabelAndConfirmEditWithoutLogging() throws {
+        continueAfterFailure = false
+        let env = ProcessInfo.processInfo.environment
+        guard env["HYDRA_E2E_LOCAL_META"] == "1", let backend = env["HYDRA_E2E_BACKEND_URL"], let token = env["HYDRA_E2E_API_TOKEN"] else {
+            throw XCTSkip("Requires explicitly selected local trained adapter and owned fixture")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Camera"].tap()
+        let header = app.staticTexts["recognitionHeader"]
+        let trained = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'trained Meta model'"), object: header)
+        XCTAssertEqual(XCTWaiter.wait(for: [trained], timeout: 15), .completed)
+        app.buttons["chooseBeveragePhoto"].tap()
+        let image = app.images.matching(NSPredicate(format: "label CONTAINS '2051'")).firstMatch
+        let cell = app.cells.matching(NSPredicate(format: "label CONTAINS '2051'")).firstMatch
+        if image.waitForExistence(timeout: 8) { image.tap() }
+        else if cell.exists { cell.tap() }
+        else {
+            if app.buttons["Cancel"].exists { app.buttons["Cancel"].tap() }
+            throw XCTSkip("Owned fixture date unavailable; no other asset selected")
+        }
+        let consent = app.switches["photoConsent"]
+        XCTAssertTrue(consent.waitForExistence(timeout: 10))
+        if !consent.isHittable { app.swipeUp() }
+        XCTAssertFalse(app.switches["metaPhotoConsent"].exists)
+        consent.switches.firstMatch.tap()
+        let analyze = app.buttons["analyzePhoto"]
+        if !analyze.isHittable { app.swipeUp() }
+        XCTAssertTrue(analyze.isEnabled)
+        analyze.tap()
+        XCTAssertTrue(app.staticTexts["reviewDrinkName"].waitForExistence(timeout: 210))
+        XCTAssertTrue(app.staticTexts["reviewDrinkName"].label.uppercased().contains("DASANI"))
+        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label, "Printed size: 1000 mL")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label, "1000 mL")
+        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Assuming a full container, all consumed.")
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        app.buttons["editRecognitionEntry"].tap()
+        XCTAssertTrue(app.textFields["photoIdentity"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["photoConsumed"].exists)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Local trained Meta exact one-litre label and edit review"
+        screenshot.lifetime = .keepAlways; add(screenshot)
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.staticTexts["recognitionResultSource"].waitForExistence(timeout: 5))
+    }
+
     func testExplicitMetaConsentSourceAndConfirmedReceipt() throws {
         continueAfterFailure = false
         let env = ProcessInfo.processInfo.environment

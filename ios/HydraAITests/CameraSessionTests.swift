@@ -4,6 +4,16 @@ import XCTest
 
 @MainActor
 final class CameraSessionTests: XCTestCase {
+    func testLocalCameraNeedsBackendPhotoConsentWithoutCloudConsent() throws {
+        let session = CameraSession(), generation = UUID()
+        let capability = try XCTUnwrap(session.beginCapabilities(generation: generation))
+        XCTAssertTrue(session.completeCapabilities("local_meta", ticket: capability, currentGeneration: generation))
+        XCTAssertNil(session.beginAnalysis(generation: generation))
+        session.consent = true
+        XCTAssertNotNil(session.beginAnalysis(generation: generation))
+        XCTAssertFalse(session.metaConsent)
+        XCTAssertNil(session.beginAnalysis(generation: generation), "One request in flight")
+    }
     private func result() -> RecognitionResult {
         RecognitionResult(version: "recognition-v1", mode: "meta_live", model: "muse-spark-1.3",
                           candidates: [], requiresConfirmation: true, recognitionId: UUID())

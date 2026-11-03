@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt, StringConstraints,
 from .nutrition import IDENTITY, PRODUCT_ID
 
 MODEL = "muse-spark-1.3"
+LOCAL_MODEL = "muse-glimmer-30b-beverage-lora-v1"
 MAX_IMAGE_BYTES = 1_048_576
 
 
@@ -14,7 +15,7 @@ class AnalysisRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     image_base64: str = Field(max_length=1_398_104, strict=True)
     photo_consent: Literal[True]
-    mode: Literal["mock", "meta_live"] = "mock"
+    mode: Literal["mock", "meta_live", "local_meta"] = "mock"
     meta_photo_consent: bool = Field(default=False, strict=True)
     mock_scenario: Literal["branded", "generic", "ambiguous", "missing_nutrition", "failure"] = "ambiguous"
 
@@ -108,12 +109,18 @@ class Candidate(BaseModel):
 class AnalysisResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     version: Literal["recognition-v1"] = "recognition-v1"
-    mode: Literal["mock", "meta_live"] = "mock"
-    model: Literal["muse-spark-1.3"] = MODEL
+    mode: Literal["mock", "meta_live", "local_meta"] = "mock"
+    model: Literal["muse-spark-1.3", "muse-glimmer-30b-beverage-lora-v1"] = MODEL
     recognition_id: str | None = None
     image_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     candidates: list[Candidate] = Field(max_length=3)
     requires_confirmation: Literal[True] = True
+
+    @model_validator(mode="after")
+    def correct_model_source(self):
+        if (self.mode == "local_meta") != (self.model == LOCAL_MODEL):
+            raise ValueError("Model does not match recognition mode")
+        return self
 
 
 class RecognitionUnavailable(Exception):

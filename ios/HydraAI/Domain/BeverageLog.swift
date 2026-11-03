@@ -120,7 +120,7 @@ extension CreateBeverageRequest {
             }
             if let recognitionFeedback {
                 try recognitionFeedback.validate()
-                guard (recognitionFeedback.sourceMode == "meta_live") == (recognitionId != nil),
+                guard (recognitionFeedback.sourceMode != "mock") == (recognitionId != nil),
                       recognitionFeedback.correctedLiquidMl.map({ $0 <= (containerMl ?? 5000) }) ?? true else { throw BeverageValidationError.invalidVolume }
             }
         } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil || consumptionAssumption != nil || beverageType != nil { throw BeverageValidationError.invalidCategory }

@@ -113,12 +113,13 @@ struct PersonalRecognitionCorrection: Codable, Sendable {
 }
 
 enum RecognitionPresentation: Sendable, Equatable {
-    case unavailable, mock, metaLive
+    case unavailable, mock, metaLive, localMeta
 
     init(mode: String?) {
         switch mode {
         case "mock": self = .mock
         case "meta_live": self = .metaLive
+        case "local_meta": self = .localMeta
         default: self = .unavailable
         }
     }
@@ -128,6 +129,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .unavailable: "Take or choose a beverage photo. Verify the backend recognition mode before analysis."
         case .mock: "Take or choose a photo, try mock analysis, then confirm what you drank."
         case .metaLive: "Take or choose a photo for live Meta analysis, then confirm what you drank."
+        case .localMeta: "Take or choose a photo for your trained Meta model on your Mac, then confirm what you drank."
         }
     }
 
@@ -136,6 +138,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .unavailable: "Analysis is unavailable until the backend recognition mode is verified."
         case .mock: "Mock analysis: selected demo responses do not interpret this photo."
         case .metaLive: "Live Meta analysis sends this photo to Meta. Recognition is uncertain; verify every suggestion."
+        case .localMeta: "Your trained Meta model processes this photo on your configured Mac. Check the drink name and exact printed size."
         }
     }
 
@@ -144,6 +147,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .unavailable: "Analysis unavailable"
         case .mock: "Analyze with mock Meta response"
         case .metaLive: "Analyze with live Meta"
+        case .localMeta: "Analyze with trained Meta"
         }
     }
 
@@ -152,6 +156,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .unavailable: "Recognition source unavailable"
         case .mock: "Mock result — confirmation required"
         case .metaLive: "Live Meta result — confirmation required"
+        case .localMeta: "Local trained Meta result — confirmation required"
         }
     }
 
@@ -160,6 +165,24 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .unavailable: "Recognition source unavailable — verify every field"
         case .mock: "Mock suggestion — verify every field"
         case .metaLive: "Live Meta suggestion — verify every field"
+        case .localMeta: "Local trained Meta suggestion — verify every field"
+        }
+    }
+
+    var modelName: String {
+        switch self {
+        case .unavailable: "Unverified model"
+        case .mock: "Demo"
+        case .metaLive: "Muse"
+        case .localMeta: "Trained Meta"
+        }
+    }
+
+    static func validModel(_ model: String, mode: String) -> Bool {
+        switch mode {
+        case "mock", "meta_live": model == "muse-spark-1.3"
+        case "local_meta": model == "muse-glimmer-30b-beverage-lora-v1"
+        default: false
         }
     }
 }
@@ -178,9 +201,9 @@ struct RecognitionResult: Decodable, Sendable {
         case imageSha256 = "image_sha256"
     }
     func validate() throws {
-        guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3", requiresConfirmation,
+        guard version == "recognition-v1", RecognitionPresentation.validModel(model, mode: mode), requiresConfirmation,
               candidates.count <= 3 else { throw ServiceError.invalidResponse }
-        guard (mode == "meta_live") == (recognitionId != nil) else { throw ServiceError.invalidResponse }
+        guard (mode != "mock") == (recognitionId != nil) else { throw ServiceError.invalidResponse }
         if let imageSha256 { guard imageSha256.count == 64, imageSha256.allSatisfy({ "0123456789abcdef".contains($0) }) else { throw ServiceError.invalidResponse } }
         for candidate in candidates { try candidate.validate() }
     }
@@ -246,6 +269,6 @@ struct RecognitionCapabilities: Decodable {
         case correctionMemoryAvailable = "correction_memory_available", trainingExamplesAvailable = "training_examples_available"
     }
     func validate() throws {
-        guard version == "recognition-v1", ["mock", "meta_live"].contains(mode), model == "muse-spark-1.3" else { throw ServiceError.invalidResponse }
+        guard version == "recognition-v1", RecognitionPresentation.validModel(model, mode: mode) else { throw ServiceError.invalidResponse }
     }
 }

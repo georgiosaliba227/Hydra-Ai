@@ -26,7 +26,7 @@ def product_signature(candidate: dict) -> str | None:
 class RecognitionFeedback(BaseModel):
     model_config = ConfigDict(extra="forbid")
     image_sha256: str = Field(pattern=r"^[a-f0-9]{64}$", strict=True)
-    source_mode: Literal["mock", "meta_live"]
+    source_mode: Literal["mock", "meta_live", "local_meta"]
     original_candidate: Candidate
     remember_for_me: bool = Field(default=True, strict=True)
     share_for_training: bool = Field(default=False, strict=True)

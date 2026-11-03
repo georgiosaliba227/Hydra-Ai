@@ -4,6 +4,51 @@ import ImageIO
 @testable import HydraAI
 
 final class RecognitionTests: XCTestCase {
+    func testLocalTrainedResultPreservesExactLabelVolumeAndReviewAssumption() throws {
+        let json = """
+        {"version":"recognition-v1","mode":"local_meta","model":"muse-glimmer-30b-beverage-lora-v1","recognition_id":"00000000-0000-0000-0000-000000000001","requires_confirmation":true,"candidates":[{"identity":"DASANI Purified Water","brand":"DASANI","product":"Purified Water","container_ml":1000,"label_capacity_ml":1000,"visible_label_text":"1 LITER","confidence":"medium","uncertainty_reasons":["Verify printed size"]}]}
+        """
+        let result = try JSONDecoder().decode(RecognitionResult.self, from: Data(json.utf8))
+        try result.validate()
+        let draft = RecognitionEntryDraft(candidate: try XCTUnwrap(result.candidates.first))
+        XCTAssertEqual(draft.consumedMl, 1000)
+        XCTAssertEqual(draft.assumption, "full_container")
+        XCTAssertNil(result.candidates[0].estimatedLiquidMlMin)
+        XCTAssertThrowsError(try JSONDecoder().decode(RecognitionResult.self, from: Data(json.replacingOccurrences(of: "muse-glimmer-30b-beverage-lora-v1", with: "muse-spark-1.3").utf8)).validate())
+        XCTAssertThrowsError(try JSONDecoder().decode(RecognitionResult.self, from: Data(json.replacingOccurrences(of: "local_meta", with: "mock").utf8)).validate())
+    }
+
+    func testLocalModeUsesBackendConsentAndBoundedLongerTimeout() async throws {
+        var calls = 0
+        FixtureURLProtocol.handler = { request in
+            calls += 1
+            XCTAssertGreaterThanOrEqual(request.timeoutInterval, 200)
+            let body = try JSONSerialization.jsonObject(with: request.httpBody ?? Data(reading: request.httpBodyStream!)) as! [String: Any]
+            XCTAssertEqual(body["mode"] as? String, "local_meta")
+            XCTAssertEqual(body["meta_photo_consent"] as? Bool, false)
+            throw URLError(.timedOut)
+        }
+        do { _ = try await service().analyzePhoto(Data([1,2,3]), scenario: "generic", mode: "local_meta"); XCTFail("Expected timeout") }
+        catch { XCTAssertFalse(error.localizedDescription.lowercased().contains("ledger")) }
+        XCTAssertEqual(calls, 1)
+        let local = RecognitionPresentation(mode: "local_meta")
+        XCTAssertNotEqual(local, .unavailable)
+        XCTAssertTrue(local.analyzeTitle.lowercased().contains("trained"))
+        XCTAssertTrue(local.photoDescription.lowercased().contains("mac"))
+        XCTAssertFalse(local.resultTitle.lowercased().contains("mock"))
+    }
+
+    func testLocalCorrectionCanBeConfirmedWithItsReceipt() throws {
+        let candidate = RecognitionCandidate(identity: "DASANI Purified Water", productId: nil, containerMl: 1000,
+            confidence: "medium", uncertaintyReasons: ["Verify label"], labelCapacityMl: 1000)
+        var request = CreateBeverageRequest(category: "Corrected water", consumedMl: 500, consumedAt: .now,
+            timezone: "America/New_York", source: "confirmed_recognition", recognitionId: UUID(), containerMl: 1000)
+        request.recognitionFeedback = RecognitionFeedback(imageSha256: String(repeating: "a", count: 64),
+            sourceMode: "local_meta", originalCandidate: candidate, rememberForMe: true, shareForTraining: false)
+        XCTAssertNoThrow(try request.validate())
+        request.recognitionId = nil
+        XCTAssertThrowsError(try request.validate())
+    }
     let configuration = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "t", count: 32), offline: false)
     let result = """
     {"version":"recognition-v1","mode":"mock","model":"muse-spark-1.3","requires_confirmation":true,"candidates":[{"identity":"Coffee","product_id":null,"container_ml":250,"confidence":"low","uncertainty_reasons":["Synthetic demo; verify capacity"],"nutrition":null}]}
