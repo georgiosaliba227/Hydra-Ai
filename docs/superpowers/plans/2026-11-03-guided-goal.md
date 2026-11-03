@@ -44,13 +44,13 @@ calendar: Calendar = .current) -> GoalReferenceResult`;
 Reference exposes `beverageMl: Int`, `totalWaterMl: Int`, `ageYears: Int`,
 `methodVersion`, `sourceURL`; reason provides readable text. Notify exact API early.
 
-- [ ] Write failing assertions for all adult bands3000/2200,19th birthday before/
+- [x] Write failing assertions for all adult bands3000/2200,19th birthday before/
   on/after, leap/future/impossible date, age-only/both-method conflict, unsupported
   eligibility and missing group, invalid/nonfinite measurements, and invariance
   under supported height/weight/supplement changes.
-- [ ] Run selected tests RED, implement versioned table lookup and validation,
+- [x] Run selected tests RED, implement versioned table lookup and validation,
   no optional-context coefficient or Meta/provider path.
-- [ ] Run focused GREEN, self-review, commit owned files and report for task review.
+- [x] Run focused GREEN, self-review, commit owned files and report for task review.
 
 ### Task 2: Protected local profile store
 
@@ -64,12 +64,12 @@ accepts directory + scopeResolver + injectable clock as needed;
 `deleteCurrent() throws`, `deleteAll() throws`, `exportData(now:) throws -> Data`.
 Uses Task1 validation and existing `CalibrationConnectionScope.resolve`.
 
-- [ ] Write failing tests for explicit consent, restart/scope switch/return,
+- [x] Write failing tests for explicit consent, restart/scope switch/return,
   offline/invalid config, corrupt/oversized/symlink/wrong-scope schema preserving
   evidence, profile-only export, selective/all deletion, and privacy attributes.
-- [ ] Implement separate versioned envelopes, complete protection/atomic writes,
+- [x] Implement separate versioned envelopes, complete protection/atomic writes,
   backup exclusion and fail-closed save behavior; do not log contents.
-- [ ] Run focused GREEN after Task1 API integration, commit owned files and report.
+- [x] Run focused GREEN after Task1 API integration, commit owned files and report.
 
 ### Task 3: Guided UI and existing goal integration
 
@@ -77,14 +77,16 @@ Root owns `BeverageStore.swift`, `BackendSettingsView.swift`, Home goal entry,
 new `Features/Settings/GuidedGoalSetupView.swift`, any presentation helpers, UI tests,
 HTTP/privacy tests and shared docs. New pure/store tasks do not edit these files.
 
-- [ ] Add UI RED for new guided entry/profile prompts with synthetic data only.
-- [ ] Integrate local store lifecycle with connection changes; add age/birthday,
+- [x] Add UI RED for new guided entry/profile prompts with synthetic data only.
+- [x] Integrate local store lifecycle with connection changes; add age/birthday,
   reference/applicability, optional ft/in/weight/supplement fields, source review,
   explicit confirmation and custom alternative. Implement local export/delete.
-- [ ] Capture candidate/connection generation at submission; preserve profile on
+- [x] Capture candidate/connection generation at submission; preserve profile on
   network failure, ignore stale replies, update backend only through existing goal API.
-- [ ] Verify exact outgoing JSON has only daily_beverage_goal_ml; cancellation,
+- [x] Verify exact outgoing JSON has only daily_beverage_goal_ml; cancellation,
   failure and deletion; run full native/pytest plus actual Simulator guided flow,
   US/metric/profile persistence and older goal/score regression checks.
-- [ ] Obtain independent whole-branch review; fix/reverify; install and verify on
-  phone when available, update status/docs, push review PR stacked on #76. No merge.
+- [x] Obtain independent whole-branch review and fix/reverify findings.
+- [x] Build/install the HealthKit-signed original app without reset.
+- [ ] Complete owner-assisted guided confirmation on the phone (status only).
+- [ ] Publish final verification/docs and review PR stacked on #76. No merge.

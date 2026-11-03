@@ -16,6 +16,7 @@ struct GuidedGoalSetupView: View {
     @State private var export: ExportDocument?
     @State private var deletingCurrent = false
     @State private var deletingAll = false
+    @State private var deletionGeneration: UUID?
     @State private var fieldReset = UUID()
     @FocusState private var focused: Bool
 
@@ -33,19 +34,21 @@ struct GuidedGoalSetupView: View {
                     .accessibilityIdentifier("calculateGoalReference").disabled(busy)
                 if let review = draft.currentReview { reviewSection(review) }
             }
+            if let status { Section { Text(status).accessibilityIdentifier("goalApplyStatus") } }
             customSection.disabled(busy)
             localProfileSection
-            if let status { Section { Text(status).accessibilityIdentifier("goalApplyStatus") } }
         }
         .navigationTitle("Guided goal setup")
         .toolbar {
             if focused { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { focused = false } } }
         }
         .onAppear { loadDraft() }
-        .onChange(of: store.configurationGeneration) { _, _ in cancelSubmission(); loadDraft() }
+        .onChange(of: store.configurationGeneration) { _, _ in
+            cancelSubmission(); deletingCurrent = false; deletingAll = false; deletionGeneration = nil; export = nil; loadDraft()
+        }
         .onChange(of: units.system) { _, system in draft.switchHeightSystem(system) }
         .onChange(of: draft.inputRevision) { _, _ in status = nil }
-        .onDisappear { cancelSubmission(); export = nil }
+        .onDisappear { cancelSubmission(); deletingCurrent = false; deletingAll = false; deletionGeneration = nil; export = nil }
         .fileExporter(isPresented: Binding(get: { export != nil }, set: { if !$0 { export = nil } }),
                       document: export, contentType: .json, defaultFilename: "hydra-goal-profile") { result in
             if case .failure = result { status = "Profile export was not saved." }
@@ -147,15 +150,15 @@ struct GuidedGoalSetupView: View {
 
     private var customSection: some View {
         Section {
-            DisclosureGroup("Choose a custom goal instead") {
+            HydraDisclosure(title: "Choose a custom goal instead", identifier: "guidedCustomAlternative") {
                 CanonicalQuantityField("Custom beverage goal", value: $customGoal, quantity: .volume,
                                        accessibilityIdentifier: "guidedCustomGoal", isInputValid: $customInputValid)
                     .id(fieldReset)
-                Text("Choose a goal from 1 to 5,000 mL (\(units.volume(1)) to \(units.volume(5000))). No profile answers are required. Confirmation sends only this goal to your Hydra backend.").font(.footnote)
+                Text("Choose a goal from 100 to 10,000 mL (\(units.volume(100)) to \(units.volume(10000))). No profile answers are required. Confirmation sends only this goal to your Hydra backend.").font(.footnote)
                 Button("Confirm custom goal") { confirmCustom() }
-                    .disabled(busy || !customInputValid || CanonicalQuantityInput.wholeMilliliters(customGoal) == nil || !store.isConfigured || store.isOffline)
+                    .disabled(busy || !customInputValid || CanonicalQuantityInput.wholeMilliliters(customGoal, range: 100...10_000) == nil || !store.isConfigured || store.isOffline)
                     .accessibilityIdentifier("guidedConfirmCustomGoal")
-            }.accessibilityIdentifier("guidedCustomAlternative")
+            }
         }
     }
 
@@ -167,9 +170,13 @@ struct GuidedGoalSetupView: View {
                 do { export = ExportDocument(data: try profileStore.exportData()); status = nil }
                 catch { status = error.localizedDescription }
             }.disabled(busy || profileStore.profile == nil).accessibilityIdentifier("exportGoalProfile")
-            Button("Delete this connection's saved profile", role: .destructive) { deletingCurrent = true }
+            Button("Delete this connection's saved profile", role: .destructive) {
+                deletionGeneration = store.configurationGeneration; deletingCurrent = true
+            }
                 .disabled(busy).accessibilityIdentifier("deleteGoalProfile")
-            Button("Delete all saved goal profiles", role: .destructive) { deletingAll = true }
+            Button("Delete all saved goal profiles", role: .destructive) {
+                deletionGeneration = store.configurationGeneration; deletingAll = true
+            }
                 .disabled(busy).accessibilityIdentifier("deleteAllGoalProfiles")
             if let error = profileStore.errorMessage {
                 Text(error).foregroundStyle(.red).font(.footnote)
@@ -198,6 +205,8 @@ struct GuidedGoalSetupView: View {
         catch { status = error.localizedDescription }
     }
     private func deleteProfile(all: Bool) {
+        guard deletionGeneration == store.configurationGeneration else { return }
+        deletionGeneration = nil
         do {
             if all { try profileStore.deleteAll() } else { try profileStore.deleteCurrent() }
             loadDraft(); status = all ? "All local goal profiles deleted. Backend goals remain separate." : "Local profile deleted. Backend goal remains separate."
@@ -221,7 +230,7 @@ struct GuidedGoalSetupView: View {
         }
     }
     private func confirmCustom() {
-        guard !busy, customInputValid, let goal = CanonicalQuantityInput.wholeMilliliters(customGoal) else { return }
+        guard !busy, customInputValid, let goal = CanonicalQuantityInput.wholeMilliliters(customGoal, range: 100...10_000) else { return }
         let generation = store.configurationGeneration, ticket = UUID()
         operation = ticket; busy = true; status = "Requesting custom goal confirmation…"
         submission = Task { @MainActor in

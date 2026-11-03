@@ -6,10 +6,10 @@
    installed on the phone; 217 native tests, six Simulator flows and the physical
    saved-connection check pass. Owner-assisted automatic Health/weather setup
    also passes. Preserve the existing PR dependencies and human merge.
-2. Add the requested on-device birthday/age, height, weight and supplement questions
-   with a defensible starting-goal calculation. Verify published age/life-stage
-   beverage references separately from food-inclusive total water. No arbitrary
-   body-size or creatine multiplier and no unconsented profile upload.
+2. Review the implemented guided starting-goal branch on PR #76's base. The
+   protected local profile, explicit adult beverage reference and confirmation
+   have 254 native/1509 Python checks plus three passing Simulator flows; finish
+   the owner-assisted status check. No height/weight/creatine multiplier is used.
 3. After that flow, verify the actual chosen goal/Home score and a previewed,
    consented comprehensive Wonder request on genuine intake records; keep all
    existing holds and risk labels. Real manual calibration still needs collection.

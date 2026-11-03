@@ -8,11 +8,16 @@ and six Simulator flows pass. These earlier hardware gaps are closed within that
 scope. Actual unattended background delivery and a populated own-record Meta flow
 are not established by those tests.
 
-The owner added profile-guided starting-goal calculation. Evidence and privacy
-design are in progress; height/weight/supplements cannot become invented numerical
+The requested profile-guided form and reviewed adult beverage reference are
+implemented and installed; three actual Simulator flows pass. Owner-assisted
+guided confirmation remains. Height/weight/supplements apply no numerical
 adjustments. Genuine manual calibration and independent personal accuracy evidence
 remain absent. Existing financial uncertainty is accepted under the recorded owner
 waiver, with holds/limits and other admission gates retained.
+
+Current owner readiness is blocked by `account_observation_stale` only. The Mac
+must be unlocked for the authenticated account observation to be renewed. This
+does not reopen the accepted billing/extras waivers or permit invented freshness.
 
 ## Earlier November 3 gaps — before the US-unit update
 

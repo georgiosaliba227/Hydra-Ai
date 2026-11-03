@@ -1,5 +1,21 @@
 # Hydra AI project status
 
+## November 3 — guided starting goal implemented
+
+The requested on-device age/birthday, height, weight and supplement form is
+implemented on `codex/guided-hydration-goal`, stacked on PR #76. Its reviewed
+adult beverage starting reference requires explicit confirmation; body and
+supplement context adds no invented multiplier. Profiles stay on the iPhone;
+only the confirmed goal integer reaches the backend. Custom goals remain.
+254 native tests, 1509 pytest +32 subtests, and three actual Simulator flows
+pass, including offline boundaries, populated Home score and profile restoration.
+The final HealthKit-signed app is installed; owner-assisted guided confirmation
+remains pending. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
+
+Actual own-record Wonder, genuine manual calibration and always-on hosting remain
+separate outstanding work. No paid call, ledger reset, merge or deployment was
+made in this feature.
+
 ## November 3 — US units and automatic context installed
 
 `codex/us-units-daily-context` adds US fl oz/°F/lb defaults with metric preference,
@@ -17,7 +33,7 @@ passes without injected credentials or Save connection; actual financial ledger
 bytes were unchanged. See the [feature report](US_UNITS_DAILY_CONTEXT_2026-11-03.md).
 
 The latest goal also requests profile-guided starting-goal calculation using
-birthday/age, height, weight and supplements. That follow-up is being researched;
+birthday/age, height, weight and supplements. That follow-up is implemented in the newer milestone above;
 this installed milestone still has a user-confirmed custom goal. Actual own-record
 Wonder and genuine calibration measurements remain outstanding. No merge or
 always-on deployment occurred.
