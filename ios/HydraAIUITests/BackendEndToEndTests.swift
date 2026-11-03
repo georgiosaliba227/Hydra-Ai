@@ -79,7 +79,7 @@ final class BackendEndToEndTests: XCTestCase {
         let identity = app.textFields["photoIdentity"]
         identity.tap(); identity.typeText("Corrected tea")
         app.buttons["photoKeyboardDone"].tap()
-        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        app.buttons["logDifferentAmount"].tap()
         let consumed = app.textFields["photoConsumed"]
         consumed.tap(); consumed.typeText("125")
         app.buttons["photoKeyboardDone"].tap()

@@ -33,10 +33,10 @@ final class SimpleCameraUITests: XCTestCase {
         XCTAssertTrue(total.waitForExistence(timeout: 15))
         return (app, try XCTUnwrap(Int(total.value as? String ?? "")))
     }
-    private func analyze(_ app: XCUIApplication) {
+    private func analyze(_ app: XCUIApplication, scenario: String = "Generic coffee") {
         app.tabBars.buttons["Camera"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 10)); app.buttons["syntheticPhoto"].tap()
-        app.buttons["mockScenario"].tap(); app.buttons["Generic coffee"].tap()
+        app.buttons["mockScenario"].tap(); app.buttons[scenario].tap()
         let consent = app.switches["photoConsent"]
         if !consent.isHittable { app.swipeUp() }
         consent.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
@@ -60,6 +60,44 @@ final class SimpleCameraUITests: XCTestCase {
     private func screenshot(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    func test05FinishedDrinkNeedsOnlyConfirmAndPartialIsOptionalInEdit() throws {
+        let (app, initial) = try start(); analyze(app)
+        // Earlier edit tests can leave personal memory for this fixture. The
+        // review must save the displayed whole-drink size in either case.
+        let wholeDrinkMl = try XCTUnwrap(Int(app.staticTexts["photoVolume"].label.filter(\.isNumber)))
+        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
+        XCTAssertFalse(app.textFields["photoConsumed"].exists)
+        XCTAssertFalse(app.switches["assumeEntireLiquid"].exists)
+        XCTAssertFalse(app.buttons["logDifferentAmount"].exists)
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        screenshot(app, "Finished drink one-tap review")
+        app.buttons["editRecognitionEntry"].tap()
+        let partial = app.buttons["logDifferentAmount"]
+        if !partial.isHittable { app.swipeUp() }
+        XCTAssertTrue(partial.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.switches["assumeEntireLiquid"].exists)
+        app.buttons["savePhotoBeverage"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        total(app, initial + wholeDrinkMl)
+    }
+    func test06UnknownSizeIsEnteredInlineWithoutConsumptionQuestion() throws {
+        let (app, initial) = try start(); analyze(app, scenario: "Missing nutrition")
+        let size = app.textFields["photoConsumed"]
+        XCTAssertTrue(size.waitForExistence(timeout: 5))
+        XCTAssertEqual(size.placeholderValue, "Drink size")
+        XCTAssertFalse(app.textFields["photoIdentity"].exists, "Size entry should not require opening Edit")
+        XCTAssertFalse(app.switches["assumeEntireLiquid"].exists)
+        XCTAssertFalse(app.buttons["savePhotoBeverage"].isEnabled)
+        app.segmentedControls["photoVolumeUnit"].buttons["US fl oz"].tap()
+        replace(size, "20")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.filter(\.isNumber), "591")
+        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        screenshot(app, "Finished drink size entered inline")
+        app.buttons["savePhotoBeverage"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
+        total(app, initial + 591)
     }
     func test01WholeLiquidReviewHasConfirmAndEditAndLogsAssumption() throws {
         let (app, initial) = try start(); analyze(app)
@@ -94,7 +132,7 @@ final class SimpleCameraUITests: XCTestCase {
         app.buttons["editRecognitionEntry"].tap()
         app.buttons["volumePreset-355"].tap()
         XCTAssertEqual(app.staticTexts["photoVolume"].label, "355 mL")
-        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        app.buttons["logDifferentAmount"].tap()
         XCTAssertFalse(app.buttons["savePhotoBeverage"].isEnabled)
         replace(app.textFields["photoConsumed"], "125")
         app.buttons["savePhotoBeverage"].tap()
@@ -110,7 +148,7 @@ final class SimpleCameraUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["photoVolume"].label.contains("mL"))
         XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.filter(\.isNumber), "1000")
         XCTAssertTrue(app.staticTexts["photoLabelCapacity"].label.hasPrefix("Printed size:"))
-        XCTAssertTrue(app.staticTexts["consumptionAssumptionSummary"].label.contains("full container"))
+        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
         XCTAssertTrue(app.buttons["editRecognitionEntry"].exists)
         XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
         screenshot(app, "Printed one litre label review")

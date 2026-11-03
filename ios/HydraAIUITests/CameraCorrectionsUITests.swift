@@ -31,7 +31,7 @@ final class CameraCorrectionsUITests: XCTestCase {
         replace(app.textFields["photoConsumed"], with: "240")
         let confirm = app.buttons["savePhotoBeverage"]
         XCTAssertEqual(app.staticTexts["photoVolume"].label, "240 mL")
-        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        app.buttons["logDifferentAmount"].tap()
         XCTAssertFalse(confirm.isEnabled, "Partial consumption requires a separate amount")
         app.textFields["photoConsumed"].tap(); app.textFields["photoConsumed"].typeText("125")
         app.buttons["photoKeyboardDone"].tap()

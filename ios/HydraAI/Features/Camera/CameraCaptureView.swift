@@ -202,7 +202,7 @@ struct CameraCaptureView: View {
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("editRecognition-\(candidate.id.uuidString)")
             }
-            Text("You'll confirm how much you actually drank before it is logged.").font(.caption).foregroundStyle(.secondary)
+            Text("Confirm logs the whole drink. Edit its details if needed.").font(.caption).foregroundStyle(.secondary)
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 16))

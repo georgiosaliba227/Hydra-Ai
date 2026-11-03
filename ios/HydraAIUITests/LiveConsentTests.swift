@@ -44,7 +44,7 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["reviewDrinkName"].label.uppercased().contains("DASANI"))
         XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.replacingOccurrences(of: ",", with: ""), "Printed size: 1000 mL")
         XCTAssertEqual(app.staticTexts["photoVolume"].label.replacingOccurrences(of: ",", with: ""), "1000 mL")
-        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Assuming a full container, all consumed.")
+        XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
         XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
         let review = XCTAttachment(screenshot: app.screenshot())
         review.name = "Local trained Meta exact one-litre confirmation"
@@ -147,9 +147,9 @@ final class LiveConsentTests: XCTestCase {
         details.tap()
         XCTAssertTrue(app.staticTexts["photoCapacity"].label.contains("450 mL"))
         app.swipeDown()
-        let partial = app.switches["assumeEntireLiquid"]
+        let partial = app.buttons["logDifferentAmount"]
         if !partial.isHittable { app.swipeUp() }
-        partial.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        partial.tap()
         let consumed = app.textFields["photoConsumed"]
         consumed.tap();consumed.typeText("125");app.buttons["photoKeyboardDone"].tap()
         app.buttons["savePhotoBeverage"].tap()

@@ -104,7 +104,7 @@ final class PhysicalRecognitionTests: XCTestCase {
         XCTAssertTrue(enter.waitForExistence(timeout: 20)); enter.tap()
         app.textFields["photoIdentity"].tap(); app.textFields["photoIdentity"].typeText("Network retry tea")
         app.buttons["photoKeyboardDone"].tap()
-        app.switches["assumeEntireLiquid"].coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        app.buttons["logDifferentAmount"].tap()
         app.textFields["photoConsumed"].tap(); app.textFields["photoConsumed"].typeText("125")
         app.buttons["photoKeyboardDone"].tap()
         try control("pause")
