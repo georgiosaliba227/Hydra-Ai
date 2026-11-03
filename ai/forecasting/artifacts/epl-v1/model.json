@@ -1,0 +1,68 @@
+{
+  "dataset_sha256": "3d2a3dd4611867274d0d4c497aea959aaba912cfd46132b77536b5b405a20a02",
+  "feature_bounds": {
+    "age_years": [
+      18.0,
+      34.0
+    ],
+    "duration_minutes": [
+      75.0,
+      84.0
+    ],
+    "pre_mass_kg": [
+      70.8,
+      93.8
+    ]
+  },
+  "features": [
+    "duration_minutes",
+    "pre_mass_kg",
+    "age_years"
+  ],
+  "fit_partition_sha256": "6b89ec828ac69550e9a2dc65ef53f5f9f7604f5f5613f29871989d8b34e5a7ca",
+  "imputation": [
+    75.0,
+    83.2,
+    26.0
+  ],
+  "interval": {
+    "calibration_participants": 6,
+    "kind": "empirical_calibration_envelope",
+    "limitation": "Same-source exchangeable participant groups only; no external or clinical coverage guarantee.",
+    "nominal_coverage": null,
+    "radius_ml": 1475.107142857143
+  },
+  "means": [
+    78.3157894736842,
+    81.10000000000002,
+    25.63157894736842
+  ],
+  "model": {
+    "kind": "constant_rate",
+    "rate_ml_per_minute": 22.345238095238095
+  },
+  "model_version": "epl-v1-grouped-research-v1",
+  "provenance": [
+    "https://figshare.com/articles/dataset/Fluid_Balance_and_Sweat_Sodium_Study_Data/28498148",
+    "https://journals.sagepub.com/doi/full/10.1177/17479541251353603",
+    "Foo, Tester, Markakis, Sabou, Close, McCubbin and Morton (2025), Fluid Balance and Sweat Sodium Study Data, doi:10.6084/m9.figshare.28498148; study doi:10.1177/17479541251353603",
+    "CC BY 4.0; source_sha256:b7c0ca278355ab9c37a4eed4b22d0be4e67964929eaf5914edf24ede9fb396df"
+  ],
+  "runtime_use": "offline_research_only",
+  "scales": [
+    4.341387500484479,
+    6.512255652553157,
+    3.6159082183826667
+  ],
+  "schema_version": "offline-forecast-json-v1",
+  "seed": 20261028,
+  "selected_model": "cohort_rate_baseline",
+  "selection_protocol": "repeated-grouped-paired-gain-one-se-v2",
+  "study_id": "epl-v1",
+  "synthetic": false,
+  "target_name": "intake_corrected_mass_loss_proxy_ml",
+  "training_versions": {
+    "numpy": "2.2.6",
+    "scikit_learn": "1.6.1"
+  }
+}
