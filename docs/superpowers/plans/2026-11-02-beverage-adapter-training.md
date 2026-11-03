@@ -15,8 +15,10 @@ Predictions JSONL: `image_id`, `model_id`, `base_revision`, `adapter_sha256`(nul
 - [x] Collect candidate metadata/images with attribution and hashes; review at least250 and freeze product-grouped150/25/75 splits with varied real backgrounds.
 - [x] Implement/test scorer and split leakage checks, exact capacity/joint success and confidence intervals. Lock aliases before inference.
 - [x] Build pinned MLX Meta loader, image inference and actual LoRA update/save/reload preflight under24GB. Record memory and training artifacts.
-- [ ] Run baseline, train and validate; choose checkpoint using validation only. Score untouched test, preserve all failures, continue legitimate iterations if below70%.
+- [x] Run baseline, train and validate; choose checkpoint using validation only. Score untouched test, preserve all failures, continue legitimate iterations if below70%.
 - [ ] Package reproducible model/metrics and review PR; report actual success and limits. Do not declare goal complete without dataset, weights and measured test evidence.
+
+Final measured result: the selected one-epoch adapter scored 63/75 (84%) joint full identity/exact capacity, 73/75 exact capacity and 38/46 joint on natural backgrounds. The unadapted base scored 57/75 joint. Two fresh independent identity reviews were required for each run; all 75 cases stayed in the denominator. Frozen selections preceded test encoding. All native jobs exited successfully. Reports, model hashes and failed development iterations are preserved; packaging and review-PR publication are the remaining integration work.
 
 ## Measured progress
 
