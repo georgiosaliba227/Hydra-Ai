@@ -189,6 +189,11 @@ struct WorkoutForecastView: View {
     @StateObject private var controller = WorkoutForecastController()
     @StateObject private var wonder = RecordedWonderController()
     @StateObject private var analysis = HydrationAnalysisController()
+    @StateObject private var richAnalysis = WonderAnalysisController()
+    @State private var richTask: Task<Void, Never>?
+    @State private var reviewedRequest: WorkoutForecastRequest?
+    @State private var richBackendConsent = false
+    @State private var richMetaConsent = false
     @State private var analysisTask: Task<Void, Never>?
     @State private var wonderTask: Task<Void, Never>?
     @State private var draft = WorkoutDraft()
@@ -225,6 +230,10 @@ struct WorkoutForecastView: View {
                 estimateSection
                 if let result = controller.result, !result.synthetic { resultSections(result) }
                 if analysis.state != .idle { HydrationAnalysisSection(controller: analysis) }
+                if let request = reviewedRequest, let forecast = controller.result, !forecast.synthetic {
+                    WonderAnalysisSection(controller: richAnalysis, backendConsent: $richBackendConsent, metaConsent: $richMetaConsent,
+                        connected: connected, prepare: { prepareRichAnalysis(request, forecast: forecast) }, explain: explainRichAnalysis)
+                }
                 if WorkoutFlowHooks.wonderExplanationEnabled { wonderExplanationSection }
             }
             .onChange(of: controller.result?.synthetic) { _, synthetic in
@@ -754,6 +763,21 @@ struct WorkoutForecastView: View {
     private func invalidate() {
         requestTask?.cancel(); requestTask = nil; controller.invalidate(); invalidateExplainer()
         analysisTask?.cancel(); analysisTask = nil; analysis.invalidate()
+        invalidateRichAnalysis()
+    }
+    private func invalidateRichAnalysis() {
+        richTask?.cancel(); richTask = nil; richAnalysis.invalidate(); reviewedRequest = nil
+        richBackendConsent = false; richMetaConsent = false
+    }
+    private func prepareRichAnalysis(_ request: WorkoutForecastRequest, forecast: WorkoutForecast) {
+        guard richBackendConsent, connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        richBackendConsent = false; richMetaConsent = false; richTask?.cancel()
+        richTask = Task { await richAnalysis.loadPreview(request, forecast: forecast, service: service) }
+    }
+    private func explainRichAnalysis() {
+        guard richMetaConsent, connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        richMetaConsent = false
+        richTask = Task { await richAnalysis.explain(consent: true, service: service) }
     }
 
     /// The Wonder preview describes one exact request; any change to the workout or measurements drops it.
@@ -793,11 +817,13 @@ struct WorkoutForecastView: View {
         guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
         requestTask?.cancel()
         analysisTask?.cancel(); analysisTask = nil; analysis.invalidate()
+        invalidateRichAnalysis()
         invalidateExplainer()
         if request.mode == "personal" { draft.consent = false }
         requestTask = Task {
             await controller.load(request, service: service)
             if let forecast = controller.result, !Task.isCancelled {
+                reviewedRequest = request
                 analysisTask?.cancel()
                 analysisTask = Task { await analysis.load(request, forecast: forecast, service: service) }
             }

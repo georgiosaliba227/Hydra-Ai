@@ -59,12 +59,19 @@ struct CalibrationHistorySection: View {
                 }
                 .accessibilityIdentifier("exportCalibrationHistory")
             }
+            DisclosureGroup("Storage and privacy") {
+                Text("Each backend connection has its own private history on this iPhone. Changing connections keeps prior histories separate. Delete all removes saved manual history for every connection.")
+                Text("Only your manual measurements and reviewed conditions are saved. Apple Health records, backend and Meta consent, forecasts and AI explanations are not saved here.")
+                Text("Exports include manual weights, intake, urine, conditions and error bounds. Choose where to save them.")
+            }
+            .font(.footnote)
+            .accessibilityIdentifier("calibrationStoragePrivacy")
             Button("Delete all saved manual measurements", role: .destructive) { confirmingDelete = true }
                 .accessibilityIdentifier("deleteAllCalibrationHistory")
             if let message { Text(message).font(.footnote).accessibilityIdentifier("calibrationHistoryMessage") }
         } header: { Text("Manual measurement history") }
         footer: {
-            Text("Nothing is saved until you choose Save. Protected on this device and excluded from backup. History belongs to this backend connection; a different token or backend has separate history. Previous connection profiles stay private and can be erased with Delete all. Delete all clears every local connection's manual history. Exports contain sensitive manual weights, intake, urine and conditions; choose where to save them. No Apple Health records, consent or AI explanations are saved here.")
+            Text("Saved only when you choose Save. Protected on this iPhone and excluded from backups. Delete all clears saved history for every connection. Exports contain your manual measurements.")
         }
         .onChange(of: session.map(\.event_id)) { _, _ in saveConsent = false; message = nil }
         .onDisappear { saveConsent = false; export = nil }

@@ -64,7 +64,16 @@ struct HydrationAnalysisSection: View {
         }
     }
     private static func fact(_ key: String, _ value: WorkoutForecast.Factor) -> String {
-        guard case .number = value else { return value.display }
+        guard case .number(let number) = value else {
+            if case .object(let values) = value { return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ")): \(fact($0, values[$0]!))" }.joined(separator: "; ") }
+            if case .array(let values) = value { return values.map { fact(key, $0) }.joined(separator: "; ") }
+            return value.display
+        }
+        if key.hasSuffix("_minutes") { return WonderAnalysisRenderer.duration(number) + " min" }
+        if key.hasSuffix("_ml") {
+            let displayed = key.contains("lower_ml") ? floor(number) : key.contains("upper_ml") ? ceil(number) : number
+            return "\(HydraFormat.milliliters(displayed)) mL"
+        }
         let unit: String
         if key.hasSuffix("_ml") { unit = " mL" }
         else if key.hasSuffix("_mg") { unit = " mg" }
@@ -72,6 +81,8 @@ struct HydrationAnalysisSection: View {
         else if key.hasSuffix("_c") { unit = " °C" }
         else if key.hasSuffix("_percent") { unit = "%" }
         else { unit = "" }
-        return value.display + unit
+        let display = ["_mg", "_c", "_minutes", "_percent"].contains(where: key.hasSuffix)
+            ? number.formatted(.number.precision(.fractionLength(0...1))) : value.display
+        return display + unit
     }
 }

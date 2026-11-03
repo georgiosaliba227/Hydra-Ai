@@ -6,6 +6,8 @@ protocol BeverageService: Sendable {
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
     func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis
+    func wonderAnalysisPreview(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview
+    func explainHydrationAnalysis(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
@@ -96,6 +98,8 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func wonderAnalysisPreview(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview { throw ServiceError.invalidResponse }
+    func explainHydrationAnalysis(_ request: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse { throw ServiceError.invalidResponse }
     func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis {
         throw ServiceError.invalidResponse
     }

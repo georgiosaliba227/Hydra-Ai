@@ -68,6 +68,26 @@ final class WorkoutFlowUITests: XCTestCase {
         XCTAssertTrue(localAnalysis.waitForExistence(timeout: 5))
         attach(app, "Deterministic research analysis separated from Muse Wonder")
 
+        let richConsent = app.switches["richAnalysisBackendConsent"]
+        reveal(richConsent, in: app, attempts: 10)
+        XCTAssertEqual(richConsent.value as? String, "0")
+        let prepare = app.buttons["prepareRichAnalysis"]
+        XCTAssertFalse(prepare.isEnabled)
+        richConsent.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertEqual(richConsent.value as? String, "1")
+        prepare.tap()
+        let richPreview = app.staticTexts["richAnalysisPreview"]
+        reveal(richPreview, in: app, attempts: 10)
+        XCTAssertTrue(richPreview.exists)
+        attach(app, "Detailed Wonder aggregate preview with no live dispatch")
+        let richUnavailable = app.staticTexts["richAnalysisUnavailable"]
+        reveal(richUnavailable, in: app, attempts: 14)
+        XCTAssertTrue(richUnavailable.label.contains("isn't enabled"), richUnavailable.label)
+        XCTAssertFalse(app.buttons["explainRichAnalysis"].exists)
+        XCTAssertFalse(app.switches["richAnalysisMetaConsent"].exists)
+        XCTAssertTrue(app.staticTexts["richAnalysisReferenceCost"].label.contains("Reference cost estimate"))
+        attach(app, "Reference price estimate and disabled detailed Wonder dispatch")
+
         let unavailable = app.staticTexts["workoutWonderUnavailable"]
         reveal(unavailable, in: app, attempts: 10)
         XCTAssertTrue(unavailable.label.contains("isn't set up on this backend"), unavailable.label)
