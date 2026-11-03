@@ -1,0 +1,67 @@
+{
+  "version": "wonder-analysis-preview-v1",
+  "facts": {
+    "version": "wonder-analysis-facts-v1",
+    "mode": "synthetic_demo",
+    "research_only": true,
+    "forecast": {
+      "status": "estimated",
+      "value_ml": 281.00120877211225,
+      "lower_ml": 0.0,
+      "upper_ml": 683.2725278674206,
+      "interval_kind": "synthetic_participant_split_conformal"
+    },
+    "intake": {
+      "beverage_count": null,
+      "beverage_volume_ml": null,
+      "water_ml": null,
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "sodium_status": "unknown",
+      "potassium_status": "unknown",
+      "completeness": "unverified"
+    },
+    "activity": {
+      "activity": null,
+      "duration_minutes": 60.0,
+      "intensity": "moderate"
+    },
+    "environment": {
+      "temperature_c": 24.0,
+      "humidity_percent": 50.0,
+      "context_only": true
+    },
+    "calibration": {
+      "total_samples": 0,
+      "comparable_samples": 0,
+      "recent_samples": 0
+    },
+    "trends": {
+      "window_days": 14,
+      "logged_days": null,
+      "beverage_lower_ml": null,
+      "beverage_upper_ml": null
+    },
+    "accounting": {
+      "status": "unavailable",
+      "quantity": "logged_intake_minus_measured_exercise_loss",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null
+    },
+    "missing_inputs": []
+  },
+  "model": "muse-wonder-1.0",
+  "payload_sha256": "704d7e6d5fff731940d73e65ed641ecda6ad914158a32d8377eb96732cb197d1",
+  "status": "available",
+  "explainable": true,
+  "reason": null,
+  "input_bound_tokens": 3688,
+  "max_output_tokens": 2048,
+  "worst_case_micro_usd": 55712,
+  "per_request_cap_micro_usd": 250000,
+  "live_available": false,
+  "dispatch_supported": false,
+  "verified_for_billing": false,
+  "cost_estimate_policy": "existing_reference_prices_not_a_verified_live_quote"
+}

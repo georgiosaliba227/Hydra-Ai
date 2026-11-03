@@ -1,0 +1,45 @@
+{
+  "version": "wonder-analysis-grounding-software-evaluation-v1",
+  "origin": "repository_synthetic_test_fixtures",
+  "cases": [
+    {
+      "case": "personal_cold_start",
+      "valid_combinations": 256,
+      "sections_per_result": 8,
+      "input_bound_tokens": 3769,
+      "reference_worst_case_micro_usd": 56036,
+      "live_available": false,
+      "dispatch_supported": false
+    },
+    {
+      "case": "personal_calibrated",
+      "valid_combinations": 256,
+      "sections_per_result": 8,
+      "input_bound_tokens": 3740,
+      "reference_worst_case_micro_usd": 55920,
+      "live_available": false,
+      "dispatch_supported": false
+    },
+    {
+      "case": "synthetic_demo",
+      "valid_combinations": 256,
+      "sections_per_result": 8,
+      "input_bound_tokens": 3688,
+      "reference_worst_case_micro_usd": 55712,
+      "live_available": false,
+      "dispatch_supported": false
+    }
+  ],
+  "valid_scaffold_combinations": 768,
+  "rendered_sections_checked": 6144,
+  "adversarial_selections": 288,
+  "adversarial_selections_rejected": 288,
+  "numerical_predictive_accuracy_evaluated": false,
+  "live_model_quality_evaluated": false,
+  "provider_calls": 0,
+  "limitations": [
+    "Finite grammar and consistency evaluation only; not an evaluation of live Muse Wonder reasoning or usefulness.",
+    "Numerical model accuracy and physiological validity are not evaluated by these tests.",
+    "Scaffold choices vary wording; all factual clauses and limitations are authored by Hydra."
+  ]
+}

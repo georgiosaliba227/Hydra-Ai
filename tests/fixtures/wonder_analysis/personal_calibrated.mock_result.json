@@ -1,0 +1,133 @@
+{
+  "version": "wonder-analysis-preview-v1",
+  "facts": {
+    "version": "wonder-analysis-facts-v1",
+    "mode": "personal",
+    "research_only": true,
+    "forecast": {
+      "status": "estimated",
+      "value_ml": 700.0,
+      "lower_ml": 645.0,
+      "upper_ml": 755.0,
+      "interval_kind": "historical_error_envelope"
+    },
+    "intake": {
+      "beverage_count": 0,
+      "beverage_volume_ml": 0.0,
+      "water_ml": null,
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "sodium_status": "unknown",
+      "potassium_status": "unknown",
+      "completeness": "unverified"
+    },
+    "activity": {
+      "activity": "running",
+      "duration_minutes": 30.0,
+      "intensity": "moderate"
+    },
+    "environment": {
+      "temperature_c": 20.0,
+      "humidity_percent": 60.0,
+      "context_only": true
+    },
+    "calibration": {
+      "total_samples": 1,
+      "comparable_samples": 1,
+      "recent_samples": 1
+    },
+    "trends": {
+      "window_days": 14,
+      "logged_days": 0,
+      "beverage_lower_ml": null,
+      "beverage_upper_ml": null
+    },
+    "accounting": {
+      "status": "unavailable",
+      "quantity": "logged_intake_minus_measured_exercise_loss",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null
+    },
+    "missing_inputs": [
+      "intake_completeness",
+      "documented_water_composition",
+      "complete_electrolyte_composition"
+    ]
+  },
+  "payload_sha256": "c732af6dcf68b5f04246de3b81494b6758a8cc0887ba4def9d9d466fe0c71b92",
+  "sections": [
+    {
+      "id": "summary",
+      "title": "Hydration-related summary",
+      "template": "{record_summary}. {research_scope}.",
+      "text": "0 mL of logged beverage volume; research estimate 645 to 755 mL, with point 700 mL. this is research context, not total body hydration, an intake target or a diagnosis.",
+      "evidence_status": "estimated"
+    },
+    {
+      "id": "workout_loss",
+      "title": "Workout fluid-loss estimate",
+      "template": "{loss_estimate}. {calibration_context}.",
+      "text": "research estimate 645 to 755 mL, with point 700 mL. 1 supplied observations; 1 comparable and 1 recent comparable observations.",
+      "evidence_status": "estimated"
+    },
+    {
+      "id": "activity",
+      "title": "Activity context",
+      "template": "{activity_context}. {activity_history}.",
+      "text": "30 minutes of moderate running. workout comparability depends on documented conditions, protocol and instrument error bounds.",
+      "evidence_status": "context_only"
+    },
+    {
+      "id": "environment",
+      "title": "Environmental context",
+      "template": "{environment_context}. {environment_role}.",
+      "text": "temperature 20 °C; humidity 60%. environment is context; no added weather adjustment is applied.",
+      "evidence_status": "context_only"
+    },
+    {
+      "id": "beverages",
+      "title": "Beverage and electrolyte context",
+      "template": "{beverage_context}. {water_context}; {electrolyte_context}. {logging_scope}.",
+      "text": "0 mL of logged beverage volume. water composition unknown; sodium composition unknown; potassium composition unknown. logging completeness is unverified; volume does not measure retention.",
+      "evidence_status": "context_only"
+    },
+    {
+      "id": "trends",
+      "title": "Personal trends",
+      "template": "{history_context}. {trend_scope}.",
+      "text": "no prior logged-day totals are available. logged-day patterns do not determine physiological needs; absent logs are not measured zero consumption.",
+      "evidence_status": "context_only"
+    },
+    {
+      "id": "uncertainty",
+      "title": "Prediction uncertainty",
+      "template": "{uncertainty_context}. {missing_context}. {accounting_context}.",
+      "text": "measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage. missing evidence includes verified logging completeness; documented water composition; complete electrolyte composition. matched completed-workout arithmetic is unavailable; planned losses are not subtracted.",
+      "evidence_status": "context_only"
+    },
+    {
+      "id": "measurement",
+      "title": "Measurement insights",
+      "template": "{measurement_context}.",
+      "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds.",
+      "evidence_status": "context_only"
+    }
+  ],
+  "dispatch_supported": false,
+  "limitations": [
+    "Offline contract and mock/recorded validation only; live dispatch and client integration are not implemented here.",
+    "Muse Wonder can select vetted scaffolds; Hydra authors the factual clauses and supplies every number.",
+    "Logged intake does not measure hydration status, retention or a required intake amount.",
+    "Workout loss is a research mass-balance proxy; historical envelopes do not guarantee future interval coverage.",
+    "Recorded consistency checks do not attest provider authenticity, billing settlement or spending authorization."
+  ],
+  "provenance": {
+    "selection_origin": "mock_local",
+    "text_origin": "hydra_vetted_scaffolds_and_facts",
+    "provider": null,
+    "model": null,
+    "numbers_checked_against": "facts",
+    "provider_authenticity_or_billing_attested": false
+  }
+}

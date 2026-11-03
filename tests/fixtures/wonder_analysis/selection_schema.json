@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sections"
+  ],
+  "properties": {
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "workout_loss",
+        "activity",
+        "environment",
+        "beverages",
+        "trends",
+        "uncertainty",
+        "measurement"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "enum": [
+            "{record_summary}. {research_scope}.",
+            "The supplied record shows {record_summary}. {research_scope}."
+          ],
+          "maxLength": 500
+        },
+        "workout_loss": {
+          "type": "string",
+          "enum": [
+            "{loss_estimate}. {calibration_context}.",
+            "For this workout: {loss_estimate}. The basis is {calibration_context}."
+          ],
+          "maxLength": 500
+        },
+        "activity": {
+          "type": "string",
+          "enum": [
+            "{activity_context}. {activity_history}.",
+            "The supplied workout describes {activity_context}. {activity_history}."
+          ],
+          "maxLength": 500
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "{environment_context}. {environment_role}.",
+            "The supplied environment is {environment_context}. {environment_role}."
+          ],
+          "maxLength": 500
+        },
+        "beverages": {
+          "type": "string",
+          "enum": [
+            "{beverage_context}. {water_context}; {electrolyte_context}. {logging_scope}.",
+            "The log shows {beverage_context}. Composition: {water_context}; {electrolyte_context}. {logging_scope}."
+          ],
+          "maxLength": 500
+        },
+        "trends": {
+          "type": "string",
+          "enum": [
+            "{history_context}. {trend_scope}.",
+            "The descriptive record shows {history_context}. {trend_scope}."
+          ],
+          "maxLength": 500
+        },
+        "uncertainty": {
+          "type": "string",
+          "enum": [
+            "{uncertainty_context}. {missing_context}. {accounting_context}.",
+            "Evidence limits: {uncertainty_context}. {missing_context}. {accounting_context}."
+          ],
+          "maxLength": 500
+        },
+        "measurement": {
+          "type": "string",
+          "enum": [
+            "{measurement_context}.",
+            "Further observations can document {measurement_context}."
+          ],
+          "maxLength": 500
+        }
+      }
+    }
+  }
+}
