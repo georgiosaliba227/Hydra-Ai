@@ -17,6 +17,13 @@ drinking quantities nor diagnoses a physiological state. API/iPhone integration
 is an additive orchestrator-owned v3 extension; this module changes no v1/v2
 implementation or existing frozen study artifact.
 
+Application policy: preserve the existing v2 baseline workflow by default. The
+additive v3 fit is available only through an explicit default-off experimental
+choice, because the frozen stress results below include worse abrupt-shift and
+gradual-drift errors. That choice does not imply measured accuracy or calibrated
+coverage; changing it invalidates prior estimates and explanation consent. No
+parameters were retuned after observing these failures.
+
 ## Fixed fit and selection
 
 For qualified earlier measurements, let `x_i = duration_minutes_i / 60` hours and
