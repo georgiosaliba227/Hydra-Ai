@@ -24,6 +24,7 @@ class FullIdentityScoringTests(unittest.TestCase):
             prediction('e',brand=None)]
         decisions={x:('full_identity_equivalent','full_identity_equivalent') for x in 'abe'}
         decisions.update(c=('uncertain','uncertain'),d=('uncertain','uncertain'))
+        decisions['e']=('meaningful_identity_error','meaningful_identity_error')
         before=copy.deepcopy((rows,preds,decisions))
         report=score_reviewed_predictions(rows,preds,decisions)
         self.assertEqual(report['joint']['total'],5)
@@ -45,6 +46,20 @@ class FullIdentityScoringTests(unittest.TestCase):
         self.assertEqual(report['legacy_name_alias_metrics']['joint']['correct'],3)
         self.assertEqual(report['joint']['correct'],0)
         self.assertEqual(report['review_agreement']['unanimous_equivalent'],0)
+
+    def test_complete_identity_may_occupy_either_field_under_frozen_partition_rule(self):
+        rows=[reference(x) for x in 'abcd']
+        preds=[prediction('a',brand=None,product='DemoTea Peach tea'),
+            prediction('b',brand='DemoTea Peach tea',product=None),
+            prediction('c',brand=None,product='Peach tea'),
+            prediction('d',brand='DemoTea',product=None)]
+        choices={x:('full_identity_equivalent','full_identity_equivalent') for x in 'ab'}
+        choices.update({x:('meaningful_identity_error','meaningful_identity_error') for x in 'cd'})
+        report=score_reviewed_predictions(rows,preds,choices)
+        self.assertEqual(report['identity']['correct'],2)
+        self.assertEqual(report['joint']['correct'],2)
+        self.assertEqual(report['legacy_name_alias_metrics']['identity']['correct'],0)
+        self.assertFalse(report['adapter_target_met'])
 
     def test_unknown_or_malformed_positive_capacity_cannot_be_promoted(self):
         for value in (None,True,250.0,'250'):
@@ -113,6 +128,41 @@ class BoundReviewTests(unittest.TestCase):
         self.assertEqual(set(decisions),{'a','b'})
         self.assertTrue(all(pair==('full_identity_equivalent','full_identity_equivalent') for pair in decisions.values()))
         self.assertEqual(len(evidence['reviews']),2)
+
+    def test_bound_review_accepts_full_identity_in_one_field_and_rejects_no_identity(self):
+        import json
+        from datetime import datetime,timezone
+        from ai.beverage_training.identity_packets import prepare_identity_packet
+        self.preds[0].update(brand=None,product='DemoTea Peach tea')
+        mapping=prepare_identity_packet(self.rows,self.preds,split='validation',data_root=self.data,
+            output=self.art/'partition-packet',policy_path=self.policy,source_bindings=self.bindings)
+        self.args['mapping_path']=self.art/'partition-packet/packet-map.json'
+        for path in self.reviews:
+            review=json.loads(path.read_text());review['packet_sha256']=mapping['packet_sha256']
+            review['reviewed_utc']=datetime.now(timezone.utc).isoformat()
+            review['cases']=[dict(case_id=c['case_id'],verdict='full_identity_equivalent',
+                reason='Complete brand, type and flavor are present together in one field.',photo_inspected=True)
+                for c in mapping['cases']]
+            path.write_text(json.dumps(review))
+        decisions,_=self.validate()
+        self.assertEqual(decisions['a'],('full_identity_equivalent','full_identity_equivalent'))
+
+    def test_all_identity_text_absent_cannot_be_approved(self):
+        import json
+        from datetime import datetime,timezone
+        from ai.beverage_training.identity_packets import prepare_identity_packet
+        self.preds[0].update(brand=None,product=None)
+        mapping=prepare_identity_packet(self.rows,self.preds,split='validation',data_root=self.data,
+            output=self.art/'empty-packet',policy_path=self.policy,source_bindings=self.bindings)
+        self.args['mapping_path']=self.art/'empty-packet/packet-map.json'
+        for path in self.reviews:
+            review=json.loads(path.read_text());review['packet_sha256']=mapping['packet_sha256']
+            review['reviewed_utc']=datetime.now(timezone.utc).isoformat()
+            review['cases']=[dict(case_id=c['case_id'],verdict='full_identity_equivalent',
+                reason='Invalid fixture approval must be rejected.',photo_inspected=True)
+                for c in mapping['cases']]
+            path.write_text(json.dumps(review))
+        with self.assertRaisesRegex(ValueError,'unavailable full source identity'):self.validate()
 
     def test_duplicate_reviewer_identity_or_missing_review_cannot_claim_independence(self):
         self.edit(self.reviews[1],lambda d:d.update(reviewer_id='fixture-a'))

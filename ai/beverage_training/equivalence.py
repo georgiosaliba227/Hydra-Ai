@@ -36,9 +36,11 @@ def score_reviewed_predictions(rows: list[dict], predictions: list[dict],
         key = row['image_id']
         source = old_cases[key]
         pred = by_id.get(key)
-        complete = bool(pred and source['status'] == 'valid'
-            and ev._text(pred.get('brand')) and ev._text(pred.get('product')))
-        identity_ok = complete and all(v == 'full_identity_equivalent' for v in decisions[key])
+        # The frozen policy permits field partition: complete identity may be
+        # written in one field. The two visual reviews establish completeness.
+        identity_available = bool(pred and source['status'] == 'valid'
+            and (ev._text(pred.get('brand')) or ev._text(pred.get('product'))))
+        identity_ok = identity_available and all(v == 'full_identity_equivalent' for v in decisions[key])
         volume_ok = source['capacity_correct']
         counts['identity_correct'] += identity_ok
         counts['joint_correct'] += identity_ok and volume_ok
@@ -180,7 +182,7 @@ def validate_identity_reviews(*, rows: list[dict], predictions: list[dict], data
                 raise ValueError('invalid incomplete uninspected or duplicate judgment')
             key=by_case[item['case_id']];pred=by_id.get(key)
             if item['verdict']=='full_identity_equivalent' and (not pred or not ev._valid_prediction(pred)
-                    or not ev._text(pred.get('brand')) or not ev._text(pred.get('product'))):
+                    or not (ev._text(pred.get('brand')) or ev._text(pred.get('product')))):
                 raise ValueError('unavailable full source identity cannot be approved')
             verdicts[item['case_id']]=item['verdict']
         judgments.append(verdicts)

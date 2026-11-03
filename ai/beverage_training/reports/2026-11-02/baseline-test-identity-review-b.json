@@ -1,0 +1,461 @@
+{
+  "schema_version": "beverage-identity-review-v1",
+  "reviewer_id": "/root/identity_judge_b_04",
+  "reviewer_kind": "codex_agent",
+  "independence_attestation": "independent_blind_packet_only",
+  "reviewed_utc": "2026-11-03T07:23:50.823675+00:00",
+  "packet_sha256": "7c56ae5696f215bac9a521aaf609e511316de90d967a93d31f84a1d11f3654a1",
+  "policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+  "cases": [
+    {
+      "case_id": "1689b5a1-06d4-4537-a278-35f255851c4e",
+      "verdict": "uncertain",
+      "reason": "Can shows Solo Kola Champagne Original; the frozen reference says Champion, leaving a named-product spelling discrepancy.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "d7f1bb6a-cfde-49a9-8092-7eaa1297c694",
+      "verdict": "full_identity_equivalent",
+      "reason": "Carton clearly shows Natrel fine-filtered 2% partly skimmed milk, matching the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3fc34298-791e-4c6d-9e0c-c64f2f30ff88",
+      "verdict": "full_identity_equivalent",
+      "reason": "Label shows FOCO 100% Pure Coconut Water with Lychee; the added wording is printed and consistent.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "42dddc06-4ad6-4d3c-ab87-2c8a8313dcff",
+      "verdict": "full_identity_equivalent",
+      "reason": "Topo Chico label reads agua mineral natural carbonatada, the same carbonated natural mineral water.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3a5a4b0c-a145-4fdf-8f0b-021a5b59d89a",
+      "verdict": "full_identity_equivalent",
+      "reason": "FOCO soy milk with chocolate is clearly printed and matches chocolate soy milk.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "d369030d-4035-4b70-950f-416ca1e422a9",
+      "verdict": "full_identity_equivalent",
+      "reason": "Freez Mix, Mure Fruit des Bois and boisson gazeifiee are visible; brand partition and translation preserve identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "7441e2c3-9173-4476-9c65-da7d0bec9901",
+      "verdict": "meaningful_identity_error",
+      "reason": "The back label identifies an IKEA aromatized wine-based drink, but both predicted identity fields are missing.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "0d0d7864-21d8-4c87-8bfc-335d31db9b92",
+      "verdict": "full_identity_equivalent",
+      "reason": "Lactantia PurFiltre organic whole milk 3.8% is legible and all identity qualifiers match.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "032149b0-c95b-4d62-8563-005a51c3adc7",
+      "verdict": "meaningful_identity_error",
+      "reason": "The carton says Unsweetened and Zero Sugar; predicting only Silk Almond omits that distinguishing variant.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "f01abbc7-adef-499a-81ad-43faf72542bc",
+      "verdict": "full_identity_equivalent",
+      "reason": "Silk Almond almondmilk and Unsweet are visible, preserving the unsweetened almondmilk identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "bd4d5c4f-92d8-4a8d-8f36-655f299452cf",
+      "verdict": "full_identity_equivalent",
+      "reason": "Bai Antioxidant Supertea Paraguay Passionfruit Tea matches the visible label and reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3e94517f-992a-489c-b735-81057149abf5",
+      "verdict": "meaningful_identity_error",
+      "reason": "Brand and fruit name match, but the prediction omits the sparkling-drink type printed on the can and included in the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "1a45c9f2-ccd5-45b9-8ba5-62242fd22adf",
+      "verdict": "meaningful_identity_error",
+      "reason": "Fruit2O, strawberry and sparkling wording match, but the predicted name omits the water-beverage type stated on the label and reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "8b233b9c-8a4c-4abb-a376-eaa0cb474124",
+      "verdict": "full_identity_equivalent",
+      "reason": "Photo shows Fruit2O Black Raspberry sparkling water; the additional zero-calorie and sucralose wording is visibly printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "b3367b38-1c57-4f01-853d-5297a30a89d4",
+      "verdict": "full_identity_equivalent",
+      "reason": "Harney & Sons Organic Orange Mango juice drink is clear; Crisp Citrus is consistent visible label wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3bc35d4e-ad68-4258-8e9b-8ca0fdf847bc",
+      "verdict": "full_identity_equivalent",
+      "reason": "Honey Bee Thai Tea Drink is clearly printed and matches exactly.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "58b89bc3-e1f9-4d18-bee6-33275799286e",
+      "verdict": "full_identity_equivalent",
+      "reason": "Molson Canadian Lager appears on the bottle; moving Canadian into the product field preserves the full identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "82a92cf3-86a0-4262-a108-29058072d2e4",
+      "verdict": "full_identity_equivalent",
+      "reason": "PC Blue Menu Pink Grapefruit Sparkling Water is visible, with the same range and flavor despite field partition.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "76e3cc38-d840-42eb-81aa-c9b18ef846ba",
+      "verdict": "full_identity_equivalent",
+      "reason": "V8 Original 100% Vegetable Juice matches the clear can label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c892f828-b306-4cc3-87a1-5495e3036f01",
+      "verdict": "full_identity_equivalent",
+      "reason": "Nature's Nectar Aloe Vera Drink is clearly visible and matches both identity fields.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "cf74f67d-5e00-435d-92ea-1ceacbc03cc3",
+      "verdict": "full_identity_equivalent",
+      "reason": "Borden Strawberry Fat Free Milk matches the visible brand, flavor and fat variant.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "7ce148c1-6d03-4c97-89ee-9c376e563b03",
+      "verdict": "full_identity_equivalent",
+      "reason": "Fuller's London Porter is clearly printed; the porter type and product match.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "33555964-79a6-4768-9986-cd3ddee2387b",
+      "verdict": "full_identity_equivalent",
+      "reason": "FOCO Guava Drink is printed prominently and matches the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "832df758-c16a-4e81-bfd7-aa1e5013fd82",
+      "verdict": "full_identity_equivalent",
+      "reason": "Carib Lager is visible; lager and lager beer identify the same beverage type.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "a3cc8628-268f-464f-9ea1-7692a27e8fee",
+      "verdict": "full_identity_equivalent",
+      "reason": "Odwalla Mango Tango flavored smoothie and 100% juice smoothie are printed, consistent with the fruit smoothie blend.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "857b6e65-b469-453c-ae92-6164f48e147c",
+      "verdict": "full_identity_equivalent",
+      "reason": "Great Value fat free lactose free milk is clear; Ultra-Pasteurized is additional visible wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "2dc68f57-6639-46f3-83db-101c3cc848ec",
+      "verdict": "full_identity_equivalent",
+      "reason": "Bolthouse Farms Green Goodness Juice Smoothie matches all visible identity wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "13003ab0-fdef-4198-89c1-cf153b0c3f72",
+      "verdict": "meaningful_identity_error",
+      "reason": "Tropicana Pure Premium Orange et Mangue matches brand and flavors but omits the juice type stated on carton and reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "d8c32d8d-5c0d-4ab3-85d7-97dce9de6355",
+      "verdict": "meaningful_identity_error",
+      "reason": "The bottle cap reads Strawberry; the prediction adds Banana and omits the milk type required by the frozen identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "97faa94a-9e85-4f96-b8ef-25229eb459e5",
+      "verdict": "meaningful_identity_error",
+      "reason": "Falsbourg Pur Malt is printed on the bottle; Biere Blonde omits the distinguishing Pur Malt qualifier in the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "17c9bbe3-2e9f-4ab7-a170-a44f81715e6a",
+      "verdict": "full_identity_equivalent",
+      "reason": "Lactantia PurFiltre 2% partly skimmed milk is clear; partly and partially preserve the same milk variant.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "7acc5611-a1c1-4120-acc0-7aeb97187e3d",
+      "verdict": "full_identity_equivalent",
+      "reason": "Blue Diamond Almond Breeze Original almondmilk is visible; Almonds is printed in the brand logo.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "b2dd7ab0-f6da-4000-9fd6-1e9d9946d4d0",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Pure Premium No Pulp 100% Orange Juice matches the bottle label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "093ccb21-93e6-4fde-8aed-060fd4e752cb",
+      "verdict": "meaningful_identity_error",
+      "reason": "The label specifies a sparkling water based beverage; Cherry Limeade with the brand omits the reference's water type.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "5ff86e92-3cab-4999-8426-9357c055300d",
+      "verdict": "full_identity_equivalent",
+      "reason": "365 Whole Foods Market whole milk is visible; Grade A and Vitamin D are consistent printed wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "d6cb5e35-946a-41dc-bcc5-af3093395e0c",
+      "verdict": "full_identity_equivalent",
+      "reason": "V220 Original Bebida Energizante is clear; brand in the product field and Spanish energy-drink wording preserve identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c0c5a13f-bc47-48f9-a47d-1bf26e02c5bf",
+      "verdict": "full_identity_equivalent",
+      "reason": "Hint raspberry essence infused water is visible; other natural flavors is printed and consistent.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4c37101e-7179-4a16-93cd-bb03ed31fdc4",
+      "verdict": "meaningful_identity_error",
+      "reason": "Bottle reads Domaine Clarmon, Clara Minervois and 2011; the prediction loses the initial brand letter and distinguishing vintage.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "1d36cb5d-6ee1-42e9-99dc-a7dbcf7e0fcd",
+      "verdict": "full_identity_equivalent",
+      "reason": "Couronne Fruit Champagne is clear on the label and matches the frozen identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "ed550ad4-7d27-42e6-963e-a8fab0d4c9fd",
+      "verdict": "full_identity_equivalent",
+      "reason": "Dunkin iced coffee mocha is visible; Rich + Chocolatey is additional consistent label wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3e98856e-d46c-4c5c-9f52-20b1f303e061",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Pure Premium No Pulp orange juice matches; Pure & Natural is printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "78530fd5-80ec-494d-b3de-a686c7f9c5c3",
+      "verdict": "full_identity_equivalent",
+      "reason": "The back label explicitly says Sierra Nevada Pale Ale; Brewing Co. is printed and pale ale preserves the beer type.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "fef904be-8daa-48f0-86b7-23bc97c3bc5c",
+      "verdict": "full_identity_equivalent",
+      "reason": "Silk Almond, Unsweetened, Zero Sugar and Vanilla are clearly printed, retaining the almond base and distinguishing flavor variant.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "1fb318d0-1570-4576-8515-1ad6f53127a6",
+      "verdict": "meaningful_identity_error",
+      "reason": "Gatorade and Ponche de Frutas match brand and fruit-punch flavor, but the prediction omits the sports-drink type in the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "8fd2cc79-c758-44f7-8e7d-13997d15bb09",
+      "verdict": "full_identity_equivalent",
+      "reason": "Silk Protein Soy Dark Chocolate is clearly visible; reordered words preserve the soy protein beverage type and flavor.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "a671285f-2976-4cbc-9964-8c3fe485a623",
+      "verdict": "full_identity_equivalent",
+      "reason": "Ocean Spray Original Cranberry Cocktail matches the clear bottle label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "0594b6a9-d121-433e-9b62-15d732efeed3",
+      "verdict": "meaningful_identity_error",
+      "reason": "Fruitopia Fruit Integration matches the product name, but the predicted identity omits the fruit-beverage type printed on the carton.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "6c187ba0-92a1-45ff-9524-7b1024d1eeb4",
+      "verdict": "full_identity_equivalent",
+      "reason": "Crystal Geyser Natural Alpine Spring Water matches the label; Natural is visibly printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c3c01460-eef9-4b5f-a7d6-e034d9b1769d",
+      "verdict": "full_identity_equivalent",
+      "reason": "Agropur and Lucerne are both printed, and Lucerne 2% partly skimmed milk is retained across fields.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "74a7d0f7-2cea-4fb0-bd42-15775f6ef25f",
+      "verdict": "full_identity_equivalent",
+      "reason": "Del Monte Nectar de Poire clearly identifies the same pear nectar through translation.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4c958259-a802-4f7c-b3c4-4f78e18c437e",
+      "verdict": "full_identity_equivalent",
+      "reason": "Starbucks Refreshers Strawberry Lemonade matches; the additional sparkling green coffee energy-beverage wording is printed on the can.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c2ad861d-2ee2-464e-85a6-ab71506f077f",
+      "verdict": "full_identity_equivalent",
+      "reason": "McIlhenny Co., Tabasco Brand, Tomato Cocktail and Bloody Mary Mix are visible; field partition preserves the full identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "0a043a13-83d1-4cc2-a453-5998b5b8b40c",
+      "verdict": "full_identity_equivalent",
+      "reason": "Market Pantry Purified Drinking Water matches; Enhanced with Minerals for Taste is printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "bad9cbe9-d1e6-4836-94d9-b3c3b114267a",
+      "verdict": "full_identity_equivalent",
+      "reason": "Purity Organic iced tea and lemonade is clear; moving Organic into the product field preserves the identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "fc6e3742-fba1-4c86-8333-b988652eaa41",
+      "verdict": "full_identity_equivalent",
+      "reason": "Diet Snapple Te sabor Frambuesa and Te Negro are printed, matching diet raspberry tea through translation.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "577064b5-9c1d-4ff8-b32f-5a7af8501005",
+      "verdict": "full_identity_equivalent",
+      "reason": "Bolthouse Farms Strawberry Banana 100% Juice Smoothie matches the visible bottle label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4d615345-d66b-4d49-829e-fd8e21ef0696",
+      "verdict": "full_identity_equivalent",
+      "reason": "Silk Unsweet Vanilla Almondmilk is clear; repeated Almond is neutral printed wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "126ed63f-49a1-4216-a3e8-b6b8f128243c",
+      "verdict": "meaningful_identity_error",
+      "reason": "Le Trou du Diable La Morsure is visible, but the prediction omits the strong-ale type printed at the bottom and present in the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "be527081-694f-4079-8749-a30ca1f295f0",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Pure Premium Lots of Pulp orange juice matches; 100% Pure & Natural is visibly printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c3d8ca42-dfa2-4880-a3a2-8315465a2ac9",
+      "verdict": "full_identity_equivalent",
+      "reason": "Clover Stornetta 2% reduced fat milk matches; Vitamin A & D is consistent printed label wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "27f722cf-f005-4557-b6c8-fb1969d13a72",
+      "verdict": "full_identity_equivalent",
+      "reason": "Can shows Molson Canadian beer; Canadian Lager preserves the reference's same named beer across fields.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "2ba822a4-e09b-45d2-b08f-abb0f67d5611",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Pure Premium No Pulp orange juice matches, including consistent printed Pure & Natural wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "f20be8bb-b23b-4fd9-94b5-0e4393033a13",
+      "verdict": "full_identity_equivalent",
+      "reason": "Mirassou Pinot Noir is clear on the winery label; Pinot Noir preserves the specified wine identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "00baed8f-06dd-472a-b5bc-ad336f409552",
+      "verdict": "full_identity_equivalent",
+      "reason": "Food Club white grape juice matches; 100% unsweetened and from concentrate with added ingredients are visibly printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "f9d9bfd2-944d-43ae-a9d1-e734ff4980d6",
+      "verdict": "full_identity_equivalent",
+      "reason": "Dahlicious Organic Alphonso Mango Lassi matches; probiotic India-style yogurt and USDA Organic are printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "6161c2ac-e042-4dc7-91fe-c9ad2a8c7a10",
+      "verdict": "full_identity_equivalent",
+      "reason": "FOCO Soursop Drink is clear and matches both brand and beverage flavor/type.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "e183a95c-9636-4183-9915-2989f35338d4",
+      "verdict": "full_identity_equivalent",
+      "reason": "Crystal Geyser Natural Alpine Spring Water is clearly printed and matches.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "07331f0a-74ec-4ed9-a847-72eec02a69f4",
+      "verdict": "meaningful_identity_error",
+      "reason": "Photo supports green tea with citrus, but the predicted identity omits the AriZona brand required by the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "bc653991-941d-4bff-96e0-614f6fb3e876",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Pure Premium Grovestand Lots of Pulp orange juice matches; Florida and Never From Concentrate are printed.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "8a49ddbc-1150-4b44-803b-786db6b9fade",
+      "verdict": "full_identity_equivalent",
+      "reason": "Sans nom is the translated No Name brand; apple juice from concentrate and added vitamin C are printed consistently.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "d0fe7b0e-84c8-4400-8eb9-2a0b6b85f7f7",
+      "verdict": "full_identity_equivalent",
+      "reason": "Hannaford Apple 100% juice matches; from concentrate with added ingredients is visible label wording.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "b27ec2fe-81d8-43c9-a03c-1ed460295a0e",
+      "verdict": "full_identity_equivalent",
+      "reason": "Tropicana Apple Juice and 100% Juice are legible and preserve the complete reference identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "03da9946-b788-46df-b3b1-c95c2837231a",
+      "verdict": "full_identity_equivalent",
+      "reason": "Clover Stornetta Chocolate Low Fat Milk 1% is clearly printed and matches every distinguishing qualifier.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "791a7355-64b4-412d-9efd-b32e38688a5f",
+      "verdict": "full_identity_equivalent",
+      "reason": "St. Peter's Old-Style Porter is clear; punctuation and case differences do not change identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "027c1fc0-d7df-4c29-baac-adda86f9ff00",
+      "verdict": "full_identity_equivalent",
+      "reason": "Simple Truth Protein Frappe Mocha is prominently printed and matches the reference.",
+      "photo_inspected": true
+    }
+  ]
+}
