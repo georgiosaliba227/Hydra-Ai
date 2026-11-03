@@ -112,9 +112,34 @@ local signing. The original app was preserved. See the
 scope and local artifacts. Final v3 native checks use Simulator at the user's
 request; physical UI and production HealthKit permissions remain unverified.
 
-Final native integration evidence will be recorded after execution. No live
-Wonder quality, current account balance, billing finality or clinical validity
-is inferred from mocks or physical unit tests.
+Final native integration: **145 XCTest and two actual mock-backend Simulator UI
+flows passed**. The default workflow and explicit experimental cold-start path
+exercise separate rich-preview consent, disabled live controls and clearing
+results/consent when switching models. Selected-fit native rendering/binding uses
+fully producer-reproduced fixtures; the actual three-endpoint loopback walk fits
+six synthetic records and checks matching numerical and minimized preview facts.
+No selected-fit UI run with a six-record history is claimed.
+
+Final UI artifact:
+`/Users/georgiosaliba/Library/Developer/Xcode/DerivedData/HydraAI-cncabecfdzawlmawinijecnmjgbo/Logs/Test/Test-HydraAIEndToEnd-2026.11.03_00-59-17--0500.xcresult`.
+Final source-worktree unit artifact:
+`/tmp/hydra-runtime-ios/Logs/Test/Test-HydraAI-2026.11.03_00-58-14--0500.xcresult`.
+Fresh integrated-branch verification after the final native cherry-pick passed
+**1,278 Python tests plus 32 subtests** and **145 XCTest**. Local logs:
+`/tmp/hydra-intelligence-final-python.log` and
+`/tmp/hydra-intelligence-final-ios-unit.log`; final integrated native artifact:
+`/tmp/hydra-intelligence-final-ios/Logs/Test/Test-HydraAI-2026.11.03_01-03-12--0500.xcresult`.
+The preserved starter passes three tests, and the offline rehearsal passes all
+ten groups with zero network attempts. One pre-existing Starlette/httpx warning
+remains. These are executed local checks, not a GitHub CI result.
+
+Native review found and fixed both a valid partial-validation fallback rejection
+and an impossible fitted-fold count. A real backend fixture covers the former;
+the latter was observed red before its guard fix. Twelve complete response
+fixtures reproduce the manually normalized input provenance. No outstanding
+numerical, API or native review finding remains. No live Wonder quality, current
+account balance, billing finality or clinical validity is inferred from these
+software checks.
 
 ## Review boundaries
 

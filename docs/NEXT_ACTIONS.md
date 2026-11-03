@@ -2,10 +2,10 @@
 
 ## November 3 continuation
 
-1. Finish the native explicit experimental-model option and physical Date
-   compatibility correction; run full XCTest and actual mock-backend Simulator UI,
-   inspect screens, reconcile final evidence and publish the review PR for Amine.
-   PR #65 is the dependency; preserve camera branches and require human merge.
+1. Review the hydration-intelligence PR with Amine, preserving PR #65 as its
+   dependency and requiring human merge. Native experimental mode, the Date
+   correction, 145 XCTest and two actual mock Simulator flows are verified.
+   Screens were inspected; camera branches remain separate.
 2. Collect consented, dated, protocol-confirmed repeat workouts with consumed fluid,
    urine and independently supported error bounds for prospective personal-model
    evaluation. Do not retune against the published synthetic failures or describe

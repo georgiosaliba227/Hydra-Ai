@@ -27,13 +27,16 @@ prevent independent physiological-improvement claims.
 A stationary personal duration regression is fitted in request memory, with fixed
 regularization, strictly earlier validation, duration/cadence support gates and
 full measurement/error envelopes. Its frozen synthetic abrupt-shift MAE worsens
-57.73→70.49 mL; no retuning followed. V2 remains the app default. Native v3 is being
-integrated as an explicit experimental option, not an accuracy upgrade. The
+57.73→70.49 mL; no retuning followed. V2 remains the app default. Native v3 is
+available as an explicit experimental option, not an accuracy upgrade. The
 calendar-time learner remains offline. See [runtime report](FORECAST_PERSONAL_RUNTIME.md)
 and [runtime contract](architecture/PERSONAL_RUNTIME_API.md).
 
-Completed native milestone: 132 XCTest and actual mock-backend WorkoutFlow pass
-on Simulator, including fresh detailed-preview consent and no live controls.
+Final native verification: **145 XCTest and two actual mock-backend UI flows pass**
+on Simulator, including the default workflow, explicit experimental cold start,
+fresh detailed-preview consent, absent live controls and model-switch reset.
+Selected-fit display/binding uses producer-reproduced fixtures; a three-endpoint
+actual loopback walk separately fits six synthetic records and binds all numbers.
 Protected opt-in connection-scoped manual history passed save/relaunch/restore/
 selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
 3,200 rendered sections and 384 rejected adversarial selections, with zero provider
@@ -49,8 +52,8 @@ Remaining tests use Simulator at the user's request. See the
 [physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md) and
 [review handoff](HYDRATION_INTELLIGENCE_REVIEW.md).
 
-Final native runtime/date compatibility checks, shared-doc reconciliation and PR
-publication are still underway. Live Wonder account/input/price/finality evidence
+Native runtime/date compatibility and independent reviews are complete; the
+review branch is being published for Amine. Live Wonder account/input/price/finality evidence
 has not been audited or changed; real explanation quality and independent personal
 prediction accuracy remain unverified.
 

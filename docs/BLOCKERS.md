@@ -21,9 +21,10 @@
   establish actual model usefulness, account authorization, pricing or project-wide
   invoice finality. Comprehensive dispatch remains separately off by default. No
   provider request or private financial operation was attempted.
-- **Final native integration and PR:** v3/date compatibility integration and final
-  Simulator checks are underway. Numerical/backend reviews and the integrated
-  1,278-test Python suite pass. Review publication remains to be completed.
+- **Human integration review:** v3/date compatibility integration, 145 native
+  tests and two actual Simulator flows pass. Numerical/backend/native reviews
+  have no outstanding findings, and the integrated 1,278-test Python suite passes.
+  PR #65 remains the review branch's dependency; human merge is still required.
 
 Earlier dated account reports below are historical and may conflict; current user
 instructions and fresh private evidence govern future live operation.
