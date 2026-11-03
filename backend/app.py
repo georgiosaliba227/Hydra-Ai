@@ -443,4 +443,6 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_personal_runtime_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
+    from .wonder_owner_once_routes import install_owner_once_routes
+    install_owner_once_routes(app)  # Recorded synthetic output only; never dispatches.
     return app

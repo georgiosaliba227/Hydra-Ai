@@ -1,0 +1,234 @@
+{
+  "version": "wonder-owner-once-result-v1",
+  "mode": "synthetic_demo",
+  "generated_at": "2026-11-03T12:00:00Z",
+  "result": {
+    "version": "wonder-analysis-preview-v2",
+    "facts": {
+      "version": "wonder-analysis-facts-v2",
+      "mode": "synthetic_demo",
+      "research_only": true,
+      "forecast": {
+        "status": "estimated",
+        "value_ml": 281.00120877211225,
+        "lower_ml": 0.0,
+        "upper_ml": 683.2725278674206,
+        "interval_kind": "synthetic_participant_split_conformal"
+      },
+      "intake": {
+        "beverage_count": null,
+        "beverage_volume_ml": null,
+        "water_ml": null,
+        "sodium_mg": null,
+        "potassium_mg": null,
+        "sodium_status": "unknown",
+        "potassium_status": "unknown",
+        "completeness": "unverified"
+      },
+      "activity": {
+        "activity": null,
+        "duration_minutes": 60.0,
+        "intensity": "moderate"
+      },
+      "environment": {
+        "temperature_c": 24.0,
+        "humidity_percent": 50.0,
+        "context_only": true
+      },
+      "calibration": {
+        "total_samples": 0,
+        "comparable_samples": 0,
+        "recent_samples": 0
+      },
+      "trends": {
+        "window_days": 14,
+        "logged_days": null,
+        "beverage_lower_ml": null,
+        "beverage_upper_ml": null
+      },
+      "accounting": {
+        "status": "unavailable",
+        "quantity": "logged_intake_minus_measured_exercise_loss",
+        "value_ml": null,
+        "lower_ml": null,
+        "upper_ml": null
+      },
+      "workout_comparison": null,
+      "trend_context": null,
+      "missing_inputs": []
+    },
+    "payload_sha256": "12ef839f44757b452034632ef91c50ff44455e6c02c99104230f4c46d02ab34c",
+    "sections": [
+      {
+        "id": "summary",
+        "title": "Hydration-related summary",
+        "insights": [
+          {
+            "id": "summary_record",
+            "title": "Available record",
+            "template": "{record_summary}.",
+            "text": "personal beverage logs are excluded from this synthetic case; research estimate 0 to 684 mL, with point 281 mL."
+          },
+          {
+            "id": "summary_estimate",
+            "title": "Research estimate",
+            "template": "{loss_estimate}.",
+            "text": "research estimate 0 to 684 mL, with point 281 mL."
+          }
+        ],
+        "template": "{record_summary}. {loss_estimate}. {research_scope}.",
+        "text": "personal beverage logs are excluded from this synthetic case; research estimate 0 to 684 mL, with point 281 mL. research estimate 0 to 684 mL, with point 281 mL. this is research context, not total body hydration, an intake target or a diagnosis.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "workout_loss",
+        "title": "Workout fluid-loss estimate",
+        "insights": [
+          {
+            "id": "loss_estimate",
+            "title": "Estimated loss",
+            "template": "{loss_estimate}.",
+            "text": "research estimate 0 to 684 mL, with point 281 mL."
+          }
+        ],
+        "template": "{loss_estimate}. {uncertainty_context}.",
+        "text": "research estimate 0 to 684 mL, with point 281 mL. measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "activity",
+        "title": "Activity context",
+        "insights": [
+          {
+            "id": "activity_context",
+            "title": "Supplied workout",
+            "template": "{activity_context}.",
+            "text": "60 minutes of moderate exercise."
+          }
+        ],
+        "template": "{activity_context}. {activity_history}.",
+        "text": "60 minutes of moderate exercise. workout comparability depends on documented conditions, protocol and instrument error bounds.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "environment",
+        "title": "Environmental context",
+        "insights": [
+          {
+            "id": "environment_reported",
+            "title": "Reported conditions",
+            "template": "{environment_context}.",
+            "text": "temperature 24 \u00b0C; humidity 50%."
+          },
+          {
+            "id": "environment_context",
+            "title": "Environmental scope",
+            "template": "{environment_role}.",
+            "text": "environment is context; no added weather adjustment is applied."
+          }
+        ],
+        "template": "{environment_context}. {environment_role}. {environment_role}.",
+        "text": "temperature 24 \u00b0C; humidity 50%. environment is context; no added weather adjustment is applied. environment is context; no added weather adjustment is applied.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "beverages",
+        "title": "Beverage and electrolyte context",
+        "insights": [
+          {
+            "id": "beverage_synthetic",
+            "title": "Synthetic exclusion",
+            "template": "{beverage_context}.",
+            "text": "personal beverage logs are excluded from this synthetic case."
+          }
+        ],
+        "template": "{beverage_context}. {logging_scope}.",
+        "text": "personal beverage logs are excluded from this synthetic case. logging completeness is unverified; volume does not measure retention.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "trends",
+        "title": "Personal trends",
+        "insights": [
+          {
+            "id": "trends_synthetic",
+            "title": "Synthetic exclusion",
+            "template": "{history_context}.",
+            "text": "personal logged history is excluded from this synthetic case."
+          }
+        ],
+        "template": "{history_context}. {trend_scope}.",
+        "text": "personal logged history is excluded from this synthetic case. logged-day patterns do not determine physiological needs; logging coverage is unverified and absent logs are not measured zero consumption.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "uncertainty",
+        "title": "Prediction uncertainty",
+        "insights": [
+          {
+            "id": "uncertainty_synthetic",
+            "title": "Synthetic evidence",
+            "template": "this simulated scenario does not establish physiological validity.",
+            "text": "this simulated scenario does not establish physiological validity."
+          },
+          {
+            "id": "uncertainty_no_accounting",
+            "title": "Accounting abstention",
+            "template": "{accounting_context}.",
+            "text": "matched completed-workout arithmetic is unavailable; planned losses are not subtracted."
+          }
+        ],
+        "template": "this simulated scenario does not establish physiological validity. {accounting_context}. {research_scope}.",
+        "text": "this simulated scenario does not establish physiological validity. matched completed-workout arithmetic is unavailable; planned losses are not subtracted. this is research context, not total body hydration, an intake target or a diagnosis.",
+        "evidence_status": "synthetic"
+      },
+      {
+        "id": "measurement",
+        "title": "Measurement insights",
+        "insights": [
+          {
+            "id": "measurement_comparable",
+            "title": "Comparable measurements",
+            "template": "{measurement_context}.",
+            "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds."
+          }
+        ],
+        "template": "{measurement_context}. These observations support evidence collection, not a drinking prescription.",
+        "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds. These observations support evidence collection, not a drinking prescription.",
+        "evidence_status": "synthetic"
+      }
+    ],
+    "dispatch_supported": false,
+    "limitations": [
+      "Offline contract and mock/recorded validation only; live dispatch and client integration are not implemented here.",
+      "Muse Wonder can select vetted scaffolds; Hydra authors the factual clauses and supplies every number.",
+      "Logged intake does not measure hydration status, retention or a required intake amount.",
+      "Workout loss is a research mass-balance proxy; historical envelopes do not guarantee future interval coverage.",
+      "Recorded consistency checks do not attest provider authenticity, billing settlement or spending authorization.",
+      "Displayed amounts are rounded to whole mL; range endpoints are rounded outward. Numeric facts remain unchanged."
+    ],
+    "provenance": {
+      "selection_origin": "checked_provider_reply",
+      "text_origin": "hydra_vetted_scaffolds_and_facts",
+      "provider": "Meta",
+      "model": "muse-wonder-1.0",
+      "numbers_checked_against": "facts",
+      "provider_authenticity_or_billing_attested": false
+    }
+  },
+  "receipt": {
+    "account_id": "georgiosaliba227",
+    "attempt_id": "dba9eef6-9a23-4c76-8e42-7d0476a20f1c",
+    "model": "muse-wonder-1.0",
+    "payload_sha256": "12ef839f44757b452034632ef91c50ff44455e6c02c99104230f4c46d02ab34c",
+    "input_tokens": 1000,
+    "output_tokens": 200,
+    "cached_tokens": 0,
+    "usage_derived_cost_micro_usd": 8000,
+    "token_reservation_micro_usd": 250000,
+    "published_token_bound_micro_usd": 59960,
+    "provider_invoice_final": false,
+    "provider_extras_bounded": false,
+    "state": "billing_pending"
+  }
+}

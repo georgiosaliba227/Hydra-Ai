@@ -86,6 +86,16 @@ struct BackendSettingsView: View {
             }
             if !store.isOffline && store.isConfigured {
                 Section {
+                    NavigationLink { OwnerSyntheticWonderView() } label: {
+                        Label("Recorded Wonder test", systemImage: "text.magnifyingglass")
+                    }
+                    .accessibilityIdentifier("openOwnerWonderResult")
+                } footer: {
+                    Text("View a recorded model demonstration on simulated data. Loading it makes no Meta request.")
+                }
+            }
+            if !store.isOffline && store.isConfigured {
+                Section {
                     Button("Export my data (JSON)") { Task { await exportData() } }
                         .accessibilityIdentifier("exportData")
                     Button("Delete all my data", role: .destructive) { confirmingDeleteAll = true }

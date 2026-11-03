@@ -1,5 +1,21 @@
 # Hydra AI next actions
 
+## November 3 operational follow-up
+
+1. Review `codex/wonder-owner-once`, stacked on PR #71. Preserve the explicit
+   owner waiver, ordinary gateway controls and the existing financial records.
+   Do not automatically merge or deploy.
+2. When the owner chooses a physical pass, install the already HealthKit-signed
+   combined app, connect its owner-authenticated local backend, and verify actual
+   HealthKit/workout import, permission prompts and weather on the phone.
+3. Use Settings → Recorded Wonder test to revisit the real synthetic eight-section
+   response without a new charge. Its usage-based estimate is not final billing.
+   Ongoing personal live use needs its own configured admission path; the
+   singleton operator test is consumed.
+4. Enter actual comparable manual workout measurements in the app when available.
+   Keep the default baseline and research labels; never substitute this test's
+   synthetic observations for personal calibration.
+
 ## November 3 continuation
 
 1. Review [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) with Amine, preserving PR #65 as its

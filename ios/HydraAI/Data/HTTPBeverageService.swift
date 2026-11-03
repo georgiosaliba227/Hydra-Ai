@@ -309,6 +309,13 @@ actor HTTPBeverageService: BeverageService {
         return answer
     }
 
+    /// Read-only replay. This path has no corresponding client dispatch or retry action.
+    func ownerSyntheticWonderResult() async throws -> OwnerSyntheticWonderResult {
+        let result: OwnerSyntheticWonderResult = try await send("v1/wonder/owner-once/result")
+        try result.validate()
+        return result
+    }
+
     func wonderTrendPreview(timezone: String) async throws -> TrendPreview {
         let preview: TrendPreview = try await send("v1/wonder/trends", query: [.init(name: "timezone", value: timezone)])
         try preview.validate()

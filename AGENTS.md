@@ -1,6 +1,20 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 owner direction (Georgio): continue the current verification in Xcode
+Simulator; physical installation is deferred. The owner explicitly directed the
+agent to ignore prior unresolved billing for the controlled Wonder verification,
+and separately accepted unverified provider charges "for all requests". This is
+standing acknowledgement of that financial uncertainty, not an increase to any
+allocation or account cutoff, proof of zero gross spending, invoice finality, or
+permission to erase/reset existing attempts. The current implementation executes
+one fixed synthetic comprehensive-analysis test through an audited one-use
+operator authorization in the existing ledger. Preserve all prior reservations,
+the frozen flag and evidence; ordinary admission remains unchanged. Published
+token bounds must be distinguished from any unverified provider extras. No
+personal or HealthKit data is authorized for this synthetic test. See
+docs/architecture/WONDER_OWNER_ONCE.md.
+
 October 29 shared backend withdrawn (Amine, 2026-10-29): no cross-computer access. Each backend accepts only its owner token. The standing synthetic authorization remains available on an allocation: each fixed server-built synthetic payload may run once without a per-case approval. See docs/architecture/WONDER_LIVE.md.
 
 October 29 owner override (Amine, with Georgio's agreement; supersedes the one-ledger-per-account rule for this case only): Georgio gave Amine his Meta key. It may be used from Amine's Mac in a second ledger for georgiosaliba227 with the reviewed allocation `wonder-georgio-key-amine-mac-20usd`: $20 of Wonder to start, inside Georgio's $120 account cutoff. Amine may change that limit with `wonder_admin set-limit` (one audit event per change, spending never reset), up to $85. Georgio may also resume and use his original ledger with its $30 allocation; $85 + $30 + the $1.312256 camera reservation stays under the $120 cutoff, which neither ledger can see across files. Spending is always recorded as Georgio's account, never Amine's. The new ledger's attested gross is Georgio's dashboard gross plus the camera attempt's full reservation, so a camera charge not yet on the dashboard is still counted. All other spending gates are unchanged, including invoice finality before the next request in each ledger. The key stays in the backend process environment, entered with `read -s`; never in chat, Git or files.

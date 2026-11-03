@@ -1,5 +1,14 @@
 # Physical hydration milestone verification
 
+Later November 3 continuation: the original app identifier's cached development
+profile was found to include HealthKit and the paired phone. The complete updated
+app successfully built using automatic signing and that profile, without removing
+HealthKit. Its signature and entitlement were verified locally. The phone was
+unreachable, and the owner explicitly chose Simulator, so this adds signed-build
+evidence only. No installation, real HealthKit/workout import, location/weather
+lookup or final physical UI pass is claimed. The earlier separate-bundle report
+below retains its original scope.
+
 Executed November 3, 2026 on the connected iPhone 17 Pro, iOS 27.2, using Xcode
 27.2. This is scoped physical evidence, not a claim that the final v3 runtime
 workflow or HealthKit permissions passed on hardware.
