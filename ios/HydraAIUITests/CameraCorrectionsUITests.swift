@@ -80,15 +80,18 @@ final class CameraCorrectionsUITests: XCTestCase {
     private func replace(_ field: XCUIElement, with value: String) {
         let done = XCUIApplication().buttons["photoKeyboardDone"]
         if done.exists && done.isHittable { done.tap() }
+        let app = XCUIApplication()
+        for _ in 0..<12 {
+            if field.exists && field.isHittable,
+               field.frame.maxY < app.buttons["savePhotoBeverage"].frame.minY - 8 { break }
+            app.swipeUp()
+        }
         let current = field.value as? String ?? ""
-        if current.isEmpty || current == field.placeholderValue {
-            // Repeated taps on an empty lower row can hit the keyboard toolbar
-            // after the first tap changes layout. There is no text to select.
-            // LabeledContent exposes the whole row as the field's AX frame;
-            // its long visible-liquid label occupies the center of that row.
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-        } else {
-            field.tap(withNumberOfTaps: 3, numberOfTouches: 1)
+        // Focus once at the trailing edge. A triple tap reuses its first point
+        // after the keyboard moves the form and can hit another control.
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        if !current.isEmpty && current != field.placeholderValue {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
         }
         field.typeText(value)

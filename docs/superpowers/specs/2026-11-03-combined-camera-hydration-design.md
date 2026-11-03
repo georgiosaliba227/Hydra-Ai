@@ -17,6 +17,11 @@ and the currently saved camera backend on port 8771. The existing owner tokens
 were compared in memory and match; no new phone token or URL is needed. The
 camera beverage database is the active store. Preserve the hydration database and
 connection-scoped profiles separately; do not silently migrate personal records.
+The owner already confirmed a goal on the hydration backend; the camera store
+has none. After explicitly announcing the carryover, preserve that confirmed
+goal integer in the combined store only if the target still has no goal. Do not
+overwrite a camera-store choice or transfer drinks, body answers or measurements.
+Verify both drink histories and all financial bytes remain unchanged.
 
 Separate per-feature URLs would introduce another connection/consent model.
 Switching between the old builds loses features. Those approaches do not satisfy

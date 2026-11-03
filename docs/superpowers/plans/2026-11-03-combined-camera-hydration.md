@@ -58,5 +58,6 @@
 
 - [ ] Stage a private combined launcher and rollback receipt; verify the camera server has no active inference before replacement. Keep both private beverage stores separate, preserve camera diagnostics and avoid printing credentials or health values.
 - [ ] Verify startup/read-only capabilities and fresh-or-blocked Wonder readiness with unchanged financial bytes and personal-row digests. A blocked freshness check is truthful and must be renewed from genuine evidence before inference.
+- [ ] After the announced preservation step, carry over only the previously confirmed goal integer if the camera store still has none; verify both drink histories, source settings and financial bytes unchanged, and retain a private status-only receipt.
 - [ ] Build and verify HealthKit signing; install in place without reset or connection injection. Check the saved connection/capabilities without dispatch; ask only necessary status-only owner questions after the correct build is installed.
 - [ ] Update accurate status/evidence, push a review branch/PR for Amine, and verify publication. Keep the actual personal preview/consent/result/replay and genuine measurement requirements explicit until established.
