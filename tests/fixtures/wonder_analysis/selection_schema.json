@@ -20,68 +20,110 @@
       ],
       "properties": {
         "summary": {
-          "type": "string",
-          "enum": [
-            "{record_summary}. {research_scope}.",
-            "The supplied record shows {record_summary}. {research_scope}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "summary_record",
+              "summary_estimate",
+              "summary_missing"
+            ]
+          }
         },
         "workout_loss": {
-          "type": "string",
-          "enum": [
-            "{loss_estimate}. {calibration_context}.",
-            "For this workout: {loss_estimate}. The basis is {calibration_context}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "loss_estimate",
+              "loss_history",
+              "loss_limited_history"
+            ]
+          }
         },
         "activity": {
-          "type": "string",
-          "enum": [
-            "{activity_context}. {activity_history}.",
-            "The supplied workout describes {activity_context}. {activity_history}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "activity_context",
+              "activity_duration_comparison",
+              "activity_history"
+            ]
+          }
         },
         "environment": {
-          "type": "string",
-          "enum": [
-            "{environment_context}. {environment_role}.",
-            "The supplied environment is {environment_context}. {environment_role}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "string",
+            "enum": [
+              "environment_reported",
+              "environment_context"
+            ]
+          }
         },
         "beverages": {
-          "type": "string",
-          "enum": [
-            "{beverage_context}. {water_context}; {electrolyte_context}. {logging_scope}.",
-            "The log shows {beverage_context}. Composition: {water_context}; {electrolyte_context}. {logging_scope}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "beverage_no_logs",
+              "beverage_water_unknown",
+              "beverage_electrolytes_incomplete"
+            ]
+          }
         },
         "trends": {
-          "type": "string",
-          "enum": [
-            "{history_context}. {trend_scope}.",
-            "The descriptive record shows {history_context}. {trend_scope}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "trends_logged_days",
+              "trends_week_change",
+              "trends_week_missing",
+              "trends_timing",
+              "trends_calibration"
+            ]
+          }
         },
         "uncertainty": {
-          "type": "string",
-          "enum": [
-            "{uncertainty_context}. {missing_context}. {accounting_context}.",
-            "Evidence limits: {uncertainty_context}. {missing_context}. {accounting_context}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "uncertainty_missing",
+              "uncertainty_history",
+              "uncertainty_no_accounting"
+            ]
+          }
         },
         "measurement": {
-          "type": "string",
-          "enum": [
-            "{measurement_context}.",
-            "Further observations can document {measurement_context}."
-          ],
-          "maxLength": 500
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "measurement_comparable",
+              "measurement_composition",
+              "measurement_repeat",
+              "measurement_timing"
+            ]
+          }
         }
       }
     }

@@ -1,13 +1,12 @@
-"""Offline eight-section Wonder contract; no route, gateway, persistence or dispatch.
+"""Eight-section ranked-insight contract; no transport, persistence or dispatch.
 
-Wonder may select vetted sentence scaffolds. Hydra supplies every factual
-clause, number, limitation and title. This deliberately does not advertise free
-model-authored prose or a live integration. Recorded validation establishes
-internal consistency, not provider authenticity, invoice finality or permission
-to spend. Existing workout explanations and their gateway remain unchanged.
+Wonder ranks applicable insights with vetted scaffolds. Hydra supplies every
+factual clause, number, limitation and title; free factual prose is rejected.
+Recorded consistency does not attest provider authenticity, billing finality
+or spending permission. Existing financial admission remains in the gateway.
 """
 from typing import Annotated, Literal
-import unicodedata
+from math import ceil, floor
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, ValidationError
 
@@ -15,11 +14,12 @@ from .meta_accounts import CAP
 from .meta_provider import ProviderReply, strict_json
 from .recognition import RecognitionUnavailable
 from .wonder_hydration import MODEL, canonical, input_bound, payload_sha256, worst_case_micro_usd
-from .wonder_trends import BLOCKED, COMPARATIVE, NUMERIC, PLACEHOLDER
-from .wonder_workout import WORKOUT_BLOCKED
+from .wonder_trends import PLACEHOLDER
+from .wonder_workout import DURATION_SIMILAR_PCT, TEMPERATURE_SIMILAR_C, HUMIDITY_SIMILAR_POINTS
 
-VERSION = "wonder-analysis-preview-v1"
-FACTS_VERSION = "wonder-analysis-facts-v1"
+VERSION = "wonder-analysis-preview-v2"
+LIVE_VERSION = "wonder-analysis-v2"
+FACTS_VERSION = "wonder-analysis-facts-v2"
 OUTPUT_LIMIT = 2048
 SECTIONS = {
     "summary": "Hydration-related summary", "workout_loss": "Workout fluid-loss estimate",
@@ -27,20 +27,70 @@ SECTIONS = {
     "beverages": "Beverage and electrolyte context", "trends": "Personal trends",
     "uncertainty": "Prediction uncertainty", "measurement": "Measurement insights",
 }
-SCAFFOLDS = {
-    "summary": ("{record_summary}. {research_scope}.", "The supplied record shows {record_summary}. {research_scope}."),
-    "workout_loss": ("{loss_estimate}. {calibration_context}.",
-                     "For this workout: {loss_estimate}. The basis is {calibration_context}."),
-    "activity": ("{activity_context}. {activity_history}.",
-                 "The supplied workout describes {activity_context}. {activity_history}."),
-    "environment": ("{environment_context}. {environment_role}.",
-                    "The supplied environment is {environment_context}. {environment_role}."),
-    "beverages": ("{beverage_context}. {water_context}; {electrolyte_context}. {logging_scope}.",
-                  "The log shows {beverage_context}. Composition: {water_context}; {electrolyte_context}. {logging_scope}."),
-    "trends": ("{history_context}. {trend_scope}.", "The descriptive record shows {history_context}. {trend_scope}."),
-    "uncertainty": ("{uncertainty_context}. {missing_context}. {accounting_context}.",
-                    "Evidence limits: {uncertainty_context}. {missing_context}. {accounting_context}."),
-    "measurement": ("{measurement_context}.", "Further observations can document {measurement_context}."),
+INSIGHTS = {
+    "summary": {
+        "summary_record": ("Available record", "{record_summary}."),
+        "summary_estimate": ("Research estimate", "{loss_estimate}."),
+        "summary_missing": ("Missing evidence", "{missing_context}."),
+    },
+    "workout_loss": {
+        "loss_estimate": ("Estimated loss", "{loss_estimate}."),
+        "loss_no_estimate": ("Numerical abstention", "{loss_estimate}."),
+        "loss_history": ("Comparable observations", "{calibration_context}."),
+        "loss_limited_history": ("Limited personal history", "{calibration_context}; the comparable history is limited."),
+        "loss_actual": ("Completed measurement", "{loss_estimate}; this proxy uses the supplied completed measurement."),
+    },
+    "activity": {
+        "activity_context": ("Supplied workout", "{activity_context}."),
+        "activity_missing": ("Missing activity", "{activity_context}."),
+        "activity_duration_comparison": ("Duration comparison", "{duration_comparison}."),
+        "activity_history": ("Personal activity history", "{calibration_context}."),
+    },
+    "environment": {
+        "environment_reported": ("Reported conditions", "{environment_context}."),
+        "environment_missing": ("Missing conditions", "{environment_context}."),
+        "environment_shift": ("Different historical conditions", "{environment_comparison}."),
+        "environment_context": ("Environmental scope", "{environment_role}."),
+    },
+    "beverages": {
+        "beverage_volume": ("Logged volume", "{beverage_context}."),
+        "beverage_no_logs": ("No current logs", "{beverage_context}; absence of a log does not establish no consumption."),
+        "beverage_synthetic": ("Synthetic exclusion", "{beverage_context}."),
+        "beverage_water_known": ("Documented water", "{water_context}."),
+        "beverage_water_unknown": ("Unknown water composition", "{water_context}."),
+        "beverage_electrolytes_known": ("Documented electrolytes", "{electrolyte_context}."),
+        "beverage_electrolytes_incomplete": ("Incomplete electrolytes", "{electrolyte_context}."),
+    },
+    "trends": {
+        "trends_logged_days": ("Descriptive intake history", "{history_context}."),
+        "trends_no_logs": ("No prior logged days", "{history_context}."),
+        "trends_synthetic": ("Synthetic exclusion", "{history_context}."),
+        "trends_week_change": ("Logged weekly comparison", "{weekly_comparison}."),
+        "trends_week_missing": ("Unverified logging coverage", "{weekly_logging}."),
+        "trends_timing": ("Logged timing pattern", "{timing_pattern}."),
+        "trends_calibration": ("Comparable workout history", "{calibration_context}."),
+    },
+    "uncertainty": {
+        "uncertainty_missing": ("Missing inputs", "{missing_context}."),
+        "uncertainty_history": ("Historical envelope", "{uncertainty_context}."),
+        "uncertainty_actual": ("Measurement uncertainty", "{uncertainty_context}."),
+        "uncertainty_synthetic": ("Synthetic evidence", "this simulated scenario does not establish physiological validity."),
+        "uncertainty_accounting": ("Conditional exercise arithmetic", "{accounting_context}."),
+        "uncertainty_no_accounting": ("Accounting abstention", "{accounting_context}."),
+    },
+    "measurement": {
+        "measurement_comparable": ("Comparable measurements", "{measurement_context}."),
+        "measurement_composition": ("Composition documentation", "{water_context}; {electrolyte_context}."),
+        "measurement_environment": ("Environmental documentation", "{environment_context}; documenting workout conditions supports comparison."),
+        "measurement_repeat": ("Additional comparable session", "{calibration_context}; a further comparable completed measurement can document variability."),
+        "measurement_timing": ("Measurement window", "{accounting_context}; check the observed window and recorded consumption before comparing."),
+    },
+}
+REQUIRED_CAVEATS = {
+    "summary": "{research_scope}.", "workout_loss": "{uncertainty_context}.",
+    "activity": "{activity_history}.", "environment": "{environment_role}.",
+    "beverages": "{logging_scope}.", "trends": "{trend_scope}.",
+    "uncertainty": "{research_scope}.", "measurement": "These observations support evidence collection, not a drinking prescription.",
 }
 MISSING = {
     "exercise": "a supplied workout",
@@ -59,11 +109,14 @@ LIMITATIONS = [
     "Logged intake does not measure hydration status, retention or a required intake amount.",
     "Workout loss is a research mass-balance proxy; historical envelopes do not guarantee future interval coverage.",
     "Recorded consistency checks do not attest provider authenticity, billing settlement or spending authorization.",
+    "Displayed amounts are rounded to whole mL; range endpoints are rounded outward. Numeric facts remain unchanged.",
 ]
-PROMPT = ("Select exactly one permitted sentence template for each required section. Copy a schema enum verbatim. "
-          "Hydra supplies every factual clause through the section-specific placeholders. Do not add prose, numbers, "
-          "units, comparisons, diagnoses, prescriptions, causal claims or new facts. Missing values stay missing. "
-          "This is an offline contract, not permission to dispatch. No tools. Aggregated facts: ")
+PROMPT = ("For each required section, rank one to three distinct applicable insight IDs, most useful first. "
+          "Selections must change the supported information emphasized, rather than merely rephrase a summary. "
+          "Consider missing evidence, comparable measurements, changes in logged intake, timing and contextual conditions. "
+          "Copy IDs from that section's schema only. Hydra renders the supplied factual scaffolds and always adds required caveats. "
+          "Do not write prose, numbers, units, diagnoses, prescriptions or new causal claims. Missing values stay missing. "
+          "No tools. This payload does not authorize dispatch. Context: ")
 Amount = Annotated[float, Field(strict=True, ge=0, le=10**12, allow_inf_nan=False)]
 Signed = Annotated[float, Field(strict=True, ge=-(10**12), le=10**12, allow_inf_nan=False)]
 Count = Annotated[int, Field(strict=True, ge=0, le=10**9)]
@@ -134,8 +187,36 @@ class Accounting(Strict):
     upper_ml: Signed | None
 
 
+class WorkoutComparison(Strict):
+    planned_duration_minutes: Annotated[int, Field(strict=True, ge=1, le=1440)]
+    typical_duration_minutes: Annotated[int, Field(strict=True, ge=1, le=1440)] | None
+    planned_temperature_c: Annotated[int, Field(strict=True, ge=-60, le=60)] | None
+    typical_temperature_c: Annotated[int, Field(strict=True, ge=-60, le=60)] | None
+    planned_humidity_percent: Annotated[int, Field(strict=True, ge=0, le=100)] | None
+    typical_humidity_percent: Annotated[int, Field(strict=True, ge=0, le=100)] | None
+
+
+class LoggedWeek(Strict):
+    total_ml: Amount
+    logged_days: Annotated[int, Field(strict=True, ge=0, le=7)]
+
+
+class Timing(Strict):
+    morning_ml: Amount
+    afternoon_ml: Amount
+    evening_ml: Amount
+    night_ml: Amount
+
+
+class TrendContext(Strict):
+    last_7_days: LoggedWeek
+    previous_7_days: LoggedWeek
+    change_pct: Annotated[int, Field(strict=True, ge=-100, le=10**12)] | None
+    time_of_day_ml: Timing
+
+
 class AnalysisFacts(Strict):
-    version: Literal["wonder-analysis-facts-v1"]
+    version: Literal["wonder-analysis-facts-v2"]
     mode: Literal["personal", "synthetic_demo"]
     research_only: StrictBool
     forecast: Forecast
@@ -145,6 +226,8 @@ class AnalysisFacts(Strict):
     calibration: Calibration
     trends: Trends
     accounting: Accounting
+    workout_comparison: WorkoutComparison | None = None
+    trend_context: TrendContext | None = None
     missing_inputs: list[MissingCode] = Field(max_length=len(MISSING))
 
 
@@ -195,12 +278,36 @@ def validate_facts(facts: dict) -> dict:
             raise ValueError
         if len(set(checked["missing_inputs"])) != len(checked["missing_inputs"]):
             raise ValueError
+        comparison, context = checked["workout_comparison"], checked["trend_context"]
+        if comparison is not None:
+            duration = checked["activity"]["duration_minutes"]
+            if checked["mode"] != "personal" or duration is None or comparison["planned_duration_minutes"] != max(1, round(duration)):
+                raise ValueError
+            for current, planned in (("temperature_c", "planned_temperature_c"), ("humidity_percent", "planned_humidity_percent")):
+                value = checked["environment"][current]
+                if comparison[planned] != (round(value) if value is not None else None):
+                    raise ValueError
+        if context is not None:
+            if checked["mode"] != "personal":
+                raise ValueError
+            current, previous = context["last_7_days"], context["previous_7_days"]
+            expected = round(100*(current["total_ml"]-previous["total_ml"])/previous["total_ml"]) if previous["total_ml"] else None
+            if expected != context["change_pct"] or abs(sum(context["time_of_day_ml"].values())-current["total_ml"]-previous["total_ml"]) > 4:
+                raise ValueError
+            if any(week["logged_days"] == 0 and week["total_ml"] != 0 for week in (current, previous)):
+                raise ValueError
+            # The local descriptive window excludes today; the reused trend
+            # window includes today and drops its oldest day. Only those two
+            # boundary days can change the count of days with a log.
+            difference = current["logged_days"]+previous["logged_days"]-trends["logged_days"]
+            if difference not in ((0, 1) if intake["beverage_count"] else (-1, 0)):
+                raise ValueError
     except (ValidationError, ValueError, TypeError, KeyError):
         raise ValueError("Analysis facts failed validation") from None
     return checked
 
 
-def build_facts(analysis: dict) -> dict:
+def build_facts(analysis: dict, *, trend_context: dict | None = None) -> dict:
     """Allowlist local aggregates; never carry identifiers, times or caller text."""
     try:
         if (analysis["version"] != "hydration-analysis-v1" or analysis["research_only"] is not True
@@ -220,39 +327,133 @@ def build_facts(analysis: dict) -> dict:
             "calibration": {key: analysis["calibration"][key] for key in ("total_samples", "comparable_samples", "recent_samples")},
             "trends": {key: trends[key] for key in ("window_days", "logged_days", "beverage_lower_ml", "beverage_upper_ml")},
             "accounting": {key: analysis["exercise_accounting"][key] for key in ("status", "quantity", "value_ml", "lower_ml", "upper_ml")},
-            "missing_inputs": list(analysis["missing_inputs"])}
+            "missing_inputs": list(analysis["missing_inputs"]), "trend_context": trend_context,
+            "workout_comparison": None}
+        view = analysis["wonder"]["preview"]
+        if view is not None:
+            planned, history = view["facts"]["planned"], view["facts"]["history"]
+            facts["workout_comparison"] = {
+                "planned_duration_minutes": planned["duration_minutes"], "typical_duration_minutes": history["typical_duration_minutes"],
+                "planned_temperature_c": planned["temperature_c"], "typical_temperature_c": history["typical_temperature_c"],
+                "planned_humidity_percent": planned["humidity_percent"], "typical_humidity_percent": history["typical_humidity_percent"]}
         return validate_facts(facts)
     except (ValueError, KeyError, TypeError, StopIteration):
         raise ValueError("A valid local hydration analysis is required") from None
 
 
 def _n(value: float) -> str:
-    return str(int(value)) if value.is_integer() else str(value)
+    return str(round(value))
+
+
+def _decimal(value: float) -> str:
+    return f"{value:.1f}".rstrip("0").rstrip(".")
+
+
+def _comparisons(facts: dict) -> dict:
+    context = facts["workout_comparison"]
+    values = {"duration": None, "temperature": None, "humidity": None}
+    if context is None:
+        return values
+    for kind, planned, typical, tolerance, words in (
+        ("duration", "planned_duration_minutes", "typical_duration_minutes", None, ("longer", "shorter")),
+        ("temperature", "planned_temperature_c", "typical_temperature_c", TEMPERATURE_SIMILAR_C, ("warmer", "cooler")),
+        ("humidity", "planned_humidity_percent", "typical_humidity_percent", HUMIDITY_SIMILAR_POINTS, ("more humid", "less humid")),
+    ):
+        current, prior = context[planned], context[typical]
+        if current is not None and prior is not None:
+            close = abs(current-prior)*100 <= prior*DURATION_SIMILAR_PCT if kind == "duration" else abs(current-prior) < tolerance
+            values[kind] = "similar" if close else words[0] if current > prior else words[1]
+    return values
+
+
+def applicable_insights(facts: dict) -> dict[str, list[str]]:
+    facts = validate_facts(facts)
+    f, i, e, c, t, accounting = (facts[key] for key in ("forecast", "intake", "environment", "calibration", "trends", "accounting"))
+    synthetic, estimated = facts["mode"] == "synthetic_demo", f["status"] == "estimated"
+    environment_missing = e["temperature_c"] is None or e["humidity_percent"] is None
+    comparison = _comparisons(facts)
+    context = facts["trend_context"]
+    conditions = {
+        "summary_record": True, "summary_estimate": estimated, "summary_missing": bool(facts["missing_inputs"]),
+        "loss_estimate": estimated, "loss_no_estimate": not estimated,
+        "loss_history": c["comparable_samples"] > 0,
+        "loss_limited_history": not synthetic and c["comparable_samples"] < 3,
+        "loss_actual": estimated and f["interval_kind"] == "conditional_measurement_envelope",
+        "activity_context": facts["activity"]["duration_minutes"] is not None,
+        "activity_missing": facts["activity"]["duration_minutes"] is None,
+        "activity_duration_comparison": comparison["duration"] is not None, "activity_history": c["total_samples"] > 0,
+        "environment_reported": e["temperature_c"] is not None or e["humidity_percent"] is not None,
+        "environment_missing": environment_missing,
+        "environment_shift": any(comparison[key] not in (None, "similar") for key in ("temperature", "humidity")),
+        "environment_context": True,
+        "beverage_volume": not synthetic and bool(i["beverage_count"]),
+        "beverage_no_logs": not synthetic and i["beverage_count"] == 0, "beverage_synthetic": synthetic,
+        "beverage_water_known": i["water_ml"] is not None, "beverage_water_unknown": not synthetic and i["water_ml"] is None,
+        "beverage_electrolytes_known": any(i[n+"_status"] == "complete" for n in ("sodium", "potassium")),
+        "beverage_electrolytes_incomplete": not synthetic and any(i[n+"_status"] != "complete" for n in ("sodium", "potassium")),
+        "trends_logged_days": bool(t["logged_days"]), "trends_no_logs": t["logged_days"] == 0, "trends_synthetic": synthetic,
+        "trends_week_change": context is not None and context["change_pct"] is not None and bool(context["last_7_days"]["logged_days"] and context["previous_7_days"]["logged_days"]),
+        "trends_week_missing": context is not None and any(week["logged_days"] < 7 for week in (context["last_7_days"], context["previous_7_days"])),
+        "trends_timing": context is not None and sum(context["time_of_day_ml"].values()) > 0,
+        "trends_calibration": c["comparable_samples"] > 0,
+        "uncertainty_missing": bool(facts["missing_inputs"]), "uncertainty_history": f["interval_kind"] == "historical_error_envelope",
+        "uncertainty_actual": f["interval_kind"] == "conditional_measurement_envelope", "uncertainty_synthetic": synthetic,
+        "uncertainty_accounting": accounting["status"] == "estimated", "uncertainty_no_accounting": accounting["status"] != "estimated",
+        "measurement_comparable": True,
+        "measurement_composition": not synthetic and (i["water_ml"] is None or any(i[n+"_status"] != "complete" for n in ("sodium", "potassium"))),
+        "measurement_environment": environment_missing, "measurement_repeat": c["comparable_samples"] > 0,
+        "measurement_timing": accounting["status"] != "estimated" and not synthetic,
+    }
+    return {section: [identifier for identifier in options if conditions[identifier]] for section, options in INSIGHTS.items()}
 
 
 def placeholder_values(facts: dict) -> dict[str, str]:
     facts = validate_facts(facts)
     f, i, a, e, c, t, accounting = (facts[key] for key in ("forecast", "intake", "activity", "environment", "calibration", "trends", "accounting"))
-    loss = (f"research estimate {_n(f['lower_ml'])} to {_n(f['upper_ml'])} mL, with point {_n(f['value_ml'])} mL"
+    loss = (f"research estimate {floor(f['lower_ml'])} to {ceil(f['upper_ml'])} mL, with point {_n(f['value_ml'])} mL"
             if f["status"] == "estimated" else "no numerical estimate is available")
     beverage = (f"{_n(i['beverage_volume_ml'])} mL of logged beverage volume" if i["beverage_volume_ml"] is not None
                 else "personal beverage logs are excluded from this synthetic case")
     activity = (f"{_n(a['duration_minutes'])} minutes of {a['intensity'] or 'unspecified-intensity'} {a['activity'] or 'exercise'}"
                 if a["duration_minutes"] is not None else "workout duration and activity are unavailable")
     environmental = "; ".join([
-        f"temperature {_n(e['temperature_c'])} °C" if e["temperature_c"] is not None else "temperature unavailable",
-        f"humidity {_n(e['humidity_percent'])}%" if e["humidity_percent"] is not None else "humidity unavailable"])
+        f"temperature {_decimal(e['temperature_c'])} °C" if e["temperature_c"] is not None else "temperature unavailable",
+        f"humidity {_decimal(e['humidity_percent'])}%" if e["humidity_percent"] is not None else "humidity unavailable"])
     nutrient = []
     for name in ("sodium", "potassium"):
-        nutrient.append(f"documented {name} {_n(i[name+'_mg'])} mg" if i[name+"_mg"] is not None else
+        nutrient.append(f"documented {name} {_decimal(i[name+'_mg'])} mg" if i[name+"_mg"] is not None else
                         f"{name} composition {'incomplete; total withheld' if i[name+'_status'] == 'partial' else 'unknown'}")
     history = (f"{t['logged_days']} logged days in the {t['window_days']}-day descriptive record; recorded day totals "
-               f"range from {_n(t['beverage_lower_ml'])} to {_n(t['beverage_upper_ml'])} mL" if t["logged_days"] else
+               f"range from {floor(t['beverage_lower_ml'])} to {ceil(t['beverage_upper_ml'])} mL" if t["logged_days"] else
                "no prior logged-day totals are available" if t["logged_days"] == 0 else "personal logged history is excluded from this synthetic case")
     account = (f"the matched completed-workout signed intake-minus-exercise-loss proxy is {_n(accounting['value_ml'])} mL, "
-               f"ranging from {_n(accounting['lower_ml'])} to {_n(accounting['upper_ml'])} mL; urine and other losses are omitted"
+               f"ranging from {floor(accounting['lower_ml'])} to {ceil(accounting['upper_ml'])} mL; urine and other losses are omitted"
                if accounting["status"] == "estimated" else
                "matched completed-workout arithmetic is unavailable; planned losses are not subtracted")
+    comparison, context = _comparisons(facts), facts["workout_comparison"]
+    duration_comparison = (f"planned duration {context['planned_duration_minutes']} minutes is {comparison['duration']} "
+        f"relative to the prior typical duration {context['typical_duration_minutes']} minutes" if comparison["duration"] else "duration comparison unavailable")
+    environment_comparison = []
+    if context:
+        for kind, planned, prior, unit in (("temperature", "planned_temperature_c", "typical_temperature_c", "°C"),
+                                           ("humidity", "planned_humidity_percent", "typical_humidity_percent", "%")):
+            if comparison[kind]:
+                environment_comparison.append(f"planned {kind} {context[planned]} {unit} is {comparison[kind]} relative to prior typical {context[prior]} {unit}")
+    trend = facts["trend_context"]
+    weekly_comparison = weekly_logging = timing_pattern = "logged pattern context unavailable"
+    if trend is not None:
+        current, previous = trend["last_7_days"], trend["previous_7_days"]
+        if trend["change_pct"] is not None:
+            change = trend["change_pct"]
+            label = (f"{abs(change)}% {'more' if change > 0 else 'less'} logged volume" if change else
+                     "unchanged logged volume" if current["total_ml"] == previous["total_ml"] else "percentage change rounds to 0%")
+            weekly_comparison = f"{_n(current['total_ml'])} mL logged in the latest week versus {_n(previous['total_ml'])} mL in the preceding week; {label}"
+        weekly_logging = f"{current['logged_days']} logged days in the latest week and {previous['logged_days']} in the preceding week; coverage is unverified"
+        periods = trend["time_of_day_ml"]
+        peak = max(periods.values())
+        winners = [key.removesuffix("_ml") for key, value in periods.items() if value == peak]
+        timing_pattern = (f"the {winners[0]} bucket has the largest recorded volume, {_n(peak)} mL across the logged window"
+                          if peak and len(winners) == 1 else "the logged timing buckets have no unique largest volume")
     return {"record_summary": beverage+"; "+loss,
         "research_scope": "this is research context, not total body hydration, an intake target or a diagnosis",
         "loss_estimate": loss,
@@ -264,22 +465,28 @@ def placeholder_values(facts: dict) -> dict[str, str]:
         "water_context": f"documented water content {_n(i['water_ml'])} mL" if i["water_ml"] is not None else "water composition unknown",
         "electrolyte_context": "; ".join(nutrient),
         "logging_scope": "logging completeness is unverified; volume does not measure retention",
-        "history_context": history, "trend_scope": "logged-day patterns do not determine physiological needs; absent logs are not measured zero consumption",
+        "history_context": history, "trend_scope": "logged-day patterns do not determine physiological needs; logging coverage is unverified and absent logs are not measured zero consumption",
         "uncertainty_context": "measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage",
         "missing_context": "missing evidence includes "+"; ".join(MISSING[code] for code in facts["missing_inputs"]) if facts["missing_inputs"] else "the supplied fields do not remove measurement and generalization uncertainty",
         "accounting_context": account,
+        "duration_comparison": duration_comparison, "environment_comparison": "; ".join(environment_comparison) or "environment comparison unavailable",
+        "weekly_comparison": weekly_comparison, "weekly_logging": weekly_logging, "timing_pattern": timing_pattern,
         "measurement_context": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds"}
 
 
 def analysis_payload(facts: dict) -> dict:
     facts = validate_facts(facts)
+    applicable = applicable_insights(facts)
     schema = {"type": "object", "additionalProperties": False, "required": ["sections"], "properties": {
         "sections": {"type": "object", "additionalProperties": False, "required": list(SECTIONS),
-                     "properties": {key: {"type": "string", "enum": list(SCAFFOLDS[key]), "maxLength": 500} for key in SECTIONS}}}}
+                     "properties": {key: {"type": "array", "minItems": 1, "maxItems": min(3, len(applicable[key])),
+                                          "items": {"type": "string", "enum": applicable[key]}} for key in SECTIONS}}}}
+    context = {"facts": facts, "insight_options": {section: {identifier: {"title": INSIGHTS[section][identifier][0],
+               "template": INSIGHTS[section][identifier][1]} for identifier in applicable[section]} for section in SECTIONS}}
     return {"model": MODEL, "store": False, "stream": False, "background": False,
         "max_output_tokens": OUTPUT_LIMIT, "reasoning": {"effort": "minimal"},
         "text": {"format": {"type": "json_schema", "name": "hydration_analysis_scaffold_selection", "strict": True, "schema": schema}},
-        "input": [{"role": "user", "content": [{"type": "input_text", "text": PROMPT+canonical(facts)}]}]}
+        "input": [{"role": "user", "content": [{"type": "input_text", "text": PROMPT+canonical(context)}]}]}
 
 
 def facts_from_payload(payload: dict) -> dict:
@@ -288,7 +495,7 @@ def facts_from_payload(payload: dict) -> dict:
         text = payload["input"][0]["content"][0]["text"]
         if not isinstance(text, str) or not text.startswith(PROMPT):
             raise ValueError
-        facts = validate_facts(strict_json(text[len(PROMPT):]))
+        facts = validate_facts(strict_json(text[len(PROMPT):])["facts"])
         if analysis_payload(facts) != payload:
             raise ValueError
     except (ValueError, TypeError, KeyError, IndexError):
@@ -312,22 +519,26 @@ def preview(facts: dict) -> dict:
 
 def validate_selection(selection: dict, facts: dict) -> dict:
     values = placeholder_values(facts)
+    applicable = applicable_insights(facts)
     try:
         if not isinstance(selection, dict) or set(selection) != {"sections"} or set(selection["sections"]) != set(SECTIONS):
             raise ValueError
         checked = {}
         for identifier in SECTIONS:
-            template = selection["sections"][identifier]
-            if not isinstance(template, str) or not 1 <= len(template) <= 500:
+            selected = selection["sections"][identifier]
+            if not isinstance(selected, list) or not 1 <= len(selected) <= 3 or any(not isinstance(item, str) for item in selected):
                 raise ValueError
-            plain = unicodedata.normalize("NFKC", PLACEHOLDER.sub(" ", template))
-            if (any(character.isnumeric() or ord(character) < 32 for character in plain)
-                    or NUMERIC.search(plain) or COMPARATIVE.search(plain) or BLOCKED.search(plain) or WORKOUT_BLOCKED.search(plain)
-                    or template not in SCAFFOLDS[identifier]):
+            if len(set(selected)) != len(selected) or any(item not in applicable[identifier] for item in selected):
                 raise ValueError
-            # Exact scaffold membership also forbids cross-section placeholders,
-            # missing caveats and unsupported nonnumeric prose.
-            checked[identifier] = {"template": template, "text": PLACEHOLDER.sub(lambda match: values[match.group(1)], template)}
+            insights = []
+            for item in selected:
+                title, template = INSIGHTS[identifier][item]
+                insights.append({"id": item, "title": title, "template": template,
+                    "text": PLACEHOLDER.sub(lambda match: values[match.group(1)], template)})
+            caveat = REQUIRED_CAVEATS[identifier]
+            template = " ".join([insight["template"] for insight in insights]+[caveat])
+            checked[identifier] = {"insights": insights, "template": template,
+                "text": PLACEHOLDER.sub(lambda match: values[match.group(1)], template)}
     except (ValueError, TypeError, KeyError):
         raise ValueError("Analysis selection failed validation") from None
     return checked
@@ -350,11 +561,11 @@ def _result(facts: dict, selection: dict, *, origin: str) -> dict:
 
 
 def mock_result(facts: dict) -> dict:
-    return _result(facts, {"sections": {key: SCAFFOLDS[key][0] for key in SECTIONS}}, origin="mock_local")
+    return _result(facts, {"sections": {key: identifiers[:3] for key, identifiers in applicable_insights(facts).items()}}, origin="mock_local")
 
 
-def checked_result(reply: ProviderReply, facts: dict) -> dict:
-    """Validate a supplied reply offline. This function never sends a request."""
+def parse_selection(reply: ProviderReply, facts: dict) -> dict:
+    """Check a supplied reply without sending, persisting or doing arithmetic."""
     try:
         body = reply.body
         if (reply.status != 200 or body.get("model") != MODEL or body.get("status") != "completed"
@@ -366,9 +577,32 @@ def checked_result(reply: ProviderReply, facts: dict) -> dict:
         parts = messages[0]["content"]
         if len(parts) != 1 or parts[0]["type"] != "output_text" or not isinstance(parts[0]["text"], str) or len(parts[0]["text"].encode()) > 16_384:
             raise ValueError
-        return _result(facts, strict_json(parts[0]["text"]), origin="checked_provider_reply")
+        selection = strict_json(parts[0]["text"])
+        validate_selection(selection, facts)
+        return selection
     except (ValueError, KeyError, TypeError, AttributeError):
         raise RecognitionUnavailable() from None
+
+
+def checked_result(reply: ProviderReply, facts: dict) -> dict:
+    """Offline reply validation, explicitly separate from a settled gateway result."""
+    return _result(facts, parse_selection(reply, facts), origin="checked_provider_reply")
+
+
+def analysis_result(facts: dict, selection: dict, *, account: str, attempt_id: str,
+                    observations: dict, generated_at: str) -> dict:
+    if validate_facts(facts)["mode"] != "personal":
+        raise ValueError("Personal analysis required for a live result")
+    checked = _result(facts, selection, origin="checked_provider_reply")
+    return {"version": LIVE_VERSION, "facts": checked["facts"], "payload_sha256": checked["payload_sha256"],
+            "sections": checked["sections"], "generated_at": generated_at,
+            "provenance": {"mode": "meta_live", "provider": "Meta", "model": MODEL,
+                           "account_id": account, "attempt_id": attempt_id,
+                           "selection_origin": "muse_wonder_selected_scaffolds",
+                           "text_origin": "hydra_vetted_scaffolds_and_facts", "numbers_checked_against": "facts"},
+            "provider_observations": observations,
+            "limitations": ["Muse Wonder selected vetted wording; Hydra authored the factual clauses and filled every number.",
+                            *LIMITATIONS[2:]]}
 
 
 def replay_recorded(record: dict, facts: dict) -> dict:
@@ -377,7 +611,7 @@ def replay_recorded(record: dict, facts: dict) -> dict:
         facts = validate_facts(facts)
         if record["facts"] != facts or record["provenance"]["selection_origin"] not in ("mock_local", "checked_provider_reply"):
             raise ValueError
-        selection = {"sections": {item["id"]: item["template"] for item in record["sections"]}}
+        selection = {"sections": {item["id"]: [insight["id"] for insight in item["insights"]] for item in record["sections"]}}
         if _result(facts, selection, origin=record["provenance"]["selection_origin"]) != record:
             raise ValueError
     except (ValueError, KeyError, TypeError, AttributeError):

@@ -1,0 +1,43 @@
+{
+  "sections": {
+    "summary": [
+      "summary_record",
+      "summary_estimate",
+      "summary_missing"
+    ],
+    "workout_loss": [
+      "loss_estimate",
+      "loss_history",
+      "loss_limited_history"
+    ],
+    "activity": [
+      "activity_context",
+      "activity_duration_comparison",
+      "activity_history"
+    ],
+    "environment": [
+      "environment_reported",
+      "environment_context"
+    ],
+    "beverages": [
+      "beverage_no_logs",
+      "beverage_water_unknown",
+      "beverage_electrolytes_incomplete"
+    ],
+    "trends": [
+      "trends_no_logs",
+      "trends_week_missing",
+      "trends_calibration"
+    ],
+    "uncertainty": [
+      "uncertainty_missing",
+      "uncertainty_history",
+      "uncertainty_no_accounting"
+    ],
+    "measurement": [
+      "measurement_comparable",
+      "measurement_composition",
+      "measurement_repeat"
+    ]
+  }
+}

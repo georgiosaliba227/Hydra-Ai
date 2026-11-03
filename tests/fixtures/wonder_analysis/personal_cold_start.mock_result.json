@@ -1,7 +1,7 @@
 {
-  "version": "wonder-analysis-preview-v1",
+  "version": "wonder-analysis-preview-v2",
   "facts": {
-    "version": "wonder-analysis-facts-v1",
+    "version": "wonder-analysis-facts-v2",
     "mode": "personal",
     "research_only": true,
     "forecast": {
@@ -49,6 +49,8 @@
       "lower_ml": null,
       "upper_ml": null
     },
+    "workout_comparison": null,
+    "trend_context": null,
     "missing_inputs": [
       "exercise",
       "intake_completeness",
@@ -57,25 +59,61 @@
       "environmental_context"
     ]
   },
-  "payload_sha256": "4da25524f6527f1aed2ebc3c7190b22782950e472a93576bf3dccf74e3d37446",
+  "payload_sha256": "f7482da8fb1b5b3d08ab80fc2cfb26b3abe450bf5d7de7d4114ad4cc788f7cee",
   "sections": [
     {
       "id": "summary",
       "title": "Hydration-related summary",
-      "template": "{record_summary}. {research_scope}.",
-      "text": "0 mL of logged beverage volume; no numerical estimate is available. this is research context, not total body hydration, an intake target or a diagnosis.",
+      "insights": [
+        {
+          "id": "summary_record",
+          "title": "Available record",
+          "template": "{record_summary}.",
+          "text": "0 mL of logged beverage volume; no numerical estimate is available."
+        },
+        {
+          "id": "summary_missing",
+          "title": "Missing evidence",
+          "template": "{missing_context}.",
+          "text": "missing evidence includes a supplied workout; verified logging completeness; documented water composition; complete electrolyte composition; environmental context."
+        }
+      ],
+      "template": "{record_summary}. {missing_context}. {research_scope}.",
+      "text": "0 mL of logged beverage volume; no numerical estimate is available. missing evidence includes a supplied workout; verified logging completeness; documented water composition; complete electrolyte composition; environmental context. this is research context, not total body hydration, an intake target or a diagnosis.",
       "evidence_status": "insufficient_data"
     },
     {
       "id": "workout_loss",
       "title": "Workout fluid-loss estimate",
-      "template": "{loss_estimate}. {calibration_context}.",
-      "text": "no numerical estimate is available. 0 supplied observations; 0 comparable and 0 recent comparable observations.",
+      "insights": [
+        {
+          "id": "loss_no_estimate",
+          "title": "Numerical abstention",
+          "template": "{loss_estimate}.",
+          "text": "no numerical estimate is available."
+        },
+        {
+          "id": "loss_limited_history",
+          "title": "Limited personal history",
+          "template": "{calibration_context}; the comparable history is limited.",
+          "text": "0 supplied observations; 0 comparable and 0 recent comparable observations; the comparable history is limited."
+        }
+      ],
+      "template": "{loss_estimate}. {calibration_context}; the comparable history is limited. {uncertainty_context}.",
+      "text": "no numerical estimate is available. 0 supplied observations; 0 comparable and 0 recent comparable observations; the comparable history is limited. measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage.",
       "evidence_status": "insufficient_data"
     },
     {
       "id": "activity",
       "title": "Activity context",
+      "insights": [
+        {
+          "id": "activity_missing",
+          "title": "Missing activity",
+          "template": "{activity_context}.",
+          "text": "workout duration and activity are unavailable."
+        }
+      ],
       "template": "{activity_context}. {activity_history}.",
       "text": "workout duration and activity are unavailable. workout comparability depends on documented conditions, protocol and instrument error bounds.",
       "evidence_status": "context_only"
@@ -83,36 +121,118 @@
     {
       "id": "environment",
       "title": "Environmental context",
-      "template": "{environment_context}. {environment_role}.",
-      "text": "temperature unavailable; humidity unavailable. environment is context; no added weather adjustment is applied.",
+      "insights": [
+        {
+          "id": "environment_missing",
+          "title": "Missing conditions",
+          "template": "{environment_context}.",
+          "text": "temperature unavailable; humidity unavailable."
+        },
+        {
+          "id": "environment_context",
+          "title": "Environmental scope",
+          "template": "{environment_role}.",
+          "text": "environment is context; no added weather adjustment is applied."
+        }
+      ],
+      "template": "{environment_context}. {environment_role}. {environment_role}.",
+      "text": "temperature unavailable; humidity unavailable. environment is context; no added weather adjustment is applied. environment is context; no added weather adjustment is applied.",
       "evidence_status": "context_only"
     },
     {
       "id": "beverages",
       "title": "Beverage and electrolyte context",
-      "template": "{beverage_context}. {water_context}; {electrolyte_context}. {logging_scope}.",
-      "text": "0 mL of logged beverage volume. water composition unknown; sodium composition unknown; potassium composition unknown. logging completeness is unverified; volume does not measure retention.",
+      "insights": [
+        {
+          "id": "beverage_no_logs",
+          "title": "No current logs",
+          "template": "{beverage_context}; absence of a log does not establish no consumption.",
+          "text": "0 mL of logged beverage volume; absence of a log does not establish no consumption."
+        },
+        {
+          "id": "beverage_water_unknown",
+          "title": "Unknown water composition",
+          "template": "{water_context}.",
+          "text": "water composition unknown."
+        },
+        {
+          "id": "beverage_electrolytes_incomplete",
+          "title": "Incomplete electrolytes",
+          "template": "{electrolyte_context}.",
+          "text": "sodium composition unknown; potassium composition unknown."
+        }
+      ],
+      "template": "{beverage_context}; absence of a log does not establish no consumption. {water_context}. {electrolyte_context}. {logging_scope}.",
+      "text": "0 mL of logged beverage volume; absence of a log does not establish no consumption. water composition unknown. sodium composition unknown; potassium composition unknown. logging completeness is unverified; volume does not measure retention.",
       "evidence_status": "context_only"
     },
     {
       "id": "trends",
       "title": "Personal trends",
+      "insights": [
+        {
+          "id": "trends_no_logs",
+          "title": "No prior logged days",
+          "template": "{history_context}.",
+          "text": "no prior logged-day totals are available."
+        }
+      ],
       "template": "{history_context}. {trend_scope}.",
-      "text": "no prior logged-day totals are available. logged-day patterns do not determine physiological needs; absent logs are not measured zero consumption.",
+      "text": "no prior logged-day totals are available. logged-day patterns do not determine physiological needs; logging coverage is unverified and absent logs are not measured zero consumption.",
       "evidence_status": "context_only"
     },
     {
       "id": "uncertainty",
       "title": "Prediction uncertainty",
-      "template": "{uncertainty_context}. {missing_context}. {accounting_context}.",
-      "text": "measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage. missing evidence includes a supplied workout; verified logging completeness; documented water composition; complete electrolyte composition; environmental context. matched completed-workout arithmetic is unavailable; planned losses are not subtracted.",
+      "insights": [
+        {
+          "id": "uncertainty_missing",
+          "title": "Missing inputs",
+          "template": "{missing_context}.",
+          "text": "missing evidence includes a supplied workout; verified logging completeness; documented water composition; complete electrolyte composition; environmental context."
+        },
+        {
+          "id": "uncertainty_history",
+          "title": "Historical envelope",
+          "template": "{uncertainty_context}.",
+          "text": "measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage."
+        },
+        {
+          "id": "uncertainty_no_accounting",
+          "title": "Accounting abstention",
+          "template": "{accounting_context}.",
+          "text": "matched completed-workout arithmetic is unavailable; planned losses are not subtracted."
+        }
+      ],
+      "template": "{missing_context}. {uncertainty_context}. {accounting_context}. {research_scope}.",
+      "text": "missing evidence includes a supplied workout; verified logging completeness; documented water composition; complete electrolyte composition; environmental context. measurement errors and incompatible observations limit interpretation; historical envelopes do not guarantee future coverage. matched completed-workout arithmetic is unavailable; planned losses are not subtracted. this is research context, not total body hydration, an intake target or a diagnosis.",
       "evidence_status": "context_only"
     },
     {
       "id": "measurement",
       "title": "Measurement insights",
-      "template": "{measurement_context}.",
-      "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds.",
+      "insights": [
+        {
+          "id": "measurement_comparable",
+          "title": "Comparable measurements",
+          "template": "{measurement_context}.",
+          "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds."
+        },
+        {
+          "id": "measurement_composition",
+          "title": "Composition documentation",
+          "template": "{water_context}; {electrolyte_context}.",
+          "text": "water composition unknown; sodium composition unknown; potassium composition unknown."
+        },
+        {
+          "id": "measurement_environment",
+          "title": "Environmental documentation",
+          "template": "{environment_context}; documenting workout conditions supports comparison.",
+          "text": "temperature unavailable; humidity unavailable; documenting workout conditions supports comparison."
+        }
+      ],
+      "template": "{measurement_context}. {water_context}; {electrolyte_context}. {environment_context}; documenting workout conditions supports comparison. These observations support evidence collection, not a drinking prescription.",
+      "text": "comparable dry before-and-after weighing, recorded workout consumption and urine, timing, environment and instrument error bounds. water composition unknown; sodium composition unknown; potassium composition unknown. temperature unavailable; humidity unavailable; documenting workout conditions supports comparison. These observations support evidence collection, not a drinking prescription.",
       "evidence_status": "context_only"
     }
   ],
@@ -122,7 +242,8 @@
     "Muse Wonder can select vetted scaffolds; Hydra authors the factual clauses and supplies every number.",
     "Logged intake does not measure hydration status, retention or a required intake amount.",
     "Workout loss is a research mass-balance proxy; historical envelopes do not guarantee future interval coverage.",
-    "Recorded consistency checks do not attest provider authenticity, billing settlement or spending authorization."
+    "Recorded consistency checks do not attest provider authenticity, billing settlement or spending authorization.",
+    "Displayed amounts are rounded to whole mL; range endpoints are rounded outward. Numeric facts remain unchanged."
   ],
   "provenance": {
     "selection_origin": "mock_local",

@@ -1,7 +1,7 @@
 {
-  "version": "wonder-analysis-preview-v1",
+  "version": "wonder-analysis-preview-v2",
   "facts": {
-    "version": "wonder-analysis-facts-v1",
+    "version": "wonder-analysis-facts-v2",
     "mode": "synthetic_demo",
     "research_only": true,
     "forecast": {
@@ -49,16 +49,18 @@
       "lower_ml": null,
       "upper_ml": null
     },
+    "workout_comparison": null,
+    "trend_context": null,
     "missing_inputs": []
   },
   "model": "muse-wonder-1.0",
-  "payload_sha256": "704d7e6d5fff731940d73e65ed641ecda6ad914158a32d8377eb96732cb197d1",
+  "payload_sha256": "12ef839f44757b452034632ef91c50ff44455e6c02c99104230f4c46d02ab34c",
   "status": "available",
   "explainable": true,
   "reason": null,
-  "input_bound_tokens": 3688,
+  "input_bound_tokens": 4750,
   "max_output_tokens": 2048,
-  "worst_case_micro_usd": 55712,
+  "worst_case_micro_usd": 59960,
   "per_request_cap_micro_usd": 250000,
   "live_available": false,
   "dispatch_supported": false,

@@ -1,7 +1,7 @@
 {
-  "version": "wonder-analysis-preview-v1",
+  "version": "wonder-analysis-preview-v2",
   "facts": {
-    "version": "wonder-analysis-facts-v1",
+    "version": "wonder-analysis-facts-v2",
     "mode": "personal",
     "research_only": true,
     "forecast": {
@@ -49,6 +49,15 @@
       "lower_ml": null,
       "upper_ml": null
     },
+    "workout_comparison": {
+      "planned_duration_minutes": 30,
+      "typical_duration_minutes": 60,
+      "planned_temperature_c": 20,
+      "typical_temperature_c": 20,
+      "planned_humidity_percent": 60,
+      "typical_humidity_percent": 60
+    },
+    "trend_context": null,
     "missing_inputs": [
       "intake_completeness",
       "documented_water_composition",
@@ -56,13 +65,13 @@
     ]
   },
   "model": "muse-wonder-1.0",
-  "payload_sha256": "c732af6dcf68b5f04246de3b81494b6758a8cc0887ba4def9d9d466fe0c71b92",
+  "payload_sha256": "814ec0c7b3a3823e22a3e51328d378e32114e568900a12faf5e9300f1398338c",
   "status": "available",
   "explainable": true,
   "reason": null,
-  "input_bound_tokens": 3740,
+  "input_bound_tokens": 6683,
   "max_output_tokens": 2048,
-  "worst_case_micro_usd": 55920,
+  "worst_case_micro_usd": 67692,
   "per_request_cap_micro_usd": 250000,
   "live_available": false,
   "dispatch_supported": false,

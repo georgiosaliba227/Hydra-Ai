@@ -22,7 +22,7 @@ def test_preview_has_all_eight_sections_and_no_live_dispatch():
     api = module()
     facts = api.build_facts(analysis())
     view = api.preview(facts)
-    assert view["version"] == "wonder-analysis-preview-v1"
+    assert view["version"] == "wonder-analysis-preview-v2"
     assert view["explainable"] is True
     assert view["live_available"] is view["dispatch_supported"] is False
     assert view["verified_for_billing"] is False
@@ -32,7 +32,7 @@ def test_preview_has_all_eight_sections_and_no_live_dispatch():
     sections = schema["properties"]["sections"]
     assert sections["additionalProperties"] is False
     assert sections["required"] == ["summary", "workout_loss", "activity", "environment", "beverages", "trends", "uncertainty", "measurement"]
-    assert all(value["enum"] for value in sections["properties"].values())
+    assert all(value["items"]["enum"] for value in sections["properties"].values())
 
 
 def test_payload_is_allowlisted_aggregates_without_ids_time_or_free_provenance():
@@ -80,8 +80,8 @@ def test_mock_renders_all_sections_with_truthful_origin_without_connections(name
 def test_cross_section_facts_numeric_unicode_and_unsupported_prose_reject_whole_reply(forgery):
     api = module()
     facts = api.build_facts(analysis())
-    selection = {"sections": {key: values[0] for key, values in api.SCAFFOLDS.items()}}
-    selection["sections"]["environment"] = forgery
+    selection = {"sections": {key: values[:3] for key, values in api.applicable_insights(facts).items()}}
+    selection["sections"]["environment"] = [forgery]
     with pytest.raises(ValueError):
         api.validate_selection(selection, facts)
 
@@ -148,7 +148,7 @@ def test_checked_provider_reply_is_distinct_from_mock_and_still_does_not_claim_l
     api = module()
     from backend.meta_provider import ProviderReply
     facts = api.build_facts(analysis())
-    selection = {"sections": {key: values[1] for key, values in api.SCAFFOLDS.items()}}
+    selection = {"sections": {key: list(reversed(values[:3])) for key, values in api.applicable_insights(facts).items()}}
     reply = ProviderReply(200, {"model": "muse-wonder-1.0", "status": "completed", "error": None,
         "incomplete_details": None, "output": [{"type": "message", "role": "assistant", "status": "completed",
             "content": [{"type": "output_text", "text": json.dumps(selection)}]}]})
@@ -215,7 +215,7 @@ def test_malformed_or_unsupported_provider_replies_are_rejected_without_repair(c
     from backend.meta_provider import ProviderReply
     from backend.recognition import RecognitionUnavailable
     facts = api.build_facts(analysis())
-    selection = {"sections": {key: values[0] for key, values in api.SCAFFOLDS.items()}}
+    selection = {"sections": {key: values[:3] for key, values in api.applicable_insights(facts).items()}}
     body = {"model": "muse-wonder-1.0", "status": "completed", "error": None,
         "incomplete_details": None, "output": [{"type": "message", "role": "assistant", "status": "completed",
             "content": [{"type": "output_text", "text": json.dumps(selection)}]}]}
@@ -239,3 +239,20 @@ def test_exact_payload_reconstruction_rejects_modified_requests(change):
     change(payload)
     with pytest.raises(ValueError):
         api.facts_from_payload(payload)
+
+
+def test_fractional_amounts_are_displayed_with_bounded_precision_without_changing_facts():
+    api = module()
+    source = analysis()
+    source["numerical_forecast"].update(value_ml=833.3333333333334, lower_ml=812.12, upper_ml=855.22)
+    source["environmental_context"].update(temperature_c=22.33333, humidity_percent=55.66666)
+    source["wonder"]["preview"] = None
+    facts = api.build_facts(source)
+    result = api.mock_result(facts)
+    assert result["facts"]["forecast"]["value_ml"] == 833.3333333333334
+    assert "812 to 856 mL" in result["sections"][1]["text"]
+    assert "point 833 mL" in result["sections"][1]["text"]
+    assert "22.3 °C" in result["sections"][3]["text"]
+    assert "55.7%" in result["sections"][3]["text"]
+    assert "833.333333" not in str(result["sections"])
+    assert any("rounded to whole mL" in text for text in result["limitations"])
