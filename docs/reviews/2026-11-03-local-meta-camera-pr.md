@@ -12,9 +12,10 @@ Validation:
 - Signed simulator XCTest: 102 passed.
 - Isolated iPhone simulator UI test: passed using the real trained local model and owned one-litre photo; exact capacity, explicit full-container assumption, enabled Confirm, editable name/volume, and Cancel without logging verified.
 - Signed generic iPhone build: succeeded with the existing development team.
+- Physical iPhone: installed/opened over USB, trained-model mode confirmed, real photo recognition and Edit/Confirm completed. The saved user-approved amount matched deterministic beverage contribution; personal correction persisted and shared training remained off. The label size in this photo remained unknown and the user supplied the quantity; this is not a successful automatic-size-reading claim.
 - Real local HTTP analysis: one-litre Dasani example recognized with exact 1000mL capacity, approximately 50sec, no beverage saved.
 - Independent source review found three issues (orphan-worker lease, excess OCR retention, confirmed-receipt eviction); regressions were watched fail and pass, fixes were reviewed with no remaining material finding.
 
-Physical iPhone installation remains blocked: the paired, unlocked phone reports an unavailable trusted wireless tunnel; attempted installation returned CoreDeviceError4016. No physical-device test or install success is claimed. The local runtime is active and the new signed app is ready for USB or a working paired wireless connection. See `docs/LOCAL_META_CAMERA_SETUP.md`.
+The signed build is installed and verified on the physical iPhone over USB. The local backend was refreshed to the home Wi-Fi address and verified in `local_meta` mode with billable requests disabled. A normal app-restart persistence check is pending. User photos, corrected drink records, quantities, receipt identifiers and image hashes remain private. See `docs/LOCAL_META_CAMERA_SETUP.md`.
 
 This branch is stacked on `codex/beverage-adapter-training`; preserve that dependency during review. The previous GitHub integration rejected PR creation with403, so this file also provides a manual review handoff. Do not merge or enable hosted requests as part of local-camera testing.

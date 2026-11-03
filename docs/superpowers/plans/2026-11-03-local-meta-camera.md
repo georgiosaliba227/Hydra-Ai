@@ -52,7 +52,18 @@ Interface: `local_meta` with separate model validation, local source copy, longe
 - [x] Add/run failing XCTest for local source validation, consent gating, timeout, exact capacity and review draft.
 - [x] Extend mode/source handling without changing Confirm/Edit accounting.
 - [x] Run XCTest and relevant UI checks; build signed physical app.
-- [ ] Install/test physical phone: blocked by CoreDevice4016, trusted wireless connection unavailable; USB or restored paired wireless connection required.
+- [x] Install and open on the physical iPhone over USB; local backend refreshed to the home Wi-Fi address.
+- [x] Verify photo recognition, Confirm/Edit and a user-approved whole-drink assumption on the physical phone; backend contribution and personal correction verified.
+- [ ] Verify the saved entry and trained-model connection after a normal phone-app restart.
 - [x] Start credential-free local backend using existing owner app token/database, test real inference, report exact observed status and remaining physical steps.
 - [x] Fresh whole-branch review and fixes; commit verified changes.
 - [x] Push feature branch and preserve review handoff; GitHub PR creation previously denied by integration403.
+
+### Task 4: Finished-drink review
+
+Owner clarified that Confirm means the drink was finished. Implement the November 3 clarification in `CAMERA_CORRECTIONS_API.md` using the existing draft/assumption contract.
+
+- [ ] Add and run failing UI tests: known drink goes directly to Confirm; unknown size can be entered on the review in US fl oz, without a consumed-quantity question.
+- [ ] Update `RecognitionConfirmationView.swift`: inline Drink size for unknown size, whole-drink copy, optional different amount only in Edit, secondary raw photo estimates. Preserve draft calculations and API contract.
+- [ ] Update affected UI selectors; run full XCTest, meaningful synthetic UI cases and full pytest. No hosted calls or new training.
+- [ ] Build/sign/install the updated app on the connected phone; preserve existing logs and saved connection. Push verified changes and report physical verification limits.

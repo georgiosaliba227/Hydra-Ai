@@ -27,6 +27,16 @@ container capacity. A later correction to consumed mL clears the old assumption.
 This supersedes the earlier mandatory manual consumed-mL entry in the form; it
 does not authorize model-inferred consumption or analysis without confirmation.
 
+November 3 finished-drink UX clarification: **Confirm means the user finished the
+drink**. The normal scan review does not ask how much was drunk or ask the user
+to affirm the whole-drink default. A known supported size/whole-drink quantity
+prefills the review; an unknown size gets an inline **Drink size** field with
+explicit units. The copy says **Confirm logs the whole drink**. Logging a different
+amount is available only as an optional action in Edit. Raw visible-liquid
+estimates belong in secondary photo details. Existing quantity validation,
+user-assumption provenance, personal corrections and training consent remain;
+this clarification does not invent capacity or authorize automatic logging.
+
 The server separately extracts unambiguous mL/L capacity from model-transcribed
 label text as `label_capacity_ml`. This remains unverified label evidence,
 distinct from the model's visual capacity and user corrections. Serving-size or
