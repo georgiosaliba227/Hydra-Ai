@@ -20,8 +20,10 @@ Compare `Date.timeIntervalSinceReferenceDate` values directly wherever the clien
 - Full pytest with the existing project virtual environment: **1,072 passed, 1 skipped, 1 failed**. The unchanged failure is `tests/recognition/test_wonder_workout.py::test_invalid_requests_are_rejected[<lambda>11]`; its fixed October 30 sample is no longer future-dated, so the response is 409 instead of 422. No Python files changed.
 - Independent read-only code review: no actionable findings; scalar comparisons match the SDK fallback and no direct Date `>=`/`<=` calls remain in app sources.
 
-## Physical verification status
+## Physical verification
 
-The repaired build is installed. Normal launch and sustained-process/relaunch checks are pending an unlocked iPhone: iOS currently rejects the launch request with `Locked`. A targeted physical XCTest invocation was also blocked before execution by the lock and was cancelled. Do not report the physical launch as verified until the phone is unlocked and both checks complete.
+After the user unlocked the iPhone, the repaired Release bundle was installed again in place. Two normal launches (without debugger or test environment) were checked using process inventories and screen captures. The first remained running for 26 seconds; terminating and relaunching created a distinct process that remained running for 54 seconds. Both captures show the Today screen with the existing log loaded. No new matching crash report appeared; the latest remained the pre-fix 17:11 report.
+
+The final screenshot is kept privately outside Git and was returned to the user. No synthetic drinks were added to the physical phone. A targeted physical XCTest invocation had previously been blocked before execution by the lock and was cancelled; physical verification here is normal app launch/relaunch, not the XCTest suite.
 
 Crash reports and console output remain outside the repository. No raw personal records, credentials, live inference, or budget-ledger changes were involved.
