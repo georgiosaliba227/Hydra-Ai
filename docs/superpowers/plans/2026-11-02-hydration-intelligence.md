@@ -81,7 +81,7 @@
 - [x] Run full pytest, training checks, XCTest, actual mock-backend simulator flows and inspect screenshots.
 - [x] Obtain independent branch review; fix important defects with regression tests.
 - [x] Update PROJECT_STATUS, NEXT_ACTIONS, BLOCKERS, DECISION_LOG and scientific evaluation.
-- [ ] Commit, push, prepare review PR for Amine; report physical/live gates truthfully.
+- [x] Commit, push, prepare review PR for Amine; report physical/live gates truthfully ([PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71), reviewer requested, no merge).
 
 ### Task 6: Fit a personal model in the app workflow (November 3)
 

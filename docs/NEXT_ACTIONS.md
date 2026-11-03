@@ -2,7 +2,7 @@
 
 ## November 3 continuation
 
-1. Review the hydration-intelligence PR with Amine, preserving PR #65 as its
+1. Review [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) with Amine, preserving PR #65 as its
    dependency and requiring human merge. Native experimental mode, the Date
    correction, 145 XCTest and two actual mock Simulator flows are verified.
    Screens were inspected; camera branches remain separate.

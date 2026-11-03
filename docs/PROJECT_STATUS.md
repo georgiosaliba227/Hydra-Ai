@@ -2,6 +2,10 @@
 
 ## November 3 continuation — review branch
 
+[Review PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with
+Amine requested as reviewer, stacked on PR #65. The branch and worktree remain
+available for review fixes; no merge or deployment occurred.
+
 `codex/hydration-intelligence-complete` starts from PR #65 at `c8e4a77`, preserving
 Amine's Apple Health, consented weather and Wonder integration. PR #65 remains a
 dependency; camera PRs #66–#70 are separate. No automatic merge, deployment,
@@ -53,7 +57,7 @@ Remaining tests use Simulator at the user's request. See the
 [review handoff](HYDRATION_INTELLIGENCE_REVIEW.md).
 
 Native runtime/date compatibility and independent reviews are complete; the
-review branch is being published for Amine. Live Wonder account/input/price/finality evidence
+verified branch is published for Amine. Live Wonder account/input/price/finality evidence
 has not been audited or changed; real explanation quality and independent personal
 prediction accuracy remain unverified.
 

@@ -6,6 +6,11 @@ main does not yet contain that dependency. Camera PRs #66–#70 are separate.
 No automatic merge, deployment, provider request or private financial operation
 is part of this work.
 
+Published as [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71), with
+Amine requested as reviewer. It is intentionally stacked on PR #65 rather than
+reapplying that contribution in a main-based diff. Retarget after the dependency
+is integrated by the developers. The review worktree is preserved.
+
 ## Behavior delivered for review
 
 Manual calibration history can be explicitly saved, revisited, exported and

@@ -24,7 +24,8 @@
 - **Human integration review:** v3/date compatibility integration, 145 native
   tests and two actual Simulator flows pass. Numerical/backend/native reviews
   have no outstanding findings, and the integrated 1,278-test Python suite passes.
-  PR #65 remains the review branch's dependency; human merge is still required.
+  [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with Amine
+  requested as reviewer. PR #65 remains its dependency; human merge is required.
 
 Earlier dated account reports below are historical and may conflict; current user
 instructions and fresh private evidence govern future live operation.
