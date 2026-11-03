@@ -20,6 +20,8 @@ Predictions JSONL: `image_id`, `model_id`, `base_revision`, `adapter_sha256`(nul
 
 Final measured result: the selected one-epoch adapter scored 63/75 (84%) joint full identity/exact capacity, 73/75 exact capacity and 38/46 joint on natural backgrounds. The unadapted base scored 57/75 joint. Two fresh independent identity reviews were required for each run; all 75 cases stayed in the denominator. Frozen selections preceded test encoding. All native jobs exited successfully. Reports, model hashes and failed development iterations are preserved; packaging and review-PR publication are the remaining integration work.
 
+Packaging is complete: reports, predictions, source, checkpoint hashes and artifact index are pushed on `codex/beverage-adapter-training`. The prepared PR description is `docs/reviews/2026-11-03-beverage-adapter-pr.md`. GitHub's connected integration rejected PR creation with HTTP403 `Resource not accessible by integration`; the current CLI account has read-only repository permission. No account switch or credential change was attempted. Owner action: open a PR from `codex/beverage-adapter-training` into `codex/camera-label-volume` using the prepared description and request Amine's review. This publishing gate does not invalidate the measured training objective; no merge or deployment has occurred.
+
 ## Measured progress
 
 The frozen cohort has 250 distinct source photos in 227 connected product groups: 150 train, 25 validation and 75 test; 120 photos have natural backgrounds, including 46 test photos across 7 settings. The complete source catalog and all pinned model files passed provider-digest verification. Public references/attribution are in ai/beverage_training/manifests/beverage-250-20261102/.
