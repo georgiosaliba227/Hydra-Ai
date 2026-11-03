@@ -1,41 +1,58 @@
 # Hydra AI project status
 
-## November 2 continuation — review branch
+## November 3 continuation — review branch
 
 `codex/hydration-intelligence-complete` starts from PR #65 at `c8e4a77`, preserving
-Amine's Apple Health, consented weather and Wonder workout integration. PR #65 is
-still a dependency; camera PRs #66–#70 are separate and unchanged. No automatic
-merge, deployment, private ledger operation or billable provider call is part of
-this continuation. Older dated sections below are historical evidence, not a
-fresh audit of account state.
+Amine's Apple Health, consented weather and Wonder integration. PR #65 remains a
+dependency; camera PRs #66–#70 are separate. No automatic merge, deployment,
+private-ledger operation or provider request occurred. Older dated account rows
+below are historical evidence, not a fresh financial audit.
 
-Implemented and Python-verified: nonbillable `/v1/hydration-analysis`, eight
-deterministic evidence sections, nullable documented composition, strict completed
-exercise-window accounting, existing exact-hash Wonder preview/replay, and
-versioned grouped real-study training/evaluation. Source artifacts and the new
-regularized personal research report reproduced independently. The app retains
-its personal measured-rate median and envelope: neither study models nor the
-experimental temporal ridge is promoted to personal serving.
+Implemented and Python-verified: local eight-section analysis, documented nullable
+composition, exact completed-workout accounting, comprehensive Wonder ranking of
+supported findings, replay/export/deletion and additive v3 personal research
+routes. All explanation numbers come from the corresponding numerical engine.
+Default-off comprehensive dispatch reuses the existing financial gateway and
+one-use, finality, shared-lock and exact-payload consent controls.
 
-SpectroPhon ridge historical-holdout MAE is 71.41 mL versus 85.72 mL for the refitted
-cohort comparator. QDE boosting is worse than its comparator (315.09 versus
-281.28 mL) and remains unpromoted. Reused holdouts, incompatible proxy targets and
-small groups prevent an independent physiological-improvement claim. The personal
-research learner improves a gradual synthetic trajectory but worsens abrupt-change
-MAE and has poor drift inclusion. See [grouped evaluation](FORECAST_GROUPED_EVALUATION.md)
-and [personal research](FORECAST_PERSONAL_LEARNING_RESEARCH.md).
+Real-study experiments remain separate: 200 SpectroPhon records / 198 conservative
+groups, 80 cumulative QDE records / 10 people and 31 EPL records / 31 people.
+SpectroPhon ridge historical-holdout MAE is 71.41 mL versus refitted cohort 85.72.
+QDE boosting is worse than its comparator (315.09 versus 281.28 mL), and EPL retains
+its learned cohort baseline (355.70 mL test MAE). No study model becomes a personal
+physiological prior. See [grouped evaluation](FORECAST_GROUPED_EVALUATION.md) and
+[EPL evaluation](FORECAST_EPL_EVALUATION.md); reused holdouts and narrow targets
+prevent independent physiological-improvement claims.
 
-On-device saved manual history, native analysis cards and the comprehensive
-eight-section Wonder flow are undergoing integration verification. The standalone
-Wonder contract validates 768 scaffold combinations and rejects 288 adversarial
-selections; those are software grounding checks, not live model-quality scores.
-The new comprehensive dispatch feature remains separately disabled by default.
+A stationary personal duration regression is fitted in request memory, with fixed
+regularization, strictly earlier validation, duration/cadence support gates and
+full measurement/error envelopes. Its frozen synthetic abrupt-shift MAE worsens
+57.73→70.49 mL; no retuning followed. V2 remains the app default. Native v3 is being
+integrated as an explicit experimental option, not an accuracy upgrade. The
+calendar-time learner remains offline. See [runtime report](FORECAST_PERSONAL_RUNTIME.md)
+and [runtime contract](architecture/PERSONAL_RUNTIME_API.md).
 
-Current physical-device check: a paired phone appears in inventory, but CoreDevice
-could not establish a connection. No physical run of this branch is claimed.
-Live Wonder account/input/price/invoice-finality evidence has not been audited or
-changed. The user assignment remains incomplete until its app, scientific and
-appropriate physical/live acceptance evidence exists.
+Completed native milestone: 132 XCTest and actual mock-backend WorkoutFlow pass
+on Simulator, including fresh detailed-preview consent and no live controls.
+Protected opt-in connection-scoped manual history passed save/relaunch/restore/
+selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
+3,200 rendered sections and 384 rejected adversarial selections, with zero provider
+calls; these are software checks, not live model-quality scores.
+
+Fresh integrated Python verification: **1,278 tests and 32 subtests passed**.
+Independent numerical and API reviews have no outstanding findings. Physical
+milestone: **132 XCTest passed** on the iPhone after an isolated Date comparison
+crash was reproduced and corrected in a temporary copy. Its separate wildcard-
+signed bundle omitted HealthKit. The original app was preserved; physical UI,
+production HealthKit permissions and final v3 hardware checks are unverified.
+Remaining tests use Simulator at the user's request. See the
+[physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md) and
+[review handoff](HYDRATION_INTELLIGENCE_REVIEW.md).
+
+Final native runtime/date compatibility checks, shared-doc reconciliation and PR
+publication are still underway. Live Wonder account/input/price/finality evidence
+has not been audited or changed; real explanation quality and independent personal
+prediction accuracy remain unverified.
 
 Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 

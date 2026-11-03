@@ -48,6 +48,10 @@ routes. Legacy routes retain their numerical engines and exact consent payloads.
 All v3 numerical screens and explanation facts use this one predictor. The phone
 persists only explicitly saved measurements; the server fits in request memory.
 Do not send coefficients, training hashes or raw calibration records to Wonder.
+Frozen stress tests found small stationary gains but worse abrupt-shift errors.
+Keep v2 as the default; v3 is an explicit default-off research option, with that
+limitation disclosed. Switching invalidates results and both processing/Meta
+consent. Do not retune against the published synthetic scores.
 
 The current Muse Wonder model is the sole explanation model. No model comparison,
 new billing path or automatic retry is introduced. Comprehensive local analysis

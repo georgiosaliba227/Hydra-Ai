@@ -48,10 +48,10 @@
 **Consumes:** unchanged `WorkoutForecastRequest.Sample`, maximum 32.
 **Produces:** opt-in local save/load, inspect/export/delete without stored consent.
 
-- [ ] Add failing persistence/privacy/connection/corruption/duplicate tests.
-- [ ] Implement strict protected atomic history storage and UI controls.
-- [ ] Connect delete-all, invalidate stale forecasts/previews and preserve PR #65 workflows.
-- [ ] Run XCTest and targeted simulator persistence UI; commit.
+- [x] Add failing persistence/privacy/connection/corruption/duplicate tests.
+- [x] Implement strict protected atomic history storage and UI controls.
+- [x] Connect delete-all, invalidate stale forecasts/previews and preserve PR #65 workflows.
+- [x] Run XCTest and targeted simulator persistence UI; commit (history milestone and protected physical storage verified).
 
 ### Task 4: Unified nonbillable analysis (backend agent)
 
@@ -70,9 +70,9 @@
 **Produces:** eight required, vetted fact-specific sections. Muse Wonder selects phrasing; Hydra formats every fact. No arbitrary nonnumeric invention.
 
 - [x] Add schema, strict scaffold/placeholder validation, exact payload reconstruction, mock/recorded replay and adversarial grounding fixtures (52 tests).
-- [ ] Wire existing financial gateway/transport/shared lock through a new disabled-by-default comprehensive flag; preserve all financial policies and private state.
-- [ ] Add exact saved replay/export/delete, stale/refusal/unresolved/concurrency and false-flag tests.
-- [ ] Wire iPhone preview/consent/results with generation guards and no automatic retries; test fixtures and mock simulator behavior.
+- [x] Wire existing financial gateway/transport/shared lock through a new disabled-by-default comprehensive flag; preserve all financial policies and private state.
+- [x] Add exact saved replay/export/delete, stale/refusal/unresolved/concurrency and false-flag tests.
+- [x] Wire iPhone preview/consent/results with generation guards and no automatic retries; test fixtures and mock simulator behavior (132 XCTest, actual default-off Simulator flow).
 
 ### Task 5: Integrate and review (orchestrator plus iOS followup)
 
@@ -87,11 +87,11 @@
 
 **Contract:** `docs/architecture/PERSONAL_RUNTIME_API.md`.
 
-- [ ] Implement and test the fixed stationary regularized duration regression,
+- [x] Implement and test the fixed stationary regularized duration regression,
   earlier-only model selection, domain/freshness gates and conservative envelopes.
-- [ ] Reproduce software stress evaluation, including baseline wins and failures;
+- [x] Reproduce software stress evaluation, including baseline wins and failures;
   report synthetic evidence separately from measured study validation.
-- [ ] Add authenticated v3 forecast/analysis/Wonder routes using one predictor,
+- [x] Add authenticated v3 forecast/analysis/Wonder routes using one predictor,
   preserving legacy output, consent hashes, shared financial controls and privacy.
 - [ ] Integrate typed runtime metadata, method/fallback labels and exact numerical
   binding into the iPhone flow; rerun XCTest and real simulator UI.

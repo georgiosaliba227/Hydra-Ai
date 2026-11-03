@@ -1,29 +1,32 @@
 # Hydra AI blockers
 
-## November 2 evidence gaps
+## November 3 evidence gaps
 
-- **App-enabled trained adaptation:** the available real studies cannot validate
-  dated repeat-workout personalization. The experimental within-person ridge is
-  implemented, but synthetic abrupt-change MAE and drift interval inclusion do not
-  support promotion. Keep the app's existing method, explicit uncertainty and cold
-  start abstention. More records alone do not establish reliable future coverage.
-- **Independent population evidence:** grouped training preserves the historical
-  holdouts and incompatible study targets. SpectroPhon's same-study result is not
-  external validation; QDE still loses to its comparator. No validated drinking
-  requirement or body-hydration percentage can be produced from these labels.
-- **Physical iPhone access:** CoreDevice inventory lists a paired iPhone, but its
-  detail query cannot establish a connection. Physical checks require it connected
-  and unlocked. No physical test of the November 2 changes is claimed.
-- **Live comprehensive Wonder evidence:** code and mock/checked-template tests do
-  not establish actual model quality, current account authorization, pricing,
-  finality or private ledger status. New comprehensive dispatch is separately off
-  by default. No billable request or private ledger operation was attempted.
-- **Integration verification:** iOS and comprehensive live-path mock tests are
-  still being completed; this entry will be updated with final evidence before PR
-  publication. Independent backend/scientific reviews have passed their scopes.
+- **Independent personal accuracy:** a stationary model now fits earlier manual
+  measurements through v3 research routes, but real dated repeat-workout validation
+  is missing. Frozen synthetic abrupt shifts worsen MAE; keep the existing default
+  and an explicit experimental option. The temporal learner remains offline. More
+  records do not establish better accuracy or calibrated future coverage.
+- **Independent population evidence:** the three study targets are incompatible.
+  SpectroPhon's reused same-study holdout is not external validation; QDE loses to
+  its comparator; EPL retains its baseline and has only six test people. No
+  validated drinking requirement or body-hydration percentage follows.
+- **Physical HealthKit and final UI:** the connected iPhone passed 132 milestone
+  unit tests after a reproduced Date-comparison crash was corrected in a temporary
+  copy. Available signing lacks HealthKit for the separate bundle. Production
+  HealthKit permissions, physical UI and final v3 hardware behavior remain
+  unverified; the user requests Simulator for remaining tests. See the physical
+  report rather than treating the earlier connection failure as current.
+- **Live comprehensive Wonder evidence:** mock/checked-template tests do not
+  establish actual model usefulness, account authorization, pricing or project-wide
+  invoice finality. Comprehensive dispatch remains separately off by default. No
+  provider request or private financial operation was attempted.
+- **Final native integration and PR:** v3/date compatibility integration and final
+  Simulator checks are underway. Numerical/backend reviews and the integrated
+  1,278-test Python suite pass. Review publication remains to be completed.
 
-Earlier dated account reports below are historical and may conflict; the current
-user instructions and fresh private evidence govern any future live operation.
+Earlier dated account reports below are historical and may conflict; current user
+instructions and fresh private evidence govern future live operation.
 
 Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 

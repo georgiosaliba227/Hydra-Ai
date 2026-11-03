@@ -13,6 +13,11 @@ consent, bearer authentication, no-store responses and 128 KiB maximum bodies.
 The Wonder dispatch request additionally requires the existing exact payload hash
 and strict `consent_to_send: true`. No route upgrades consent or retries a call.
 Existing v1/v2 routes keep their engines and payload hashes.
+The iPhone defaults to its existing v2 workflow. A separate default-off
+experimental-model choice selects all v3 routes together and invalidates prior
+results and consent when changed. Frozen synthetic tests showed worse abrupt-
+shift performance, so the candidate is not promoted as the default. The choice
+must disclose research status and possible deterioration under unreported changes.
 
 All personal v3 routes call
 `ai.forecasting.personal_runtime.predict_personal_runtime(exercise, samples,
@@ -43,6 +48,10 @@ Selected learned estimates use `model_version: personal-runtime-rate-v1`,
 `data_sufficiency: earlier_own_measurements_research_only`. Baseline fallback and
 completed measurements preserve their existing numbers, versions and interval
 interpretations. Insufficient evidence can still abstain.
+The selected result identifies `longitudinal_history.method` as
+`regularized_duration_rate_with_historical_error_envelope` and describes its
+fitted point accurately; baseline-only median/recency prose must not describe the
+learned point. Fallback history metadata is unchanged.
 
 Every personal numerical predictor response adds `research_only: true` and
 `learning` with exact keys below. They appear at the forecast root and inside
