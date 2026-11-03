@@ -34,14 +34,18 @@ Manual on-device profile only, no extra HealthKit permission:
 - `birthDate: String?` strict Gregorian `YYYY-MM-DD`, or `ageYears: Int?` (one
   method at a time). Birthday derives current age in the user's local timezone;
   the UI shows that age. Future/impossible dates are invalid. Age-only values are
-  explicitly self-entered, not automatically aged.
+  explicitly self-entered, not automatically aged. Input ages are0...130 for
+  either method (an app input bound, not a clinical threshold). Use Gregorian
+  year/month/day comparison; a February29 birthday advances on March1 in a
+  non-leap year. A future/invalid optional date is not silently discarded.
 - `referenceGroup: GoalReferenceGroup?`: `.men`, `.women`, `.preferNotToSay`.
 - `eligibility: GoalEligibility?`: `.generalAdult`, `.pregnantOrBreastfeeding`,
   `.clinicianDirectedFluid`, `.unsure`.
 - Optional `heightCm` and `weightKg`, finite and strictly positive when present;
   schema maximums300cm/500kg are input bounds, not medical thresholds.
 - `supplements: [GoalSupplement]`: `.creatine`, `.electrolytes`, `.other`; empty
-  means none supplied. No dose or free-text clinical inference.
+  means none supplied. Values are distinct, at most3. No dose or free-text
+  clinical inference.
 
 US presentation uses feet/inches and lb; metric uses cm/kg. Saved values are
 canonical and untouched values must not drift after display-unit changes. Profile
@@ -68,6 +72,10 @@ If the backend reply fails, preserve the profile and current confirmed UI state;
 say confirmation failed rather than asserting the server did not change.
 Capture connection generation and candidate at the tap, discard stale replies,
 and never apply an old connection's result to the new connection.
+Serialize goal submissions and protect existing custom-goal get/set paths with
+the same connection-generation checks; a late Settings load cannot replace a
+newly edited field or another connection's goal. Detect dangling symlinks as well
+as existing symbolic links before reading or writing profile files.
 
 Allow explicit local profile export/deletion; deletion-all includes every local
 profile. A custom goal remains available, including for unavailable references.
