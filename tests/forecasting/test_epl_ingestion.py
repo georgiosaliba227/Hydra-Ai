@@ -116,6 +116,19 @@ def test_raw_cache_inside_repository_rejected_before_network():
         download_epl(Path(__file__).resolve().parents[2]/'data'/'raw-epl')
 
 
+@pytest.mark.parametrize("linked", [False, True])
+def test_raw_and_normalized_paths_in_another_checkout_are_also_rejected(tmp_path, linked):
+    from ai.forecasting.epl_ingestion import _outside_repository
+    checkout = tmp_path / "another-checkout"
+    checkout.mkdir()
+    if linked:
+        (checkout / ".git").write_text("gitdir: /example/shared/worktrees/research\n")
+    else:
+        (checkout / ".git").mkdir()
+    with pytest.raises(ValueError, match="outside"):
+        _outside_repository(checkout / "data" / "epl-normalized.json")
+
+
 
 def test_optional_epl_evaluation_preserves_source_and_session_separation(tmp_path,monkeypatch):
     pytest.importorskip("sklearn")

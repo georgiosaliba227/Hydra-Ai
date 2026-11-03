@@ -39,8 +39,10 @@ SESSIONS = (
 
 
 def _outside_repository(path: Path) -> None:
+    path = path.resolve()
     repository = Path(__file__).resolve().parents[2]
-    if path == repository or repository in path.parents:
+    if (path == repository or repository in path.parents
+            or any((parent / ".git").exists() for parent in (path, *path.parents))):
         raise ValueError("study files must remain outside the repository")
 
 
