@@ -4,7 +4,7 @@ The selected beverage adapter could only run through the offline experiment runn
 
 Printed metric capacity must agree between the trained model and local Apple Vision label reading. Unreadable/conflicting evidence remains unknown. Only corroborated literal size spans survive OCR into receipts; remaining liquid and actual consumption are not inferred. The existing full-container assumption, volume editing, hydration engine, personal corrections and separately opted-in local training staging remain intact.
 
-The credential-free runtime serializes both native workers under a child-inherited process lease, enforces bounded execution/resource guards, and removes temporary photos/features. Local receipts live in the beverage database with export/deletion and durable confirmation replay. Hosted inference is disabled in local mode; the financial ledger is unchanged. No training weights, images, tokens, provider credentials or private receipts are included in this PR.
+The credential-free runtime serializes both native workers under a child-inherited process lease, enforces bounded execution/resource guards, and removes temporary photos/features. Local receipts live in the beverage database with export/deletion and durable confirmation replay. Hosted inference is disabled in local mode; local camera makes no financial-ledger writes or hosted provider requests. No training weights, images, tokens, provider credentials or private receipts are included in this PR.
 
 Validation:
 
