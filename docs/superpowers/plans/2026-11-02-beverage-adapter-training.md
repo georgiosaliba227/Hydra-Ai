@@ -41,3 +41,7 @@ The complete first epoch passed 150 actual updates and save/reload verification,
 ## Owner-approved identity equivalence evaluation
 
 The owner explicitly chose equivalent full identities with exact volume. Freeze policy SHA46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18 before any test inference; retain legacy name-alias results. Build blinded identity-only packets after saved predictions, obtain two independent AI photo reviews, require unanimous full equivalence, and keep all missing/failed/uncertain cases in the denominator. New file gates preserve original model/train/selection/cache provenance, policy-in-selection, exact volumes, immutable outputs and fixture/baseline exclusion from target success. Validate with synthetic boundary/tampering and complete75case provenance tests; calibrate on validation only while training continues. No semantic final-test claim from the prior single-review diagnostic.
+
+## Validation-led early-stopping comparison
+
+The 300-update V2 adapter completed real save/reload verification, but primary validation is17/25(68%) joint, identity18/25 and exactvolume23/25; unadapted primary validation is18/25(72%). Preserve all failures. Retrain the identical1024-token,8-layer/rank16 model at3e-5 for one epoch(150updates), then grade all25 validation photos under the same frozen dual-review rule. This tests training duration alone before any heldout exposure. No changes to data, labels, prompts, runtime guards or scoring.
