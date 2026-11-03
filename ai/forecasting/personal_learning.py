@@ -122,13 +122,16 @@ def predict_personal_research(exercise: Exercise | None, samples: tuple[SweatSam
     model = _fit(selected, alpha)
     model["forecast_completion_utc"] = completion.isoformat()
     point = _rate(model, completion)*exercise.duration_minutes/60
-    model["value_ml"] = point
+    model["value_ml"] = point if point >= 0 else None
     chosen = comparison[str(alpha)]
     result.update(candidate=model, reason="baseline_retained_after_validation",
                   validation={"folds": len(predictions), "predictions": predictions, "comparison": comparison,
                               "baseline_mae_ml": mean(abs(row["baseline_ml"]-row["target_ml"]) for row in predictions),
                               "test_set_used": False})
-    if point < 0 or not chosen["paired_gain_ml"] > max(chosen["gain_standard_error_ml"], 1e-8):
+    if point < 0:
+        result["reason"] = "candidate_outside_nonnegative_loss_domain"
+        return result
+    if not chosen["paired_gain_ml"] > max(chosen["gain_standard_error_ml"], 1e-8):
         return result
     # Propagate historical one-step error as a rate to the planned duration; never
     # narrow the baseline envelope or treat a sample count as a coverage guarantee.

@@ -91,6 +91,13 @@ def test_latest_outcome_is_withheld_from_its_validation_prediction():
     assert first[-1]["target_ml"] != second[-1]["target_ml"]
 
 
+def test_negative_regression_projection_is_rejected_instead_of_reported_as_loss():
+    result = predict(samples([1050., 850., 650., 450., 250., 50.]))
+    assert result["selected_method"] == "existing_personal_baseline"
+    assert result["candidate"]["value_ml"] is None
+    assert result["reason"] == "candidate_outside_nonnegative_loss_domain"
+
+
 def test_report_marks_synthetic_evidence_and_reproduces():
     from ai.forecasting.personal_learning import evaluate_synthetic_personal_learning
     report = evaluate_synthetic_personal_learning()
