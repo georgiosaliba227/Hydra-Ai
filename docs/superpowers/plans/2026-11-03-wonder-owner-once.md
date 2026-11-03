@@ -58,6 +58,15 @@ Files: new native owner-test models/view/tests and one existing navigation hook.
   run once through the real transport, validate/save the response and replay it.
 - [ ] Record actual outcomes and limits; keep all paid backend flags disabled.
 
+Execution evidence: Task 1 passed 42 policy tests plus the route-integration test;
+the full research environment passed 1,327 tests and 32 subtests. Task 2 passed
+150 XCTest and the actual saved-response Simulator UI flow after the existing
+disclosure component preserved nested accessibility controls. Independent review
+found no actionable issues. One real synthetic request produced eight validated
+sections; usage estimate $0.008324, final invoice unverified. Historical state
+was preserved and replay left the ledger byte-for-byte unchanged. Physical
+installation and personal scientific validation remain outside this test.
+
 Ruling: Earlier autonomy instructions apply to this execution; no repeated design
 or implementation-method approval is requested. The user chose Simulator, so the
 physical installation remains pending and is not claimed as verified.

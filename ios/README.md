@@ -88,3 +88,21 @@ Inclusive timestamp checks compare `timeIntervalSinceReferenceDate` values, pres
 `WorkoutFlowUITests.testSavedSyntheticMeasurementsFitPersonalRuntimeAgainstLocalBackend` is separately gated by `HYDRA_E2E_SAVED_CALIBRATION_RUNTIME=1`. It requires an externally prepared Simulator-only profile with six invented manual sessions and the isolated mock backend on `127.0.0.1:19998`, using the same nonsecret test connection as `CalibrationHistoryUITests`. It exercises explicit loading and fresh consent through the actual selected v3 fit, local numeric analysis and separately consented rich preview, verifies live dispatch is absent, then deletes the synthetic history through the app. It never seeds records in production code or sends an explanation request. Normal test runs skip this scenario.
 
 Use a dedicated Simulator containing synthetic data only. Run `CalibrationHistoryUITests` first; its successful cleanup leaves one empty profile for its test connection. Capture that profile's UUID from the generated history filename. Launch the test app with `xcrun simctl launch <SIMULATOR_UUID> com.georgiosaliba.hydraai`, then run `python3 scripts/prepare_runtime_ui_fixture.py --simulator <SIMULATOR_UUID> --expected-profile <UUID_FROM_SYNTHETIC_SETUP> --confirm-synthetic-fixture` from the repository root. The caller identifies the profile from the successful setup; the helper does not infer connection identity from a random UUID or read Keychain. It requires that exact filename/envelope profile and successful app termination before rechecking that history is empty. An unconfirmed stop (including an already-stopped app), nonempty history or ambiguous history refuses the write. File attributes are preserved. The helper dates the six invented sessions relative to now and stores no processing/Meta consent. Start the isolated mock backend on port 19998 with a new beverage database and all Meta flags false, then set the opt-in flag in the UI **test runner** environment and run the selected testcase. Its final in-app deletion must pass; do not use this fixture workflow on a physical phone or a personal-data Simulator.
+
+## Recorded synthetic Wonder verification
+
+Settings → **Recorded Wonder test** explicitly fetches the saved eight-section
+response from `GET /v1/wonder/owner-once/result`. This is a real model response on
+fixed simulated data, separately labeled from personal analysis. The backend
+operator configures its private saved-result path; a missing result stays
+unavailable. Opening or refreshing the viewer cannot authorize or dispatch a
+request. Native validation pins the synthetic facts and reconstructs every
+section from the vetted scaffolds. Token cost is an estimate; invoice and extras
+remain unverified. No test measurements enter personal calibration history.
+
+Five `OwnerSyntheticWonderTests` cover producer fixtures, tampering and GET-only
+loading. The opt-in `OwnerSyntheticWonderUITests` uses the normal E2E backend
+URL/token variables plus `HYDRA_E2E_OWNER_WONDER_REPLAY=1`; it opens all eight
+sections, checks simulated-evidence/finality labels and loads again. The actual
+November 3 run used the real saved response and left the financial ledger
+byte-for-byte unchanged. See [the report](../docs/WONDER_OWNER_TEST_2026-11-03.md).

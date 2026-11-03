@@ -29,12 +29,13 @@ struct OwnerSyntheticWonderView: View {
                     Text("Muse Wonder ranked supported findings. Hydra supplied the wording and calculated every number.")
                         .font(.subheadline)
                     ForEach(record.result.sections) { section in
-                        DisclosureGroup(section.title) {
+                        HydraDisclosure(title: section.title, systemImage: "text.alignleft",
+                                        identifier: "ownerWonderSection-\(section.id)") {
                             Text((try? record.localText(section)) ?? "Validated analysis unavailable.")
                                 .fixedSize(horizontal: false, vertical: true)
                             Text("Simulated evidence").font(.caption).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("ownerWonderEvidence-\(section.id)")
                         }
-                        .accessibilityIdentifier("ownerWonderSection-\(section.id)")
                     }
                 }
                 Section("Request record") {

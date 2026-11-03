@@ -1,5 +1,20 @@
 # Hydra AI blockers
 
+## November 3 operational update
+
+Valid HealthKit signing for the original app identifier is now locally verified;
+the updated app builds with its entitlement intact. The owner chose Simulator,
+so installation and real workout/permission/weather checks remain pending.
+
+The owner waived prior billing waits for one controlled synthetic Wonder test and
+accepted unverified extras for all requests without increasing spending limits.
+One real eight-section response validated and was saved; actual charges remain
+unverified and all historical financial records were preserved. The new native
+viewer is read-only. Ordinary ongoing personal dispatch remains separately
+configured/default-off; this one-use exception does not grant another send.
+See [actual test report](WONDER_OWNER_TEST_2026-11-03.md). Real personal calibration
+measurements and prospective accuracy evidence remain missing.
+
 ## November 3 evidence gaps
 
 - **Independent personal accuracy:** a stationary model now fits earlier manual

@@ -1,5 +1,32 @@
 # Hydra AI project status
 
+## November 3 operational continuation — live synthetic Wonder
+
+The owner chose Simulator and explicitly waived prior billing waits for the
+controlled test, then acknowledged unverified provider charges for all requests.
+`codex/wonder-owner-once` adds a singleton operator authorization in the existing
+ledger and a native **Settings → Recorded Wonder test** GET-only viewer. It does
+not reset financial history, unfreeze the account or enable ordinary ongoing
+personal dispatch. See [policy](architecture/WONDER_OWNER_ONCE.md) and
+[actual test report](WONDER_OWNER_TEST_2026-11-03.md).
+
+One real Muse Wonder response passed all eight sections on fixed synthetic data.
+The provider reported 601 input/296 output tokens; the usage-based estimate is
+$0.008324, with final billing and extras unverified. Prior financial history was
+verified unchanged; the new $0.25 token reservation remains held. No personal
+history, logs or HealthKit records were sent. The backend serves only the saved
+result while all live/billable flags remain false.
+
+The actual Simulator viewer opened all eight saved sections and loaded again;
+the financial ledger remained byte-for-byte unchanged across replay. Synthetic
+labels and unverified-final-invoice/extras labels were checked in the UI.
+
+Fresh verification: 1,327 pytest tests plus 32 subtests and 150 XCTest passed;
+independent review found no actionable issues. The complete updated app builds
+with valid HealthKit-enabled signing for the original identifier. Hardware
+installation, real workout/permission/weather checks and actual personal
+calibration remain pending. The earlier dated evidence below retains its scope.
+
 ## November 3 continuation — review branch
 
 [Review PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with

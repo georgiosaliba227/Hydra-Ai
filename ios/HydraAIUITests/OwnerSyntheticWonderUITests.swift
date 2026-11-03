@@ -27,7 +27,11 @@ final class OwnerSyntheticWonderUITests: XCTestCase {
             reveal(section, in: app)
             XCTAssertTrue(section.exists, "Missing section \(id)")
             section.tap()
-            XCTAssertTrue(app.staticTexts["Simulated evidence"].firstMatch.waitForExistence(timeout: 3))
+            let evidence = app.staticTexts["ownerWonderEvidence-\(id)"]
+            reveal(evidence, in: app)
+            XCTAssertEqual(evidence.label, "Simulated evidence")
+            for _ in 0..<10 where !section.isHittable { app.swipeDown() }
+            XCTAssertTrue(section.isHittable)
             section.tap()
         }
         let finality = app.staticTexts["ownerWonderFinality"]
