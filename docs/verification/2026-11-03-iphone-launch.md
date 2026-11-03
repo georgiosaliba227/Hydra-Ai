@@ -13,10 +13,12 @@ Compare `Date.timeIntervalSinceReferenceDate` values directly wherever the clien
 ## Checks
 
 - Signed iOS 26.5 simulator unit suite: **88 passed**, including new history-window boundaries across the November daylight-saving change and creation/correction date bounds (including NaN rejection).
+- Simulator UI regression: **1 passed** (`testOfflineDrinkLoggingFillsGoalAndSurvivesRelaunch`), covering confirmed logging, changing liquid fill, completion, and relaunch persistence with synthetic local records.
 - Signed Release device build: passed; `codesign --verify --deep --strict` passed. Its UUID is `104EA35D-81CF-38A6-9DC0-FCC617226633`; neither new Date comparison symbol remains in the executable's imports.
 - In-place install on the paired iPhone: passed. Existing application data was retained; no uninstall or reset.
 - Initial unsigned iOS 27.0 simulator invocation: 84 passed, 4 failed (three Keychain credential errors without code signing, and a temporary-file cleanup error in `CameraSessionTests.testChangedStoreGenerationRejectsOldReceiptBeforeCreatingPendingLog`). The signed supported simulator invocation above passed the full suite.
 - Full pytest with the existing project virtual environment: **1,072 passed, 1 skipped, 1 failed**. The unchanged failure is `tests/recognition/test_wonder_workout.py::test_invalid_requests_are_rejected[<lambda>11]`; its fixed October 30 sample is no longer future-dated, so the response is 409 instead of 422. No Python files changed.
+- Independent read-only code review: no actionable findings; scalar comparisons match the SDK fallback and no direct Date `>=`/`<=` calls remain in app sources.
 
 ## Physical verification status
 
