@@ -48,7 +48,7 @@ selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
 3,200 rendered sections and 384 rejected adversarial selections, with zero provider
 calls; these are software checks, not live model-quality scores.
 
-Fresh integrated Python verification: **1,278 tests and 32 subtests passed**.
+Fresh integrated Python verification: **1,284 tests and 32 subtests passed**.
 Independent numerical and API reviews have no outstanding findings. Physical
 milestone: **132 XCTest passed** on the iPhone after an isolated Date comparison
 crash was reproduced and corrected in a temporary copy. Its separate wildcard-

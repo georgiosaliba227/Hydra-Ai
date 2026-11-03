@@ -103,7 +103,7 @@ integration. They must not be represented as tests of subsequent code changes.
   inapplicable insight IDs and saved-publication/deletion races. Regression tests
   were observed failing before the fixes.
 
-The integrated numerical/v3 backend suite now passes **1,278 tests plus 32
+The integrated numerical/v3 backend suite now passes **1,284 tests plus 32
 subtests**. Independent reviewers passed 14 numerical tests, 100 additional
 selected-model probes, byte-for-byte synthetic reproduction, 45 focused API
 tests and six redirected fake-transport gateway scenarios. These checks overlap
@@ -128,6 +128,14 @@ are absent, and all six records are deleted through the app before the test ends
 The history was prepared only in an empty synthetic Simulator profile, using
 `scripts/prepare_runtime_ui_fixture.py`; production startup is unchanged. The
 helper's nonempty-history refusal was also executed and confirmed nonmutating.
+Subsequent helper review requires an explicit profile UUID captured from the
+successful synthetic setup, matching both filename and envelope; it does not
+claim to infer connection identity or inspect Keychain. Six regression cases
+cover missing/wrong pins, valid empty seeding, nonempty refusal and a save finishing
+at app termination and an unconfirmed termination. Both stop cases were observed
+failing before their fixes. A nonzero termination result refuses any write; the
+operator launches the test app before setup. These changes affect the test fixture
+preparer only.
 This is real app/backend execution with invented measurements, not real-person
 accuracy or live Muse Wonder evidence.
 
@@ -142,7 +150,7 @@ Final UI artifact:
 Final source-worktree unit artifact:
 `/tmp/hydra-runtime-ios/Logs/Test/Test-HydraAI-2026.11.03_00-58-14--0500.xcresult`.
 Fresh integrated-branch verification after the final native cherry-pick passed
-**1,278 Python tests plus 32 subtests** and **145 XCTest**. Local logs:
+**1,284 Python tests plus 32 subtests** and **145 XCTest**. Local logs:
 `/tmp/hydra-intelligence-final-python.log` and
 `/tmp/hydra-intelligence-final-ios-unit.log`; final integrated native artifact:
 `/tmp/hydra-intelligence-final-ios/Logs/Test/Test-HydraAI-2026.11.03_01-03-12--0500.xcresult`.
