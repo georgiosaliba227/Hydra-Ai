@@ -47,6 +47,21 @@ final class WorkoutForecastTests: XCTestCase {
         XCTAssertTrue(result.synthetic); XCTAssertEqual(result.valueMl, 600)
     }
 
+    func testOrdinaryForecastDetailsUseUSLabelsAndTypedTemperatureFromFixture() throws {
+        let original = workoutJSON()
+        let result = try JSONDecoder().decode(WorkoutForecast.self, from: original)
+        let temperature = try XCTUnwrap(result.inputFactors["temperature_c"])
+        XCTAssertEqual(WorkoutForecastView.factorLabel(key: "temperature_c", system: .us), "Temperature (°F)")
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "temperature_c", temperature, system: .us), "75.2 °F")
+        XCTAssertEqual(WorkoutForecastView.factorLabel(key: "pre_mass_kg", system: .us), "Pre Mass (lb)")
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "temperature_c", temperature), "24 °C")
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "duration_minutes", .number(60), system: .us), "60")
+        XCTAssertEqual(temperature.display, "24", "The saved factor stays canonical for exact disclosure")
+        let canonical = try XCTUnwrap(JSONSerialization.jsonObject(with: original) as? [String: Any])
+        let factors = try XCTUnwrap(canonical["input_factors"] as? [String: Any])
+        XCTAssertEqual(factors["temperature_c"] as? Double, 24)
+    }
+
     func testPersonalCalibrationRequiresConsentAndCannotBecomeSynthetic() throws {
         let conditions = WorkoutForecastRequest.Conditions(activity: "running", intensity: "moderate", temperature_c: 20, humidity_percent: 50)
         let sample = WorkoutForecastRequest.Sample(event_id: UUID(), observed_at: "2026-10-27T12:00:00Z", conditions: conditions,

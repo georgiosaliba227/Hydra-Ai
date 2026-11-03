@@ -89,31 +89,47 @@ final class WorkoutContextProvider: ObservableObject {
         let generation = UUID()
         workoutGeneration = generation
         workoutState = .loading
-        do {
-            if requestAuthorization { try await health.requestWorkoutReadAccess() }
-            let workouts = try await health.recentWorkouts(limit: Self.recentWorkoutLimit)
-            guard generation == workoutGeneration, !Task.isCancelled else { return false }
-            guard let last = workouts.first else { throw HealthWorkoutError.noWorkouts }
-            draft.activity = last.activity.rawValue
-            draft.activityNote = last.mapping.note
-            draft.durationMinutes = max(1, last.durationMinutes.rounded())
-            draft.startsAt = plannedStart ?? nextOccurrence(ofTimeOfDayOf: last.startDate)
-            draft.averageHeartRate = last.averageHeartRateBPM.map { $0.rounded() }
-            draft.activeEnergyKilocalories = last.activeEnergyKilocalories.map { $0.rounded() }
-            let when = last.startDate.formatted(date: .abbreviated, time: .shortened)
-            draft.workoutProvenance = (last.source == .sample ? Self.sampleWorkoutProvenancePrefix : Self.healthWorkoutProvenancePrefix) + when
-            draft.typicalSessions = TypicalWorkoutSessions.summarize(workouts)
-            workoutState = .loaded
-            return true
-        } catch {
-            guard generation == workoutGeneration, !Task.isCancelled else { return false }
-            // Read denial is indistinguishable from no workouts. Do not retain private
-            // suggestions when a subsequent read returns empty; other failures stay stale.
-            if (error as? HealthWorkoutError) == .noWorkouts { clearHealthContext() }
-            workoutState = .failed((error as? LocalizedError)?.errorDescription
-                ?? "Apple Health workouts could not be read. You can still enter the workout yourself.")
+        return await withTaskCancellationHandler {
+            defer {
+                if Task.isCancelled { cancelWorkout(ifCurrent: generation) }
+            }
+            do {
+                try Task.checkCancellation()
+                if requestAuthorization { try await health.requestWorkoutReadAccess() }
+                try Task.checkCancellation()
+                let workouts = try await health.recentWorkouts(limit: Self.recentWorkoutLimit)
+                guard generation == workoutGeneration, !Task.isCancelled else { return false }
+                guard let last = workouts.first else { throw HealthWorkoutError.noWorkouts }
+                draft.activity = last.activity.rawValue
+                draft.activityNote = last.mapping.note
+                draft.durationMinutes = max(1, last.durationMinutes.rounded())
+                draft.startsAt = plannedStart ?? nextOccurrence(ofTimeOfDayOf: last.startDate)
+                draft.averageHeartRate = last.averageHeartRateBPM.map { $0.rounded() }
+                draft.activeEnergyKilocalories = last.activeEnergyKilocalories.map { $0.rounded() }
+                let when = last.startDate.formatted(date: .abbreviated, time: .shortened)
+                draft.workoutProvenance = (last.source == .sample ? Self.sampleWorkoutProvenancePrefix : Self.healthWorkoutProvenancePrefix) + when
+                draft.typicalSessions = TypicalWorkoutSessions.summarize(workouts)
+                workoutState = .loaded
+                return true
+            } catch {
+                guard generation == workoutGeneration, !Task.isCancelled else { return false }
+                // Read denial is indistinguishable from no workouts. Do not retain private
+                // suggestions when a subsequent read returns empty; other failures stay stale.
+                if (error as? HealthWorkoutError) == .noWorkouts { clearHealthContext() }
+                workoutState = .failed((error as? LocalizedError)?.errorDescription
+                    ?? "Apple Health workouts could not be read. You can still enter the workout yourself.")
+            }
+            return false
+        } onCancel: {
+            // HealthKit may not return promptly after cancellation. Release the button now,
+            // but never reset a newer read that has since taken ownership of this provider.
+            Task { @MainActor [weak self] in self?.cancelWorkout(ifCurrent: generation) }
         }
-        return false
+    }
+
+    private func cancelWorkout(ifCurrent generation: UUID) {
+        guard generation == workoutGeneration else { return }
+        cancelPendingWorkouts()
     }
 
     /// "Fill in the weather". Requires `isWeatherConsentGranted`; otherwise nothing is requested and

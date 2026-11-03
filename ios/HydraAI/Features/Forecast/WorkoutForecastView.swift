@@ -116,8 +116,9 @@ struct WorkoutDraft: Equatable {
 
     /// Weather consent withdrawn: clear values that still came from Open-Meteo; keep anything the user typed.
     mutating func clearAppliedWeather() {
-        if let appliedWeather, appliedWeather.temperature == temperature, appliedWeather.humidity == humidity {
-            temperature = ""; humidity = ""
+        if let appliedWeather {
+            if appliedWeather.temperature == temperature { temperature = "" }
+            if appliedWeather.humidity == humidity { humidity = "" }
         }
         appliedWeather = nil
     }
@@ -954,10 +955,27 @@ struct WorkoutForecastView: View {
         .foregroundStyle(.secondary)
     }
 
-    /// Millilitre factors as whole mL; everything else as the backend reported it.
-    nonisolated static func factorText(key: String, _ factor: WorkoutForecast.Factor) -> String {
-        if case .number(let value) = factor, key.hasSuffix("_ml") { return "\(HydraFormat.milliliters(value)) mL" }
-        return factor.display
+    /// Typed presentation only; saved factors and exact canonical disclosures remain unchanged.
+    nonisolated static func factorText(key: String, _ factor: WorkoutForecast.Factor,
+                                       system: DisplayUnitSystem = .metric) -> String {
+        guard case .number(let value) = factor, let quantity = factorQuantity(key: key) else { return factor.display }
+        if quantity == .volume { return system.volumeFact(value, key: key) }
+        return system.number(value, quantity: quantity) + " " + system.symbol(for: quantity)
+    }
+
+    nonisolated static func factorLabel(key: String, system: DisplayUnitSystem = .metric) -> String {
+        guard let quantity = factorQuantity(key: key), let separator = key.lastIndex(of: "_") else {
+            return key.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+        return key[..<separator].replacingOccurrences(of: "_", with: " ").capitalized
+            + " (" + system.symbol(for: quantity) + ")"
+    }
+
+    nonisolated private static func factorQuantity(key: String) -> DisplayQuantity? {
+        if key.hasSuffix("_ml") { return .volume }
+        if key.hasSuffix("_kg") { return .mass }
+        if key.hasSuffix("_c"), key.contains("temperature") { return .temperature }
+        return nil
     }
 
     /// A backend UTC timestamp shown as a local date and time; the raw text if it can't be read.
@@ -1024,8 +1042,8 @@ struct WorkoutForecastView: View {
                 LabeledContent("Measurements used", value: result.sampleCount.formatted())
                 LabeledContent("Model", value: result.modelVersion)
                 ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
-                    LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized,
-                                   value: units.text(Self.factorText(key: key, result.inputFactors[key]!)))
+                    LabeledContent(Self.factorLabel(key: key, system: units.system),
+                                   value: Self.factorText(key: key, result.inputFactors[key]!, system: units.system))
                 }
                 ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source).font(.caption) }
                 ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, limitation in

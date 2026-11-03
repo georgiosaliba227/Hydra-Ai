@@ -399,6 +399,59 @@ final class DailyContextTests: XCTestCase {
         XCTAssertNotNil(context.lastHealthSuccess)
     }
 
+    func testCancelledManualHealthReadReleasesLoadingBeforeCompletionAndAllowsRetryWithAutoOff() async {
+        let suspended = SuspendedDailyHealth()
+        let context = DailyContextCoordinator(health: suspended, location: location, weather: weather,
+            defaults: defaults, now: { self.date })
+        XCTAssertFalse(context.healthAutoEnabled)
+        let provider = context.workoutContext
+        let first = Task { await provider.useLastWorkout(plannedStart: self.date) }
+        while suspended.pending == nil { await Task.yield() }
+        let firstRead = suspended.pending; suspended.pending = nil
+        first.cancel()
+        // The Health client deliberately ignores cancellation and stays suspended.
+        for _ in 0..<100 { await Task.yield() }
+        XCTAssertEqual(provider.workoutState, .idle, "The import button must become actionable before Health returns")
+        XCTAssertNil(provider.draft.workoutProvenance)
+        suspended.suspend = false
+        let retryStart = date.addingTimeInterval(3600)
+        _ = await provider.useLastWorkout(plannedStart: retryStart)
+        XCTAssertEqual(provider.workoutState, .loaded)
+        XCTAssertEqual(provider.draft.startsAt, retryStart)
+        firstRead?.resume()
+        _ = await first.value
+        XCTAssertEqual(provider.workoutState, .loaded)
+        XCTAssertEqual(provider.draft.startsAt, retryStart, "The canceled read must not republish its old start")
+        await context.refreshIfNeeded()
+        XCTAssertFalse(context.healthAutoEnabled)
+        XCTAssertEqual(suspended.reads, 2)
+    }
+
+    func testCancellationOfOlderManualReadCannotClearNewerLoadingGeneration() async {
+        let suspended = SuspendedDailyHealth()
+        let context = DailyContextCoordinator(health: suspended, location: location, weather: weather,
+            defaults: defaults, now: { self.date })
+        let provider = context.workoutContext
+        let first = Task { await provider.useLastWorkout() }
+        while suspended.pending == nil { await Task.yield() }
+        let firstRead = suspended.pending; suspended.pending = nil
+        let newerStart = date.addingTimeInterval(3600)
+        let second = Task { await provider.useLastWorkout(plannedStart: newerStart) }
+        while suspended.pending == nil { await Task.yield() }
+        let secondRead = suspended.pending; suspended.pending = nil
+        first.cancel()
+        for _ in 0..<100 { await Task.yield() }
+        XCTAssertEqual(provider.workoutState, .loading)
+        firstRead?.resume()
+        _ = await first.value
+        XCTAssertEqual(provider.workoutState, .loading)
+        XCTAssertNil(provider.draft.workoutProvenance)
+        secondRead?.resume()
+        _ = await second.value
+        XCTAssertEqual(provider.workoutState, .loaded)
+        XCTAssertEqual(provider.draft.startsAt, newerStart)
+    }
+
     func testManualWeatherReturningToCachedStartRejectsConflictingPendingReply() async {
         let consent = WeatherLocationConsentStore(defaults: defaults)
         consent.isGranted = true

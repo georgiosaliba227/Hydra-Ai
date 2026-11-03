@@ -364,7 +364,16 @@ final class WonderWorkoutTests: XCTestCase {
         XCTAssertEqual(HydraFormat.milliliterRange(0, 683.3), "0–683 mL")
         XCTAssertEqual(HydraFormat.milliliters(683.6), "684")
         XCTAssertEqual(WorkoutForecastView.factorText(key: "estimated_loss_ml", .number(683.33)), "683 mL")
-        XCTAssertEqual(WorkoutForecastView.factorText(key: "temperature_c", .number(22.5)), "22.5")
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "temperature_c", .number(22.5)), "22.5 °C")
+    }
+
+    func testOrdinaryForecastFactorDetailsConvertTemperatureAndMassWithoutChangingFacts() {
+        let temperature = WorkoutForecast.Factor.number(24)
+        let mass = WorkoutForecast.Factor.number(70)
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "temperature_c", temperature, system: .us), "75.2 °F")
+        XCTAssertEqual(WorkoutForecastView.factorText(key: "pre_mass_kg", mass, system: .us), "154.324 lb")
+        XCTAssertEqual(temperature.display, "24")
+        XCTAssertEqual(mass.display, "70")
     }
 
     func testAutofilledTextParsesInAnyLocale() throws {
@@ -454,7 +463,7 @@ final class WonderWorkoutTests: XCTestCase {
         XCTAssertFalse(context.canFillWeather)
     }
 
-    func testEditedWeatherLosesProvenanceAndSurvivesWithdrawal() async throws {
+    func testEditedTemperatureSurvivesWithdrawalWhileImportedHumidityClears() async throws {
         let context = provider(location: CountingLocation(), weather: CountingWeather())
         context.setWeatherConsent(true)
         var draft = WorkoutDraft()
@@ -463,7 +472,8 @@ final class WonderWorkoutTests: XCTestCase {
         XCTAssertNil(draft.weatherProvenance, "The user's own value is not labelled as Open-Meteo's")
         draft.clearAppliedWeather()
         XCTAssertEqual(draft.temperature, "14")
-        XCTAssertEqual(draft.humidity, "79")
+        XCTAssertEqual(draft.humidity, "")
+        XCTAssertThrowsError(try draft.conditions())
     }
 
     func testWeatherFailureLeavesTheFormAndExplains() async throws {

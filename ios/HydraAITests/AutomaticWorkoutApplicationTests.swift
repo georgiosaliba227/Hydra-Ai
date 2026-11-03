@@ -46,12 +46,54 @@ final class AutomaticWorkoutApplicationTests: XCTestCase {
         XCTAssertNil(draft.appliedWeather)
     }
 
-    func testWeatherClearPreservesManuallyEditedConditions() {
+    func testWeatherRevocationPreservesOnlyManuallyEditedTemperature() {
         var draft = WorkoutDraft(); draft.startsAt = start
         draft.applyWeatherSuggestion(suggestion(requested: start, hour: start))
         draft.temperature = "12"
         draft.clearAppliedWeather()
-        XCTAssertEqual(draft.temperature, "12"); XCTAssertEqual(draft.humidity, "70")
+        XCTAssertEqual(draft.temperature, "12"); XCTAssertEqual(draft.humidity, "")
+        XCTAssertThrowsError(try draft.conditions())
+    }
+
+    func testStartChangePreservesEditedTemperatureAndRequiresNewHumidity() throws {
+        var draft = WorkoutDraft(); draft.startsAt = start
+        draft.applyWeatherSuggestion(suggestion(requested: start, hour: start))
+        draft.temperature = "12"
+        draft.startsAt = start.addingTimeInterval(3600)
+        draft.clearAppliedWeather()
+        XCTAssertEqual(draft.temperature, "12")
+        XCTAssertEqual(draft.humidity, "")
+        XCTAssertNil(draft.appliedWeather)
+        XCTAssertNil(draft.weatherProvenance)
+        XCTAssertThrowsError(try draft.conditions())
+        draft.humidity = "50"
+        XCTAssertEqual(try draft.conditions().temperature_c, 12)
+        XCTAssertEqual(try draft.conditions().humidity_percent, 50)
+    }
+
+    func testStartChangePreservesEditedHumidityAndRequiresNewTemperature() throws {
+        var draft = WorkoutDraft(); draft.startsAt = start
+        draft.applyWeatherSuggestion(suggestion(requested: start, hour: start))
+        draft.humidity = "50"
+        draft.startsAt = start.addingTimeInterval(3600)
+        draft.clearAppliedWeather()
+        XCTAssertEqual(draft.temperature, "")
+        XCTAssertEqual(draft.humidity, "50")
+        XCTAssertNil(draft.appliedWeather)
+        XCTAssertNil(draft.weatherProvenance)
+        XCTAssertThrowsError(try draft.conditions())
+        draft.temperature = "12"
+        XCTAssertEqual(try draft.conditions().temperature_c, 12)
+    }
+
+    func testWeatherRevocationPreservesOnlyManuallyEditedHumidity() {
+        var draft = WorkoutDraft(); draft.startsAt = start
+        draft.applyWeatherSuggestion(suggestion(requested: start, hour: start))
+        draft.humidity = "50"
+        draft.clearAppliedWeather()
+        XCTAssertEqual(draft.temperature, "")
+        XCTAssertEqual(draft.humidity, "50")
+        XCTAssertThrowsError(try draft.conditions())
     }
 
     func testDelayedWeatherCannotOverwriteAnyEditedForm() {
