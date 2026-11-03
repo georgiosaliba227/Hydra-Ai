@@ -1,5 +1,42 @@
 # Hydra AI project status
 
+## November 2 continuation — review branch
+
+`codex/hydration-intelligence-complete` starts from PR #65 at `c8e4a77`, preserving
+Amine's Apple Health, consented weather and Wonder workout integration. PR #65 is
+still a dependency; camera PRs #66–#70 are separate and unchanged. No automatic
+merge, deployment, private ledger operation or billable provider call is part of
+this continuation. Older dated sections below are historical evidence, not a
+fresh audit of account state.
+
+Implemented and Python-verified: nonbillable `/v1/hydration-analysis`, eight
+deterministic evidence sections, nullable documented composition, strict completed
+exercise-window accounting, existing exact-hash Wonder preview/replay, and
+versioned grouped real-study training/evaluation. Source artifacts and the new
+regularized personal research report reproduced independently. The app retains
+its personal measured-rate median and envelope: neither study models nor the
+experimental temporal ridge is promoted to personal serving.
+
+SpectroPhon ridge historical-holdout MAE is 71.41 mL versus 85.72 mL for the refitted
+cohort comparator. QDE boosting is worse than its comparator (315.09 versus
+281.28 mL) and remains unpromoted. Reused holdouts, incompatible proxy targets and
+small groups prevent an independent physiological-improvement claim. The personal
+research learner improves a gradual synthetic trajectory but worsens abrupt-change
+MAE and has poor drift inclusion. See [grouped evaluation](FORECAST_GROUPED_EVALUATION.md)
+and [personal research](FORECAST_PERSONAL_LEARNING_RESEARCH.md).
+
+On-device saved manual history, native analysis cards and the comprehensive
+eight-section Wonder flow are undergoing integration verification. The standalone
+Wonder contract validates 768 scaffold combinations and rejects 288 adversarial
+selections; those are software grounding checks, not live model-quality scores.
+The new comprehensive dispatch feature remains separately disabled by default.
+
+Current physical-device check: a paired phone appears in inventory, but CoreDevice
+could not establish a connection. No physical run of this branch is claimed.
+Live Wonder account/input/price/invoice-finality evidence has not been audited or
+changed. The user assignment remains incomplete until its app, scientific and
+appropriate physical/live acceptance evidence exists.
+
 Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
 ## Current state — October 29 (Amine)

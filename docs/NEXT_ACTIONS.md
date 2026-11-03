@@ -1,5 +1,28 @@
 # Hydra AI next actions
 
+## November 2 continuation
+
+1. Finish native history/analysis and comprehensive Wonder integration on the
+   isolated PR #65-based branch; run full Python, XCTest and mock simulator flows,
+   inspect screenshots, and obtain independent code review.
+2. Publish the verified review PR for Amine, with PR #65 as its dependency. Preserve
+   camera branches and require human review/merge under the latest user request.
+3. Connect and unlock the paired iPhone for actual physical verification when
+   available. Simulator evidence does not establish HealthKit permission, location
+   prompt, physical storage protection or device-network behavior.
+4. For real personalization evaluation, collect consented, dated, protocol-confirmed
+   repeat workouts with intake/urine and independently supported error bounds.
+   Existing QDE intervals are one session; SpectroPhon repeats lack valid chronology.
+   Do not train a physiological prior or enable the temporal candidate from these.
+5. Audit new compatible measured sources independently, starting with the licensed
+   exercise-thermoregulation supplement in FORECAST_GROUPED_EVALUATION.md. Its
+   selected clinical cohort and measurement protocol require review before reuse.
+6. Only after separately verified account identity, price, exact-payload disclosure,
+   budget authority and project-wide invoice finality, perform an explicitly
+   consented live Wonder request and evaluate actual explanation quality. No
+   private state was audited or modified by this branch; older account assertions
+   below must not substitute for fresh evidence.
+
 ## Next actions — Georgio's key on Amine's Mac, $20 (October 29, Amine)
 
 Owner override in AGENTS.md. Spending is recorded as Georgio's account.

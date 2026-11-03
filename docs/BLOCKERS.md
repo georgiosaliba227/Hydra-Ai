@@ -1,5 +1,30 @@
 # Hydra AI blockers
 
+## November 2 evidence gaps
+
+- **App-enabled trained adaptation:** the available real studies cannot validate
+  dated repeat-workout personalization. The experimental within-person ridge is
+  implemented, but synthetic abrupt-change MAE and drift interval inclusion do not
+  support promotion. Keep the app's existing method, explicit uncertainty and cold
+  start abstention. More records alone do not establish reliable future coverage.
+- **Independent population evidence:** grouped training preserves the historical
+  holdouts and incompatible study targets. SpectroPhon's same-study result is not
+  external validation; QDE still loses to its comparator. No validated drinking
+  requirement or body-hydration percentage can be produced from these labels.
+- **Physical iPhone access:** CoreDevice inventory lists a paired iPhone, but its
+  detail query cannot establish a connection. Physical checks require it connected
+  and unlocked. No physical test of the November 2 changes is claimed.
+- **Live comprehensive Wonder evidence:** code and mock/checked-template tests do
+  not establish actual model quality, current account authorization, pricing,
+  finality or private ledger status. New comprehensive dispatch is separately off
+  by default. No billable request or private ledger operation was attempted.
+- **Integration verification:** iOS and comprehensive live-path mock tests are
+  still being completed; this entry will be updated with final evidence before PR
+  publication. Independent backend/scientific reviews have passed their scopes.
+
+Earlier dated account reports below are historical and may conflict; the current
+user instructions and fresh private evidence govern any future live operation.
+
 Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
 ## Top blocker: no way to lift an account freeze
