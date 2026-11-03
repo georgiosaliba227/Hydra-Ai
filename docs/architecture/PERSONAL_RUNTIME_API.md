@@ -44,7 +44,10 @@ Selected learned estimates use `model_version: personal-runtime-rate-v1`,
 completed measurements preserve their existing numbers, versions and interval
 interpretations. Insufficient evidence can still abstain.
 
-Every personal response adds `research_only: true` and `learning` with exact keys:
+Every personal numerical predictor response adds `research_only: true` and
+`learning` with exact keys below. They appear at the forecast root and inside
+`hydration-analysis-v3.numerical_forecast`; no duplicate learning object is added
+at the analysis or explanation-preview root.
 
 | Key | Value |
 | --- | --- |
@@ -79,9 +82,13 @@ accuracy or narrowing uncertainty. Actual completed measurements bypass fitting.
 
 The comprehensive `wonder-analysis-facts-v2` allowlist remains the explanation
 schema, adding only the new interval-kind literal. Every forecast number is
-projected from the v3 numerical result, with outward integer mL bounds. Numeric
+projected from the v3 numerical result: point to the nearest integer with ties to
+even, lower bound by floor and upper bound by ceiling. The v3 rich preview adds
+`numerical_contract: personal-runtime-api-v3` outside the provider facts; the
+phone requires this marker when using the new routes. Legacy previews retain
+their exact shape and precision. Numeric
 duration/weather comparisons are descriptive history aggregates, independent of
-model fitting. Model weights, training hash, event IDs, raw measurements and
+model fitting, using ties-to-even integer rounding. Model weights, training hash, event IDs, raw measurements and
 HealthKit records do not enter the provider payload. The phone checks the preview
 against its authoritative v3 forecast before offering Meta consent.
 
