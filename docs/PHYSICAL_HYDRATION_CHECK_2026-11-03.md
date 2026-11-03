@@ -1,5 +1,29 @@
 # Physical hydration milestone verification
 
+## US units and automatic-context update
+
+The reviewed update at `1ef152d` was installed over the original bundle and
+launched without connection environment overrides. Strict signature verification,
+HealthKit entitlement, profile expiry and inclusion of the paired iPhone were
+checked. No uninstall/reset was issued. The owner then reported **Both update
+successfully in US units** after choosing the new optional Health and automatic-
+weather setup. This is owner-assisted evidence, with no health/weather values
+requested in chat.
+
+An additional physical UI test passed in **25.567 seconds**, zero failures:
+`testSavedOwnerConnectionReportsReadinessWithoutInjectedCredentials`. It launched
+with an empty app environment, used the saved URL/Keychain (no Save connection),
+and verified the owner backend's ready/unverified-billing state. The financial
+ledger was byte-identical across the test. No paid action or screenshot was
+requested. The app was reopened normally afterward.
+
+Private receipts: `us-context-app-install.json`, `us-context-app-launch.json`,
+`us-context-install-summary.json`, and
+`us-context-physical-saved-ready-verification.json` with its result bundle/log.
+See the [feature report](US_UNITS_DAILY_CONTEXT_2026-11-03.md) for 217 native tests
+and six Simulator UI flows. No unattended daily OS background delivery, real
+calibration history or actual own-record Meta result is claimed by these checks.
+
 ## Latest continuation — original app installed and connected
 
 The owner later resumed physical checks and unlocked the connected iPhone 17 Pro

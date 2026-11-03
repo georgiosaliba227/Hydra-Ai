@@ -1,6 +1,16 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 later UX direction (Georgio): use American units and ask for optional
+Health/workout and weather access on first use, then update context automatically.
+The installed implementation uses US fl oz/°F/lb presentation, canonical API
+units, separate automatic-weather opt-in and best-effort iOS background timing.
+This does not authorize automatic Meta disclosures/requests. The latest goal also
+requests birthday/age, height, weight and supplement questions to calculate a
+starting goal; use supported references and preserve the prohibition on arbitrary
+hydration multipliers or unsupported creatine adjustments. Keep profile data on
+device unless a separately reviewed, specifically consented flow permits export.
+
 November 3 later physical direction (Georgio): the owner explicitly answered
 **"Proceed with iPhone checks"** and subsequently unlocked the device for testing.
 This supersedes the earlier Simulator-only preference for this continuation.
