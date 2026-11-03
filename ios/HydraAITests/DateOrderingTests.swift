@@ -2,6 +2,16 @@ import XCTest
 @testable import HydraAI
 
 final class DateOrderingTests: XCTestCase {
+    func testNonfiniteDatesNeverSatisfyEitherInclusiveBound() {
+        let valid = Date(timeIntervalSinceReferenceDate: 800_000_000)
+        for value in [Double.nan, .infinity, -.infinity] {
+            let invalid = Date(timeIntervalSinceReferenceDate: value)
+            XCTAssertFalse(DateOrdering.notAfter(invalid, valid))
+            XCTAssertFalse(DateOrdering.notBefore(invalid, valid))
+            XCTAssertFalse(DateOrdering.notAfter(valid, invalid))
+            XCTAssertFalse(DateOrdering.notBefore(valid, invalid))
+        }
+    }
     func testEqualityAndReversedBoundsUseTheSameInclusiveInstant() {
         let cutoff = Date(timeIntervalSinceReferenceDate: 800_000_000)
         let before = cutoff.addingTimeInterval(-0.25), after = cutoff.addingTimeInterval(0.25)

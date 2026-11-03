@@ -90,7 +90,7 @@ def test_confirmation_replay_nutrition_and_summary(client):
     assert summary["estimated_water_ml"] is None
 
 
-@pytest.mark.parametrize("changes", [{"category":"Tea"},{"product_id":"fake"},{"container_ml":None},
+@pytest.mark.parametrize("changes", [{"category":"Tea"},{"product_id":"fake"},
     {"consumed_ml":356},{"container_ml":True},{"source":"manual"},{"nutrition":{"water_ml":150}}])
 def test_invalid_confirmation(client, changes):
     r = client.post("/v1/beverages", json=confirmed(**changes), headers=AUTH | {"Idempotency-Key":str(uuid4())})

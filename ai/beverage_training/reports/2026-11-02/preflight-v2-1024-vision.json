@@ -1,0 +1,28 @@
+{
+  "actual_feature_writes" : [
+    {
+      "feature_sha256" : "85bad5de78562529cce2c9c40da5b59193d996a2aec4fdcab9f5dd86ea798fb2",
+      "image_id" : "off-3760025780086-1"
+    }
+  ],
+  "completed_utc" : "2026-11-03T01:26:57Z",
+  "encoder_config_sha256" : "777f849b425a75d6e1910686cb8e41f9f71cdce4721c0ef5aba953571e190791",
+  "execution_policy" : "separate-frozen-vision-v1",
+  "language_loaded" : false,
+  "loaded_weight_namespaces" : [
+    "vision_adapter",
+    "vision_projection",
+    "vision_tower"
+  ],
+  "memory" : {
+    "mlx_active_bytes" : 3744958484,
+    "mlx_cache_bytes" : 0,
+    "mlx_peak_bytes" : 4625851942,
+    "phase" : "encoder_finished",
+    "process_peak_rss_bytes" : 4117266432,
+    "resident_bytes" : 3948724224
+  },
+  "schema_version" : "beverage-encoder-run-v1",
+  "started_utc" : "2026-11-03T01:26:52Z",
+  "vision_only" : true
+}

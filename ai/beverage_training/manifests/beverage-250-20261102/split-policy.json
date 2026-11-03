@@ -1,0 +1,1610 @@
+{
+  "aliases_sha256": "c11c59c5fbab10f1eb1632ffcf404212fd1c62241bc8bf579d1ca3f6aa506549",
+  "assignments": [
+    {
+      "image_id": "off-0002000003555-1",
+      "image_sha256": "11058a88851de4cdb6fb2648ca6dbfb644a15fa7ed91ee409c264d00a2bfdafd",
+      "source_product_id": "openfoodfacts:0002000003555",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0009439002579-3",
+      "image_sha256": "089b734dadc1de536bfd8d566684f9f2e1022d23b27042bba44e4cbd9cc692a0",
+      "source_product_id": "openfoodfacts:0009439002579",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0011110008107-2",
+      "image_sha256": "2e280153c2a6fa62fb4a1f15874f2c78ac2a82d0c3cedbf45deced7d80c8b741",
+      "source_product_id": "openfoodfacts:0011110008107",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0011110110985-4",
+      "image_sha256": "b2abf3d135f8562de6e256724906c7c4b22b097c0b560a75f58c103225c8f438",
+      "source_product_id": "openfoodfacts:0011110110985",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0011110423160-3",
+      "image_sha256": "703dc2c9d859230c05708875c7f6ac9c9e75ac604c0e4fb18d7608625b42212e",
+      "source_product_id": "openfoodfacts:0011110423160",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0011150159609-3",
+      "image_sha256": "e1b472bc283e957e13206aed2d87e31daea9a833df16923f9a089c594574dc3d",
+      "source_product_id": "openfoodfacts:0011150159609",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0011152225654-4",
+      "image_sha256": "3d31006eca0d6162933116a169003c733a2854367fd12c513315026a0609a386",
+      "source_product_id": "openfoodfacts:0011152225654",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0011210000216-1",
+      "image_sha256": "d02199745d80c06c25d261a2d7e76a025abeee45b2453e0a8acf91182d38e308",
+      "source_product_id": "openfoodfacts:0011210000216",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0012000014338-6",
+      "image_sha256": "2dbbfca5dcdde441e8e2d2a81af22e881998525c35942cc6981da081fa4b80ee",
+      "source_product_id": "openfoodfacts:0012000014338",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0012000041396-1",
+      "image_sha256": "ae3811a49d6ddfed81b068c220c937f19013d6b57323209a505433a5da88771c",
+      "source_product_id": "openfoodfacts:0012000041396",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0012000374012-3",
+      "image_sha256": "21ec8d705ab2c9bcb20467e370301a0026b84a379a16d358db2dbebe49d83585",
+      "source_product_id": "openfoodfacts:0012000374012",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0012000813313-19",
+      "image_sha256": "054eb0a40f86d343fc706e2283d3a2349e99b25e7b4594303e4d0440c0386b78",
+      "source_product_id": "openfoodfacts:0012000813313",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0014054026053-2",
+      "image_sha256": "5da119e79bec13551631307275662faebfb8817ad0ee01758ddc8d2120d93c40",
+      "source_product_id": "openfoodfacts:0014054026053",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0014054030715-1",
+      "image_sha256": "406b49a40802a84b64e6e76fba537d0d9ea31b700101f809cd6f13e90a0b394f",
+      "source_product_id": "openfoodfacts:0014054030715",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0014800515312-10",
+      "image_sha256": "c1538d282c804f24baccbe4225819031b9c6fb55b18b0f47aa545f27311a3282",
+      "source_product_id": "openfoodfacts:0014800515312",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229004507-1",
+      "image_sha256": "85d381fbe2524c444da906bb06744abb2d3761ff82fd365c94e7bba084cbaeba",
+      "source_product_id": "openfoodfacts:0016229004507",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229009052-5",
+      "image_sha256": "7bff4a5aa9b637fece509f4180714ff0650d1ca276501e96605f7ad7c3d8a53c",
+      "source_product_id": "openfoodfacts:0016229009052",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229901141-19",
+      "image_sha256": "3cf988017b54e004ac41eb1947f7dfc8f4453f670196e3fe505c122ff530a10f",
+      "source_product_id": "openfoodfacts:0016229901141",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229901158-5",
+      "image_sha256": "407c0be40f2cada8895a3fa50a9059623f81effde73e3be2aeaebde7c1c93ea9",
+      "source_product_id": "openfoodfacts:0016229901158",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229901165-3",
+      "image_sha256": "e693296910dcf7fa4976a033c1b7b067bf6fd5bf7b9b7612108e6490de745c87",
+      "source_product_id": "openfoodfacts:0016229901165",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0016229902643-16",
+      "image_sha256": "64c55dd53d89958d5678532594438643f3a4725c5ad9170a8bf9981a53df3846",
+      "source_product_id": "openfoodfacts:0016229902643",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229903534-9",
+      "image_sha256": "225bc86e35638e911230199b33bc5c2624eac07ef45f2a9b3bcf370e3f04e5d0",
+      "source_product_id": "openfoodfacts:0016229903534",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0016229909055-4",
+      "image_sha256": "218889de635daad3c45de7be90a0f30368c99374ead287285e9a8c008ab4a4ff",
+      "source_product_id": "openfoodfacts:0016229909055",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229914561-1",
+      "image_sha256": "1891f5603347c461176c67584cbc27837fcdb094ed578f68194834a87a29aadb",
+      "source_product_id": "openfoodfacts:0016229914561",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229916435-1",
+      "image_sha256": "b9277122a7ad0690e3c7541b7d6de8f3c8a9fb62900f2e5a1d72b3e74b3fe401",
+      "source_product_id": "openfoodfacts:0016229916435",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0016229917609-1",
+      "image_sha256": "d3689daddd72a434e52cf5739e93df7dd6dbb860bd38907febcbdc5ee2d12291",
+      "source_product_id": "openfoodfacts:0016229917609",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229917630-1",
+      "image_sha256": "be4a5353973bbe00f6b256881e76ed6ceafd856c42b47350b58b6b2d7177b5c4",
+      "source_product_id": "openfoodfacts:0016229917630",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0016229919313-1",
+      "image_sha256": "61cfe9f36a319fb0a24ab51ddc6a915f3a968ac92a615205fe98a850fd33f21d",
+      "source_product_id": "openfoodfacts:0016229919313",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016229920456-1",
+      "image_sha256": "189e8b94d7d53a518c8e5d599e58776d2069121007268ca1f99cd34646e6ddbf",
+      "source_product_id": "openfoodfacts:0016229920456",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0016571940348-2",
+      "image_sha256": "0b8a918404a3ce49a60880f9f6de64dd96c07aa6b2a84c31d366106c8e3c8e6a",
+      "source_product_id": "openfoodfacts:0016571940348",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0016571951580-5",
+      "image_sha256": "dadbcd1c835dd92f50dc4d39e21112d574252102e6341ea5148307de986c8e70",
+      "source_product_id": "openfoodfacts:0016571951580",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0017077001328-5",
+      "image_sha256": "66c138c1bf46804b9a38e710c8be781c465c876e7fcef7aa29cf32d9f0b1adfd",
+      "source_product_id": "openfoodfacts:0017077001328",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0017077108324-1",
+      "image_sha256": "3348ae3427a99e471ad6027d5b62f989b83d85c7a730e32283cb0c5d1c799631",
+      "source_product_id": "openfoodfacts:0017077108324",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0019063001114-6",
+      "image_sha256": "22824700b1d65fce80c623488af763ac19a575b54562d6e5cbbf137ab27dc0da",
+      "source_product_id": "openfoodfacts:0019063001114",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0019063001169-7",
+      "image_sha256": "f0e29210cab8cf7232a83fac7366407e3754d81c08d1b350d8416b351d888433",
+      "source_product_id": "openfoodfacts:0019063001169",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0019063001176-8",
+      "image_sha256": "4bd5d9bdc04a59753b9780bf37df652cb9f984cffb7205ab382b00187f7a4a18",
+      "source_product_id": "openfoodfacts:0019063001176",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0021130070107-11",
+      "image_sha256": "c57590f0dbe2669d0f40d2921b5bd404a628e78723f4a34798662b237283d37c",
+      "source_product_id": "openfoodfacts:0021130070107",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0021130254316-3",
+      "image_sha256": "5870dc43674108cc90ad4a223a386281c579f470031db71b86f34cb0a63e3f0d",
+      "source_product_id": "openfoodfacts:0021130254316",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0021130334216-1",
+      "image_sha256": "26ab11a621d58ab7b0e23e4f472d0891c6832a50c8ac2578f8e75ddb66a96213",
+      "source_product_id": "openfoodfacts:0021130334216",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0021136010480-5",
+      "image_sha256": "2296a83bf7ecf2b8ff6fdcc4f905673efcdb299d075b52d783cc3e0062b59319",
+      "source_product_id": "openfoodfacts:0021136010480",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0022451011008-4",
+      "image_sha256": "e63202544f06ce8ac37194d1ed33fbc993cc3dbe89798dfac96d0b1ad150aadc",
+      "source_product_id": "openfoodfacts:0022451011008",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0023100000220-1",
+      "image_sha256": "2406076d96a5ae79845b8cce94e911b6ff917ccfdbfb01efd2f800b86bc8d84f",
+      "source_product_id": "openfoodfacts:0023100000220",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025000054167-1",
+      "image_sha256": "1affed69b873eff286cd7edcd2d1c511f8ec1c9a1da1c2382b635ceea6414102",
+      "source_product_id": "openfoodfacts:0025000054167",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025000056031-2",
+      "image_sha256": "9c8efe310ab22830aab8ecb614fb2a7769ccdb6a68bea2eca51d8358bdb35c3d",
+      "source_product_id": "openfoodfacts:0025000056031",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293000995-21",
+      "image_sha256": "917346556b8234babcfbb7668d32de7be272c0410bf4bc26c24dd1ac67fa9b5d",
+      "source_product_id": "openfoodfacts:0025293000995",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293001008-8",
+      "image_sha256": "d9b4469c1bd8cae14f803d382d237bf4803bdff6e5a3856aa164b79915477705",
+      "source_product_id": "openfoodfacts:0025293001008",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293001497-34",
+      "image_sha256": "028c0f2b381757ed64ea28b82f27ab3f4a826d64a4211c6f377d052dee6f365d",
+      "source_product_id": "openfoodfacts:0025293001497",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0025293001503-32",
+      "image_sha256": "7e8ceb6cb3c87ccfd969307f4819c138c5b502934507dc8f588542bcfe3200c2",
+      "source_product_id": "openfoodfacts:0025293001503",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0025293001695-6",
+      "image_sha256": "fba2b8c5f0e4a15ba2b4609284222aa7101beaaa573877733cd2a5604dcc97e6",
+      "source_product_id": "openfoodfacts:0025293001695",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0025293001886-18",
+      "image_sha256": "824b43abf806624c368eaefc63b510f7ae8ff93f548da6c83a06c7b291a520df",
+      "source_product_id": "openfoodfacts:0025293001886",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0025293003590-3",
+      "image_sha256": "3759437d96c87b63f57acca8abe488f77d3f5983f23f24c493a650b59d0a2082",
+      "source_product_id": "openfoodfacts:0025293003590",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293600270-10",
+      "image_sha256": "f032f208af5662697c41fc389e8bb94b7605cc9926d8ef0f1a0dc392a01282e2",
+      "source_product_id": "openfoodfacts:0025293600270",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0025293600713-19",
+      "image_sha256": "f16d7c853defb8966771db082cdbc60aa778c4c0b7c36860ad12091a149504ec",
+      "source_product_id": "openfoodfacts:0025293600713",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293600737-13",
+      "image_sha256": "5512e8f673bf4d8905017768714ca91307d20213d5f37ee1aff90a2e76af8be7",
+      "source_product_id": "openfoodfacts:0025293600737",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0025293600751-11",
+      "image_sha256": "46c0a151c812565357ac7d5a9cc6edf0fdf765bd9926f1e06ae276bd424e779e",
+      "source_product_id": "openfoodfacts:0025293600751",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0025616102504-6",
+      "image_sha256": "d8ebdd9b0e1a3ef9f8208850aefd34c2a6595daa1a156f4e24229d129c527ae1",
+      "source_product_id": "openfoodfacts:0025616102504",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0028000515751-11",
+      "image_sha256": "bc99622d67dc81631f3176ce6a57d84f7d31ebd058eb454dd12b0e560b34cc4e",
+      "source_product_id": "openfoodfacts:0028000515751",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0031200444813-5",
+      "image_sha256": "cedd2ad3bb44dd770e417ff497455364e61e0aaa335bfe505725e6bfc59a3b48",
+      "source_product_id": "openfoodfacts:0031200444813",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0031200445261-6",
+      "image_sha256": "f535d7834659e4f91e5f403981c5a39f1895acaafc5162467d4ef5f2fa36a2c4",
+      "source_product_id": "openfoodfacts:0031200445261",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0031200452016-7",
+      "image_sha256": "af95fe310d01193791f41a459c3b62315f7a2bedea796ffaaffd5db2a2e51099",
+      "source_product_id": "openfoodfacts:0031200452016",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0031200610331-5",
+      "image_sha256": "bfe8298600916d05aa6173421f36118444461420d8d6e5e2f864a08463174d9c",
+      "source_product_id": "openfoodfacts:0031200610331",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0036731106018-2",
+      "image_sha256": "02aef5c503dd5cda204e6233f40da13e4dfb42ab409f1c855d9d609e3059dfd0",
+      "source_product_id": "openfoodfacts:0036731106018",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0036731106049-2",
+      "image_sha256": "c3dee5e402c0e0bbf2c48fd492bae66a4089cef5144fad448a8f04206381a44f",
+      "source_product_id": "openfoodfacts:0036731106049",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0036731506009-2",
+      "image_sha256": "3712f2e51c9c4e6258ae34ac0e5037d10b17da6640d93ef9322c775e0a1aea1b",
+      "source_product_id": "openfoodfacts:0036731506009",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0036800079007-1",
+      "image_sha256": "9af3ad847cd97b396459ac7d7108848fda06630741a35767d5af12a6ce7b5731",
+      "source_product_id": "openfoodfacts:0036800079007",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0036800133617-1",
+      "image_sha256": "dadf0f2a8405e66a782f779168369571ad6bfabd5431897303c0f66bc2479e25",
+      "source_product_id": "openfoodfacts:0036800133617",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0041220837908-2",
+      "image_sha256": "e86b7c9f28fe61df0dc2d286db642c85f8f2afcf9d45ed5831c464916c68ca47",
+      "source_product_id": "openfoodfacts:0041220837908",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041268198252-1",
+      "image_sha256": "bcfb394bae685ba9d334c699bf914dbf61ce21cc7b63ebd3f54114487de96af1",
+      "source_product_id": "openfoodfacts:0041268198252",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0041271004953-17",
+      "image_sha256": "b66116f8dd06fc636ea2e29cdf5ab3343e634671c42e99d818f55d168ded399c",
+      "source_product_id": "openfoodfacts:0041271004953",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041497436460-2",
+      "image_sha256": "1ca832df551a4f25910c6dd84e140705a27a40c2e2c4f8314f78d8ea6501538f",
+      "source_product_id": "openfoodfacts:0041497436460",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041498207212-1",
+      "image_sha256": "609e51ccf5d8c5e531d5fa15b0b233d05f2b9610d1bf58179f0e33e88e6e0385",
+      "source_product_id": "openfoodfacts:0041498207212",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0041508511612-4",
+      "image_sha256": "f2f7f7f8e2ef71bc1a9983fa928dd87f335c2e34624b28a5eb2bd148c6f0169c",
+      "source_product_id": "openfoodfacts:0041508511612",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508800129-5",
+      "image_sha256": "05057332d8d6ac5b1ef8f823480b71877424b57e90fbb642f9b036b49cbb9f8d",
+      "source_product_id": "openfoodfacts:0041508800129",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508800600-4",
+      "image_sha256": "026d4e1d062b6e70270c8c04f0e7bca99572fb7a42ab46dca5c499c95e4d8484",
+      "source_product_id": "openfoodfacts:0041508800600",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508800648-7",
+      "image_sha256": "7e555f7b1a7bceb4b347606f24aa3e1874635afab26e375275e3db66606cae1e",
+      "source_product_id": "openfoodfacts:0041508800648",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508802185-5",
+      "image_sha256": "d6428ce44f5690fea072501e6a2932052ae86b128967bf89e554945b874a708c",
+      "source_product_id": "openfoodfacts:0041508802185",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508922456-1",
+      "image_sha256": "0d1c80056e142b3512444cd707602388092aaa72114cefcd5af6e77870c3a935",
+      "source_product_id": "openfoodfacts:0041508922456",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041508934770-5",
+      "image_sha256": "613f5f86b35932e9a2b45558d84363d623832a22a2c77fabcc83c0701c5d6c75",
+      "source_product_id": "openfoodfacts:0041508934770",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0041508963985-8",
+      "image_sha256": "8f21eb766eaa92fa64fc265bdde4d9917086c254c8886b033d02dd812e9894dd",
+      "source_product_id": "openfoodfacts:0041508963985",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041570054130-18",
+      "image_sha256": "29de6b4d444a05dc9f6442aac5a82d8cfadbdb072d1c7287ec81f5460bf2d93e",
+      "source_product_id": "openfoodfacts:0041570054130",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041570055311-10",
+      "image_sha256": "4c06541d3355c785f8616d4e0254a598eebc5dd72160869a04523e6cb6fc292d",
+      "source_product_id": "openfoodfacts:0041570055311",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041570056219-7",
+      "image_sha256": "c5c89aeed80b05e2de4dda74be425d6f35fea4ba27803d6cc3eb9d244bc5a458",
+      "source_product_id": "openfoodfacts:0041570056219",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041570056707-30",
+      "image_sha256": "3a73a5ace14ac0a92ee7e581342fb84139bf4d08e5a4eb83bd222eaad95b2e27",
+      "source_product_id": "openfoodfacts:0041570056707",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041570057704-7",
+      "image_sha256": "a908bd1d6e3d3f0ebb1fe9cf64fba3e43409d642319237e0c852196a8c3bca4e",
+      "source_product_id": "openfoodfacts:0041570057704",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0041800202362-1",
+      "image_sha256": "079085d2781e4bcbc82f6fc8826e8583633ab497c1d435fb8b7ce873bbadc6f1",
+      "source_product_id": "openfoodfacts:0041800202362",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0041800227006-12",
+      "image_sha256": "5950162c2a227c20c3277328c2d9eab2dcddbac0c771c42284afd8034f423245",
+      "source_product_id": "openfoodfacts:0041800227006",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0041800490004-6",
+      "image_sha256": "87541289fe085d61c7e9fed8c09a0243b81f66efadb8edddbc9826a2c6cb10e5",
+      "source_product_id": "openfoodfacts:0041800490004",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0042111558865-1",
+      "image_sha256": "aaa85c3bce845386d1d6a6c8dc7dc7821f0895ef16c47e2577a499db016d5b2b",
+      "source_product_id": "openfoodfacts:0042111558865",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0048500001578-5",
+      "image_sha256": "55ad4e556e7ba651826794d7bd123cdf35eb8d28290c957a835ceade4b67c9e8",
+      "source_product_id": "openfoodfacts:0048500001578",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500001769-5",
+      "image_sha256": "62095d3967d6186d5520c298ea757a4a65ec8596baa0a7487ec1d505c4e44455",
+      "source_product_id": "openfoodfacts:0048500001769",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500017753-4",
+      "image_sha256": "a5f8f0ab89163468d68ae6fc8608928af65d16b05abff0869574586f1e845703",
+      "source_product_id": "openfoodfacts:0048500017753",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500018347-1",
+      "image_sha256": "8751b834cf6ac92e4d9be5f349170f6a97d59076d869f45373e966240538c72f",
+      "source_product_id": "openfoodfacts:0048500018347",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500018361-8",
+      "image_sha256": "dca1280a7ba8514b692c15d0f17b70bec6c50b89bb8a435c269d74247394122f",
+      "source_product_id": "openfoodfacts:0048500018361",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0048500021552-4",
+      "image_sha256": "4305c3f8fbe84fa30d15c57491a66f124260d30de1fe451614f8f00622f24684",
+      "source_product_id": "openfoodfacts:0048500021552",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500201619-1",
+      "image_sha256": "4a4c125ed35b22236b4fc6c1686c2d0dab662dff3a02ab041b412f34879765b5",
+      "source_product_id": "openfoodfacts:0048500201619",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0048500201626-1",
+      "image_sha256": "24174984e32c25423eefc7adbcb1eea59dce67915f1e4a1b70404c9f08064de4",
+      "source_product_id": "openfoodfacts:0048500201626",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0048500201633-1",
+      "image_sha256": "273136259d4eeed757718f58c3e127ade0308f63257e26046fd650962c37daae",
+      "source_product_id": "openfoodfacts:0048500201633",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0049000014266-14",
+      "image_sha256": "9443dbac7e1f4d2e140b7d2922ac4cb13ef4e449d609f7170c316f15d6597639",
+      "source_product_id": "openfoodfacts:0049000014266",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0049000072389-14",
+      "image_sha256": "b86758bbfe9073706e5c944860fdcb265b7792356cab5652b51cb589a66fc1dc",
+      "source_product_id": "openfoodfacts:0049000072389",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0049283802185-2",
+      "image_sha256": "04ce236228785d6135db52617c066c0e14101675627376eb4080ea74ad6e570d",
+      "source_product_id": "openfoodfacts:0049283802185",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0051000012920-18",
+      "image_sha256": "8ed1c6de8615fd9e63438b1b9c98f2a0ed1662f22dc223befdecf2a78002ea3c",
+      "source_product_id": "openfoodfacts:0051000012920",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0052548564773-1",
+      "image_sha256": "818d1e95cfd4a7eeb2e2474de9b9b0b14eeedee7b1076e088b8d2dbdb8524c46",
+      "source_product_id": "openfoodfacts:0052548564773",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0054308184412-17",
+      "image_sha256": "54b1fbfbe4c6a8c1e1e785879c62c8fb38e728ea07e96ea909bcc4490135f333",
+      "source_product_id": "openfoodfacts:0054308184412",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0055742521122-1",
+      "image_sha256": "892745c7a4265e9652c1f0e35bf96d756748aa29e34928622b9d5039cf8f5882",
+      "source_product_id": "openfoodfacts:0055742521122",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0055742522310-8",
+      "image_sha256": "e61fe7de35a08c1fb7e632ba71f5f7a919b7e4addff18800a1b7b93edbe9e7af",
+      "source_product_id": "openfoodfacts:0055742522310",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0055872025019-2",
+      "image_sha256": "11ae20dc25f6062eda4fe24c673a9c337f0460cb8b34c26dbb351557f03d460b",
+      "source_product_id": "openfoodfacts:0055872025019",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0055872106015-6",
+      "image_sha256": "f0b580842bc3bb3f61824ae5624e24ba2bd60e94479e0d5ef3e9764279a95a3c",
+      "source_product_id": "openfoodfacts:0055872106015",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0055872515176-6",
+      "image_sha256": "636b60921e41a11562eaa6b41d5e972330035b34fb9b9f3ea3abba00c4512d97",
+      "source_product_id": "openfoodfacts:0055872515176",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0056327011625-1",
+      "image_sha256": "ca0268fdeff20f4bef363430139982b234a02000f6e24dedf5e638ae3f84bb77",
+      "source_product_id": "openfoodfacts:0056327011625",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0056327073234-4",
+      "image_sha256": "1a2676cc82941c14ef8e8bf37feea4c30a0c84091a64a297e46b9c00e2cd5794",
+      "source_product_id": "openfoodfacts:0056327073234",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0056910104734-1",
+      "image_sha256": "93739822e731a7de2da46eb56fd100597870498f08004d570f29a386ad0b0a8a",
+      "source_product_id": "openfoodfacts:0056910104734",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0059600060211-6",
+      "image_sha256": "b5dc452d1d8dd51483b184f4c4e074b02279717ec1ad5caa91c818f13f352629",
+      "source_product_id": "openfoodfacts:0059600060211",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0059600070029-1",
+      "image_sha256": "9fde150badc62a836891174279b79974aa6c57daaa07355a7030eb77d62c968a",
+      "source_product_id": "openfoodfacts:0059600070029",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0059600070166-5",
+      "image_sha256": "54acdcc747c8496b8bac0cc31a03622cda83826b88b4c288773bdc1994fa8007",
+      "source_product_id": "openfoodfacts:0059600070166",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0059600070876-7",
+      "image_sha256": "4646e54f93ba50b05d246798d4fad59ccd7aca6c174617978f5773f0fb2e5cf7",
+      "source_product_id": "openfoodfacts:0059600070876",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0059749950015-1",
+      "image_sha256": "8de43c5fef2f57ee8bfc475691645dbe099a2177a5f98bd6f397cc71d0e44928",
+      "source_product_id": "openfoodfacts:0059749950015",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0060383137724-2",
+      "image_sha256": "95ecf4d957589887d26e1ff988b297d2900433cfb19b6017f39c2ca8cdfd3b26",
+      "source_product_id": "openfoodfacts:0060383137724",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0060383170257-2",
+      "image_sha256": "8d99e987a1adf6fe465070fa2ea7e95566cfae792c2df87ba8f5d3ae83383c72",
+      "source_product_id": "openfoodfacts:0060383170257",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0060383758783-14",
+      "image_sha256": "e132f571437700ad73ad69c34b4c32e13d3196c906723444e5c02b8e2478b8b5",
+      "source_product_id": "openfoodfacts:0060383758783",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0060383780630-1",
+      "image_sha256": "cbb77f7ee5eee791e2bf97a1d5efb77167a68a519bb2b6a5a9cb9734113fa98b",
+      "source_product_id": "openfoodfacts:0060383780630",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0061314000070-4",
+      "image_sha256": "d73668eb3df0487e65da89340473448ddbca885abd0ca2dd0bbc8423e471a712",
+      "source_product_id": "openfoodfacts:0061314000070",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0063667301408-10",
+      "image_sha256": "43bcbc39642add1ad787bdaf5c5f93e8c2c7b5eeaf87c794ab5d23fe7fbec482",
+      "source_product_id": "openfoodfacts:0063667301408",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0064420010124-12",
+      "image_sha256": "711c114d6222aa28c78bf76121311b78f172ef16c037d23d3f4fd0278a693bc4",
+      "source_product_id": "openfoodfacts:0064420010124",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0064420010223-12",
+      "image_sha256": "b959ec38941ac1c6b46ec0d8d37dd5b492ba55ddae48025cbdd2866be6bd9698",
+      "source_product_id": "openfoodfacts:0064420010223",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0065244100015-1",
+      "image_sha256": "08277fc075ad9072d8d5af9996525bd4550862e80e61fb29d3a86cafffbc8456",
+      "source_product_id": "openfoodfacts:0065244100015",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0067000104015-1",
+      "image_sha256": "9ad81207ac3f9cc7d73a3b863ade8cccaedac76a42a2300002022af3d428cbc0",
+      "source_product_id": "openfoodfacts:0067000104015",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0067311010333-2",
+      "image_sha256": "3b496253a2696b703c9e8fbd89082623e37ff507b62fb40ef181c71acb76ac77",
+      "source_product_id": "openfoodfacts:0067311010333",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0067311020110-8",
+      "image_sha256": "42d7bb193754f91cc33ca326078e75c2f1a6ae088c66afb9c77ecdf41aa85d3a",
+      "source_product_id": "openfoodfacts:0067311020110",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0067311045335-4",
+      "image_sha256": "d257edfd4a7f1f53331a9c958a7eb6cad8f389ea4d51fa52ee4465db9f3c858c",
+      "source_product_id": "openfoodfacts:0067311045335",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0067311268987-1",
+      "image_sha256": "0e42aab980d6973989f2b1d262ad88182b26abd9ed4d127431af2aaf0ae41699",
+      "source_product_id": "openfoodfacts:0067311268987",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0067351005054-5",
+      "image_sha256": "b16b3e7a4d797aca78be250c06e0c85d1998631a36558ac977dd7e8cd1cd7e7b",
+      "source_product_id": "openfoodfacts:0067351005054",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0068200010120-7",
+      "image_sha256": "e3c2f5b151cc9b44b2033c3f3866944ea19aed6cbdcf6faab1501d8687c4d56f",
+      "source_product_id": "openfoodfacts:0068200010120",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0068200910536-4",
+      "image_sha256": "3e6364a09380eb167fd8509bd07a3351f6be5dffde0be4bbae055a4dc94acb5e",
+      "source_product_id": "openfoodfacts:0068200910536",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0068274346613-3",
+      "image_sha256": "1a6293f42d1b1ea93620fa64f51020461c858619aec36e7fd7d080e2527a6060",
+      "source_product_id": "openfoodfacts:0068274346613",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0069000015636-7",
+      "image_sha256": "a34fba25f2c8af7a16d42575cd474ad584683a7ee7e666b85082662bd05aeff7",
+      "source_product_id": "openfoodfacts:0069000015636",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0069000148860-12",
+      "image_sha256": "677e5b89d843f71d4394c51c502add7f0376e2f80c211c728a888929fb78ef0f",
+      "source_product_id": "openfoodfacts:0069000148860",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0070399107505-2",
+      "image_sha256": "2ffe46a30e8afaab4eb04abf5794f2de9feebcf9ba61272ec070870cf92ecfdd",
+      "source_product_id": "openfoodfacts:0070399107505",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0070852000527-2",
+      "image_sha256": "b628d578adab2d68235bc9d68226079318110bf998a6360569b3208a9c45a664",
+      "source_product_id": "openfoodfacts:0070852000527",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0070852193007-1",
+      "image_sha256": "b865476d05e6a6ca0ff75ff2c145e5a5b313eba6e8ff7e1c7529c31b6daeeb6e",
+      "source_product_id": "openfoodfacts:0070852193007",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0071142000098-2",
+      "image_sha256": "d35682e445b9b3c8a7b27dfdd2cf7ef593e233f593fe71ff8f08ca1dbb82ad63",
+      "source_product_id": "openfoodfacts:0071142000098",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0071464240608-9",
+      "image_sha256": "7aae2c9b02290ddc2b89b6c18c204953150cd4e3b3937ba41f7e9cc95763d6f0",
+      "source_product_id": "openfoodfacts:0071464240608",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0071464270407-10",
+      "image_sha256": "949c182af01cde6271f9d8fac3b25ab57c13e9064d177fa4f6b6d1255e148ea4",
+      "source_product_id": "openfoodfacts:0071464270407",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0072036200822-1",
+      "image_sha256": "0f38a49e9f1b135ce8ce854018196e0b59cbda0b72e2619dbb88d81d9f9414cb",
+      "source_product_id": "openfoodfacts:0072036200822",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0072904000202-1",
+      "image_sha256": "7051afdd6519ee00723201daa14dc2c42c19cf46ac69bc609d0e4d72b4bc895a",
+      "source_product_id": "openfoodfacts:0072904000202",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0073490000003-1",
+      "image_sha256": "ac2c7d5665ce6bf8c8e828a87cc4fc737bac10842579e73ee93ab5c93f360a8e",
+      "source_product_id": "openfoodfacts:0073490000003",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0074780000055-1",
+      "image_sha256": "fbbe64be9cc3c9be7f31248bd1b5f3ea03ee8c6db422c36f127b4f0de3260fbe",
+      "source_product_id": "openfoodfacts:0074780000055",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0074865682176-2",
+      "image_sha256": "c647134abb9434d41bee2634f1a67717240d502389a25ea2a6cc78ee945d1557",
+      "source_product_id": "openfoodfacts:0074865682176",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0074865756655-1",
+      "image_sha256": "d59303b3b946de3cec6ca5468d444be65af614a4fda8eee95503d7a774792a06",
+      "source_product_id": "openfoodfacts:0074865756655",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0075140005024-2",
+      "image_sha256": "b222dee39f17192516e9842a30c6f3567b7b55dbe29d2c34c586d33a86875539",
+      "source_product_id": "openfoodfacts:0075140005024",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0075140005154-5",
+      "image_sha256": "5be6cab982b992c3835b9eef11cf12de1460f958fbd73b48730d8d410c04c54a",
+      "source_product_id": "openfoodfacts:0075140005154",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0075355112289-7",
+      "image_sha256": "a84e78b6fad78f44cc06b34ec4033076dd130f0933e2b479f11ca0795f0bcb58",
+      "source_product_id": "openfoodfacts:0075355112289",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0075450096910-2",
+      "image_sha256": "95cf9b3e4170ea8eadac80fb53af0bcc877db76e503fa1fc95e2394bc6c97238",
+      "source_product_id": "openfoodfacts:0075450096910",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0075720431151-2",
+      "image_sha256": "03a69727356c22c99faeaa3e9fa4e1c8f9020d894a3a467339c9068d73f83312",
+      "source_product_id": "openfoodfacts:0075720431151",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0075720481279-5",
+      "image_sha256": "11955b66f55ab3a39f28538954ff69b6eed2f24dfa8e4d8a635b484dbd1d6faa",
+      "source_product_id": "openfoodfacts:0075720481279",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0076183000762-2",
+      "image_sha256": "93cc355e18de488fc3fd2229359d0c38442415c18007c91ba8d76e4d35cab3a3",
+      "source_product_id": "openfoodfacts:0076183000762",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0076183000892-2",
+      "image_sha256": "70765bcab81517003a52983aa364f0d43c9cd10e62cfa6f98e9e60dee9d25d21",
+      "source_product_id": "openfoodfacts:0076183000892",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0076183000915-3",
+      "image_sha256": "8f7b2019b82920a05a57ac070e90e5f15b5f70c3fb4f02897a4c995d6d05be9a",
+      "source_product_id": "openfoodfacts:0076183000915",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0076183001813-1",
+      "image_sha256": "b81f71add1f6e401731cddd7b89ef8ac54fdca12383b27b45acfed05659b0217",
+      "source_product_id": "openfoodfacts:0076183001813",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0076850099013-1",
+      "image_sha256": "363fde5b55afdf46ae44a5a223dd11c7d40f95ffc4a7c31742317bb1f54e12f8",
+      "source_product_id": "openfoodfacts:0076850099013",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0078000082319-5",
+      "image_sha256": "f88a46401810bbac3913568ab3962d982bf43c201916e37d658b8b22c6c719a0",
+      "source_product_id": "openfoodfacts:0078000082319",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0078742040370-6",
+      "image_sha256": "ec986d4318be5493d435a6becc72bbc477ba605e621bad7da7ba33b88708fca2",
+      "source_product_id": "openfoodfacts:0078742040370",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0078742086781-8",
+      "image_sha256": "9e4b7a07083e35e03efd911847613eaa8a4c985846e06d0e5d8e0eed998cd843",
+      "source_product_id": "openfoodfacts:0078742086781",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0078742351919-5",
+      "image_sha256": "2f32ef1398e6fc42316548fa0f32d5cec367950889b0874774d0df46cb757a63",
+      "source_product_id": "openfoodfacts:0078742351919",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0078742351926-4",
+      "image_sha256": "aaeab72909f21ce710ceb3c6c2faf2228d75f6341f494be41157c5f4be192ab0",
+      "source_product_id": "openfoodfacts:0078742351926",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0078742351933-4",
+      "image_sha256": "9c166fb12e70d18cf9c9c68b012d08ebb350be8bcf9ce9a1873b946b3d455bdd",
+      "source_product_id": "openfoodfacts:0078742351933",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0079893601700-1",
+      "image_sha256": "242013dc2b86eff50cbd72567340c1b90d3baed3d99f62175f591d017a57ee78",
+      "source_product_id": "openfoodfacts:0079893601700",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0083783375251-1",
+      "image_sha256": "c34b3d8c9f33bc436c06163bf9bbd2bce4f3e65fee037535b3128c18d9b6cde5",
+      "source_product_id": "openfoodfacts:0083783375251",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0085000012277-1",
+      "image_sha256": "f6886163d4828eb49dcbada27ca95c5b4500a6315b7dbc6e2d14dbd83e9c530d",
+      "source_product_id": "openfoodfacts:0085000012277",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0085239610305-1",
+      "image_sha256": "f789a164a3844d9fc240ca38e750c12fee34eeb9218b5daa4836cc7d7d1192b2",
+      "source_product_id": "openfoodfacts:0085239610305",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0085653444449-3",
+      "image_sha256": "92266b63064e190329f809374a5c0a5444eb11b918e0681c9102d120e1afafbb",
+      "source_product_id": "openfoodfacts:0085653444449",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0088009050530-5",
+      "image_sha256": "27cabddc8a9dbf691f8154ac68ee9f3d156187acf110bd2560b518046f961aee",
+      "source_product_id": "openfoodfacts:0088009050530",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0088009050721-3",
+      "image_sha256": "5594a3244677e4f315ebe0e225e7a7d6e562e616e5187f3373501f4839dce126",
+      "source_product_id": "openfoodfacts:0088009050721",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0096619204205-4",
+      "image_sha256": "66fe877e33b20c6a9e8da56f0fccb7b6fbefdc739ad13bce6fa098a6cb45a4bc",
+      "source_product_id": "openfoodfacts:0096619204205",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0096619321841-8",
+      "image_sha256": "00fd342564f4451593e003034191ec650ea9654987a669a48dc1ad2c59e6ffea",
+      "source_product_id": "openfoodfacts:0096619321841",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0096619381784-11",
+      "image_sha256": "0437d660b918efc557880324d159a939c1192053dc8925eff08dfcd94f74f13f",
+      "source_product_id": "openfoodfacts:0096619381784",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0096619494897-1",
+      "image_sha256": "784e62cc56bff90091bd93976b751eeef2f36aabe31b3296f0dbc98c3347a9e6",
+      "source_product_id": "openfoodfacts:0096619494897",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0096619756803-7",
+      "image_sha256": "07550c44e5e39351810d84ba45a0370097778bd4ff50b04142644afe08f6a116",
+      "source_product_id": "openfoodfacts:0096619756803",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0099482430061-3",
+      "image_sha256": "bd270232cfe6d566be723878b620269ffd5491f67d017dbec03a33271e520880",
+      "source_product_id": "openfoodfacts:0099482430061",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0099482430092-3",
+      "image_sha256": "aee3b7a8255747f3592b3d90b1f1ea08c75bd55a23f12e210a6f8945393ea2ab",
+      "source_product_id": "openfoodfacts:0099482430092",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0122114780811-1",
+      "image_sha256": "8a87e1943e0b26e8c5c2fc437f521a468929dc1b71a2302cc32ec2ca1ec62bcc",
+      "source_product_id": "openfoodfacts:0122114780811",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0184739000040-6",
+      "image_sha256": "fea85f35fe0d0db8828157fa3eba2e44a36cb4088ae93c4263b0cd0cce54d850",
+      "source_product_id": "openfoodfacts:0184739000040",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0605388881243-10",
+      "image_sha256": "da6cb41d3840dc3952838aa403dae5b633fa70386845948aa6886c6479eb8382",
+      "source_product_id": "openfoodfacts:0605388881243",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008718459-2",
+      "image_sha256": "8b6cf6495e310149659894d405ff4504e63356eb7162a15f875e4d63b6319eb6",
+      "source_product_id": "openfoodfacts:0613008718459",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008719524-9",
+      "image_sha256": "ec66c5aaffc8e243ceb989c152886a3168557417ad7b2749e25327192a49a0ac",
+      "source_product_id": "openfoodfacts:0613008719524",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0613008730321-3",
+      "image_sha256": "bfc2bc3d1e82e63d5acdf1fe6b8ce42ea3e0d4a8e5606fc5797e42df45955392",
+      "source_product_id": "openfoodfacts:0613008730321",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008730734-43",
+      "image_sha256": "a5467612d089c7373b47491d8def9679bd88729907d5911667291cd3edb6220e",
+      "source_product_id": "openfoodfacts:0613008730734",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008734541-14",
+      "image_sha256": "ebc824ec961f348ed78b4e3023f05f7deef8572ec6bc2c2ec82f850f9b6da182",
+      "source_product_id": "openfoodfacts:0613008734541",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008735012-8",
+      "image_sha256": "4f9109f675faeaee0c821db2bf6b76b91eee8a4ec54799d2013d687ba0c6e967",
+      "source_product_id": "openfoodfacts:0613008735012",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008738808-2",
+      "image_sha256": "c860ee9ab54c07800bf869985c410abf2cb667e059311d0932f3f09171822f8f",
+      "source_product_id": "openfoodfacts:0613008738808",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008743888-11",
+      "image_sha256": "ba8161285653710ccb25fe1fd5e34b23be4bc51f416bbc4ae26b8951f5ce76d0",
+      "source_product_id": "openfoodfacts:0613008743888",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0613008746858-4",
+      "image_sha256": "1dd59f49619b8ceba7b250a0f72ed9c86374815fb055f6fa8b1938817ddfb1dd",
+      "source_product_id": "openfoodfacts:0613008746858",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0616204190562-1",
+      "image_sha256": "3ace3d39809ec7345666a9e5454d42a00a97cbffcde2f65c9b82cb50d963d60d",
+      "source_product_id": "openfoodfacts:0616204190562",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0621433005044-2",
+      "image_sha256": "e90168f31b2ea8f0b0b4808d6d27adf50ef8220846c21cc5fc3051ad184a027c",
+      "source_product_id": "openfoodfacts:0621433005044",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0621433007741-2",
+      "image_sha256": "4f9e8a61e9022bed366f3c70cedd25a1f7bfa97af93825db5403b4e03a9bcd35",
+      "source_product_id": "openfoodfacts:0621433007741",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0621433009042-2",
+      "image_sha256": "a3b379cbd6ba12e4aaa3a4ac34b5cdd253600e5863cfbdfde6c9b83317c1c262",
+      "source_product_id": "openfoodfacts:0621433009042",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0621433012042-2",
+      "image_sha256": "0274a566db12b2b82ee1f29a40b2898b4678c6ccab188ccd033768d3609d4d8f",
+      "source_product_id": "openfoodfacts:0621433012042",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0627843436423-3",
+      "image_sha256": "838db463bde64ac24a574d4706a73fc271b1c8a1aee7f7af7a10a915d74e6d70",
+      "source_product_id": "openfoodfacts:0627843436423",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0636046700330-3",
+      "image_sha256": "37ea22aeeae4c08678dfa4a000a2364df4c3870829d594de618f89644258928e",
+      "source_product_id": "openfoodfacts:0636046700330",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0680569891808-1",
+      "image_sha256": "28ea257a45c563c904c6782adaa6853c082833bc650642a692a6147c4c05ab9f",
+      "source_product_id": "openfoodfacts:0680569891808",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0688444500029-1",
+      "image_sha256": "13e84d63a03622ac39fe90cc84f3bdd52e790aee85b09a1df8c11e42a34526fc",
+      "source_product_id": "openfoodfacts:0688444500029",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0708236951096-1",
+      "image_sha256": "72ee9489105202ee2f27906264407d27b671514949ce3f98d12681cbc73812b1",
+      "source_product_id": "openfoodfacts:0708236951096",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-0721557340066-4",
+      "image_sha256": "19da1a32a2cf27fbe3abe00420bf499279000821684287717ab763bfda0c791a",
+      "source_product_id": "openfoodfacts:0721557340066",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0742365208850-4",
+      "image_sha256": "cf05219b7358714c67dcd5fca4fa8e71ca477d1651697cc9b540fe50a323d0ac",
+      "source_product_id": "openfoodfacts:0742365208850",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0742365264054-1",
+      "image_sha256": "89a43d908d61426a25454d96544a95dc05b1fa67af0d39e842170b9282f84c02",
+      "source_product_id": "openfoodfacts:0742365264054",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0742365264351-14",
+      "image_sha256": "f42e859e9ed8c58d6913b5fe0186dcc458595eacf304d3396e1edf5ceb647532",
+      "source_product_id": "openfoodfacts:0742365264351",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0746742001034-3",
+      "image_sha256": "4e0371c5b344e8f97852b081386200d4e62711e79c61d93d828218685ece956c",
+      "source_product_id": "openfoodfacts:0746742001034",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0754807250839-1",
+      "image_sha256": "d88d9d1ab679b2bedaead861965f45ce5cab1a251c82c51325470c6fa5e99dd0",
+      "source_product_id": "openfoodfacts:0754807250839",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0759494004376-1",
+      "image_sha256": "062f8ffd5978e550fd2133d14c8eab61337139cb7ad2cbe2e8ba1d3438789d00",
+      "source_product_id": "openfoodfacts:0759494004376",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0762571500036-2",
+      "image_sha256": "b0cfd3a4e4e3b0b095d7d00c602921c5b35b2251211ed55fd3738d7957a96709",
+      "source_product_id": "openfoodfacts:0762571500036",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0786162650139-10",
+      "image_sha256": "cf3bb19ceea482ab61777b8acb7951f40d2e1a1485575e0150d8f2e9aa764dd0",
+      "source_product_id": "openfoodfacts:0786162650139",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0793573477262-2",
+      "image_sha256": "2f6ed48b9fd2732372c4b9e27c4be019649290b38f015be2c26bd30df96e1d99",
+      "source_product_id": "openfoodfacts:0793573477262",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0795709095142-4",
+      "image_sha256": "c511c0209f0d182348ab6af7604066885dd39b13cde6a94bec833875efb4eefc",
+      "source_product_id": "openfoodfacts:0795709095142",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0798713110078-2",
+      "image_sha256": "1bfcb85fde601c2efb7691a24d141c9d26f26d0d9cedd82c20615b83b691683d",
+      "source_product_id": "openfoodfacts:0798713110078",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0813636020775-4",
+      "image_sha256": "6a42f8c790436a611473bdd92aea17a4bc83b55618d65dfe6916ee5f230e2a62",
+      "source_product_id": "openfoodfacts:0813636020775",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0813694023480-1",
+      "image_sha256": "8c94db5e1a3900f706219794afd5a1fb48278d582ac8cd62ba58af0d596e92be",
+      "source_product_id": "openfoodfacts:0813694023480",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0815473012654-5",
+      "image_sha256": "b044a4c2fd9f1d53a12cc59e9a15b6fc383214262f09900887ec31cf77e5a54d",
+      "source_product_id": "openfoodfacts:0815473012654",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0818762000035-8",
+      "image_sha256": "c50a55223709baa52e717b72f5e2f68034f803042dd5e454f1f9fe8439bcb2eb",
+      "source_product_id": "openfoodfacts:0818762000035",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0821954078064-5",
+      "image_sha256": "5cf342e674c97c4e780b06968d079dba818e57d1e0e33e0668838f32d9996896",
+      "source_product_id": "openfoodfacts:0821954078064",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0835143001047-14",
+      "image_sha256": "ab7fb1732ac741035bf853d9002f26208bebf1adbcaf4b9e9985ed7f7ce883a7",
+      "source_product_id": "openfoodfacts:0835143001047",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0850413005006-3",
+      "image_sha256": "6c13d604c23df0c69fc369eb2d1db78bfa3a71115288281f45ac21970ec92296",
+      "source_product_id": "openfoodfacts:0850413005006",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0853311003617-4",
+      "image_sha256": "f16a805714b9e00110ec4d770d183d4c4f80cec444ac95de31856ecf81d2f8c5",
+      "source_product_id": "openfoodfacts:0853311003617",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0855315000319-2",
+      "image_sha256": "398ebe0f7a455c24c21aa37515a18088ff88d2288e64c1566c8a23d02266cb75",
+      "source_product_id": "openfoodfacts:0855315000319",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0856312002771-233",
+      "image_sha256": "fcb19cadea16f8a70f961d6a9935d8cbd120178d62aac26c7a3133328851bdca",
+      "source_product_id": "openfoodfacts:0856312002771",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0859100001307-7",
+      "image_sha256": "f64099ba726463b292e0e87f150884eee85d2546c9e0dda6301600c1e0e0cc98",
+      "source_product_id": "openfoodfacts:0859100001307",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0892809000233-4",
+      "image_sha256": "20530697b2871184d33419dd7d5800a77932823471de2afb2d71e6732e41ee4b",
+      "source_product_id": "openfoodfacts:0892809000233",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0896221000185-3",
+      "image_sha256": "180e9394434bc3b8df467e6abe4e060f735065249bdb9d461f67e206ecdcbdb6",
+      "source_product_id": "openfoodfacts:0896221000185",
+      "split": "test"
+    },
+    {
+      "image_id": "off-0896221000246-2",
+      "image_sha256": "ee1b6a6c2e463a3a7d3b5f4147b655f9a9d67bbaffa5edab8e7f7b6962da7686",
+      "source_product_id": "openfoodfacts:0896221000246",
+      "split": "train"
+    },
+    {
+      "image_id": "off-0896221000314-2",
+      "image_sha256": "5ac55f7816720461d9085a20343f8029df8e28b18a83ce5f8e72ad453d3afa98",
+      "source_product_id": "openfoodfacts:0896221000314",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-1303102230009-2",
+      "image_sha256": "0badf2afcba3d6f4bc12cbdaf8f9931637a13aa9c42c101c57bf657aff40606f",
+      "source_product_id": "openfoodfacts:1303102230009",
+      "split": "train"
+    },
+    {
+      "image_id": "off-1503102220004-1",
+      "image_sha256": "5a8a1fb3fe3e875a909c39ff9f04201690dbe6858479e45a762d76152456fd51",
+      "source_product_id": "openfoodfacts:1503102220004",
+      "split": "train"
+    },
+    {
+      "image_id": "off-1802732370005-1",
+      "image_sha256": "5e94703cdde1b0811be743e300f896b3f686e7c35807486b45a516b43145ac05",
+      "source_product_id": "openfoodfacts:1802732370005",
+      "split": "test"
+    },
+    {
+      "image_id": "off-2000000000000-4",
+      "image_sha256": "f7d88e3655feae6dbdfc52d87bf041c1024d394c8bbd74fc1e99a26d49a45a89",
+      "source_product_id": "openfoodfacts:2000000000000",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000003070-2",
+      "image_sha256": "9c283df4e15402296ccb74beb57864ab3f357d327d5c28de0e57fce90d8a346f",
+      "source_product_id": "openfoodfacts:2000000003070",
+      "split": "test"
+    },
+    {
+      "image_id": "off-2000000020818-2",
+      "image_sha256": "90758003fe99768d8c6a34b4d5bec3da43eda45063093948a33a1daf9cb3c82d",
+      "source_product_id": "openfoodfacts:2000000020818",
+      "split": "test"
+    },
+    {
+      "image_id": "off-2000000021432-2",
+      "image_sha256": "2696ed60c7ef33a4f1b15eca42b474248a8e39d6cbcfd8e53e97efc2a5e78e6f",
+      "source_product_id": "openfoodfacts:2000000021432",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000021470-1",
+      "image_sha256": "13871ad6a2c81a97c524be739a621c638ac3112d42a29024e82fdb2868bb6273",
+      "source_product_id": "openfoodfacts:2000000021470",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-2000000021566-3",
+      "image_sha256": "df0965ca95eec9a0329fa5d8e2cc3a4c5ca89e1f8e18f900eb6618c70567f4ca",
+      "source_product_id": "openfoodfacts:2000000021566",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000021620-1",
+      "image_sha256": "6da569078bcb07c3515135a5f4c5fd96f3c208244066a0955efb1c91be94d886",
+      "source_product_id": "openfoodfacts:2000000021620",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000024442-1",
+      "image_sha256": "bdff8efda38bb54ef8759b35b78bc674a929a745159fd1598fce551ab56a7fa1",
+      "source_product_id": "openfoodfacts:2000000024442",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000057275-2",
+      "image_sha256": "c88668376377f4f271eab1951f889ff2d40f4c09dea2bc0854e25ae095af9f12",
+      "source_product_id": "openfoodfacts:2000000057275",
+      "split": "train"
+    },
+    {
+      "image_id": "off-2000000069143-3",
+      "image_sha256": "2284f6df182d42a12dac71c71dcac10b68d1085994892d65c730993499814367",
+      "source_product_id": "openfoodfacts:2000000069143",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3057640508813-26",
+      "image_sha256": "38be690833d806dbcacd853bfd0e47560bb8a34eb81d9122d7fb019e8db8488e",
+      "source_product_id": "openfoodfacts:3057640508813",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3057640509148-7",
+      "image_sha256": "0951788b83420cfd54fee2a6e4042c77d4285c5b11db971fd9d5464085c5e7ad",
+      "source_product_id": "openfoodfacts:3057640509148",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3151529097501-10",
+      "image_sha256": "06573eec0e5505d14fa2e8c7d74218aa99d2ad6466497f69fba4360d3f6f0e33",
+      "source_product_id": "openfoodfacts:3151529097501",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3760017900034-1",
+      "image_sha256": "f8d70432336921e9dda07b43ed9f947bd5c8b904fb6ce9143b023b9bb9c80cf1",
+      "source_product_id": "openfoodfacts:3760017900034",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3760018890068-1",
+      "image_sha256": "f70dfe4df324e1742d0628226b07c6f335b4c239e994db4b4a741f03316e4e2c",
+      "source_product_id": "openfoodfacts:3760018890068",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3760025780086-1",
+      "image_sha256": "b9e4e0c9b2d329d9078d248ee29e2d9afb6e3ff898f8069511d9b36abb3ebb56",
+      "source_product_id": "openfoodfacts:3760025780086",
+      "split": "train"
+    },
+    {
+      "image_id": "off-3760030050013-2",
+      "image_sha256": "cf18da7be92e794a383c91f263701e16af3274e7dcd51b8196fc73a3f3675c70",
+      "source_product_id": "openfoodfacts:3760030050013",
+      "split": "validation"
+    },
+    {
+      "image_id": "off-5941192107830-7",
+      "image_sha256": "f491016d24089aea18f49a45e948505d0e54cf8f5bd5f6438de4127d63768a3a",
+      "source_product_id": "openfoodfacts:5941192107830",
+      "split": "train"
+    },
+    {
+      "image_id": "off-7394376616792-1",
+      "image_sha256": "927f272c14d71874497a022fa76cee554f8d78073dafd81ce80b0ca676ca447c",
+      "source_product_id": "openfoodfacts:7394376616792",
+      "split": "train"
+    }
+  ],
+  "diversity_counts": {
+    "natural_overall": 120,
+    "natural_test": 46,
+    "natural_test_setting_names": [
+      "home other",
+      "in hand",
+      "indoor table",
+      "kitchen counter",
+      "outdoor surface",
+      "retail shelf",
+      "vehicle"
+    ],
+    "natural_test_settings": 7
+  },
+  "diversity_requirements": {
+    "minimum_natural_overall": 100,
+    "minimum_natural_test": 30,
+    "minimum_natural_test_settings": 3
+  },
+  "drink_families": [
+    "water",
+    "soda",
+    "juice",
+    "sports",
+    "energy",
+    "milk",
+    "plant_milk",
+    "tea",
+    "coffee",
+    "beer",
+    "wine",
+    "other"
+  ],
+  "family_counts": {
+    "overall": {
+      "beer": 23,
+      "coffee": 7,
+      "energy": 4,
+      "juice": 56,
+      "milk": 38,
+      "other": 5,
+      "plant_milk": 22,
+      "soda": 15,
+      "sports": 3,
+      "tea": 22,
+      "water": 46,
+      "wine": 9
+    },
+    "test": {
+      "beer": 8,
+      "coffee": 2,
+      "energy": 2,
+      "juice": 21,
+      "milk": 11,
+      "other": 2,
+      "plant_milk": 7,
+      "soda": 3,
+      "sports": 1,
+      "tea": 5,
+      "water": 10,
+      "wine": 3
+    },
+    "train": {
+      "beer": 11,
+      "coffee": 4,
+      "energy": 2,
+      "juice": 30,
+      "milk": 19,
+      "other": 3,
+      "plant_milk": 14,
+      "soda": 11,
+      "sports": 2,
+      "tea": 15,
+      "water": 33,
+      "wine": 6
+    },
+    "validation": {
+      "beer": 4,
+      "coffee": 1,
+      "energy": 0,
+      "juice": 5,
+      "milk": 8,
+      "other": 0,
+      "plant_milk": 1,
+      "soda": 1,
+      "sports": 0,
+      "tea": 2,
+      "water": 3,
+      "wine": 0
+    }
+  },
+  "family_requirements": {
+    "maximum_photos_per_family": 75,
+    "minimum_families_overall": 6,
+    "minimum_families_test": 5,
+    "minimum_photos_per_family_overall": 10,
+    "minimum_photos_per_family_test": 5
+  },
+  "manifest_sha256": "8f7c9d0fcc6ce0e5719fd99b464eb2ee3ddc5c674734dee7bcf219a577838f59",
+  "schema_version": "beverage-split-v1",
+  "split_counts": {
+    "test": 75,
+    "train": 150,
+    "validation": 25
+  }
+}

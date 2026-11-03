@@ -1,0 +1,317 @@
+{
+  "cases": [
+    {
+      "case_id": "case-01",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0011110008107-2",
+      "image_sha256": "2e280153c2a6fa62fb4a1f15874f2c78ac2a82d0c3cedbf45deced7d80c8b741",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Correct Kroger lemon-lime seltzer; naturally flavored, zero calories and caffeine free are visibly printed neutral additions.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-02",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0011150159609-3",
+      "image_sha256": "e1b472bc283e957e13206aed2d87e31daea9a833df16923f9a089c594574dc3d",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Same Roundy's Select vitamin D milk; Select moves from the reference brand field into the product field without changing the combined identity.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-03",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0011152225654-4",
+      "image_sha256": "3d31006eca0d6162933116a169003c733a2854367fd12c513315026a0609a386",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Kimura, ramune and lychee all match; carbonated soft drink is the visible type wording for soda.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-04",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": false,
+      "image_id": "off-0016229917630-1",
+      "image_sha256": "be4a5353973bbe00f6b256881e76ed6ceafd856c42b47350b58b6b2d7177b5c4",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "FOCO coconut water with pineapple matches; 100% Pure is visibly printed and does not introduce a different variant.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-05",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0017077001328-5",
+      "image_sha256": "66c138c1bf46804b9a38e710c8be781c465c876e7fcef7aa29cf32d9f0b1adfd",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Lifeway organic plain unsweetened kefir matches; cultured lowfat milk and 1% milkfat are visibly printed, consistent qualifiers.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-06",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0021130070107-11",
+      "image_sha256": "c57590f0dbe2669d0f40d2921b5bd404a628e78723f4a34798662b237283d37c",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Lucerne whole milk vitamin D matches the reference and visible label.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-07",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0025293600270-10",
+      "image_sha256": "f032f208af5662697c41fc389e8bb94b7605cc9926d8ef0f1a0dc392a01282e2",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Silk vanilla soy milk matches; repeated Soy and the spelling Soymilk do not change identity.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-08",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0025616102504-6",
+      "image_sha256": "d8ebdd9b0e1a3ef9f8208850aefd34c2a6595daa1a156f4e24229d129c527ae1",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Mr. Brown iced coffee matches; capitalization and punctuation are immaterial.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-09",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0031200444813-5",
+      "image_sha256": "cedd2ad3bb44dd770e417ff497455364e61e0aaa335bfe505725e6bfc59a3b48",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Ocean Spray Diet Cranberry preserves the visible named beverage and distinguishing diet qualifier; generic beverage is omitted without changing the named identity.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-10",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0031200610331-5",
+      "image_sha256": "bfe8298600916d05aa6173421f36118444461420d8d6e5e2f864a08463174d9c",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Ocean Spray Cranberry Classic Light preserves the visible named beverage and light qualifier; generic beverage is omitted without changing the named identity.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-11",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0041800202362-1",
+      "image_sha256": "079085d2781e4bcbc82f6fc8826e8583633ab497c1d435fb8b7ce873bbadc6f1",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Welch's sulfite-free 100% Concord grape juice matches; Manischewitz is a second visibly printed mark on this same label, not an invented or conflicting product.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-12",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0041800490004-6",
+      "image_sha256": "87541289fe085d61c7e9fed8c09a0243b81f66efadb8edddbc9826a2c6cb10e5",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Welch's fruit punch flavored juice drink matches; from concentrate is visibly printed additional wording.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-13",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0055872106015-6",
+      "image_sha256": "f0b580842bc3bb3f61824ae5624e24ba2bd60e94479e0d5ef3e9764279a95a3c",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Natrel dark chocolate partly skimmed milk 1% matches; Gourmet, French translation and M.F./M.G. are visibly printed and consistent.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-14",
+      "classification": "meaningful_identity_error",
+      "exact_volume_correct": true,
+      "image_id": "off-0055872515176-6",
+      "image_sha256": "636b60921e41a11562eaa6b41d5e972330035b34fb9b9f3ea3abba00c4512d97",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Prediction says 3% while both reference and visible fat declaration say 3.8%; this is a distinguishing composition/variant error. Agropur is printed, and Natrel is retained in product, but that does not repair the fat error.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-15",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0068274346613-3",
+      "image_sha256": "1a6293f42d1b1ea93620fa64f51020461c858619aec36e7fd7d080e2527a6060",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Nestle Pure Life purified water is preserved across both fields; enhanced with minerals for taste is visibly printed consistent wording.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-16",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0076183001813-1",
+      "image_sha256": "b81f71add1f6e401731cddd7b89ef8ac54fdca12383b27b45acfed05659b0217",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Snapple peach tea matches; made with Green & Black Tea Leaves is visibly printed and consistent.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-17",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0076850099013-1",
+      "image_sha256": "363fde5b55afdf46ae44a5a223dd11c7d40f95ffc4a7c31742317bb1f54e12f8",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Gossner Foods whole milk matches the visible label and reference.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-18",
+      "classification": "uncertain",
+      "exact_volume_correct": true,
+      "image_id": "off-0122114780811-1",
+      "image_sha256": "8a87e1943e0b26e8c5c2fc437f521a468929dc1b71a2302cc32ec2ca1ec62bcc",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Alpina, the named alpin range and chocolate flavor match, but the prediction omits the milk type printed at the base. Whether the range name alone establishes full beverage identity is unresolved; conservatively not counted as equivalent.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-19",
+      "classification": "meaningful_identity_error",
+      "exact_volume_correct": true,
+      "image_id": "off-0613008719524-9",
+      "image_sha256": "ec66c5aaffc8e243ceb989c152886a3168557417ad7b2749e25327192a49a0ac",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Prediction brand Sizzio does not match the AriZona mark/reference; peach iced-tea type/flavor alone does not establish full identity.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-20",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0621433007741-2",
+      "image_sha256": "4f9e8a61e9022bed366f3c70cedd25a1f7bfa97af93825db5403b4e03a9bcd35",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Wellington Arkell Best Bitter is fully retained; Arkell moves from product into brand without changing the combined named identity.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-21",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-0680569891808-1",
+      "image_sha256": "28ea257a45c563c904c6782adaa6853c082833bc650642a692a6147c4c05ab9f",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Smiling Samoyed Kolsch German Style Golden Ale matches; Brewery is visibly printed neutral brand wording.",
+      "secondary_joint_identity_and_exact_volume": true
+    },
+    {
+      "case_id": "case-22",
+      "classification": "uncertain",
+      "exact_volume_correct": false,
+      "image_id": "off-0708236951096-1",
+      "image_sha256": "72ee9489105202ee2f27906264407d27b671514949ce3f98d12681cbc73812b1",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Parmalat and light match the prominent label, but light alone omits beverage type and does not establish the reference light milk identity. Small label type is difficult to verify here; conservatively not counted as equivalent.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-23",
+      "classification": "meaningful_identity_error",
+      "exact_volume_correct": false,
+      "image_id": "off-0896221000314-2",
+      "image_sha256": "5ac55f7816720461d9085a20343f8029df8e28b18a83ce5f8e72ad453d3afa98",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Named La Saison du Tracteur is present, but brand is null despite the visible Le Trou du Diable neck mark; full brand-plus-product identity is missing.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-24",
+      "classification": "meaningful_identity_error",
+      "exact_volume_correct": true,
+      "image_id": "off-2000000021470-1",
+      "image_sha256": "13871ad6a2c81a97c524be739a621c638ac3112d42a29024e82fdb2868bb6273",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Kronenbourg brand matches, but product is null; the visible blonde-beer type/reference identity is missing.",
+      "secondary_joint_identity_and_exact_volume": false
+    },
+    {
+      "case_id": "case-25",
+      "classification": "full_identity_equivalent",
+      "exact_volume_correct": true,
+      "image_id": "off-3760030050013-2",
+      "image_sha256": "cf18da7be92e794a383c91f263701e16af3274e7dcd51b8196fc73a3f3675c70",
+      "image_sha256_verified": true,
+      "photo_inspected": true,
+      "reason": "Les Vergers de Flore pur jus de pommes matches exactly apart from capitalization.",
+      "secondary_joint_identity_and_exact_volume": true
+    }
+  ],
+  "inputs_reviewed": "Only packet.json and its 25 listed validation photos; no test assets or other run outputs.",
+  "method": "Inspected every supplied photo. Evaluate combined brand/product identity, allowing case/punctuation, reordered names, printed neutral wording, and brand/range partitioning when all identifying content is preserved. Missing or conflicting distinguishing identity fails. Uncertain cases count as failures. Exact-volume correctness is paired from the unchanged packet flag, independently consistent with the viewed labels; no tolerance or inferred consumption.",
+  "packet_sha256": "2e979d6909536bd21a789890776e3038a1deb9fd9d85f00ff59646dcdecb8466",
+  "primary_score_changed": false,
+  "raw_review_sha256": "498e80d8f3ea537cf9c83eadd7497db75849106540dbcc83a7a455951baca305",
+  "reviewer_kind": "Codex agent visual review; not a human study",
+  "schema_version": "beverage-validation-wording-review-v1",
+  "scope": "Secondary validation-only human-style photo/wording diagnostic; cannot establish target success, replace frozen primary scoring, alter aliases/references, or support a final-test claim.",
+  "summary": {
+    "exact_volume_from_packet": {
+      "correct": 22,
+      "rate": 0.88,
+      "total": 25
+    },
+    "identity_classification_counts": {
+      "full_identity_equivalent": 19,
+      "meaningful_identity_error": 4,
+      "uncertain": 2
+    },
+    "paired_counts": {
+      "identity_equivalent_and_exact_volume": 18,
+      "identity_equivalent_and_volume_wrong_or_unknown": 1,
+      "identity_error_or_uncertain_and_exact_volume": 4,
+      "identity_error_or_uncertain_and_volume_wrong_or_unknown": 2
+    },
+    "secondary_full_identity_equivalent": {
+      "correct": 19,
+      "rate": 0.76,
+      "total": 25
+    },
+    "secondary_joint_identity_and_exact_volume": {
+      "correct": 18,
+      "rate": 0.72,
+      "total": 25
+    },
+    "total_validation_cases": 25
+  },
+  "target_success_claim": false
+}

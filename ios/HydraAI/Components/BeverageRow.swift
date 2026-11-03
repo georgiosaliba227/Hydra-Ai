@@ -16,9 +16,11 @@ struct BeverageRow: View {
                     if log.source != "manual" {
                         Text("· from photo")
                     }
+                    if let type = log.beverageType { Text("· \(type)") }
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                if let assumption = log.assumptionDescription { Text(assumption).font(.caption).foregroundStyle(.secondary) }
             }
 
             Spacer()
@@ -29,6 +31,6 @@ struct BeverageRow: View {
         .frame(minHeight: 44)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("beverageRow")
-        .accessibilityLabel("\(log.category.capitalized), \(units.volumeAccessibility(log.consumedMl)), \(log.consumedAt.formatted(date: .omitted, time: .shortened))")
+        .accessibilityLabel("\(log.category.capitalized), \(units.volumeAccessibility(log.consumedMl)), \(log.consumedAt.formatted(date: .omitted, time: .shortened))\(log.assumptionDescription.map { ", " + $0 } ?? "")")
     }
 }

@@ -1,0 +1,79 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 683,
+      "provider_git_blob_sha1": "b19a8acbd25121c764402b42fb041c5f558f216a",
+      "provider_lfs_sha256": null,
+      "sha256": "d47ea94025bdd61e5a7d922bd0e6d08e6afa5c6042643c349e494be35db025b5"
+    },
+    "chat_template.jinja": {
+      "bytes": 7167,
+      "provider_git_blob_sha1": "8a8673897ed588c171d50088c89e25360130abe6",
+      "provider_lfs_sha256": null,
+      "sha256": "114f55ebdc1804c1af371197b9fdf2d6bb925966c9dfe46b73782a71bc07965e"
+    },
+    "config.json": {
+      "bytes": 6796,
+      "provider_git_blob_sha1": "d9a91d7b4a0256adaf39464d11a25d0eef2fb3b1",
+      "provider_lfs_sha256": null,
+      "sha256": "c7f48468db2ef9c3de4cb912be24ecc9fbed36d83f3b8386a0b224ee7ba876ca"
+    },
+    "generation_config.json": {
+      "bytes": 148,
+      "provider_git_blob_sha1": "3495c31ea76c03c093a1d14e8221c3410b76ded2",
+      "provider_lfs_sha256": null,
+      "sha256": "b0e427c998641420eb4091cc85d4e15643fb57f89222834a14ec76430625b6fb"
+    },
+    "model-00001-of-00004.safetensors": {
+      "bytes": 5310085129,
+      "provider_git_blob_sha1": null,
+      "provider_lfs_sha256": "72c99dc670867308f70aab212331e4dd0e19d46bf409a134da1848b9dbe47c91",
+      "sha256": "72c99dc670867308f70aab212331e4dd0e19d46bf409a134da1848b9dbe47c91"
+    },
+    "model-00002-of-00004.safetensors": {
+      "bytes": 5366299665,
+      "provider_git_blob_sha1": null,
+      "provider_lfs_sha256": "f2af4b82d578cee5eeeef3f0d3f139eae3adfc2fc2a27b52ec2ac5886e131cf4",
+      "sha256": "f2af4b82d578cee5eeeef3f0d3f139eae3adfc2fc2a27b52ec2ac5886e131cf4"
+    },
+    "model-00003-of-00004.safetensors": {
+      "bytes": 5343216475,
+      "provider_git_blob_sha1": null,
+      "provider_lfs_sha256": "2892bb7971d20a7ecfd84a51404e0ae1f0863580562ccef58fdf444da25bc5a2",
+      "sha256": "2892bb7971d20a7ecfd84a51404e0ae1f0863580562ccef58fdf444da25bc5a2"
+    },
+    "model-00004-of-00004.safetensors": {
+      "bytes": 3395202844,
+      "provider_git_blob_sha1": null,
+      "provider_lfs_sha256": "6496c62ac6a229be31c784835c43077224e80750182c2693e29c08ddae455a31",
+      "sha256": "6496c62ac6a229be31c784835c43077224e80750182c2693e29c08ddae455a31"
+    },
+    "model.safetensors.index.json": {
+      "bytes": 218191,
+      "provider_git_blob_sha1": "5cc67683bfbcd38ac7d10d1bbfe5b8349a642841",
+      "provider_lfs_sha256": null,
+      "sha256": "10e1f963a4dc827c303594d988c6d44711171eaa70eeb3e810c2ce321d4c0323"
+    },
+    "processor_config.json": {
+      "bytes": 395,
+      "provider_git_blob_sha1": "82e0b73bcf751936da5acdd82fb89d0257eec2e0",
+      "provider_lfs_sha256": null,
+      "sha256": "cfa67148d85e40281b4a126253a1476a63b11137e21cb2422b7ccff46a11c1af"
+    },
+    "tokenizer.json": {
+      "bytes": 28129897,
+      "provider_git_blob_sha1": null,
+      "provider_lfs_sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d",
+      "sha256": "c9dbee66967b58f31a7c27f723c3760da3526ccd0427578e8905b0abb0031c4d"
+    },
+    "tokenizer_config.json": {
+      "bytes": 79985,
+      "provider_git_blob_sha1": "d1b80588d3aadbf3a7c538249aecc99d75e52e6c",
+      "provider_lfs_sha256": null,
+      "sha256": "b2c352bba1d2ee25295aa84e7bdaa15a2b0305b79009926bcea72516ca200d42"
+    }
+  },
+  "repo": "mlx-community/Muse-Glimmer-30B-4bit",
+  "revision": "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+  "schema_version": "meta-base-provenance-v1"
+}

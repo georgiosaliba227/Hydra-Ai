@@ -65,6 +65,9 @@ class GuardedMetaGateway:
                     raise BudgetDenied("Notification lacks delivery receipt")
                 self.ledger.notice_delivered(notice["id"], receipt)
 
+    def build_payload(self, image: AnalysisRequest) -> dict:
+        return request_payload(image)
+
     def analyze(self, image: AnalysisRequest) -> AnalysisResult:
         if image.mode != "meta_live" or image.meta_photo_consent is not True:
             raise RecognitionUnavailable()
@@ -76,7 +79,7 @@ class GuardedMetaGateway:
         try:
             self.ledger.verify_credential(self.account, self.transport.credential_fingerprint)
             self.ledger.verify_purpose(self.account, "camera")
-            payload = request_payload(image)
+            payload = self.build_payload(image)
             # Bounds come from the selected trusted transport, never an HTTP field.
             bound = self.transport.input_bound(payload)
             self.ledger.quote(self.account, bound)

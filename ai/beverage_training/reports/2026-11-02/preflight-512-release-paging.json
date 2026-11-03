@@ -1,0 +1,12 @@
+{
+  "phase": "patched_512_prefill128_after_vision_release",
+  "sample_seconds": 15.01,
+  "page_size_bytes": 16384,
+  "delta_pages": {
+    "Pageins": 385,
+    "Pageouts": 0,
+    "Swapins": 3508,
+    "Swapouts": 0
+  },
+  "scope": "system-wide observational counters; no attribution to a single process"
+}

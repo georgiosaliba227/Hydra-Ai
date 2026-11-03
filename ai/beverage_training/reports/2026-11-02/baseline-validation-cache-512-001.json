@@ -1,0 +1,1486 @@
+{
+  "above_70_percent": false,
+  "backgrounds": {
+    "natural": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 9,
+        "rate": 0.6428571428571429,
+        "total": 14,
+        "wilson95": [
+          0.38764423103907397,
+          0.8365526824644587
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 3,
+        "rate": 0.21428571428571427,
+        "total": 14,
+        "wilson95": [
+          0.07571386712693184,
+          0.47589230586600295
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076850099013-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0068274346613-3",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0016229917630-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0896221000314-2",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0613008719524-9",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0011110008107-2",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0011152225654-4",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0025616102504-6",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0122114780811-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0041800202362-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0708236951096-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0017077001328-5",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0680569891808-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0041800490004-6",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 3,
+        "abstained_identity": 1,
+        "capacity_correct": 9,
+        "failed": 0,
+        "identity_correct": 3,
+        "joint_correct": 3,
+        "known_capacity": 14,
+        "missing": 0,
+        "received": 14,
+        "total": 14,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 14
+      },
+      "coverage": {
+        "correct": 14,
+        "rate": 1.0,
+        "total": 14,
+        "wilson95": [
+          0.7846891972623643,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 3,
+        "rate": 0.21428571428571427,
+        "total": 14,
+        "wilson95": [
+          0.07571386712693184,
+          0.47589230586600295
+        ]
+      },
+      "identity_abstention": {
+        "correct": 1,
+        "rate": 0.07142857142857142,
+        "total": 14,
+        "wilson95": [
+          0.012722215247890939,
+          0.31468704424151117
+        ]
+      },
+      "joint": {
+        "correct": 3,
+        "rate": 0.21428571428571427,
+        "total": 14,
+        "wilson95": [
+          0.07571386712693184,
+          0.47589230586600295
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 14,
+        "wilson95": [
+          1.3877787807814457e-17,
+          0.2153108027376358
+        ]
+      }
+    },
+    "plain": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 9,
+        "rate": 0.8181818181818182,
+        "total": 11,
+        "wilson95": [
+          0.523019438039156,
+          0.9486323102539149
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 11,
+        "wilson95": [
+          0.0,
+          0.2588329669680317
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-3760030050013-2",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0621433007741-2",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0025293600270-10",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200444813-5",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200610331-5",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-2000000021470-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076183001813-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872106015-6",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872515176-6",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": true,
+          "image_id": "off-0021130070107-11",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011150159609-3",
+          "joint_correct": true,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 9,
+        "failed": 0,
+        "identity_correct": 6,
+        "joint_correct": 5,
+        "known_capacity": 11,
+        "missing": 0,
+        "received": 11,
+        "total": 11,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 11
+      },
+      "coverage": {
+        "correct": 11,
+        "rate": 1.0,
+        "total": 11,
+        "wilson95": [
+          0.7411670330319684,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 6,
+        "rate": 0.5454545454545454,
+        "total": 11,
+        "wilson95": [
+          0.280091537409322,
+          0.7872872837754024
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 11,
+        "wilson95": [
+          0.0,
+          0.2588329669680317
+        ]
+      },
+      "joint": {
+        "correct": 5,
+        "rate": 0.45454545454545453,
+        "total": 11,
+        "wilson95": [
+          0.21271271622459764,
+          0.719908462590678
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 11,
+        "wilson95": [
+          0.0,
+          0.2588329669680317
+        ]
+      }
+    }
+  },
+  "capacity": {
+    "correct": 18,
+    "rate": 0.72,
+    "total": 25,
+    "wilson95": [
+      0.5242339480963842,
+      0.8571614614904344
+    ]
+  },
+  "capacity_abstention": {
+    "correct": 3,
+    "rate": 0.12,
+    "total": 25,
+    "wilson95": [
+      0.04166817150440358,
+      0.2995579392092732
+    ]
+  },
+  "cases": [
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-3760030050013-2",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0621433007741-2",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0076850099013-1",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0068274346613-3",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0016229917630-1",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0025293600270-10",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0896221000314-2",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0031200444813-5",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0031200610331-5",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-2000000021470-1",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0076183001813-1",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0613008719524-9",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0055872106015-6",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0055872515176-6",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": true,
+      "image_id": "off-0021130070107-11",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0011110008107-2",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0011150159609-3",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0011152225654-4",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0025616102504-6",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": true,
+      "image_id": "off-0122114780811-1",
+      "joint_correct": true,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0041800202362-1",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": false,
+      "identity_correct": false,
+      "image_id": "off-0708236951096-1",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0017077001328-5",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0680569891808-1",
+      "joint_correct": false,
+      "status": "valid"
+    },
+    {
+      "capacity_correct": true,
+      "identity_correct": false,
+      "image_id": "off-0041800490004-6",
+      "joint_correct": false,
+      "status": "valid"
+    }
+  ],
+  "counts": {
+    "abstained_capacity": 3,
+    "abstained_identity": 1,
+    "capacity_correct": 18,
+    "failed": 0,
+    "identity_correct": 9,
+    "joint_correct": 8,
+    "known_capacity": 25,
+    "missing": 0,
+    "received": 25,
+    "total": 25,
+    "unknown_capacity": 0,
+    "unsupported_capacity": 0,
+    "valid": 25
+  },
+  "coverage": {
+    "correct": 25,
+    "rate": 1.0,
+    "total": 25,
+    "wilson95": [
+      0.8668077490609515,
+      0.9999999999999999
+    ]
+  },
+  "drink_families": {
+    "beer": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 3,
+        "rate": 0.75,
+        "total": 4,
+        "wilson95": [
+          0.30064184258240184,
+          0.9544127391902995
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 1,
+        "rate": 0.25,
+        "total": 4,
+        "wilson95": [
+          0.04558726080970055,
+          0.6993581574175981
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0621433007741-2",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0896221000314-2",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-2000000021470-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0680569891808-1",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 1,
+        "capacity_correct": 3,
+        "failed": 0,
+        "identity_correct": 0,
+        "joint_correct": 0,
+        "known_capacity": 4,
+        "missing": 0,
+        "received": 4,
+        "total": 4,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 4
+      },
+      "coverage": {
+        "correct": 4,
+        "rate": 1.0,
+        "total": 4,
+        "wilson95": [
+          0.5101091635454027,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 4,
+        "wilson95": [
+          0.0,
+          0.4898908364545973
+        ]
+      },
+      "identity_abstention": {
+        "correct": 1,
+        "rate": 0.25,
+        "total": 4,
+        "wilson95": [
+          0.04558726080970055,
+          0.6993581574175981
+        ]
+      },
+      "joint": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 4,
+        "wilson95": [
+          0.0,
+          0.4898908364545973
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 4,
+        "wilson95": [
+          0.0,
+          0.4898908364545973
+        ]
+      }
+    },
+    "coffee": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0025616102504-6",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 0,
+        "joint_correct": 0,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "joint": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      }
+    },
+    "juice": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 4,
+        "rate": 0.8,
+        "total": 5,
+        "wilson95": [
+          0.37553462976252533,
+          0.9637758913675698
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 5,
+        "wilson95": [
+          0.0,
+          0.43448246478317476
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-3760030050013-2",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200444813-5",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0031200610331-5",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0041800202362-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0041800490004-6",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 4,
+        "failed": 0,
+        "identity_correct": 3,
+        "joint_correct": 3,
+        "known_capacity": 5,
+        "missing": 0,
+        "received": 5,
+        "total": 5,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 5
+      },
+      "coverage": {
+        "correct": 5,
+        "rate": 1.0,
+        "total": 5,
+        "wilson95": [
+          0.5655175352168251,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 3,
+        "rate": 0.6,
+        "total": 5,
+        "wilson95": [
+          0.2307242812760128,
+          0.882379225767352
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 5,
+        "wilson95": [
+          0.0,
+          0.43448246478317476
+        ]
+      },
+      "joint": {
+        "correct": 3,
+        "rate": 0.6,
+        "total": 5,
+        "wilson95": [
+          0.2307242812760128,
+          0.882379225767352
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 5,
+        "wilson95": [
+          0.0,
+          0.43448246478317476
+        ]
+      }
+    },
+    "milk": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 6,
+        "rate": 0.75,
+        "total": 8,
+        "wilson95": [
+          0.40927543031016883,
+          0.9285207872478909
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 1,
+        "rate": 0.125,
+        "total": 8,
+        "wilson95": [
+          0.02241749145005667,
+          0.4708881822128535
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076850099013-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872106015-6",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0055872515176-6",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": true,
+          "image_id": "off-0021130070107-11",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0011150159609-3",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0122114780811-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0708236951096-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0017077001328-5",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 0,
+        "capacity_correct": 6,
+        "failed": 0,
+        "identity_correct": 4,
+        "joint_correct": 3,
+        "known_capacity": 8,
+        "missing": 0,
+        "received": 8,
+        "total": 8,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 8
+      },
+      "coverage": {
+        "correct": 8,
+        "rate": 1.0,
+        "total": 8,
+        "wilson95": [
+          0.6755924351161198,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 4,
+        "rate": 0.5,
+        "total": 8,
+        "wilson95": [
+          0.21521606221387757,
+          0.7847839377861224
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 8,
+        "wilson95": [
+          0.0,
+          0.32440756488388023
+        ]
+      },
+      "joint": {
+        "correct": 3,
+        "rate": 0.375,
+        "total": 8,
+        "wilson95": [
+          0.13684428582359742,
+          0.6942576053973727
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 8,
+        "wilson95": [
+          0.0,
+          0.32440756488388023
+        ]
+      }
+    },
+    "plant_milk": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0025293600270-10",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 0,
+        "failed": 0,
+        "identity_correct": 0,
+        "joint_correct": 0,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "joint": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      }
+    },
+    "soda": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0011152225654-4",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 0,
+        "joint_correct": 0,
+        "known_capacity": 1,
+        "missing": 0,
+        "received": 1,
+        "total": 1,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 1
+      },
+      "coverage": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "joint": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 1,
+        "wilson95": [
+          0.0,
+          0.7934506856227626
+        ]
+      }
+    },
+    "tea": {
+      "above_70_percent": true,
+      "capacity": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 2,
+        "wilson95": [
+          0.0,
+          0.6576197724933469
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0076183001813-1",
+          "joint_correct": true,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": true,
+          "image_id": "off-0613008719524-9",
+          "joint_correct": true,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 0,
+        "abstained_identity": 0,
+        "capacity_correct": 2,
+        "failed": 0,
+        "identity_correct": 2,
+        "joint_correct": 2,
+        "known_capacity": 2,
+        "missing": 0,
+        "received": 2,
+        "total": 2,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 2
+      },
+      "coverage": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 2,
+        "wilson95": [
+          0.0,
+          0.6576197724933469
+        ]
+      },
+      "joint": {
+        "correct": 2,
+        "rate": 1.0,
+        "total": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 2,
+        "wilson95": [
+          0.0,
+          0.6576197724933469
+        ]
+      }
+    },
+    "water": {
+      "above_70_percent": false,
+      "capacity": {
+        "correct": 1,
+        "rate": 0.3333333333333333,
+        "total": 3,
+        "wilson95": [
+          0.06149194472039621,
+          0.7923403991979522
+        ]
+      },
+      "capacity_abstention": {
+        "correct": 1,
+        "rate": 0.3333333333333333,
+        "total": 3,
+        "wilson95": [
+          0.06149194472039621,
+          0.7923403991979522
+        ]
+      },
+      "cases": [
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0068274346613-3",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": false,
+          "identity_correct": false,
+          "image_id": "off-0016229917630-1",
+          "joint_correct": false,
+          "status": "valid"
+        },
+        {
+          "capacity_correct": true,
+          "identity_correct": false,
+          "image_id": "off-0011110008107-2",
+          "joint_correct": false,
+          "status": "valid"
+        }
+      ],
+      "counts": {
+        "abstained_capacity": 1,
+        "abstained_identity": 0,
+        "capacity_correct": 1,
+        "failed": 0,
+        "identity_correct": 0,
+        "joint_correct": 0,
+        "known_capacity": 3,
+        "missing": 0,
+        "received": 3,
+        "total": 3,
+        "unknown_capacity": 0,
+        "unsupported_capacity": 0,
+        "valid": 3
+      },
+      "coverage": {
+        "correct": 3,
+        "rate": 1.0,
+        "total": 3,
+        "wilson95": [
+          0.4385029682449546,
+          1.0
+        ]
+      },
+      "identity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 3,
+        "wilson95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ]
+      },
+      "identity_abstention": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 3,
+        "wilson95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ]
+      },
+      "joint": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 3,
+        "wilson95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ]
+      },
+      "unsupported_capacity": {
+        "correct": 0,
+        "rate": 0.0,
+        "total": 3,
+        "wilson95": [
+          5.551115123125783e-17,
+          0.5614970317550454
+        ]
+      }
+    }
+  },
+  "identity": {
+    "correct": 9,
+    "rate": 0.36,
+    "total": 25,
+    "wilson95": [
+      0.20247880774458224,
+      0.5548150225183514
+    ]
+  },
+  "identity_abstention": {
+    "correct": 1,
+    "rate": 0.04,
+    "total": 25,
+    "wilson95": [
+      0.007096233501987265,
+      0.19544063736193734
+    ]
+  },
+  "inference_config_sha256": "4b390ef7ada9dd81b4ae8a4b2d6b67ec8e861627f50973abe5e24a36f279340b",
+  "joint": {
+    "correct": 8,
+    "rate": 0.32,
+    "total": 25,
+    "wilson95": [
+      0.17205190306907978,
+      0.5158973072689775
+    ]
+  },
+  "measurement_class": "validation_only_not_final_test",
+  "run_id": "baseline-validation-cache-512-001",
+  "run_metadata": {
+    "adapter_config_path": null,
+    "adapter_config_sha256": null,
+    "adapter_sha256": null,
+    "base_revision": "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+    "checkpoint_frozen_utc": "2026-11-02T21:28:42.685215+00:00",
+    "dataset_kind": "real_photos",
+    "encoder_config_path": "validation-cache-512-001/encoder-config.json",
+    "encoder_config_sha256": "39f01637908ef18548a31a17dd793ff9cfcc1f7c80b55e93b914d1864ce106dd",
+    "executable_sha256": "908d2d353a5f1b8d827a7e26de8bb4e6ec9a21b294852a7005bd035a69e38cf8",
+    "execution_policy": "separate-frozen-vision-v1",
+    "feature_cache_path": "validation-cache-512-001/feature-cache.json",
+    "feature_cache_sha256": "6378a1f2f36120470cd25c472fd6717dd745d528d1ede265a5c8d436c1a7aaea",
+    "inference_config_path": "baseline-validation-cache-512-001/inference-config.json",
+    "inference_config_sha256": "4b390ef7ada9dd81b4ae8a4b2d6b67ec8e861627f50973abe5e24a36f279340b",
+    "inference_split": "validation",
+    "language_only": true,
+    "language_started_utc": "2026-11-02T21:28:42Z",
+    "manifest_sha256": "8f7c9d0fcc6ce0e5719fd99b464eb2ee3ddc5c674734dee7bcf219a577838f59",
+    "model_id": "mlx-community/Muse-Glimmer-30B-4bit",
+    "model_provenance_path": "baseline-validation-cache-512-001/model-provenance.json",
+    "model_provenance_sha256": "4054d969789f644ea36594bca2acbb109b5b2a2b1249fa150dd2c68ce2a38d9d",
+    "predictions_sha256": "703a0a418c2c564d3ac16819a3bc2133d4c9bacd12247b0e1bd74458404728f2",
+    "prompt_path": "baseline-validation-cache-512-001/prompt.txt",
+    "prompt_sha256": "ed1deff64667451ca44681c83aedbf4312deec13d8c13e5ca34718cadca95f11",
+    "run_id": "baseline-validation-cache-512-001",
+    "run_kind": "baseline",
+    "runtime_config_path": "baseline-validation-cache-512-001/runtime.json",
+    "runtime_config_sha256": "8a94420eeabd81cb37ba6cd535a1ce81b4b8087632bfa65b446fa7a2e8a75606",
+    "runtime_patch_sha256": "22e4772423c40fda65239c2f6e6585934245b76d39593df87b27bc73225d6e76",
+    "runtime_revision": "b8d4935ab152169ac8cb0da5414b51447e78efb1",
+    "schema_version": "beverage-run-v1",
+    "selected_using": "train_validation_only",
+    "split_policy_sha256": "29d9637427ac73549335897101132c2bae6ad25e5a209d92d168e41b92170b7d",
+    "test_inference_started_utc": "2026-11-02T21:28:42Z",
+    "vision_loaded": false,
+    "vision_release_enabled": false,
+    "vision_release_policy": "separate-frozen-vision-v1"
+  },
+  "schema_version": "beverage-development-validation-v1",
+  "target_claim": false,
+  "unsupported_capacity": {
+    "correct": 0,
+    "rate": 0.0,
+    "total": 25,
+    "wilson95": [
+      1.3877787807814457e-17,
+      0.13319225093904846
+    ]
+  }
+}

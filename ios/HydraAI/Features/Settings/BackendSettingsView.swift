@@ -127,13 +127,15 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text("Export includes backend logged drinks and goal. Export manual measurements from Plan a workout and local profile answers from Guided goal setup. Deleting also erases all saved manual measurements and goal profiles on this iPhone, and cannot be undone.")
+                    Text("Export includes backend drinks, goal, saved corrections and opted-in training photos. Export manual measurements from Plan a workout and local profile answers from Guided goal setup. Deleting also erases saved manual measurements and goal profiles on this iPhone, and cannot be undone.")
                 }
             }
             Section("Privacy & AI") {
                 DisclosureGroup("What's sent where") {
                     Text("Backend mode sends the drinks you confirm to your backend. Photos go to your backend only after you consent and tap Analyze; Meta mode needs a separate consent before a photo is sent to Meta. Apple Health records stay on this iPhone.")
                     Text("Camera checks the backend mode before analysis. Mock responses are synthetic. In Meta mode a photo goes to Meta only with separate consent and a server-approved budget permit. Suggestions always need your confirmation; zero retention is not promised.")
+                    Text("The local trained camera processes photos on your configured Mac. Wonder explanations use a separate preview and consent for the displayed aggregates; context updates never send them automatically.")
+                    Text("Remembered corrections improve your own suggestions without retraining Muse. Training contribution is a separate, optional choice on an edited entry: your backend stages the latest 20 opted-in photos and corrections for future reviewed training. Nothing uploads a training dataset to Meta automatically.")
                 }
                 .font(.footnote)
                 DisclosureGroup("Connecting a device") {
@@ -150,7 +152,7 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text("Every logged drink and your goal are erased from the backend. All saved manual measurements, goal profiles, and automatic context preferences on this iPhone are also erased. This cannot be undone.")
+            Text("Your drinks, goal, correction memory and opted-in training photos are erased from the backend. Saved manual measurements, goal profiles and automatic context preferences on this iPhone are also erased. This cannot be undone.")
         }
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }
         .onChange(of: store.configurationGeneration) { _, _ in

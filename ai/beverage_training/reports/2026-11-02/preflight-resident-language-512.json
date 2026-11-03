@@ -1,0 +1,80 @@
+{
+  "actual_feature_uses" : [
+    {
+      "feature_sha256" : "6a8f42081432674dec2e7cddb4d0151f40a6353f68b5e25bcc88ae856983fe7a",
+      "image_id" : "off-3760025780086-1"
+    }
+  ],
+  "adapter_sha256" : "a6f1d7721721d310466f497f16eea0b80e9cb7f60b5e838a07d932e3dcaf2344",
+  "completed_utc" : "2026-11-02T21:27:24Z",
+  "encoder_config_path" : "smoke-vision-resident-512-001/encoder-config.json",
+  "encoder_config_sha256" : "39f01637908ef18548a31a17dd793ff9cfcc1f7c80b55e93b914d1864ce106dd",
+  "execution_policy" : "separate-frozen-vision-v1",
+  "feature_cache_path" : "smoke-vision-resident-512-001/feature-cache.json",
+  "feature_cache_sha256" : "e680bafc4d7f4c2cb9fc79a3fea3d3bdc7024ff1d7bf23c68597ead317d8492e",
+  "initial_adapter_sha256" : "68ea836ad19354e35e1f77706cf50105f8d1c497972a6ec146153170f3245e66",
+  "language_only" : true,
+  "language_started_utc" : "2026-11-02T21:27:07Z",
+  "layers" : 1,
+  "learning_rate" : 9.9999997473787516e-05,
+  "loss_history" : [
+    1.3242889642715454
+  ],
+  "memory" : {
+    "mlx_active_bytes" : 15734159208,
+    "mlx_cache_bytes" : 76112776,
+    "mlx_peak_bytes" : 16178459964,
+    "phase" : "training_finished",
+    "process_peak_rss_bytes" : 8002879488,
+    "resident_bytes" : 3184132096
+  },
+  "parameter_delta_l2" : 0.04163661332162491,
+  "rank" : 4,
+  "save_reload_max_abs_error" : 0,
+  "schema_version" : "beverage-preflight-v1",
+  "settings" : {
+    "adapter_config_sha256" : null,
+    "base_revision" : "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+    "decoding" : "greedy",
+    "encoder_config_path" : "smoke-vision-resident-512-001/encoder-config.json",
+    "encoder_config_sha256" : "39f01637908ef18548a31a17dd793ff9cfcc1f7c80b55e93b914d1864ce106dd",
+    "executable_sha256" : "908d2d353a5f1b8d827a7e26de8bb4e6ec9a21b294852a7005bd035a69e38cf8",
+    "execution_policy" : "separate-frozen-vision-v1",
+    "feature_cache_path" : "smoke-vision-resident-512-001/feature-cache.json",
+    "feature_cache_sha256" : "e680bafc4d7f4c2cb9fc79a3fea3d3bdc7024ff1d7bf23c68597ead317d8492e",
+    "generation_header" : " to=user<|message|>",
+    "gpu_residency_budget_bytes" : 17179869184,
+    "gpu_residency_policy" : "process-local-max16gib-under-device-recommendation-v1",
+    "image_tokens" : 512,
+    "language_only" : true,
+    "language_started_utc" : "2026-11-02T21:27:07Z",
+    "max_answer_tokens" : 96,
+    "max_output_tokens" : 96,
+    "memory_guard" : "sampled 50ms MLX/RSS plus independent launcher RSS; advisory MLX allocator limit",
+    "memory_limit_bytes" : 20401094656,
+    "model_id" : "mlx-community/Muse-Glimmer-30B-4bit",
+    "model_provenance_sha256" : "4054d969789f644ea36594bca2acbb109b5b2a2b1249fa150dd2c68ce2a38d9d",
+    "prefill_step" : 128,
+    "prompt_sha256" : "ed1deff64667451ca44681c83aedbf4312deec13d8c13e5ca34718cadca95f11",
+    "reasoning_strength" : "low",
+    "rss_limit_bytes" : 21474836480,
+    "runtime_patch_sha256" : "22e4772423c40fda65239c2f6e6585934245b76d39593df87b27bc73225d6e76",
+    "runtime_revision" : "b8d4935ab152169ac8cb0da5414b51447e78efb1",
+    "seed" : 42,
+    "template_current_date" : "2026-11-02",
+    "vision_loaded" : false,
+    "vision_release_enabled" : false,
+    "vision_release_policy" : "separate-frozen-vision-v1"
+  },
+  "split_policy_sha256" : "569eb491b98becf34b724c2eec38f752e352d89cf23c2e038b4b2e79834c68ae",
+  "train_image_ids" : [
+    "off-3760025780086-1"
+  ],
+  "train_manifest_sha256" : "bfd356ab62f0a2326efd8a40a78cdc81d101968f04ab76b99c1ef18c4f157a25",
+  "trainable_parameter_count" : 70656,
+  "training_method" : "image-conditioned-detached-prefix-response-only-lora",
+  "training_wall_seconds" : 8.5648009777069092,
+  "updated_steps" : 1,
+  "vision_loaded" : false,
+  "visual_conditioning" : "frozen image encoder and frozen prompt prefix KV caches; gradients only through response positions in last language layer adapters"
+}

@@ -1,0 +1,168 @@
+{
+  "adapter": {
+    "capacity": {
+      "correct": 73,
+      "rate": 0.9733333333333334,
+      "total": 75,
+      "wilson95": [
+        0.9078851181224086,
+        0.9926563109938686
+      ]
+    },
+    "identity": {
+      "correct": 63,
+      "rate": 0.84,
+      "total": 75,
+      "wilson95": [
+        0.7408329231474533,
+        0.9060348639642386
+      ]
+    },
+    "joint": {
+      "correct": 63,
+      "rate": 0.84,
+      "total": 75,
+      "wilson95": [
+        0.7408329231474533,
+        0.9060348639642386
+      ]
+    },
+    "review_agreement": {
+      "equivalence_decision_agreement": 74,
+      "exact_verdict_agreement": 73,
+      "total": 75,
+      "unanimous_equivalent": 63
+    }
+  },
+  "adapter_target_met": true,
+  "backgrounds": {
+    "natural": {
+      "capacity": {
+        "correct": 44,
+        "rate": 0.9565217391304348,
+        "total": 46,
+        "wilson95": [
+          0.8546774097378094,
+          0.9879945544014435
+        ]
+      },
+      "joint": {
+        "correct": 38,
+        "rate": 0.8260869565217391,
+        "total": 46,
+        "wilson95": [
+          0.692766462836215,
+          0.9091420829775368
+        ]
+      }
+    },
+    "plain": {
+      "capacity": {
+        "correct": 28,
+        "rate": 1.0,
+        "total": 28,
+        "wilson95": [
+          0.8793566952341543,
+          0.9999999999999998
+        ]
+      },
+      "joint": {
+        "correct": 24,
+        "rate": 0.8571428571428571,
+        "total": 28,
+        "wilson95": [
+          0.685101978364747,
+          0.9430099468025059
+        ]
+      }
+    },
+    "studio": {
+      "capacity": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "joint": {
+        "correct": 1,
+        "rate": 1.0,
+        "total": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      }
+    }
+  },
+  "baseline": {
+    "capacity": {
+      "correct": 70,
+      "rate": 0.9333333333333333,
+      "total": 75,
+      "wilson95": [
+        0.8532493994143954,
+        0.9711899371005063
+      ]
+    },
+    "identity": {
+      "correct": 59,
+      "rate": 0.7866666666666666,
+      "total": 75,
+      "wilson95": [
+        0.6812003421070318,
+        0.8641979882028261
+      ]
+    },
+    "joint": {
+      "correct": 57,
+      "rate": 0.76,
+      "total": 75,
+      "wilson95": [
+        0.6522123385089702,
+        0.8424512633999708
+      ]
+    },
+    "review_agreement": {
+      "equivalence_decision_agreement": 73,
+      "exact_verdict_agreement": 72,
+      "total": 75,
+      "unanimous_equivalent": 59
+    }
+  },
+  "dataset_images": 250,
+  "generated_utc": "2026-11-03T07:42:19.240500+00:00",
+  "identity_policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+  "latency": {
+    "adapter": {
+      "median_ms": 14188,
+      "p95_ms": 15309,
+      "scope": "Per-photo language worker latency only; excludes separate vision encoding and initial model load."
+    },
+    "baseline": {
+      "median_ms": 14864,
+      "p95_ms": 16056,
+      "scope": "Per-photo language worker latency only; excludes separate vision encoding and initial model load."
+    }
+  },
+  "limits": [
+    "Two independently instructed AI photo reviewers, not a human population study.",
+    "Public photos may have appeared in base-model pretraining; held out from this adapter training and selection.",
+    "Nominal per-photo Wilson intervals do not adjust for product-group correlation or grader uncertainty.",
+    "Local adapter experiment; no iPhone/backend deployment or hosted Meta inference.",
+    "Observed paired counts are not a causal or population improvement claim."
+  ],
+  "paired_joint_cases": {
+    "both_correct": 54,
+    "both_incorrect": 9,
+    "improved": 9,
+    "regressed": 3
+  },
+  "schema_version": "beverage-final-comparison-v1",
+  "selected_adapter_sha256": "71a361e862c5e1399b25098601fd7d974253a5f5d285e9ad194f90e38028d48f",
+  "test_images": 75,
+  "train_images": 150,
+  "validation_images": 25
+}

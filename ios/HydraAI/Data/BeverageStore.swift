@@ -160,12 +160,12 @@ final class BeverageStore: ObservableObject {
         return true
     }
 
-    func add(category: String, consumedMl: Int, at: Date, source: String = "manual", productId: String? = nil, containerMl: Int? = nil, recognitionId: UUID? = nil) async throws {
+    func add(category: String, consumedMl: Int, at: Date, source: String = "manual", productId: String? = nil, containerMl: Int? = nil, recognitionId: UUID? = nil, recognitionFeedback: RecognitionFeedback? = nil, consumptionAssumption: String? = nil, beverageType: String? = nil) async throws {
         guard canLog else { throw ServiceError.pending }
         if let recognitionId, !currentRecognitionReceipts.contains(recognitionId) {
             throw ServiceError.liveRecognitionUnverified
         }
-        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl)
+        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl, recognitionFeedback: recognitionFeedback, consumptionAssumption: consumptionAssumption, beverageType: beverageType)
         try request.validate()
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
         do {
@@ -254,6 +254,7 @@ final class BeverageStore: ObservableObject {
 
     func retryPending() async throws {
         guard !isSaving, !pendingReadError, let service, let item = pending, item.destination == destination else { throw ServiceError.pending }
+        try item.request.validate()
         invalidateHistory()
         isSaving = true
         defer { isSaving = false }

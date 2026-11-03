@@ -1,0 +1,131 @@
+{
+  "status": "frozen_dataset_ready_for_baseline_and_adapter_training",
+  "frozen_utc": "2026-11-02T20:10:17.003931+00:00",
+  "source": {
+    "revision": "1eb91c4479d8dbbc047aaf54e479b71973997dca",
+    "whole_file_verified": true,
+    "source_sha256": "b9fb55cdc349b98d907764a1469a38ab074d9942cb5ddaaba45dc108fcd22595",
+    "source_bytes": 8028548050,
+    "contains_sparse_holes": false
+  },
+  "manifest_sha256": "8f7c9d0fcc6ce0e5719fd99b464eb2ee3ddc5c674734dee7bcf219a577838f59",
+  "manifest_file_sha256": "913c2e6943ff09a0a3ba349d448c7678e43e67dc8e689ef54199cadaf9e26909",
+  "policy_file_sha256": "ee6ba9629eef19b87aedfe327004decb85239a8a7d25d12c556177a287bcea38",
+  "selected_photos": 250,
+  "split_counts": {
+    "test": 75,
+    "train": 150,
+    "validation": 25
+  },
+  "background_counts": {
+    "plain": 116,
+    "natural": 120,
+    "studio": 14
+  },
+  "family_counts": {
+    "overall": {
+      "beer": 23,
+      "coffee": 7,
+      "energy": 4,
+      "juice": 56,
+      "milk": 38,
+      "other": 5,
+      "plant_milk": 22,
+      "soda": 15,
+      "sports": 3,
+      "tea": 22,
+      "water": 46,
+      "wine": 9
+    },
+    "test": {
+      "beer": 8,
+      "coffee": 2,
+      "energy": 2,
+      "juice": 21,
+      "milk": 11,
+      "other": 2,
+      "plant_milk": 7,
+      "soda": 3,
+      "sports": 1,
+      "tea": 5,
+      "water": 10,
+      "wine": 3
+    },
+    "train": {
+      "beer": 11,
+      "coffee": 4,
+      "energy": 2,
+      "juice": 30,
+      "milk": 19,
+      "other": 3,
+      "plant_milk": 14,
+      "soda": 11,
+      "sports": 2,
+      "tea": 15,
+      "water": 33,
+      "wine": 6
+    },
+    "validation": {
+      "beer": 4,
+      "coffee": 1,
+      "energy": 0,
+      "juice": 5,
+      "milk": 8,
+      "other": 0,
+      "plant_milk": 1,
+      "soda": 1,
+      "sports": 0,
+      "tea": 2,
+      "water": 3,
+      "wine": 0
+    }
+  },
+  "diversity_counts": {
+    "natural_overall": 120,
+    "natural_test": 46,
+    "natural_test_setting_names": [
+      "home other",
+      "in hand",
+      "indoor table",
+      "kitchen counter",
+      "outdoor surface",
+      "retail shelf",
+      "vehicle"
+    ],
+    "natural_test_settings": 7
+  },
+  "group_count": 227,
+  "largest_group": 5,
+  "reserved_preflight_image": {
+    "image_id": "off-3760025780086-1",
+    "split": "train"
+  },
+  "source_attempts": 1170,
+  "downloaded_unique_candidates": 806,
+  "download_errors": {
+    "HTTPError": 296,
+    "ValueError": 66,
+    "DecompressionBombError": 1
+  },
+  "independently_reviewed_candidates": 322,
+  "positive_reviewed_unique_pool": 251,
+  "selected_capacity_metadata_disagreements": 23,
+  "image_license": "CC-BY-SA-3.0",
+  "image_license_reference": "https://openfoodfacts.github.io/openfoodfacts-server/api/tutorials/license-be-on-the-legal-side/",
+  "metadata_license": "ODbL-1.0",
+  "identity_ground_truth": "Open Food Facts reference metadata crosschecked/corrected by independent Codex visual review of whole source photo and label crops; no evaluated-model predictions used.",
+  "capacity_ground_truth": "Explicitly visible single-container metric label only; integer mL, ROUND_HALF_UP for fractional printed metric mL; literal evidence preserved.",
+  "model_input_images": "Unannotated processed photos under images/, no OCR/contact-card overlays or filename/metadata answers in prompt.",
+  "limitations": [
+    "Printed package capacity, not remaining liquid or actual consumed quantity.",
+    "Only visibly supported known-capacity examples are admitted; this dataset does not measure unknown-capacity behavior.",
+    "Public licensed source benchmark does not establish deployment accuracy on personal phone photos.",
+    "Independent reviewers are Codex agents, not claimed human annotators.",
+    "No model training or accuracy claim is made by this collection report."
+  ],
+  "tests": {
+    "isolated_collection": "34 passed",
+    "full_default_pytest": "1236 passed,5 skipped,32 subtests passed,1 preexisting StarletteDeprecationWarning",
+    "log": "collection-final-pytest.log"
+  }
+}

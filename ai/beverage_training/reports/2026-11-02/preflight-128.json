@@ -1,0 +1,53 @@
+{
+  "adapter_sha256" : "db715f549b2d7d6f3341af04ec61f23f690b421f8c0922da1ad7f2b8a5bb2956",
+  "completed_utc" : "2026-11-02T20:12:40Z",
+  "initial_adapter_sha256" : "34fad07c2877a0af1ba662989a31298d6c50b4daea728f94631737e74debd11a",
+  "layers" : 1,
+  "learning_rate" : 9.9999997473787516e-05,
+  "loss_history" : [
+    1.3243125677108765
+  ],
+  "memory" : {
+    "mlx_active_bytes" : 19460767604,
+    "mlx_cache_bytes" : 18612488,
+    "mlx_peak_bytes" : 19948402052,
+    "phase" : "training_finished",
+    "process_peak_rss_bytes" : 1014398976,
+    "resident_bytes" : 32047104
+  },
+  "parameter_delta_l2" : 0.041666879861380617,
+  "rank" : 4,
+  "save_reload_max_abs_error" : 0,
+  "schema_version" : "beverage-preflight-v1",
+  "settings" : {
+    "adapter_config_sha256" : null,
+    "base_revision" : "3e7677d7a40d348a3daba263a2b1c0aa41910710",
+    "decoding" : "greedy",
+    "executable_sha256" : "95c9d8eb592009648ebba08cdec55a5a8ae64731214419d709abe3261d7bb785",
+    "generation_header" : " to=user<|message|>",
+    "image_tokens" : 128,
+    "max_answer_tokens" : 96,
+    "max_output_tokens" : 96,
+    "memory_guard" : "sampled 50ms MLX/RSS plus independent launcher RSS; advisory MLX allocator limit",
+    "memory_limit_bytes" : 20401094656,
+    "model_id" : "mlx-community/Muse-Glimmer-30B-4bit",
+    "model_provenance_sha256" : "4054d969789f644ea36594bca2acbb109b5b2a2b1249fa150dd2c68ce2a38d9d",
+    "prefill_step" : 32,
+    "prompt_sha256" : "ed1deff64667451ca44681c83aedbf4312deec13d8c13e5ca34718cadca95f11",
+    "reasoning_strength" : "low",
+    "rss_limit_bytes" : 21474836480,
+    "runtime_revision" : "b8d4935ab152169ac8cb0da5414b51447e78efb1",
+    "seed" : 42,
+    "template_current_date" : "2026-11-02"
+  },
+  "split_policy_sha256" : "569eb491b98becf34b724c2eec38f752e352d89cf23c2e038b4b2e79834c68ae",
+  "train_image_ids" : [
+    "off-3760025780086-1"
+  ],
+  "train_manifest_sha256" : "bfd356ab62f0a2326efd8a40a78cdc81d101968f04ab76b99c1ef18c4f157a25",
+  "trainable_parameter_count" : 70656,
+  "training_method" : "image-conditioned-detached-prefix-response-only-lora",
+  "training_wall_seconds" : 278.00563097000122,
+  "updated_steps" : 1,
+  "visual_conditioning" : "frozen image encoder and frozen prompt prefix KV caches; gradients only through response positions in last language layer adapters"
+}

@@ -1,0 +1,27 @@
+{
+  "equivalences": [
+    "Case/punctuation/diacritics, unambiguous translations or synonyms, word order and brand/range field partition may differ without changing identity.",
+    "Additional visible label wording may be retained only when it is consistent with the same beverage and all distinguishing reference content is preserved."
+  ],
+  "failures": [
+    "Missing/wrong brand, type, flavor, range or distinguishing variant.",
+    "Conflicting fat percentage, diet/regular status or other material qualifier.",
+    "Unsupported additional identity or nutrition claims.",
+    "Missing/failed/invalid model output, uncertain identity, unresolved reference discrepancy or reviewer disagreement."
+  ],
+  "frozen_utc": "2026-11-03T02:06:33.368409+00:00",
+  "identity_requirement": "Same complete beverage identity: brand, named range/product, beverage type, flavor and distinguishing variants present in the frozen reference. No category-only success.",
+  "legacy_metric": "Retain unchanged preregistered exact name-alias metrics as a separately reported comparison; do not edit reference aliases or past results.",
+  "policy_version": "full-identity-exact-volume-v1",
+  "review_rule": "Two distinct independently instructed Codex agent visual reviewers, blinded to run kind, checkpoint and scores. Identity passes only when both independently mark full_identity_equivalent; all uncertainty/disagreement fails. No post-score adjudication to increase success.",
+  "reviewer_kind": "Codex agents, not a human study",
+  "schema_version": "beverage-identity-equivalence-policy-v1",
+  "target": "Strictly above 70% joint full identity equivalence AND exact capacity on the held-out real-photo adapter run.",
+  "test_rule": "Policy frozen before both baseline/adapter test inference; checkpoint/configuration selected using train/validation only; all 75 test cases remain in denominator. Preserve failed tests; later optimization requires fresh held-out cases.",
+  "user_authorization": {
+    "question_item_id": "request_user_input_async/call_51aa52e417204228a90b186dd252cf0e/0",
+    "quote": "Count equivalent full identities; keep exact volume",
+    "source": "owner conversation reply; not an external signature"
+  },
+  "volume_requirement": "Exact positive integer printed capacity mL under the unchanged frozen reference and metric-first ROUND_HALF_UP rules. No tolerance, guessed capacity, remaining-liquid or consumption substitution."
+}
