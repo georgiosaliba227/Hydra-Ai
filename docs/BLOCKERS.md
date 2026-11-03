@@ -1,5 +1,30 @@
 # Hydra AI blockers
 
+## Current — camera verification owns the installed app
+
+The camera chat restored its PR #75 build/backend on the same phone and requested
+exclusive physical testing. That merged camera Settings source lacks this
+hydration branch's Wonder-readiness controls. Hold hydration installs/relaunches,
+saved URL/token changes and local Simulator/UI runs until the camera check is
+complete. A combined reviewed build is required before another personal Wonder
+phone check; preserve both backend databases and the existing local profile
+scopes. Earlier successful hardware outcomes below apply to their recorded
+builds, not to the currently restored camera build.
+
+The owner's clarified **Not enough data for an estimate**, experimental switch
+**off**, is a supported zero-measurement cold start, not proof of a service or
+Swift decoding failure. Nonbillable v2/v3 probes and actual Swift response
+validation pass at that scope. The hydration implementation can still prepare
+the separate detailed Wonder analysis while reporting the missing forecast.
+Genuine measurements are still needed for personalization; simulated training
+records cannot fill that gap.
+
+No actual personal eight-section Wonder result/replay has been verified. The
+last genuine account observation expires at 6:35:49 p.m. EST on November 3; check
+runtime readiness and renew from fresh evidence if needed before a later send.
+Existing owner risk waivers, holds and limits remain unchanged. No provider
+request, phone change or camera-backend change was made in this investigation.
+
 ## Latest remaining gaps after the US-unit installation
 
 The US/automatic-context update is installed and owner-assisted setup passes.

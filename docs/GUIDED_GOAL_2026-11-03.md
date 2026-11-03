@@ -1,5 +1,11 @@
 # Guided beverage goal — November 3, 2026
 
+Current installation scope: the camera chat later restored its PR #75 build and
+backend on the same phone. The guided-goal owner-assisted pass below remains
+valid for source `84b7ba6`, but does not describe that restored camera build.
+Hydration installs/relaunches, saved connection changes and local Simulator/UI
+runs are held during its exclusive check. See the [physical scope update](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+
 The owner requested age/birthday, height, weight and supplement questions when
 setting a goal. The new Settings/Home flow collects those answers locally,
 calculates an approximate published adult beverage starting reference, and
@@ -42,7 +48,7 @@ profile and explains that the backend may have accepted the goal.
   input, exact goal-only HTTP JSON, connection changes and both deletion/write
   orderings. New lifecycle tests first failed against the old behavior.
 - Full pytest: 1509 passed +32 subtests; one existing Starlette/httpx warning.
-- GitHub checks passed for verified head `f942246`: [iOS](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41731842834) and [Python 3.13/3.14](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41731842805). Later edits only record the owner-assisted outcome and readiness renewal.
+- GitHub checks passed for verified documentation head `9391b19`: [iOS](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41733190841) and [Python 3.13/3.14](https://github.com/georgiosaliba227/Hydra-Ai/actions/runs/41733190577). Later edits document the build mismatch and cold-start finding; no product code changed.
 - Three actual Simulator UI flows pass (125.889 seconds total): custom-goal
   progress; offline age-only calculation with storage/confirmation disabled;
   US birthday/height/weight/creatine review, explicit confirmation, populated
@@ -70,7 +76,8 @@ An earlier read-only check returned `account_observation_stale` while the Mac
 was locked. Once it became available, the authenticated billing observation and
 official pricing were genuinely renewed, preserving every existing financial row
 and event and appending only one fresh immutable policy authorization. Runtime
-readiness now reports ready. The usage dashboard was blank, so no fresh usage or
+readiness then reported ready. That account observation expires at 6:35:49 p.m. EST
+on November 3 and needs rechecking before a later send. The usage dashboard was blank, so no fresh usage or
 invoice-finality claim was created. Standing accepted-risk/invoice-wait waivers
 remain unchanged. The owner has been asked to perform the actual personal
 preview/consent/analysis flow on the phone; no operator-side provider request was
@@ -80,5 +87,7 @@ sent.
 
 [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77),
 `codex/guided-hydration-goal`, is stacked on PR #76 with Amine requested as
-reviewer. Installed Swift source is `84b7ba6`; later handoff edits are docs only.
+reviewer. Swift source used for this installed milestone is `84b7ba6`; later
+handoff edits are docs only. The camera-restored phone currently needs a combined
+build before another hydration verification.
 No automatic merge was performed.

@@ -1,5 +1,33 @@
 # Hydra AI project status
 
+## November 3 — current phone build and cold-start finding
+
+The camera chat reports restoring its PR #75 build and backend on the same
+iPhone. PR #75 is merged on `main` as `27cc907`; that Settings source lacks the
+guided-goal and Wonder-readiness controls on this hydration branch. Earlier
+owner-assisted Health/weather, US-unit and goal/Home passes below remain valid
+for their recorded builds; they do not describe the currently restored camera
+build. The camera check currently has exclusive use of the phone: no hydration
+installation/relaunch, saved connection change or local Simulator/UI test until
+that check finishes. No phone or camera-backend changes were made in this
+investigation.
+
+The owner reports **Not enough data for an estimate** with **Experimental
+personal model off** and has not collected manual measurements. This is the
+expected personal cold start. Nonbillable v2/v3 zero-history probes return
+`insufficient_data`; the actual Swift response validation accepts those replies.
+Turning on experimental fitting does not supply missing observations. In this
+hydration branch, the separate detailed Wonder card remains available after a
+valid personal forecast response even when the numerical result abstains.
+
+Next, combine the camera and hydration branches with both data stores and
+privacy/financial policies preserved, after the camera check releases the
+device. Then verify the correct installed build/backend before asking for
+personal preview/consent again. The last owner-backend readiness check was ready;
+its account observation expires at 6:35:49 p.m. EST on November 3 and must be checked
+again before a request. No actual personal eight-section result or replay is
+verified. See the [current physical scope](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+
 ## November 3 — guided starting goal implemented
 
 The requested on-device age/birthday, height, weight and supplement form is
@@ -10,9 +38,10 @@ supplement context adds no invented multiplier. Profiles stay on the iPhone;
 only the confirmed goal integer reaches the backend. Custom goals remain.
 254 native tests, 1509 pytest +32 subtests, and three actual Simulator flows
 pass, including offline boundaries, populated Home score and profile restoration.
-The final HealthKit-signed app is installed; the owner reports Goal confirmed
-and Home score appears. Runtime readiness has been genuinely renewed and is
-ready for the separately previewed/consented personal Wonder flow. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
+The final HealthKit-signed app was installed for this milestone; the owner reports
+Goal confirmed and Home score appears. Runtime readiness was genuinely renewed
+for the separately previewed/consented personal Wonder flow. The newer current-
+build notice above supersedes this installation status. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
 
 Actual own-record Wonder, genuine manual calibration and always-on hosting remain
 separate outstanding work. No paid call, ledger reset, merge or deployment was

@@ -1,5 +1,32 @@
 # Hydra AI next actions
 
+## Current order — combine the installed experience after camera verification
+
+1. Respect the camera chat's exclusive phone check. Leave the installed app,
+   saved backend/token and camera service untouched; do not start local Hydra
+   Simulator/UI runs while its performance check is active.
+2. After that check finishes, integrate merged camera PR #75 (`27cc907`) with
+   the hydration stack through PR #77. Preserve camera inference, recognition
+   confirmation, drinks/corrections/contributed-photo storage, guided local
+   profiles, US/automatic context, Home score and Wonder safeguards. Shared
+   changed paths include `backend/app.py`, `BeverageStore`, HTTP beverage data,
+   Settings, workout UI and privacy/UI tests; this inventory is not a merge-
+   conflict finding. Do not replace one feature build with the other again.
+3. Review the combined diff, run the relevant Python/native checks and actual
+   Simulator flows once released, then install the signed combined original
+   bundle without uninstall/reset. Confirm which owner backend is selected
+   before interpreting its records or asking for another phone action. Do not
+   silently migrate private records between the two backend stores.
+4. Recheck live readiness using fresh genuine evidence as required. Preserve
+   all existing financial holds, limits, accepted-risk references and exact
+   personal preview/consent. Verify one real eight-section result and saved
+   replay. A valid `insufficient_data` numerical result does not itself require
+   disabling detailed Wonder analysis; do not invent a forecast to unlock it.
+5. Collect real comparable manual measurements for personalization. Keep the
+   experimental switch off by default. Experimental fitting needs at least six
+   qualified observations and may still retain the baseline. Synthetic Muse-
+   guided training remains separate from personal history.
+
 ## Latest owner steering — profile-guided starting goal
 
 1. Review the completed US-unit/automatic-context branch stacked on PR #73. It is
