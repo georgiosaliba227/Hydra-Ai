@@ -3,8 +3,11 @@
 November 3, 2026. Georgio explicitly directed the agent to continue in Simulator
 and ignore the prior unresolved billing attempts. That overrides the prior
 finality wait for this one test only. It does not make those attempts final or
-establish zero gross usage. Unverified provider extras require their own explicit
-owner acknowledgement before a request can run.
+establish zero gross usage. The owner separately accepted unverified provider
+charges "for all requests" after reviewing the fixed test's $0.059960 published
+token bound. This acknowledgement also applies to future requests; allocation
+and account limits are unchanged. The operator authorization implemented here
+still consumes only one request. It does not enable ordinary ongoing admission.
 
 ## Authorization and accounting
 
