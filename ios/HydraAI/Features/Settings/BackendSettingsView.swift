@@ -95,7 +95,7 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text("Export includes your logged drinks and goal. Deleting erases them from your backend and can't be undone.")
+                    Text("Export includes your backend logged drinks and goal; export manual measurement history from Plan a workout. Deleting also erases all saved manual measurement profiles on this iPhone, and cannot be undone.")
                 }
             }
             Section("Privacy & AI") {
@@ -118,7 +118,7 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text("Every logged drink and your goal are erased from the backend. This cannot be undone.")
+            Text("Every logged drink and your goal are erased from the backend. All saved manual measurement profiles on this iPhone are also erased. This cannot be undone.")
         }
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { goalFocused = false }
@@ -165,9 +165,11 @@ struct BackendSettingsView: View {
         do {
             let count = try await store.deleteAllData()
             goalText = ""
-            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal."
+            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal, plus all saved manual measurement history on this iPhone."
+        } catch ServiceError.server(409) {
+            dataMessage = "Saved manual measurements on this iPhone were cleared. Your backend is busy with another request, so backend data has not been deleted. Wait for that request to finish, then choose Delete again."
         } catch {
-            dataMessage = "Could not delete your data. \(error.localizedDescription)"
+            dataMessage = "Could not finish deleting your data. Local manual history is cleared before the backend request; check Plan a workout for any local storage error. \(error.localizedDescription)"
         }
     }
 }

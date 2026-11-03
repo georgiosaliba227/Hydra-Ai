@@ -126,7 +126,8 @@ struct WorkoutDraft: Equatable {
         return value
     }
     func conditions() throws -> WorkoutForecastRequest.Conditions {
-        try .init(activity: activity, intensity: intensity,
+        guard Self.activities.contains(activity), Self.intensities.contains(intensity) else { throw ServiceError.invalidResponse }
+        return try .init(activity: activity, intensity: intensity,
                   temperature_c: number(temperature, minimum: -60, maximum: 60),
                   humidity_percent: number(humidity, maximum: 100))
     }
@@ -187,6 +188,8 @@ struct WorkoutForecastView: View {
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = WorkoutForecastController()
     @StateObject private var wonder = RecordedWonderController()
+    @StateObject private var analysis = HydrationAnalysisController()
+    @State private var analysisTask: Task<Void, Never>?
     @State private var wonderTask: Task<Void, Never>?
     @State private var draft = WorkoutDraft()
     @State private var samples: [WorkoutForecastRequest.Sample] = []
@@ -218,8 +221,10 @@ struct WorkoutForecastView: View {
                 workoutSection
                 conditionsSection
                 calibrationSection
+                CalibrationHistorySection(history: store.calibrationHistory, session: samples, use: useSavedSamples, revisit: revisitSample, deleted: removeSavedSamples)
                 estimateSection
                 if let result = controller.result, !result.synthetic { resultSections(result) }
+                if analysis.state != .idle { HydrationAnalysisSection(controller: analysis) }
                 if WorkoutFlowHooks.wonderExplanationEnabled { wonderExplanationSection }
             }
             .onChange(of: controller.result?.synthetic) { _, synthetic in
@@ -232,7 +237,12 @@ struct WorkoutForecastView: View {
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { focusedField = nil }
         } }
-        .onChange(of: draft) { _, _ in invalidate(); inputError = nil }
+        .onChange(of: draft) { previous, next in
+            var consentOnly = previous; consentOnly.consent = next.consent
+            if consentOnly != next { invalidate(); draft.consent = false }
+            inputError = nil
+        }
+        .onAppear { if connected { try? store.calibrationHistory.reload() } }
         .onChange(of: store.configurationGeneration) { _, _ in
             invalidate(); invalidateWonder(); draft.consent = false; samples = []; inputError = nil
         }
@@ -374,7 +384,9 @@ struct WorkoutForecastView: View {
     private var calibrationSection: some View {
         Section {
             LabeledContent("Measurements this session", value: samples.count.formatted())
-            Toggle("I consent to backend processing of these manual measurements", isOn: $draft.consent)
+                .accessibilityIdentifier("sessionCalibrationCount")
+                .accessibilityValue(samples.count.formatted())
+            Toggle("I consent to one estimate and its backend summaries using these manual measurements", isOn: $draft.consent)
                 .accessibilityIdentifier("workoutCalibrationConsent")
             DisclosureGroup("Add a measured workout", isExpanded: $showingCalibration) {
                 Text("Use only a workout that matches the conditions above. Enter measured values, including zeros where measured. Don't guess error bounds.")
@@ -391,18 +403,20 @@ struct WorkoutForecastView: View {
                 numberField("Urine ±", unit: "mL", text: $draft.urineError)
                 numberField("Duration ±", unit: "min", text: $draft.durationError)
                 Toggle("Comparable dry weighing; all intake and urine recorded", isOn: $draft.protocolConfirmed)
+                    .accessibilityIdentifier("calibrationProtocolConfirmed")
                 Button("Add measurement to this session") { addSample() }
+                    .accessibilityIdentifier("addCalibrationMeasurement")
                     .disabled(samples.count >= 32)
             }
             if !samples.isEmpty {
                 Button("Remove all session measurements", role: .destructive) {
-                    samples = []; controller.invalidate(); invalidateExplainer(); draft.consent = false
+                    samples = []; invalidate(); draft.consent = false
                 }
             }
         } header: {
             Text("Optional · your own measurements")
         } footer: {
-            Text("Measurements stay in memory on this screen. Your backend processes them only when you estimate — not stored, not sent to Meta. Apple Health records aren't used.")
+            Text("Session measurements stay in memory unless you explicitly save them below. Your backend processes them only when you estimate and prepare a summary, with fresh consent. Meta receives only a separately previewed, consented summary. Apple Health records aren't included.")
         }
     }
 
@@ -426,6 +440,7 @@ struct WorkoutForecastView: View {
             .accessibilityIdentifier("estimateWorkout")
             if let inputError {
                 Text(inputError).foregroundStyle(.red).font(.subheadline)
+                    .accessibilityIdentifier("workoutInputError")
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 0, trailing: 4))
             }
@@ -703,12 +718,42 @@ struct WorkoutForecastView: View {
             guard !samples.contains(where: { $0.observed_at == sample.observed_at }) else {
                 inputError = "A measurement at that completion time is already in this session."; return
             }
-            samples.append(sample); controller.invalidate(); invalidateExplainer(); inputError = nil; showingCalibration = false
+            try CalibrationHistoryValidation.validate(samples + [sample])
+            samples.append(sample); draft.consent = false; invalidate(); inputError = nil; showingCalibration = false
         } catch { inputError = "Complete all measurement and error-bound fields and confirm the weighing protocol." }
+    }
+
+    private func removeSavedSamples(_ ids: Set<UUID>?) {
+        if let ids { samples.removeAll { ids.contains($0.event_id) } } else { samples = [] }
+        draft.consent = false; invalidate(); inputError = nil
+    }
+
+    private func useSavedSamples(_ saved: [WorkoutForecastRequest.Sample]) {
+        do {
+            let existing = Set(samples.map(\.event_id))
+            let combined = samples + saved.filter { !existing.contains($0.event_id) }
+            try CalibrationHistoryValidation.validate(combined)
+            samples = combined; draft.consent = false; invalidate(); inputError = nil
+        } catch { inputError = error.localizedDescription }
+    }
+
+    private func revisitSample(_ sample: WorkoutForecastRequest.Sample) {
+        guard let observed = CalibrationHistoryValidation.date(sample.observed_at) else { return }
+        let m = sample.measurement, e = sample.errors, c = sample.conditions
+        draft.activity = c.activity; draft.intensity = c.intensity
+        draft.temperature = String(c.temperature_c); draft.humidity = String(c.humidity_percent)
+        draft.observedAt = observed; draft.preMass = String(m.pre_mass_kg); draft.postMass = String(m.post_mass_kg)
+        draft.consumed = String(m.consumed_ml); draft.urine = String(m.urine_ml)
+        draft.measuredDuration = String(m.duration_minutes); draft.massError = String(e.pre_mass_kg)
+        draft.intakeError = String(e.consumed_ml); draft.urineError = String(e.urine_ml); draft.durationError = String(e.duration_minutes)
+        draft.protocolConfirmed = false; draft.consent = false
+        draft.appliedWorkout = nil; draft.appliedWeather = nil; showingCalibration = true
+        invalidate(); inputError = nil
     }
 
     private func invalidate() {
         requestTask?.cancel(); requestTask = nil; controller.invalidate(); invalidateExplainer()
+        analysisTask?.cancel(); analysisTask = nil; analysis.invalidate()
     }
 
     /// The Wonder preview describes one exact request; any change to the workout or measurements drops it.
@@ -747,9 +792,15 @@ struct WorkoutForecastView: View {
         inputError = nil; focusedField = nil
         guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
         requestTask?.cancel()
-        if request.mode == "personal" { invalidateExplainer() }
+        analysisTask?.cancel(); analysisTask = nil; analysis.invalidate()
+        invalidateExplainer()
+        if request.mode == "personal" { draft.consent = false }
         requestTask = Task {
             await controller.load(request, service: service)
+            if let forecast = controller.result, !Task.isCancelled {
+                analysisTask?.cancel()
+                analysisTask = Task { await analysis.load(request, forecast: forecast, service: service) }
+            }
             // The Wonder preview reuses exactly the request just estimated.
             if request.mode == "personal", controller.result != nil, !Task.isCancelled { loadExplainerPreview(request) }
         }

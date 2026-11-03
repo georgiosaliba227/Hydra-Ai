@@ -180,6 +180,22 @@ actor HTTPBeverageService: BeverageService {
         return result
     }
 
+    /// Computes research analysis locally. This endpoint never dispatches to Meta.
+    func hydrationAnalysis(_ payload: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        try payload.validate()
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/hydration-analysis"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = try JSONEncoder().encode(payload)
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        return try JSONDecoder().decode(HydrationAnalysis.self, from: data)
+    }
+
     /// Replays a recorded, already-settled Wonder result; the backend never dispatches for this call.
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison {
         var request = URLRequest(url: baseURL.appendingPathComponent("v2/hydration-context-comparison"))

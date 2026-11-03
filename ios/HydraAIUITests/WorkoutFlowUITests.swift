@@ -57,7 +57,18 @@ final class WorkoutFlowUITests: XCTestCase {
         let prediction = app.staticTexts["workoutPrediction"]
         XCTAssertTrue(insufficient.waitForExistence(timeout: 15) || prediction.exists)
 
-        let unavailable = app.descendants(matching: .any).matching(identifier: "workoutWonderUnavailable").firstMatch
+        let analysis = app.staticTexts["hydrationAnalysisProvenance"]
+        reveal(analysis, in: app, attempts: 10)
+        XCTAssertTrue(analysis.label.contains("Research analysis"), analysis.label)
+        let activity = app.buttons["hydrationAnalysis-activity"]
+        reveal(activity, in: app)
+        activity.tap()
+        let localAnalysis = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Duration and activity describe the supplied workout")).firstMatch
+        reveal(localAnalysis, in: app)
+        XCTAssertTrue(localAnalysis.waitForExistence(timeout: 5))
+        attach(app, "Deterministic research analysis separated from Muse Wonder")
+
+        let unavailable = app.staticTexts["workoutWonderUnavailable"]
         reveal(unavailable, in: app, attempts: 10)
         XCTAssertTrue(unavailable.label.contains("isn't set up on this backend"), unavailable.label)
         let preview = app.descendants(matching: .any).matching(identifier: "workoutWonderPreview").firstMatch
@@ -78,9 +89,11 @@ final class WorkoutFlowUITests: XCTestCase {
     }
 
     private func type(_ text: String, into label: String, in app: XCUIApplication) {
+        if app.buttons["Done"].exists { app.buttons["Done"].tap() }
         let field = app.textFields[label]
         reveal(field, in: app)
-        field.tap()
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
         field.typeText(text)
     }
 

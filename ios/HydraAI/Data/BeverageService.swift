@@ -5,6 +5,7 @@ protocol BeverageService: Sendable {
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast
+    func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis
     func intakeHistory(date: String, timezone: String) async throws -> IntakeHistoryForecast
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog
@@ -95,6 +96,10 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func hydrationAnalysis(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        throw ServiceError.invalidResponse
+    }
+
     func workoutForecast(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast {
         throw ServiceError.invalidResponse
     }

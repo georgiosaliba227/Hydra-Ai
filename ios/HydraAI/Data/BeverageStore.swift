@@ -29,6 +29,7 @@ final class BeverageStore: ObservableObject {
     @Published private(set) var configuration: APIConfiguration
     @Published private(set) var configurationGeneration = UUID()
     @Published private(set) var isSaving = false
+    let calibrationHistory: CalibrationHistoryStore
 
     private var service: (any BeverageService)?
     private let pendingURL: URL
@@ -47,8 +48,10 @@ final class BeverageStore: ObservableObject {
     var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving }
     private var destination: String { configuration.offline ? "offline" : configuration.baseURL }
 
-    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load()) {
+    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load(), calibrationHistory: CalibrationHistoryStore? = nil) {
         self.configuration = configuration
+        self.calibrationHistory = calibrationHistory ?? CalibrationHistoryStore()
+        self.calibrationHistory.configure(configuration)
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         self.pendingURL = pendingURL ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
         self.service = service ?? (configuration.offline ? MockBeverageService() : try? HTTPBeverageService(configuration: configuration))
@@ -70,7 +73,7 @@ final class BeverageStore: ObservableObject {
         invalidateHistory()
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
-        configuration = config; service = next; logs = []; summary = nil; state = .idle
+        configuration = config; calibrationHistory.configure(config); service = next; logs = []; summary = nil; state = .idle
     }
 
     func refresh() async {
@@ -161,6 +164,8 @@ final class BeverageStore: ObservableObject {
         guard canLog, let service, !isOffline else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
+        // Clear all local manual profiles even if the backend is unavailable. Fail visibly if local erasure fails.
+        try calibrationHistory.deleteAll()
         let count = try await service.deleteAllData()
         await refresh()
         return count

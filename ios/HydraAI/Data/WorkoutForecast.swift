@@ -2,13 +2,13 @@ import Foundation
 
 /// Explicit manual inputs. No HealthKit fields or arbitrary model prompt are encoded.
 struct WorkoutForecastRequest: Encodable, Sendable {
-    struct Conditions: Encodable, Sendable {
+    struct Conditions: Codable, Sendable {
         let activity: String
         let intensity: String
         let temperature_c: Double
         let humidity_percent: Double
     }
-    struct Measurement: Encodable, Sendable {
+    struct Measurement: Codable, Sendable {
         let pre_mass_kg: Double
         let post_mass_kg: Double
         let consumed_ml: Double
@@ -17,7 +17,7 @@ struct WorkoutForecastRequest: Encodable, Sendable {
         let protocol_confirmed = true
         let provenance = ["user_entered_manual_weighing"]
     }
-    struct Errors: Encodable, Sendable {
+    struct Errors: Codable, Sendable {
         let pre_mass_kg: Double
         let post_mass_kg: Double
         let consumed_ml: Double
@@ -25,7 +25,7 @@ struct WorkoutForecastRequest: Encodable, Sendable {
         let duration_minutes: Double
         let provenance = ["user_reported_instrument_error_bounds"]
     }
-    struct Sample: Encodable, Sendable {
+    struct Sample: Codable, Sendable {
         let event_id: UUID
         let observed_at: String
         let conditions: Conditions
@@ -51,7 +51,8 @@ struct WorkoutForecastRequest: Encodable, Sendable {
     }
 
     func validate() throws {
-        guard TimeZone(identifier: timezone) != nil, samples.count <= 32 else { throw ServiceError.invalidResponse }
+        guard TimeZone(identifier: timezone) != nil else { throw ServiceError.invalidResponse }
+        try CalibrationHistoryValidation.validate(samples)
         if mode == "synthetic_demo" {
             guard exercise == nil, samples.isEmpty, !calibration_processing_consent else { throw ServiceError.invalidResponse }
         } else {
