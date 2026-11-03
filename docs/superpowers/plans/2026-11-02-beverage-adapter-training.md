@@ -37,3 +37,7 @@ The complete first epoch passed 150 actual updates and save/reload verification,
 2. Verify dimension admission, unchanged failed/missing denominator, oversize rejection, existing paired conditioning and full regression tests; request a bounded review.
 3. Run a real train-only 1024-token, 8-layer/rank16 one-update save/reload preflight. If it exceeds existing guards, preserve failure and adjust within those guards.
 4. Run higher-resolution baseline validation, prepare the 150 train cache, and train the larger adapter with lower learning rate (0.00003) for two epochs. Validate that full checkpoint before selecting any final test pipeline. Keep the test set untouched until selection.
+
+## Owner-approved identity equivalence evaluation
+
+The owner explicitly chose equivalent full identities with exact volume. Freeze policy SHA46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18 before any test inference; retain legacy name-alias results. Build blinded identity-only packets after saved predictions, obtain two independent AI photo reviews, require unanimous full equivalence, and keep all missing/failed/uncertain cases in the denominator. New file gates preserve original model/train/selection/cache provenance, policy-in-selection, exact volumes, immutable outputs and fixture/baseline exclusion from target success. Validate with synthetic boundary/tampering and complete75case provenance tests; calibrate on validation only while training continues. No semantic final-test claim from the prior single-review diagnostic.
