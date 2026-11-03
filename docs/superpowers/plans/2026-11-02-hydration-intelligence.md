@@ -29,17 +29,18 @@
 
 - [x] Fetch remote branches and inspect PR #65, source commits and project docs.
 - [x] Create an isolated branch based on PR #65; preserve main and camera branches.
-- [ ] Run the current full pytest baseline with pinned backend dependencies.
+- [x] Run the current full pytest baseline with pinned backend dependencies (1073 passed, 32 subtests; one elapsed-date fixture corrected).
 
 ### Task 2: Grouped model selection (ML agent)
 
 **Files:** versioned additions in `ai/forecasting/`, `tests/forecasting/`, `docs/FORECAST_*`.
 **Produces:** reproducible research artifacts/reports; no automatic app population prediction.
 
-- [ ] Add failing tests for participant-separated selection, baseline retention and evaluation isolation.
-- [ ] Implement grouped development validation and untouched calibration/test evaluation.
-- [ ] Audit additional primary-source public datasets and record inclusion/exclusion evidence.
-- [ ] Train on suitable real records, reproduce artifacts, report metrics and limitations; commit.
+- [x] Add failing tests for participant-separated selection, baseline retention and evaluation isolation.
+- [x] Implement grouped development validation and historical calibration/test evaluation (explicitly reused holdouts).
+- [x] Audit additional primary-source public datasets and record inclusion/exclusion evidence.
+- [x] Train on suitable real records, reproduce artifacts, report metrics and limitations; commit.
+- [x] Add and independently review regularized within-person research learning with chronological selection, nonshrinking envelopes and synthetic counterexamples. Keep it offline: abrupt-change MAE and drift inclusion do not support promotion.
 
 ### Task 3: Persist consented calibration (iOS agent)
 
@@ -58,9 +59,20 @@
 **Consumes:** existing `WorkoutForecastInput` at `POST /v1/hydration-analysis`.
 **Produces:** `hydration-analysis-v1` with numerical forecast, scoped intake/context, eight evidence-labeled sections and existing Wonder preview/replay.
 
-- [ ] Add failing contract/privacy/auth/body-limit/time-window tests.
-- [ ] Implement deterministic composition; abstain on unsupported balance accounting.
-- [ ] Validate no Meta call or synthetic disclosure, document exact wire contract; commit.
+- [x] Add failing contract/privacy/auth/body-limit/time-window tests.
+- [x] Implement deterministic composition; abstain on unsupported balance accounting.
+- [x] Validate no Meta call or synthetic disclosure, document exact wire contract; commit (32 focused tests and independent scientific review).
+
+### Task 4b: Comprehensive Wonder analysis (backend and iOS agents)
+
+**Files:** `backend/wonder_analysis.py`, new routes and existing gateway/result integration; separate typed iOS client/controller.
+**Consumes:** allowlisted aggregates from `hydration-analysis-v1`; exact hash and separate explicit Meta consent.
+**Produces:** eight required, vetted fact-specific sections. Muse Wonder selects phrasing; Hydra formats every fact. No arbitrary nonnumeric invention.
+
+- [x] Add schema, strict scaffold/placeholder validation, exact payload reconstruction, mock/recorded replay and adversarial grounding fixtures (52 tests).
+- [ ] Wire existing financial gateway/transport/shared lock through a new disabled-by-default comprehensive flag; preserve all financial policies and private state.
+- [ ] Add exact saved replay/export/delete, stale/refusal/unresolved/concurrency and false-flag tests.
+- [ ] Wire iPhone preview/consent/results with generation guards and no automatic retries; test fixtures and mock simulator behavior.
 
 ### Task 5: Integrate and review (orchestrator plus iOS followup)
 
