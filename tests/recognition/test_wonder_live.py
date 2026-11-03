@@ -111,6 +111,42 @@ def test_the_owner_runs_a_synthetic_scenario_once_on_the_allocation(tmp_path, en
         assert replay.status_code == 200 and transport.calls == 1
 
 
+def test_delete_all_cannot_remove_an_active_synthetic_publication(tmp_path, env, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    import threading
+    from backend import wonder_results
+
+    authority, ledger = georgio_live(env, tmp_path)
+    app = create_app(tmp_path / "data.sqlite3", OWNER)
+    transport = FakeWonderTransport(selection_reply())
+    fake_live(app, ledger, transport)
+    entered, release = threading.Event(), threading.Event()
+    original_link = wonder_results.os.link
+
+    def publication(*args, **kwargs):
+        entered.set()
+        assert release.wait(5)
+        return original_link(*args, **kwargs)
+
+    monkeypatch.setattr(wonder_results.os, "link", publication)
+    with TestClient(app) as client, ThreadPoolExecutor(max_workers=1) as pool:
+        running = pool.submit(client.post, "/v1/wonder/live", json=LIVE, headers=OWNER_AUTH)
+        try:
+            assert entered.wait(3)
+            response = client.delete("/v1/data?confirm=delete-all-my-data", headers=OWNER_AUTH)
+            assert response.status_code == 409 and response.json()["code"] == "wonder_busy"
+        finally:
+            release.set()
+        response = running.result(timeout=5)
+        assert response.status_code == 200 and response.json()["saved"] is True
+        assert (tmp_path / "results/complete.json").exists()
+        assert not list((tmp_path / "results").glob(".pending-*"))
+        assert client.delete("/v1/data?confirm=delete-all-my-data", headers=OWNER_AUTH).status_code == 200
+        # Existing deletion semantics preserve the fixed synthetic demo recording.
+        assert (tmp_path / "results/complete.json").exists()
+        assert transport.calls == 1 and len(attempt_rows(authority)) == 1
+
+
 def test_a_second_request_waits_for_the_first_invoice(tmp_path, env):
     authority, ledger = georgio_live(env, tmp_path)
     app = create_app(tmp_path / "data.sqlite3", OWNER)
