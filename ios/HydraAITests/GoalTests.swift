@@ -38,4 +38,25 @@ final class GoalTests: XCTestCase {
         XCTAssertEqual(bodies, [#"{"daily_beverage_goal_ml":1500}"#, #"{"daily_beverage_goal_ml":null}"#])
         do { _ = try await service().updateGoal(50); XCTFail("Out-of-range goal sent") } catch BeverageValidationError.invalidVolume {}
     }
+
+    func testConfirmedProfileReferenceSendsOnlyGoalInteger() async throws {
+        let profile = GoalProfile(ageYears: 30, referenceGroup: .men, eligibility: .generalAdult,
+                                  heightCm: 180.34, weightKg: 81.6466, supplements: [.creatine])
+        guard case .reference(let reference) = GoalReferenceCalculator.evaluate(profile) else {
+            return XCTFail("Adult synthetic fixture must have a published reference")
+        }
+        var calls = 0
+        FixtureURLProtocol.handler = { request in
+            calls += 1
+            XCTAssertEqual(request.httpMethod, "PUT"); XCTAssertEqual(request.url?.path, "/v1/settings")
+            let stream = try XCTUnwrap(request.httpBodyStream); stream.open(); defer { stream.close() }
+            var bytes = [UInt8](repeating: 0, count: 4096)
+            let count = stream.read(&bytes, maxLength: bytes.count)
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(bytes.prefix(max(0, count)))) as? [String: Int])
+            XCTAssertEqual(body, ["daily_beverage_goal_ml": 3000])
+            return (200, Data(#"{"version":"settings-v1","daily_beverage_goal_ml":3000,"goal_basis":"user_confirmed"}"#.utf8))
+        }
+        _ = try await service().updateGoal(reference.beverageMl)
+        XCTAssertEqual(calls, 1)
+    }
 }

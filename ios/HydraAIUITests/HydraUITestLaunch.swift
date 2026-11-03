@@ -1,6 +1,21 @@
 import XCTest
 
 extension XCUIApplication {
+    /// Form rows can report hittable under the persistent tab bar. Bring the
+    /// element's center into the actual content area before tapping.
+    func revealFormElement(_ element: XCUIElement) {
+        for _ in 0..<18 {
+            if element.exists && element.isHittable {
+                let top = navigationBars.firstMatch.frame.maxY
+                let bottom = tabBars.firstMatch.frame.minY
+                if element.frame.midY > top + 12 && element.frame.midY < bottom - 12 { return }
+                if element.frame.midY <= top + 12 { swipeDown(); continue }
+            }
+            swipeUp()
+        }
+        XCTAssertTrue(element.isHittable)
+    }
+
     /// Earlier workflows explicitly retain their metric fixtures and bypass the
     /// unrelated first-use sheet. New setup/unit tests use launch() directly.
     func launchHydra() {

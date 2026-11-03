@@ -39,7 +39,7 @@ struct HydrationScoreCard: View {
                 case .goalRequired:
                     Text("Choose your own logged-drink goal to calculate this research score.")
                         .font(.subheadline).accessibilityIdentifier("hydrationScoreGoalRequired")
-                    NavigationLink("Choose a goal in Settings") { BackendSettingsView() }
+                    NavigationLink("Set up my goal") { GuidedGoalSetupView(profileStore: store.goalProfiles) }
                         .accessibilityIdentifier("scoreChooseGoal")
                 case .unavailable:
                     Text("Score unavailable. Confirmed logs and readable manual history must finish loading without a pending change.")
@@ -111,7 +111,7 @@ struct HydrationScoreDetailsView: View {
                     }
                     wonderSection(facts)
                 } else if availability == .goalRequired {
-                    Section { NavigationLink("Choose your own goal in Settings") { BackendSettingsView() } }
+                    Section { NavigationLink("Set up my goal") { GuidedGoalSetupView(profileStore: store.goalProfiles) } }
                 } else {
                     Section { Text("The score is unavailable while its confirmed sources are loading, stale or need review. No zero score is substituted.") }
                 }

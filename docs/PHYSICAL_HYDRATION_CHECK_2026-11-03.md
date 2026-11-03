@@ -1,5 +1,46 @@
 # Physical hydration milestone verification
 
+## Current scope — camera build restored after these milestones
+
+The camera chat subsequently reported restoring its PR #75 app/backend over the
+same original bundle. Its merged source (`27cc907`) lacks this hydration branch's
+guided-goal and Wonder-readiness Settings controls. The earlier passes below are
+retained exactly at their recorded build scopes; they do not prove the currently
+installed camera app contains those hydration features. No new hydration install,
+relaunch, saved URL/token change or local Simulator/UI run is permitted during
+the camera chat's exclusive check. A future combined build needs a fresh scoped
+hardware pass without uninstall/reset or silent private-data migration.
+
+The owner later clarified **Not enough data for an estimate** with experimental
+mode **off**. With no collected manual history, this is expected numerical
+abstention. Nonbillable backend probes and actual Swift DTO validation accept
+zero-history `insufficient_data` replies; no physical forecast success or actual
+personal Wonder result is claimed. The hydration backend's temporary status-only
+observer saw no phone forecast traffic and was removed after the build/backend
+mismatch was identified. No request bodies, health values or tokens were logged;
+the financial ledger remained byte-identical during those checks.
+
+## Guided goal and Home score update
+
+The final HealthKit-signed guided-goal build (Swift source `84b7ba6`) was installed
+without uninstall/reset. The owner entered answers privately on the phone and
+reported **Goal confirmed and Home score appears**. A read-only backend check
+independently confirms that a goal is set, without recording its value or any
+profile answers. This is owner-assisted hardware evidence, separate from the
+three passing synthetic Simulator flows. No raw profile, Health or location
+values were requested in chat.
+
+The account observation was subsequently renewed from the authenticated
+Meta billing page and published token pricing. The backend then reported ready;
+that observation expires at 6:35:49 p.m. EST on November 3 and is not a standing
+readiness guarantee.
+All existing financial rows/events remain unchanged; only one fresh immutable
+authorization event was appended. Billing/extra-charge and cross-ledger uncertainty
+labels remain unverified under the standing waiver. The usage dashboard was blank,
+so no fresh usage figures or final charges were attested. No provider request was
+made in that renewal. The actual personal preview/consent/result/replay check
+remains unverified and now needs the combined build described above first.
+
 ## US units and automatic-context update
 
 The reviewed update at `1ef152d` was installed over the original bundle and

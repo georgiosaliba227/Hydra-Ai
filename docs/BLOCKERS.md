@@ -1,5 +1,30 @@
 # Hydra AI blockers
 
+## Current — camera verification owns the installed app
+
+The camera chat restored its PR #75 build/backend on the same phone and requested
+exclusive physical testing. That merged camera Settings source lacks this
+hydration branch's Wonder-readiness controls. Hold hydration installs/relaunches,
+saved URL/token changes and local Simulator/UI runs until the camera check is
+complete. A combined reviewed build is required before another personal Wonder
+phone check; preserve both backend databases and the existing local profile
+scopes. Earlier successful hardware outcomes below apply to their recorded
+builds, not to the currently restored camera build.
+
+The owner's clarified **Not enough data for an estimate**, experimental switch
+**off**, is a supported zero-measurement cold start, not proof of a service or
+Swift decoding failure. Nonbillable v2/v3 probes and actual Swift response
+validation pass at that scope. The hydration implementation can still prepare
+the separate detailed Wonder analysis while reporting the missing forecast.
+Genuine measurements are still needed for personalization; simulated training
+records cannot fill that gap.
+
+No actual personal eight-section Wonder result/replay has been verified. The
+last genuine account observation expires at 6:35:49 p.m. EST on November 3; check
+runtime readiness and renew from fresh evidence if needed before a later send.
+Existing owner risk waivers, holds and limits remain unchanged. No provider
+request, phone change or camera-backend change was made in this investigation.
+
 ## Latest remaining gaps after the US-unit installation
 
 The US/automatic-context update is installed and owner-assisted setup passes.
@@ -8,11 +33,19 @@ and six Simulator flows pass. These earlier hardware gaps are closed within that
 scope. Actual unattended background delivery and a populated own-record Meta flow
 are not established by those tests.
 
-The owner added profile-guided starting-goal calculation. Evidence and privacy
-design are in progress; height/weight/supplements cannot become invented numerical
+The requested profile-guided form and reviewed adult beverage reference are
+implemented and installed; three actual Simulator flows pass. The owner also
+confirms the goal and populated Home score on the phone. Height/weight/supplements apply no numerical
 adjustments. Genuine manual calibration and independent personal accuracy evidence
 remain absent. Existing financial uncertainty is accepted under the recorded owner
 waiver, with holds/limits and other admission gates retained.
+
+The earlier stale-observation gate was cleared by a genuine authenticated billing
+and official-pricing renewal after the Mac became available; runtime readiness
+now reports ready. All prior financial history is preserved and only a fresh
+immutable authorization event was appended. Actual usage/finality and cross-ledger
+status remain unverified. The remaining personal preview/consent/result/replay
+check needs the owner's on-phone action; standing waivers were not requested again.
 
 ## Earlier November 3 gaps — before the US-unit update
 

@@ -18,6 +18,9 @@ struct BackendSettingsView: View {
     @State private var offline = false
     @State private var error: String?
     @State private var goalValue: Double?
+    @State private var goalEdit = UUID()
+    @State private var goalFieldReset = UUID()
+    @State private var goalInputValid = true
     @State private var goalMessage: String?
     @State private var export: ExportDocument?
     @State private var confirmingDeleteAll = false
@@ -66,20 +69,34 @@ struct BackendSettingsView: View {
                 .accessibilityIdentifier("displayUnitsPicker")
             }
             DailyContextSettingsSections()
-            if !store.isOffline && store.isConfigured {
-                Section {
-                    CanonicalQuantityField("Daily goal", value: $goalValue, quantity: .volume,
-                                           accessibilityIdentifier: "goalField")
-                    Button("Save goal") { Task { await saveGoal(parsedGoal) } }
-                        .disabled(parsedGoal == nil)
+            Section {
+                NavigationLink {
+                    GuidedGoalSetupView(profileStore: store.goalProfiles)
+                } label: { Label("Calculate my starting goal", systemImage: "list.clipboard") }
+                .accessibilityIdentifier("guidedGoalSetup")
+                if !store.isOffline && store.isConfigured {
+                    HydraDisclosure(title: "Choose a custom goal", identifier: "customGoalEntry") {
+                        CanonicalQuantityField("Daily goal", value: Binding(get: { goalValue }, set: {
+                            goalEdit = UUID(); goalValue = $0; goalMessage = nil
+                        }), quantity: .volume, accessibilityIdentifier: "goalField", isInputValid: $goalInputValid)
+                            .id(goalFieldReset)
+                        Button("Save goal") {
+                            let candidate = parsedGoal, generation = store.configurationGeneration
+                            Task { await saveGoal(candidate, generation: generation) }
+                        }
+                        .disabled(parsedGoal == nil || store.isSettingGoal)
                         .accessibilityIdentifier("saveGoal")
-                    Button("Clear goal", role: .destructive) { Task { await saveGoal(nil) } }
+                        Button("Clear goal", role: .destructive) {
+                            let generation = store.configurationGeneration
+                            Task { await saveGoal(nil, generation: generation) }
+                        }.disabled(store.isSettingGoal)
+                    }
                     if let goalMessage { Text(goalMessage).font(.footnote).accessibilityIdentifier("goalMessage") }
-                } header: {
-                    Text("Daily goal (optional)")
-                } footer: {
-                    Text("A goal you choose for logged drinks. Hydra doesn't recommend an amount; daily needs vary and include water from food.")
                 }
+            } header: {
+                Text("Daily goal (optional)")
+            } footer: {
+                Text("Review an approximate published adult beverage starting reference or choose your own goal. Confirm before changing it. Profile answers stay on this iPhone; only your confirmed goal goes to the backend.")
             }
             Section {
                 NavigationLink { HealthActivityPermissionView() } label: {
@@ -110,7 +127,7 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text("Export includes your backend logged drinks and goal; export manual measurement history from Plan a workout. Deleting also erases all saved manual measurement profiles on this iPhone, and cannot be undone.")
+                    Text("Export includes backend logged drinks and goal. Export manual measurements from Plan a workout and local profile answers from Guided goal setup. Deleting also erases all saved manual measurements and goal profiles on this iPhone, and cannot be undone.")
                 }
             }
             Section("Privacy & AI") {
@@ -133,16 +150,24 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text("Every logged drink and your goal are erased from the backend. All saved manual measurement profiles on this iPhone are also erased. This cannot be undone.")
+            Text("Every logged drink and your goal are erased from the backend. All saved manual measurements, goal profiles, and automatic context preferences on this iPhone are also erased. This cannot be undone.")
         }
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }
-        .task {
-            if let goal = try? await store.currentGoal() { goalValue = Double(goal) }
+        .onChange(of: store.configurationGeneration) { _, _ in
+            goalEdit = UUID(); goalValue = nil; goalInputValid = true; goalMessage = nil; goalFieldReset = UUID()
+        }
+        .task(id: store.configurationGeneration) {
+            let generation = store.configurationGeneration, edit = goalEdit
+            do {
+                let goal = try await store.currentGoal()
+                guard !Task.isCancelled, generation == store.configurationGeneration, edit == goalEdit else { return }
+                goalValue = goal.map(Double.init)
+            } catch { }
         }
     }
 
     private var parsedGoal: Int? {
-        guard let value = goalValue, value.isFinite, (100...10_000).contains(value) else { return nil }
+        guard goalInputValid, let value = goalValue, value.isFinite, (100...10_000).contains(value) else { return nil }
         return Int(value.rounded())
     }
 
@@ -161,13 +186,16 @@ struct BackendSettingsView: View {
     }
 
     @MainActor
-    private func saveGoal(_ milliliters: Int?) async {
+    private func saveGoal(_ milliliters: Int?, generation: UUID) async {
+        guard generation == store.configurationGeneration else { return }
         do {
             try await store.setGoal(milliliters)
-            goalValue = milliliters.map(Double.init)
+            guard !Task.isCancelled, generation == store.configurationGeneration else { return }
+            goalEdit = UUID(); goalValue = milliliters.map(Double.init); goalFieldReset = UUID()
             goalMessage = milliliters == nil ? "Goal cleared." : "Goal saved."
         } catch {
-            goalMessage = "Could not save the goal. \(error.localizedDescription)"
+            guard !Task.isCancelled, generation == store.configurationGeneration else { return }
+            goalMessage = "Goal confirmation failed. The server may have accepted the change; check the current goal before trying again. \(error.localizedDescription)"
         }
     }
 
@@ -179,16 +207,16 @@ struct BackendSettingsView: View {
 
     @MainActor
     private func deleteAll() async {
+        context.disableAutomaticWeather()
+        await context.setHealthAutoEnabled(false)
         do {
             let count = try await store.deleteAllData()
             goalValue = nil
-            context.disableAutomaticWeather()
-            await context.setHealthAutoEnabled(false)
-            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal, plus saved manual history and automatic context on this iPhone."
+            dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal, plus saved manual history, goal profiles, and automatic context on this iPhone."
         } catch ServiceError.server(409) {
-            dataMessage = "Saved manual measurements on this iPhone were cleared. Your backend is busy with another request, so backend data has not been deleted. Wait for that request to finish, then choose Delete again."
+            dataMessage = "Local manual measurements, goal profiles, and automatic context were cleared. Your backend is busy, so backend data has not been deleted. Wait for that request to finish, then choose Delete again."
         } catch {
-            dataMessage = "Could not finish deleting your data. Local manual history is cleared before the backend request; check Plan a workout for any local storage error. \(error.localizedDescription)"
+            dataMessage = "Could not finish deleting your data. Automatic context is off. Local measurements and profiles are erased before the backend request, but a storage failure may leave local records. Check Guided goal setup and Plan a workout. \(error.localizedDescription)"
         }
     }
 }

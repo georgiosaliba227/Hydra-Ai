@@ -1,17 +1,45 @@
 # Hydra AI next actions
 
+## Current order — combine the installed experience after camera verification
+
+1. Respect the camera chat's exclusive phone check. Leave the installed app,
+   saved backend/token and camera service untouched; do not start local Hydra
+   Simulator/UI runs while its performance check is active.
+2. After that check finishes, integrate merged camera PR #75 (`27cc907`) with
+   the hydration stack through PR #77. Preserve camera inference, recognition
+   confirmation, drinks/corrections/contributed-photo storage, guided local
+   profiles, US/automatic context, Home score and Wonder safeguards. Shared
+   changed paths include `backend/app.py`, `BeverageStore`, HTTP beverage data,
+   Settings, workout UI and privacy/UI tests; this inventory is not a merge-
+   conflict finding. Do not replace one feature build with the other again.
+3. Review the combined diff, run the relevant Python/native checks and actual
+   Simulator flows once released, then install the signed combined original
+   bundle without uninstall/reset. Confirm which owner backend is selected
+   before interpreting its records or asking for another phone action. Do not
+   silently migrate private records between the two backend stores.
+4. Recheck live readiness using fresh genuine evidence as required. Preserve
+   all existing financial holds, limits, accepted-risk references and exact
+   personal preview/consent. Verify one real eight-section result and saved
+   replay. A valid `insufficient_data` numerical result does not itself require
+   disabling detailed Wonder analysis; do not invent a forecast to unlock it.
+5. Collect real comparable manual measurements for personalization. Keep the
+   experimental switch off by default. Experimental fitting needs at least six
+   qualified observations and may still retain the baseline. Synthetic Muse-
+   guided training remains separate from personal history.
+
 ## Latest owner steering — profile-guided starting goal
 
 1. Review the completed US-unit/automatic-context branch stacked on PR #73. It is
    installed on the phone; 217 native tests, six Simulator flows and the physical
    saved-connection check pass. Owner-assisted automatic Health/weather setup
    also passes. Preserve the existing PR dependencies and human merge.
-2. Add the requested on-device birthday/age, height, weight and supplement questions
-   with a defensible starting-goal calculation. Verify published age/life-stage
-   beverage references separately from food-inclusive total water. No arbitrary
-   body-size or creatine multiplier and no unconsented profile upload.
-3. After that flow, verify the actual chosen goal/Home score and a previewed,
-   consented comprehensive Wonder request on genuine intake records; keep all
+2. Review [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77), the
+   implemented guided starting-goal branch stacked on PR #76. The
+   protected local profile, explicit adult beverage reference and confirmation
+   have 254 native/1509 Python checks plus three passing Simulator flows. The
+   owner also confirms the goal and populated Home score on the phone. No height/weight/creatine multiplier is used.
+3. With the goal/Home score confirmed and live readiness renewed, verify a
+   previewed, consented comprehensive Wonder request on genuine intake records; keep all
    existing holds and risk labels. Real manual calibration still needs collection.
 
 ## Earlier November 3 handoff — before the US-unit update

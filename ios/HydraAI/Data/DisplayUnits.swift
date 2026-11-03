@@ -123,6 +123,9 @@ struct CanonicalQuantityInput {
     }
     mutating func switchSystem(_ system: DisplayUnitSystem) {
         self.system = system
+        // Keep invalid nonempty edits visible until the user corrects/clears them.
+        // Optional fields must not silently turn invalid input into missing context.
+        if canonicalValue == nil && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return }
         text = canonicalValue.map { system.number($0, quantity: quantity) } ?? ""
     }
     mutating func setCanonicalValue(_ value: Double?) {
@@ -171,16 +174,19 @@ struct CanonicalQuantityField: View {
     @Binding var value: Double?
     let quantity: DisplayQuantity
     var accessibilityIdentifier: String?
+    var isInputValid: Binding<Bool>?
     @State private var input: CanonicalQuantityInput
     @FocusState private var isFocused: Bool
-    init(_ title: String, value: Binding<Double?>, quantity: DisplayQuantity, accessibilityIdentifier: String? = nil) {
+    init(_ title: String, value: Binding<Double?>, quantity: DisplayQuantity, accessibilityIdentifier: String? = nil,
+         isInputValid: Binding<Bool>? = nil) {
         self.title = title; _value = value; self.quantity = quantity; self.accessibilityIdentifier = accessibilityIdentifier
+        self.isInputValid = isInputValid
         _input = State(initialValue: CanonicalQuantityInput(canonicalValue: value.wrappedValue, system: .us, quantity: quantity))
     }
     var body: some View {
         HStack {
             TextField(title, text: Binding(get: { input.text }, set: { text in
-                input.edit(text); value = input.canonicalValue
+                input.edit(text); value = input.canonicalValue; publishValidity()
             }))
             .focused($isFocused)
             .keyboardType(quantity == .temperature ? .numbersAndPunctuation : .decimalPad)
@@ -196,11 +202,17 @@ struct CanonicalQuantityField: View {
                 }
             }
         }
-        .onAppear { input.setCanonicalValue(value); input.switchSystem(units.system) }
-        .onChange(of: units.system) { _, system in input.switchSystem(system) }
+        .onAppear {
+            if value != input.canonicalValue { input.setCanonicalValue(value) }
+            input.switchSystem(units.system); publishValidity()
+        }
+        .onChange(of: units.system) { _, system in input.switchSystem(system); publishValidity() }
         .onChange(of: value) { _, value in
             // Avoid turning the user's "8." into "8" during their own edit.
-            if value != input.canonicalValue { input.setCanonicalValue(value) }
+            if value != input.canonicalValue { input.setCanonicalValue(value); publishValidity() }
         }
+    }
+    private func publishValidity() {
+        isInputValid?.wrappedValue = input.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || input.canonicalValue != nil
     }
 }

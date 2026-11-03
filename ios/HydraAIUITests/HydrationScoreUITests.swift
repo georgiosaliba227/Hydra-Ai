@@ -31,6 +31,9 @@ final class HydrationScoreUITests: XCTestCase {
         XCTAssertFalse(app.buttons["explainHydrationScore"].exists); XCTAssertFalse(app.switches["scoreMetaConsent"].exists)
         attach(app, "Exact score preview keeps live Meta action unavailable")
         app.tabBars.buttons["Settings"].tap()
+        let custom = app.buttons["customGoalEntry"]
+        for _ in 0..<18 where !custom.isHittable { app.swipeUp() }
+        custom.tap()
         let goal = app.textFields["goalField"]; reveal(goal, in: app); goal.tap()
         if let value = goal.value as? String { goal.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count)) }
         goal.typeText("2000")

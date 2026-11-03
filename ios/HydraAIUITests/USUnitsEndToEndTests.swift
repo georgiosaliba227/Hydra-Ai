@@ -33,6 +33,9 @@ final class USUnitsEndToEndTests: XCTestCase {
         app.buttons["saveBeverage"].tap()
         expect(total, "16.5 fl oz")
         app.tabBars.buttons["Settings"].tap()
+        let custom = app.buttons["customGoalEntry"]
+        for _ in 0..<18 where !custom.isHittable { app.swipeUp() }
+        custom.tap()
         let goal = app.textFields["goalField"]; reveal(goal, app)
         goal.tap(); goal.typeText("64")
         if app.buttons["Done"].exists { app.buttons["Done"].tap() }
