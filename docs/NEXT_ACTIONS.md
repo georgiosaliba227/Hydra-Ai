@@ -14,7 +14,7 @@
    consented comprehensive Wonder request on genuine intake records; keep all
    existing holds and risk labels. Real manual calibration still needs collection.
 
-## November 3 — latest operational handoff
+## Earlier November 3 handoff — before the US-unit update
 
 1. Review [PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
    `codex/wonder-personal-risk-admission`, stacked on PR #72; preserve

@@ -64,8 +64,8 @@ readiness, unverified-billing disclosure and Home's own-goal-required state.
 Financial ledger bytes were unchanged; no paid action was tapped. The owner then
 reported successful real Health workout import and consented weather autofill on
 the phone. These are owner-assisted outcomes; populated personal screens and the
-actual own-record Meta flow remain pending. US units and automatic context setup
-are the owner's next requested changes;
+actual own-record Meta flow remain pending. The subsequent US-unit and automatic-
+context update is recorded above;
 see the [scoped physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
 No real personal calibration records exist, and the full actual
 personal-data Meta flow still needs its own in-app preview/consent and verification.

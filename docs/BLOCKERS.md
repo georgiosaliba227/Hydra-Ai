@@ -14,7 +14,7 @@ adjustments. Genuine manual calibration and independent personal accuracy eviden
 remain absent. Existing financial uncertainty is accepted under the recorded owner
 waiver, with holds/limits and other admission gates retained.
 
-## November 3 — latest remaining gaps
+## Earlier November 3 gaps — before the US-unit update
 
 - **Remaining iPhone checks:** the HealthKit-signed original bundle is installed.
   One actual physical UI test passes for backend readiness, billing disclosure

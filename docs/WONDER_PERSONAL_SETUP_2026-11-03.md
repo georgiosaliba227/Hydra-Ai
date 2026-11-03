@@ -1,5 +1,11 @@
 # Personal Wonder and Home score — local verification
 
+Later update: US units and automatic context are installed and verified with
+217 native tests, six Simulator flows, owner-assisted source setup and a physical
+saved-connection pass. See the [newer feature report](US_UNITS_DAILY_CONTEXT_2026-11-03.md).
+The detailed earlier test counts below retain their milestone scope. Profile-
+guided starting-goal calculation is the next requested follow-up.
+
 The owner-local backend is configured for personal trends, workouts, comprehensive
 analysis/v3 and the experimental Home score. November 3 verification recorded
 `ready` under owner-accepted risk, **all-charge verification false**, no fabricated
@@ -92,8 +98,8 @@ weights are not scientifically fitted.
 
 The owner resumed physical checks: installation and a scoped connection/UI test
 are complete. The owner reports real Health workout import and consented weather
-autofill working. The newly requested US units/automatic setup and populated final
-iPhone screens still need verification. The actual own-record Meta
+autofill working. US units/automatic setup now pass the newer scoped checks linked
+above. Populated final own-record analysis screens and the actual own-record Meta
 flow still needs in-app verification. The earlier comprehensive synthetic response
 and public-only plan do not substitute for that. The Mac must be on the same LAN;
 its local backend has an idle-sleep assertion ending with that process. Display
