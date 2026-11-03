@@ -95,7 +95,7 @@ enum WonderAnalysisRenderer {
             ? "research estimate \(w(floor(n("forecast", "lower_ml")!))) to \(w(ceil(n("forecast", "upper_ml")!))) mL, with point \(w(n("forecast", "value_ml")!)) mL"
             : "no numerical estimate is available"
         let beverage = n("intake", "beverage_volume_ml").map { "\(w($0)) mL of logged beverage volume" } ?? "personal beverage logs are excluded from this synthetic case"
-        let activity = n("activity", "duration_minutes").map { "\(duration($0)) minutes of \(s("activity", "intensity") ?? "unspecified-intensity") \(s("activity", "activity") ?? "exercise")" } ?? "workout duration and activity are unavailable"
+        let activity = n("activity", "duration_minutes").map { "\(Self.duration($0)) minutes of \(s("activity", "intensity") ?? "unspecified-intensity") \(s("activity", "activity") ?? "exercise")" } ?? "workout duration and activity are unavailable"
         let environment = [n("environment", "temperature_c").map { "temperature \(decimal($0)) °C" } ?? "temperature unavailable",
                            n("environment", "humidity_percent").map { "humidity \(decimal($0))%" } ?? "humidity unavailable"].joined(separator: "; ")
         let nutrient = ["sodium", "potassium"].map { name in

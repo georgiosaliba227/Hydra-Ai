@@ -146,6 +146,15 @@ numerical, API or native review finding remains. No live Wonder quality, current
 account balance, billing finality or clinical validity is inferred from these
 software checks.
 
+The first GitHub iOS build used Xcode 26.6 and found a compiler name-resolution
+conflict between the duration formatting helper and a later local `duration`
+string. Explicitly qualifying the helper as `Self.duration` preserves output and
+supports that compiler. A fresh local **145 XCTest passed** after the correction:
+`/tmp/hydra-intelligence-ci-compat-ios-unit.log`, with artifact
+`/tmp/hydra-intelligence-final-ios/Logs/Test/Test-HydraAI-2026.11.03_01-08-48--0500.xcresult`.
+The PR's check runs record the remote result separately; no runner or verification
+was disabled to hide the failure.
+
 ## Review boundaries
 
 The numerical engine is authoritative. Keep research labels, explicit provenance,
