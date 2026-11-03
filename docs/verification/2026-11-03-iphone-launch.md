@@ -1,5 +1,7 @@
 # iPhone launch compatibility investigation
 
+The phone was subsequently updated to the newer UI from PR #77; see [the corrected installation report](2026-11-03-latest-ui-install.md). This report documents the earlier compatibility repair and its initial build.
+
 ## Reproduction and cause
 
 The signed app installed successfully on the iPhone 17 Pro running iOS 27.2 beta (24B5089g), but exited about one second after launch. A successful `devicectl` launch request did not prove the app remained open.
