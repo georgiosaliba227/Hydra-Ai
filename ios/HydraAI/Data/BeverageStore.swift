@@ -29,6 +29,8 @@ final class BeverageStore: ObservableObject {
     @Published private(set) var configuration: APIConfiguration
     @Published private(set) var configurationGeneration = UUID()
     @Published private(set) var isSaving = false
+    /// In-memory acknowledgement for save feedback. Loading existing logs never emits it.
+    @Published private(set) var lastConfirmedBeverage: BeverageLog?
 
     private var service: (any BeverageService)?
     private let pendingURL: URL
@@ -71,6 +73,7 @@ final class BeverageStore: ObservableObject {
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
         configuration = config; service = next; logs = []; summary = nil; state = .idle
+        lastConfirmedBeverage = nil
     }
 
     func refresh() async {
@@ -193,15 +196,17 @@ final class BeverageStore: ObservableObject {
 
     func retryPending() async throws {
         guard !isSaving, !pendingReadError, let service, let item = pending, item.destination == destination else { throw ServiceError.pending }
+        let generation = configurationGeneration
         invalidateHistory()
         isSaving = true
         defer { isSaving = false }
         do {
-            _ = try await service.createBeverage(item.request, idempotencyKey: item.key)
+            let confirmed = try await service.createBeverage(item.request, idempotencyKey: item.key)
             // Retain the same mutation until both server success and local removal succeed.
             try FileManager.default.removeItem(at: pendingURL)
             pending = nil
             await refresh()
+            if generation == configurationGeneration { lastConfirmedBeverage = confirmed }
         } catch {
             state = .failed("Beverage confirmation is pending. Retry safely with the same request. \(error.localizedDescription)")
             throw error

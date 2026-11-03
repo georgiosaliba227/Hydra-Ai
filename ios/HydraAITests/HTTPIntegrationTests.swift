@@ -115,6 +115,7 @@ final class HTTPIntegrationTests: XCTestCase {
         do { try await first.add(category: "water", consumedMl: 250, at: Date(timeIntervalSince1970: 1_700_000_000)); XCTFail("Expected lost response") }
         catch { }
         XCTAssertNotNil(first.pending)
+        XCTAssertNil(first.lastConfirmedBeverage, "An ambiguous save must not trigger confirmation feedback")
         let key = first.pending!.key
         let restarted = BeverageStore(service: service, pendingURL: file, configuration: configuration)
         XCTAssertEqual(restarted.pending?.key, key)
@@ -124,6 +125,7 @@ final class HTTPIntegrationTests: XCTestCase {
         XCTAssertEqual(received, [key, key]); XCTAssertNil(restarted.pending)
         XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
         XCTAssertEqual(restarted.summary?.beverageTotalMl, 250)
+        XCTAssertEqual(restarted.lastConfirmedBeverage?.consumedMl, 250)
     }
 
     @MainActor
@@ -135,6 +137,48 @@ final class HTTPIntegrationTests: XCTestCase {
         XCTAssertFalse(store.canLog)
         if case .failed = store.state { } else { XCTFail("Expected recovery error") }
     }
+
+    @MainActor
+    func testChangingConnectionDuringRefreshDoesNotPublishOldConfirmation() async throws {
+        let savedConnection = try SavedConnectionState()
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer {
+            savedConnection.restore()
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let service = PausedConfirmationService()
+        let store = BeverageStore(service: service, pendingURL: directory.appendingPathComponent("pending.json"),
+                                  configuration: configuration)
+        let submission = Task { try await store.add(category: "water", consumedMl: 250, at: .now) }
+        await service.waitUntilRefreshing()
+        try store.configure(.init(baseURL: "", token: "", offline: true))
+        await service.finishRefresh()
+        try await submission.value
+        XCTAssertNil(store.lastConfirmedBeverage, "Feedback from another destination must stay invalidated")
+    }
+}
+
+private actor PausedConfirmationService: BeverageService {
+    private var release: CheckedContinuation<Void, Never>?
+    private var started: CheckedContinuation<Void, Never>?
+    func listBeverages() async throws -> [BeverageLog] { [] }
+    func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog {
+        BeverageLog(id: idempotencyKey, consumedMl: request.consumedMl, category: request.category,
+                    consumedAt: request.consumedAt, timezone: request.timezone, source: request.source, revision: 1)
+    }
+    func dailySummary(date: String, timezone: String) async throws -> DailySummary {
+        await withCheckedContinuation { continuation in
+            release = continuation
+            started?.resume(); started = nil
+        }
+        return DailySummary(localDate: date, timezone: timezone, beverageTotalMl: 250,
+                            estimatedWaterMl: nil, forecastStatus: "insufficient_data")
+    }
+    func waitUntilRefreshing() async {
+        if release != nil { return }
+        await withCheckedContinuation { started = $0 }
+    }
+    func finishRefresh() { release?.resume(); release = nil }
 }
 
 private actor RecordingService: BeverageService {

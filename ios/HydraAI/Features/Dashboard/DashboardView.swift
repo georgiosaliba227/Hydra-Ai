@@ -20,7 +20,8 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: HydraSpacing.section) {
                 statusBanners
                 if store.summary != nil {
-                    TodayProgressCard(volumeMl: todayVolumeMl, goal: store.summary?.goal)
+                    TodayProgressCard(volumeMl: todayVolumeMl, goal: store.summary?.goal,
+                                      drinkCount: todaysLogs.count, confirmation: store.lastConfirmedBeverage)
                 } else {
                     StatusBanner(text: "Today's total appears once your drinks have loaded.",
                                  systemImage: "hourglass", tint: .secondary)
@@ -175,102 +176,16 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Progress
-
-/// Today's logged total, with a ring only when the user has chosen a goal.
-private struct TodayProgressCard: View {
-    let volumeMl: Int
-    let goal: DailySummary.Goal?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var ringSize: CGFloat = 128
-    @ScaledMetric(relativeTo: .largeTitle) private var numberSize: CGFloat = 32
-
-    private var validGoal: DailySummary.Goal? { goal.flatMap { $0.isValid ? $0 : nil } }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(Date.now.formatted(.dateTime.weekday(.wide).month().day()))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 16) { ring; details }
-            } else {
-                HStack(spacing: 20) { ring; details }
-            }
-            InfoNote("Drink volume you logged — not a measure of hydration.")
-        }
-        .hydraCard(padding: 20)
-    }
-
-    private var ring: some View {
-        ZStack {
-            if let validGoal {
-                Circle().stroke(Color.hydraTint.opacity(0.15), lineWidth: 14)
-                Circle()
-                    .trim(from: 0, to: min(validGoal.progressRatio, 1))
-                    .stroke(Color.hydraTint, style: StrokeStyle(lineWidth: 14, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.snappy, value: validGoal.progressRatio)
-            } else {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color.hydraTint.opacity(0.10))
-            }
-            VStack(spacing: 0) {
-                Text(volumeMl.formatted())
-                    .font(.system(size: numberSize, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Text("mL").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
-            }
-            .padding(18)
-        }
-        .frame(width: ringSize, height: ringSize)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Logged today, \(volumeMl.formatted()) milliliters")
-        .accessibilityValue(String(volumeMl))
-        .accessibilityIdentifier("dailyTotal")
-    }
-
-    @ViewBuilder private var details: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Logged today").font(.headline)
-            if let validGoal {
-                let percent = Int((min(validGoal.progressRatio, 9.99) * 100).rounded())
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(validGoal.progressRatio >= 1 ? "Goal reached" : "\(percent)% of your goal")
-                        .font(.title3.bold())
-                        .foregroundStyle(Color.hydraTint)
-                    Text("\(volumeMl.formatted()) of \(validGoal.dailyBeverageGoalMl.formatted()) mL · your own goal")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("goalProgress")
-                Text("A goal you set, not a recommendation.")
-                    .font(.caption).foregroundStyle(.secondary)
-            } else {
-                Text("No goal set").font(.title3.bold())
-                NavigationLink { BackendSettingsView() } label: {
-                    Text("Set your own goal").font(.subheadline.weight(.semibold))
-                }
-                .accessibilityIdentifier("setDailyGoal")
-            }
-        }
-        .fixedSize(horizontal: false, vertical: true)
-    }
-}
-
 // MARK: - Quick add
 
 /// One tap logs a common drink through the same confirmed store path as the full form.
 private struct QuickAddCard: View {
     @EnvironmentObject private var store: BeverageStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Binding var showingManualLog: Bool
     @State private var confirmation: String?
     @State private var errorMessage: String?
-    @State private var savedCount = 0
     @State private var hideTask: Task<Void, Never>?
 
     private struct Preset: Identifiable {
@@ -291,7 +206,9 @@ private struct QuickAddCard: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle("Log a drink")
             VStack(alignment: .leading, spacing: HydraSpacing.item) {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
+                LazyVGrid(columns: typeSize.isAccessibilitySize
+                          ? [GridItem(.flexible())]
+                          : [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
                     ForEach(presets) { preset in
                         Button { Task { await add(preset) } } label: {
                             HStack(spacing: 10) {
@@ -301,12 +218,14 @@ private struct QuickAddCard: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(preset.label).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
                                         .fixedSize()
-                                    Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.secondary)
+                                    Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.primary)
                                         .fixedSize()
                                 }
                                 .accessibilityHidden(true)
                                 Spacer(minLength: 0)
                                 Image(systemName: "plus").font(.footnote.bold()).foregroundStyle(Color.hydraTint)
+                                    .frame(width: 26, height: 26)
+                                    .background(Color.hydraCard, in: Circle())
                                     .accessibilityHidden(true)
                             }
                             .padding(.horizontal, 12)
@@ -315,7 +234,7 @@ private struct QuickAddCard: View {
                             .background(Color.hydraTint.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(DrinkLogButtonStyle())
                         .disabled(!store.canLog)
                         .opacity(store.canLog ? 1 : 0.5)
                         .accessibilityLabel("Add \(preset.volumeMl) milliliters of \(preset.label.lowercased())")
@@ -339,8 +258,10 @@ private struct QuickAddCard: View {
                 if let confirmation {
                     Label(confirmation, systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.green)
-                        .transition(.opacity)
+                        .foregroundStyle(Color.hydraProgressAccent)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .background(Color.hydraTint.opacity(0.10), in: Capsule())
+                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96)))
                         .accessibilityIdentifier("quickAddConfirmation")
                 }
                 if let errorMessage {
@@ -355,7 +276,6 @@ private struct QuickAddCard: View {
             }
             .hydraCard()
         }
-        .sensoryFeedback(.success, trigger: savedCount)
     }
 
     @MainActor
@@ -363,14 +283,15 @@ private struct QuickAddCard: View {
         errorMessage = nil
         do {
             try await store.add(category: preset.category, consumedMl: preset.volumeMl, at: .now)
-            savedCount += 1
-            withAnimation { confirmation = "Added \(preset.volumeMl) mL \(preset.label.lowercased())" }
+            withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.8)) {
+                confirmation = "Saved \(preset.volumeMl) mL \(preset.label.lowercased())"
+            }
             UIAccessibility.post(notification: .announcement, argument: confirmation)
             hideTask?.cancel()
             hideTask = Task {
                 try? await Task.sleep(for: .seconds(3))
                 guard !Task.isCancelled else { return }
-                withAnimation { confirmation = nil }
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) { confirmation = nil }
             }
         } catch {
             confirmation = nil

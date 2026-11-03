@@ -13,6 +13,12 @@ extension Color {
     })
     static let hydraBackground = Color(.systemGroupedBackground)
     static let hydraCard = Color(.secondarySystemGroupedBackground)
+    /// Brighter ink for small progress labels on dark tinted cards.
+    static let hydraProgressAccent = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.36, green: 0.86, blue: 0.82, alpha: 1)
+            : UIColor(red: 0.00, green: 0.48, blue: 0.60, alpha: 1)
+    })
 }
 
 enum HydraSpacing {
@@ -51,6 +57,18 @@ extension View {
 }
 
 // MARK: - Building blocks
+
+/// A tactile press for drink shortcuts, with no movement when Reduce Motion is on.
+struct DrinkLogButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(!reduceMotion && configuration.isPressed ? 0.95 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.65),
+                       value: configuration.isPressed)
+    }
+}
 
 /// Rounded tinted square holding an SF Symbol, used for rows and feature cards.
 struct IconBadge: View {

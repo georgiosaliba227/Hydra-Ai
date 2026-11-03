@@ -26,6 +26,10 @@ HTTP is permitted only for localhost/private IPv4/LAN `.local` development hosts
 
 Today fills its progress ring toward an optional daily beverage goal you choose. Use **Set your own goal** on Today or **Settings → Daily goal**; without a goal, Today shows the logged total without an empty progress ring. Offline demo goals and drinks persist locally, separately from backend data. Logging, correcting, or deleting a drink refreshes progress; clearing a goal preserves the drinks.
 
+The Today gauge now fills with a short settling wave, a pulse and small sparkles after a drink is durably confirmed. Four milestone bars track quarter-goal progress; the completed state celebrates recording the user's chosen goal. The actual volume stays visible above the goal while the fill caps at 100%. Quick-add shortcuts have press feedback and a saved receipt. There are no streak penalties, extra intake targets, or requests to drink more. Refreshing, editing a goal, loading history or changing destinations does not replay a confirmation.
+
+Reduce Motion keeps the liquid level, numbers, receipt and milestones static. Decorative animations settle in under 1.3 seconds and do not run continuously. VoiceOver retains the numeric total and goal information; accessibility text sizes use a vertical layout. The shared confirmation event follows quick adds, manual logs and confirmed camera logs. Simulator checks verify the visual behavior; physical haptic feel still needs an iPhone.
+
 ```sh
 xcodebuild -project ios/HydraAI.xcodeproj -scheme HydraAI \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5' \
@@ -41,6 +45,10 @@ For DEBUG simulator verification only, launch-time `HYDRA_TEST_BACKEND_URL` and 
 Accessibility identifiers: `backendURL`, `backendToken`, `saveConnection`, `offlineMode`, `logBeverage`, `consumedVolume`, `saveBeverage`, `dailyTotal`, `retryPending`, `connectionError`.
 
 `GoalTests` covers offline goal persistence, progress after logging/restart, clearing, invalid goals, and store isolation. The self-contained `GoalUITests/testOfflineDrinkLoggingFillsGoalAndSurvivesRelaunch` enables offline mode, chooses a 1000 mL test goal, logs 250 + 500 mL, checks progress, and relaunches. Run it on a dedicated simulator: it leaves synthetic demo drinks and the goal in place and requires no backend or AI calls.
+
+The flow also logs a final 250 mL and captures the quarter-full, three-quarter-full and completed UI. `testOfflineProgressWithReduceMotion` enables the real simulator accessibility setting, establishes its own test goal and audits visible contrast/clipping. `testOfflineProgressWithAccessibilityText` checks the large-text layout and reaches the manual logging form. Set the dedicated simulator's appearance/content size with `simctl ui` before the respective visual checks. These tests change only disposable simulator settings and synthetic demo records. Unit coverage checks pending-save feedback and late confirmations after a destination change.
+
+Xcode 27.2 can falsely flag hidden `250 mL` / `500 mL` text nodes inside the labeled quick-add buttons. For only those uniform captions, the audit helper checks the rendered screenshot's sRGB contrast against a 4.5:1 minimum instead; the verified dark capture measured 14.66:1. Other visible contrast and clipping failures remain strict. This is a focused Today-screen check, not an accessibility certification of the entire app.
 
 ## Opt-in real backend UI test
 
