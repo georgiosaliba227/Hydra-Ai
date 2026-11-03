@@ -71,6 +71,24 @@ final class IntakeHistoryTests: XCTestCase {
         XCTAssertNoThrow(try empty.validate(date: "2026-10-27", timezone: "UTC"))
     }
 
+    func testHistoryWindowIncludesStartAndExcludesTodayAcrossDaylightSavingChange() throws {
+        let data = try historyJSON(date: "2026-11-03", timezone: "America/New_York", logged: true)
+        let original = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        for (day, accepted) in [("2026-10-26", false), ("2026-10-27", true),
+                                ("2026-11-02", true), ("2026-11-03", false)] {
+            var body = original
+            var history = try XCTUnwrap(body["historical_logged_intake"] as? [String: Any])
+            history["days"] = [["local_date": day, "timezone": "America/New_York", "beverage_total_ml": 250]]
+            body["historical_logged_intake"] = history
+            let forecast = try JSONDecoder().decode(IntakeHistoryForecast.self, from: JSONSerialization.data(withJSONObject: body))
+            if accepted {
+                XCTAssertNoThrow(try forecast.validate(date: "2026-11-03", timezone: "America/New_York"), day)
+            } else {
+                XCTAssertThrowsError(try forecast.validate(date: "2026-11-03", timezone: "America/New_York"), day)
+            }
+        }
+    }
+
     @MainActor func testUnsupportedForecastDoesNotBlockBeveragesOrLogging() async throws {
         let service = HistoryRecordingService(fail: true)
         let store = BeverageStore(service: service, pendingURL: temporaryPending(), configuration: configuration)

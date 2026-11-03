@@ -67,4 +67,25 @@ final class BeverageServiceTests: XCTestCase {
             XCTFail("Bad timezone was accepted")
         } catch BeverageValidationError.invalidTimezone { }
     }
+
+    func testCreateAndCorrectionConsumptionDateBounds() throws {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let log = BeverageLog(id: UUID(), consumedMl: 250, category: "water", consumedAt: now,
+                              timezone: "UTC", source: "manual", revision: 1)
+        for (seconds, accepted) in [(946_684_799.0, false), (946_684_800.0, true),
+                                    (1_700_000_060.0, true), (1_700_000_061.0, false), (.nan, false)] {
+            let date = Date(timeIntervalSince1970: seconds)
+            let create = CreateBeverageRequest(category: "water", consumedMl: 250, consumedAt: date,
+                                               timezone: "UTC", source: "manual")
+            var correction = UpdateBeverageRequest(correcting: log, category: "water", consumedMl: 250, consumedAt: now)
+            correction.consumedAt = date
+            if accepted {
+                XCTAssertNoThrow(try create.validate(now: now))
+                XCTAssertNoThrow(try correction.validate(now: now))
+            } else {
+                XCTAssertThrowsError(try create.validate(now: now))
+                XCTAssertThrowsError(try correction.validate(now: now))
+            }
+        }
+    }
 }

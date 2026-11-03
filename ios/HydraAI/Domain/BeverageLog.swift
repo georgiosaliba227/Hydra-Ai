@@ -64,8 +64,8 @@ struct UpdateBeverageRequest: Encodable, Equatable, Sendable {
         if let category { guard !category.isEmpty, category.count <= 80 else { throw BeverageValidationError.invalidCategory } }
         if let consumedMl { guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume } }
         if let consumedAt {
-            guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
-            guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
+            guard consumedAt.timeIntervalSinceReferenceDate >= Date(timeIntervalSince1970: 946_684_800).timeIntervalSinceReferenceDate else { throw BeverageValidationError.historicalDate }
+            guard consumedAt.timeIntervalSinceReferenceDate <= now.addingTimeInterval(60).timeIntervalSinceReferenceDate else { throw BeverageValidationError.futureDate }
         }
     }
 }
@@ -98,7 +98,7 @@ extension CreateBeverageRequest {
             guard let containerMl, (1...5000).contains(containerMl), consumedMl <= containerMl else { throw BeverageValidationError.invalidVolume }
         } else if productId != nil || containerMl != nil || recognitionId != nil { throw BeverageValidationError.invalidCategory }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
-        guard consumedAt >= Date(timeIntervalSince1970: 946_684_800) else { throw BeverageValidationError.historicalDate }
-        guard consumedAt <= now.addingTimeInterval(60) else { throw BeverageValidationError.futureDate }
+        guard consumedAt.timeIntervalSinceReferenceDate >= Date(timeIntervalSince1970: 946_684_800).timeIntervalSinceReferenceDate else { throw BeverageValidationError.historicalDate }
+        guard consumedAt.timeIntervalSinceReferenceDate <= now.addingTimeInterval(60).timeIntervalSinceReferenceDate else { throw BeverageValidationError.futureDate }
     }
 }

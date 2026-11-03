@@ -75,7 +75,9 @@ struct IntakeHistoryForecast: Decodable, Sendable {
         for day in history.days {
             guard day.timezone == requestedZone, day.beverageTotalMl.isFinite, day.beverageTotalMl >= 0,
                   let instant = formatter.date(from: day.localDate), formatter.string(from: instant) == day.localDate,
-                  instant >= start, instant < end else { throw ServiceError.invalidResponse }
+                  // Early iOS 27.2 betas lack the SDK's new Date >= entry point.
+                  instant.timeIntervalSinceReferenceDate >= start.timeIntervalSinceReferenceDate,
+                  instant.timeIntervalSinceReferenceDate < end.timeIntervalSinceReferenceDate else { throw ServiceError.invalidResponse }
         }
         if history.days.isEmpty {
             guard history.beverageLowerMl == nil, history.beverageUpperMl == nil else { throw ServiceError.invalidResponse }
