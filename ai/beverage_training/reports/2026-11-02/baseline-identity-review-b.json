@@ -1,0 +1,161 @@
+{
+  "schema_version": "beverage-identity-review-v1",
+  "reviewer_id": "/root/identity_judge_b_01",
+  "reviewer_kind": "codex_agent",
+  "independence_attestation": "independent_blind_packet_only",
+  "reviewed_utc": "2026-11-03T05:38:05.000177+00:00",
+  "packet_sha256": "95194c645054c92b1135a7dc4f1197b1a6b0b57c234fce085aab73d9e4363db9",
+  "policy_sha256": "46f54ec956bf3c267083a6f9cf0cc033fdbcf385013d81136af1f949aa189f18",
+  "cases": [
+    {
+      "case_id": "5c629dcd-c5e9-4c0d-a77c-82904f8d070d",
+      "verdict": "full_identity_equivalent",
+      "reason": "The photo shows Wellington Arkell Best Bitter, and the prediction preserves the full name with Arkell moved into the brand field.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "f7a18b06-f0f9-4dae-95d5-ef19e686e4c4",
+      "verdict": "full_identity_equivalent",
+      "reason": "The visible Mr. Brown Iced Coffee label matches the reference and prediction, with only capitalization and spacing differences.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "e965ba1e-5d64-4a01-b74c-3b91b19d638b",
+      "verdict": "full_identity_equivalent",
+      "reason": "The prediction preserves Welch's sulfite-free 100% Concord grape juice, and the additional Manischewitz name is printed on the same label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "32fc80fa-4998-4e40-bada-45918d437462",
+      "verdict": "full_identity_equivalent",
+      "reason": "Kroger lemon lime seltzer water matches, and naturally flavored, zero calories and caffeine free are consistent additions visibly printed on the can.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4d183c98-6f48-4460-b34b-5eed01327c56",
+      "verdict": "full_identity_equivalent",
+      "reason": "The photo supports Snapple Peach Tea, and the added green and black tea leaves wording is visible and consistent with that product.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "c84f06dc-6cd1-4d06-a411-905055c77589",
+      "verdict": "full_identity_equivalent",
+      "reason": "The label identifies FOCO coconut water with pineapple, and the added 100% Pure wording is visibly printed on the carton.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "a9173081-a50c-4f31-b595-6372af4e824c",
+      "verdict": "full_identity_equivalent",
+      "reason": "Silk, vanilla and soymilk are all visible, and the reordered Soy Vanilla Soymilk wording preserves the same beverage identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "9c762995-69e8-4ad4-9185-80a6c8a185b1",
+      "verdict": "full_identity_equivalent",
+      "reason": "The visible label reads Lucerne Whole Milk Vitamin D and matches both the reference and prediction.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "720ba15b-4f36-41f0-ba8f-6cbf3b2e8a0c",
+      "verdict": "meaningful_identity_error",
+      "reason": "The photo and reference identify AriZona iced tea with peach flavor, whereas the prediction assigns the different brand Sizzio.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "3bfe8a69-ccb6-4e27-9541-9f61463ea901",
+      "verdict": "meaningful_identity_error",
+      "reason": "The photo supports Alpina Alpin chocolate milk, but the prediction omits the milk beverage type required by the reference.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "15b46e2a-abb2-4f40-86e8-877e6e0e9533",
+      "verdict": "full_identity_equivalent",
+      "reason": "Ocean Spray Cranberry Classic Light is visibly the same named light cranberry beverage as the reference, with all distinguishing identity terms preserved.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "9622d76b-dcc9-4892-908f-5b9c3bb36015",
+      "verdict": "full_identity_equivalent",
+      "reason": "The carton visibly identifies Gossner Foods Whole Milk, matching the full reference identity.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4ed4d3f9-2335-497d-9c0b-6ca15b8b5100",
+      "verdict": "full_identity_equivalent",
+      "reason": "Lifeway organic plain unsweetened kefir matches, and the added cultured lowfat milk and 1% milkfat wording is visibly printed and consistent.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "dfa2da65-de17-4c56-8ba6-903a5d2d9c59",
+      "verdict": "full_identity_equivalent",
+      "reason": "The label reads Roundy's Select Vitamin D Milk, and the prediction preserves Select in the product field rather than the brand field.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "4589f6d9-38f3-4534-94fd-7fa12eb1e5fa",
+      "verdict": "full_identity_equivalent",
+      "reason": "Natrel dark chocolate partly skimmed milk 1% matches, and Gourmet and the French translation are visible consistent additions.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "1640d11d-6fb4-4072-9f71-3b21785e588a",
+      "verdict": "full_identity_equivalent",
+      "reason": "The photo shows Smiling Samoyed Brewery Kolsch German Style Golden Ale, preserving the reference identity with the visible Brewery addition.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "36610c9a-914a-46ed-b4a2-98303e9e7b42",
+      "verdict": "full_identity_equivalent",
+      "reason": "The visible Les Vergers de Flore Pur Jus de Pommes label matches the reference and prediction apart from capitalization.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "caf3a447-b305-4d9e-92df-4e8e2913673b",
+      "verdict": "meaningful_identity_error",
+      "reason": "The photo and reference identify Natrel organic whole milk at 3.8% milkfat, but the prediction states 3%, a conflicting material qualifier.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "30597e03-75fe-4a8d-bd23-d4d96522dfd8",
+      "verdict": "full_identity_equivalent",
+      "reason": "The photo supports Welch's fruit punch flavored juice drink, with the added from concentrate wording visibly printed on the label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "8de675b0-44d6-4337-b28e-d6836204acf6",
+      "verdict": "full_identity_equivalent",
+      "reason": "The prediction preserves the visible Ocean Spray Diet Cranberry named beverage and its distinguishing diet and cranberry terms.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "29157098-7c62-41e8-9928-4b4aba1f481e",
+      "verdict": "meaningful_identity_error",
+      "reason": "The photo supports Kronenbourg blonde beer, but the prediction provides only the brand and a null product, omitting the beverage identity and blonde variant.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "abae18ec-f244-4af9-99a5-92ccf5794c44",
+      "verdict": "meaningful_identity_error",
+      "reason": "The bottle shows Le Trou du Diable La Saison du Tracteur, but the prediction omits the required Le Trou du Diable brand and does not preserve the full farmhouse ale description.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "9b4ee253-1611-4b69-bb08-3017e3daf372",
+      "verdict": "full_identity_equivalent",
+      "reason": "Nestle Pure Life purified water matches across the differently partitioned fields, and enhanced with minerals for taste is visibly printed on the label.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "99e6d69b-be19-4215-862b-e1c42797e62f",
+      "verdict": "meaningful_identity_error",
+      "reason": "The reference and carton identify Parmalat light milk, whereas the prediction gives only light and omits the milk beverage type.",
+      "photo_inspected": true
+    },
+    {
+      "case_id": "19ee857d-3f02-4ea5-9ef0-7479946f3560",
+      "verdict": "full_identity_equivalent",
+      "reason": "The visible Kimura Ramune lychee flavor carbonated soft drink matches the reference lychee ramune soda, with equivalent beverage wording.",
+      "photo_inspected": true
+    }
+  ]
+}

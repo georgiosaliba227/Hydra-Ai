@@ -69,7 +69,6 @@ class FullIdentityScoringTests(unittest.TestCase):
         self.assertFalse(r['adapter_target_met'])
         self.assertEqual(r['measurement_class'],'unverified_review_assessment')
 
-if __name__=='__main__':unittest.main()
 
 class BoundReviewTests(unittest.TestCase):
     def setUp(self):
@@ -264,3 +263,6 @@ class CompleteEquivalenceGateTests(unittest.TestCase):
         rerun=subprocess.run(command,capture_output=True,text=True)
         self.assertEqual(rerun.returncode,2)
         self.assertEqual((self.root/'equivalence-report.json').read_bytes(),before)
+
+
+if __name__=='__main__':unittest.main()

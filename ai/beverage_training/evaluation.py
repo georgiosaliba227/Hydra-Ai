@@ -374,6 +374,9 @@ def validate_feature_tensor(path: Path, entry: Row, image_tokens: int) -> None:
         if not isinstance(header, dict):
             raise ValueError("safetensors header object required")
         metadata = header.pop("__metadata__", {})
+        # The pinned Swift MLX writer serializes absent optional metadata as null.
+        if metadata is None:
+            metadata = {}
         if (not isinstance(metadata, dict) or any(not isinstance(k, str) or not isinstance(v, str)
                                                 for k, v in metadata.items())):
             raise ValueError("invalid safetensors metadata")

@@ -566,6 +566,29 @@ class ProvenanceTests(ManifestTests):
             self.rewrite_cache(args,metadata,descriptor)
             with self.assertRaises(ValueError):ev.evaluate_files(**args)
 
+    def rewrite_tensor_metadata(self,args,metadata,value):
+        descriptor=json.loads((self.root / metadata["feature_cache_path"]).read_text())
+        entry=descriptor["entries"][0]
+        path=(self.root / metadata["feature_cache_path"]).parent / entry["tensor_path"]
+        data=path.read_bytes();size=struct.unpack("<Q",data[:8])[0]
+        header=json.loads(data[8:8+size]);header["__metadata__"]=value
+        encoded=json.dumps(header,separators=(",",":")).encode()
+        path.write_bytes(struct.pack("<Q",len(encoded))+encoded+data[8+size:])
+        entry["tensor_sha256"]=sha(path.read_bytes());self.rewrite_cache(args,metadata,descriptor)
+
+    def test_swift_mlx_null_auxiliary_metadata_is_empty_not_an_invalid_tensor(self):
+        args,metadata=self.prepare_cached_run()
+        self.rewrite_tensor_metadata(args,metadata,None)
+        report=ev.evaluate_files(**args)
+        self.assertEqual(report["joint"]["correct"],75)
+        self.assertFalse(report["adapter_target_met"])
+
+    def test_nonempty_malformed_auxiliary_metadata_remains_rejected(self):
+        for value in ([],True,7,{"source":7}):
+            args,metadata=self.prepare_cached_run()
+            self.rewrite_tensor_metadata(args,metadata,value)
+            with self.subTest(value=value),self.assertRaises(ValueError):ev.evaluate_files(**args)
+
     def test_feature_tensor_bytes_headers_and_prompt_tokens_are_verified(self):
         for mutation in ("bytes","tokens_hash","shape","overlap","extra_tensor","bool_shape"):
             args,metadata=self.prepare_cached_run()
