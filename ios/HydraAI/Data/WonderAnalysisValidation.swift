@@ -183,6 +183,12 @@ extension WonderAnalysisResult {
               limitations == WonderAnalysisRenderer.liveLimitations,
               facts.values["mode"] == .text("personal"),
               sections.count == 8, Set(sections.map(\.id)) == Set(Self.sectionTitles.keys) else { throw ServiceError.invalidResponse }
+        try Self.validateSections(sections, facts: facts)
+    }
+    /// Shared canonical rendering check; personal result admission above remains separate.
+    static func validateSections(_ sections: [Section], facts: WonderAnalysisFacts) throws {
+        try facts.validateShape()
+        guard sections.count == 8, Set(sections.map(\.id)) == Set(sectionTitles.keys) else { throw ServiceError.invalidResponse }
         let synthetic = facts.values["mode"] == .text("synthetic_demo")
         let estimated = facts.values["forecast"]?.object?["status"] == .text("estimated")
         let placeholders = try WonderAnalysisRenderer.placeholders(facts)
