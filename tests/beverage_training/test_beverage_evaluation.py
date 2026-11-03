@@ -120,6 +120,14 @@ class ScoringTests(unittest.TestCase):
             self.assertEqual(report["joint"]["correct"], 0)
             self.assertEqual(report["counts"]["failed"], 1)
 
+    def test_omitted_capacity_is_failed_and_retains_the_full_denominator(self):
+        malformed = prediction(0)
+        del malformed["capacity_ml"]
+        report = ev.score_predictions([row(0), row(1)], [malformed, prediction(1)])
+        self.assertEqual(report["counts"]["failed"], 1)
+        self.assertEqual(report["joint"]["correct"], 1)
+        self.assertEqual(report["joint"]["total"], 2)
+
 
 class ManifestTests(unittest.TestCase):
     def setUp(self):
@@ -447,6 +455,9 @@ class ProvenanceTests(ManifestTests):
                     entry.update({key:None for key in entry if key not in ("image_id","image_sha256","split","outcome","error")})
                     entry.update(outcome="error",error="feature_preparation_failed")
                 entries.append(entry)
+            encoder_run["actual_feature_writes"] = [dict(image_id=e["image_id"], feature_sha256=e["tensor_sha256"])
+                for e in entries if e["outcome"] == "success"]
+            (cache_root / "encoder-run.json").write_text(json.dumps(encoder_run))
             descriptor=dict(schema_version="beverage-feature-cache-v1",execution_policy="separate-frozen-vision-v1",
                 encoder_config_sha256=metadata["encoder_config_sha256"],encoder_config_path="encoder-config.json",
                 encoder_run_path="encoder-run.json",encoder_run_sha256=sha((cache_root / "encoder-run.json").read_bytes()),
@@ -498,6 +509,37 @@ class ProvenanceTests(ManifestTests):
         runtime_path.write_text(json.dumps(runtime))
         metadata["runtime_config_sha256"]=sha(runtime_path.read_bytes())
         args["run_metadata_path"].write_text(json.dumps(metadata))
+
+    def test_rebound_valid_feature_tensor_must_match_preserved_encoder_writes(self):
+        args, metadata = self.prepare_cached_run()
+        descriptor_path = self.root / metadata["feature_cache_path"]
+        descriptor = json.loads(descriptor_path.read_text())
+        entry = descriptor["entries"][0]
+        tensor = descriptor_path.parent / entry["tensor_path"]
+        original = tensor.read_bytes()
+        header_size = struct.unpack("<Q", original[:8])[0]
+        changed = bytearray(original)
+        changed[8 + header_size:10 + header_size] = struct.pack("<H", 0x3f80)
+        tensor.write_bytes(changed)
+        entry["tensor_sha256"] = sha(changed)
+        self.rewrite_cache(args, metadata, descriptor)
+        with self.assertRaisesRegex(ValueError, "encoder.*writ|writ.*encoder"):
+            ev.evaluate_files(**args)
+
+    def test_encoder_writes_require_complete_unique_successful_case_hashes(self):
+        for invalid in (None, [], [dict(image_id="foreign", feature_sha256="a"*64)],
+                        [dict(image_id="image-175", feature_sha256="a"*64)]*75):
+            args, metadata = self.prepare_cached_run()
+            descriptor_path = self.root / metadata["feature_cache_path"]
+            descriptor = json.loads(descriptor_path.read_text())
+            run_path = descriptor_path.parent / descriptor["encoder_run_path"]
+            run = json.loads(run_path.read_text())
+            run["actual_feature_writes"] = invalid
+            run_path.write_text(json.dumps(run))
+            descriptor["encoder_run_sha256"] = sha(run_path.read_bytes())
+            self.rewrite_cache(args, metadata, descriptor)
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "encoder.*writ|writ.*encoder"):
+                ev.evaluate_files(**args)
 
     def test_high_resolution_selection_keeps_all_failures_in_the_same_denominator(self):
         args, metadata = self.prepare_cached_run(image_tokens=1024, failed="image-175", missing="image-176")
@@ -574,7 +616,15 @@ class ProvenanceTests(ManifestTests):
         header=json.loads(data[8:8+size]);header["__metadata__"]=value
         encoded=json.dumps(header,separators=(",",":")).encode()
         path.write_bytes(struct.pack("<Q",len(encoded))+encoded+data[8+size:])
-        entry["tensor_sha256"]=sha(path.read_bytes());self.rewrite_cache(args,metadata,descriptor)
+        entry["tensor_sha256"]=sha(path.read_bytes())
+        # This helper creates a writer-format fixture, including its encoder record.
+        encoder_path=(self.root / metadata["feature_cache_path"]).parent / descriptor["encoder_run_path"]
+        encoder=json.loads(encoder_path.read_text())
+        encoder["actual_feature_writes"]=[dict(image_id=e["image_id"],feature_sha256=e["tensor_sha256"])
+            for e in descriptor["entries"] if e["outcome"]=="success"]
+        encoder_path.write_text(json.dumps(encoder))
+        descriptor["encoder_run_sha256"]=sha(encoder_path.read_bytes())
+        self.rewrite_cache(args,metadata,descriptor)
 
     def test_swift_mlx_null_auxiliary_metadata_is_empty_not_an_invalid_tensor(self):
         args,metadata=self.prepare_cached_run()
@@ -807,7 +857,9 @@ class ProvenanceTests(ManifestTests):
         self.write_runtime_provenance(metadata)
         args["run_metadata_path"].write_text(json.dumps(metadata))
         report = ev.evaluate_files(**args)
-        self.assertTrue(report["adapter_target_met"])
+        self.assertFalse(report["adapter_target_met"])
+        self.assertTrue(report["above_70_percent"])
+        self.assertEqual(report["metric_role"], "legacy_name_alias_comparison")
         self.assertIn("not authenticate", report["provenance_limit"])
         adapter_config_path = self.root / metadata["adapter_config_path"]
         adapter_config_path.write_text('{"scale":16}')

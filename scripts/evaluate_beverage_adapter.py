@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline strict evaluator; never invokes inference or overwrites reports."""
+"""Offline legacy name-alias comparison; never claims the current adapter goal."""
 from __future__ import annotations
 import argparse
 import json
@@ -35,7 +35,7 @@ def main() -> int:
         # Do not echo input contents, prediction error strings, image paths or model output.
         print(f"Evaluation rejected ({type(error).__name__}); check frozen inputs and provenance.", file=sys.stderr)
         return 2
-    print(f"{report['measurement_class']}: {report['joint']['correct']}/{report['joint']['total']} joint; adapter target met={report['adapter_target_met']}")
+    print(f"Legacy name aliases ({report['measurement_class']}): {report['joint']['correct']}/{report['joint']['total']} joint; current target requires independent identity reviews.")
     return 0
 
 

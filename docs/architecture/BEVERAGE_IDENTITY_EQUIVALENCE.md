@@ -8,6 +8,8 @@ Identity must preserve the same brand, named product/range, beverage type, flavo
 
 Two independently instructed Codex agents inspect the public photos and grade anonymized identity-only packets, without run kind, checkpoint, score or predicted quantity. Both must return full identity equivalence for a pass. Disagreement and uncertainty fail conservatively; no adjudication is used to increase scores. Review coverage and image/packet/policy/prediction hashes must bind every case. These are AI reviews, not human clinical or population validation.
 
+The legacy lexical evaluator retains its unchanged numeric comparison but always sets `adapter_target_met` false. Only the bound dual-review evaluator can claim the owner-approved goal. Before test pixels enter the encoder, the launcher requires complete adapter/configuration and identity-policy commitments in both frozen selection records. Successful cached features must agree with the encoder's recorded per-image output hashes as well as actual language-worker usage.
+
 Final evidence must still pass the original model, dataset, training-update, selection, cache, split and inference-provenance checks. Freeze the policy before either final baseline/adapter test inference. The 75 test cases stay untouched until checkpoint selection, and all remain in the denominator. Only the real-photo trained adapter can meet the goal, at strictly greater than 70% observed joint full identity and exact-capacity success. Report confidence intervals, strata, failed/unknown outputs, reviewer agreement and the legacy lexical metric. A failed final test is preserved; further optimization requires fresh held-out cases.
 
 ## Review artifact contract

@@ -22,6 +22,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from ai.beverage_training.evaluation import canonical_sha256, manifest_sha256, validate_manifest
 from ai.beverage_training.MetaAdapter.cache_contract import verify_cache, POLICY, utc
+from ai.beverage_training.identity_packets import load_identity_policy
 
 
 def read_json(path: Path):
@@ -126,6 +127,39 @@ def validate_selection(selection, *, split: str, adapter_sha256: str | None, pol
     if frozen.utcoffset() is None or frozen > datetime.now(timezone.utc):
         raise ValueError("invalid checkpoint freeze timestamp")
     return selection["checkpoint_frozen_utc"]
+
+
+def validate_test_admission(selection, *, admission, encoder_sha256: str, policy_sha256: str,
+                            validation_image_ids: list[str], adapter_sha256: str | None,
+                            adapter_config_sha256: str | None, inference_config_sha256: str) -> None:
+    """Require complete checkpoint/policy commitments before test pixels or decoding."""
+    identity_policy, identity_sha = load_identity_policy(
+        REPO / "ai/beverage_training/reports/2026-11-02/identity-equivalence-policy-v1.json")
+    identity_frozen = utc(identity_policy["frozen_utc"])
+    def is_sha(value):
+        return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+    for selected in (selection, admission):
+        if (not isinstance(selected, dict)
+                or selected.get("selected_using") != "train_validation_only"
+                or selected.get("split_policy_sha256") != policy_sha256
+                or selected.get("encoder_config_sha256") != encoder_sha256
+                or selected.get("identity_policy_sha256") != identity_sha
+                or "adapter_sha256" not in selected or "adapter_config_sha256" not in selected
+                or not is_sha(selected.get("inference_config_sha256"))
+                or not isinstance(selected.get("checkpoint_frozen_utc"), str)
+                or not isinstance(selected.get("validation_image_ids"), list)
+                or len(selected["validation_image_ids"]) != len(validation_image_ids)
+                or any(not isinstance(image_id, str) for image_id in selected["validation_image_ids"])
+                or set(selected["validation_image_ids"]) != set(validation_image_ids)):
+            raise ValueError("test admission requires complete frozen checkpoint/configuration/identity policy")
+        if selected["adapter_sha256"] is None:
+            valid_adapter = selected["adapter_config_sha256"] is None
+        else:
+            valid_adapter = is_sha(selected["adapter_sha256"]) and is_sha(selected["adapter_config_sha256"])
+        if (not valid_adapter or not identity_frozen <= utc(selected["checkpoint_frozen_utc"]) <= datetime.now(timezone.utc)):
+            raise ValueError("test checkpoint must bind valid adapter/configuration and follow immutable policy")
+    validate_selection(selection, split="test", adapter_sha256=adapter_sha256, policy_sha256=policy_sha256,
+        adapter_config_sha256=adapter_config_sha256, inference_config_sha256=inference_config_sha256)
 
 
 def verify_base_provenance(model: Path, *, model_id: str, revision: str) -> tuple[bytes, str]:
@@ -276,15 +310,6 @@ def main(argv: list[str] | None = None) -> int:
     if selected_split == "test":
         if not admission or not selection:
             raise ValueError("test cache/inference requires frozen admission and run selection")
-        expected_validation = sorted(row["image_id"] for row in rows if row["split"] == "validation")
-        for selected in (admission, selection):
-            if (selected.get("selected_using") != "train_validation_only" or selected.get("split_policy_sha256") != policy_sha
-                    or selected.get("encoder_config_sha256") != encoder_hash or sorted(selected.get("validation_image_ids", [])) != expected_validation
-                    or utc(selected["checkpoint_frozen_utc"]) > datetime.now(timezone.utc)):
-                raise ValueError("test cache admission differs from frozen validation encoder selection")
-        if cache and (cache.get("cache_admission_selection_sha256") != file_sha(admission_path)
-                or utc(cache["started_utc"]) < max(utc(admission["checkpoint_frozen_utc"]), utc(selection["checkpoint_frozen_utc"]))):
-            raise ValueError("test cache was prepared before both frozen selections")
     inference_config = {
         "schema_version": "beverage-inference-config-v1", "execution_policy": POLICY, "encoder_config_sha256": encoder_hash, "model_id": info["model_id"],
         "base_revision": info["base_revision"], "runtime_revision": info["runtime_revision"],
@@ -299,6 +324,13 @@ def main(argv: list[str] | None = None) -> int:
         "rss_limit_bytes": args.rss_limit_gb * 1024 ** 3,
     }
     inference_hash = canonical_sha256(inference_config)
+    if selected_split == "test":
+        validate_test_admission(selection, admission=admission, encoder_sha256=encoder_hash,
+            policy_sha256=policy_sha, validation_image_ids=[row["image_id"] for row in rows if row["split"] == "validation"],
+            adapter_sha256=adapter_hash, adapter_config_sha256=adapter_config_hash, inference_config_sha256=inference_hash)
+        if cache and (cache.get("cache_admission_selection_sha256") != file_sha(admission_path)
+                or utc(cache["started_utc"]) < max(utc(admission["checkpoint_frozen_utc"]), utc(selection["checkpoint_frozen_utc"]))):
+            raise ValueError("test cache was prepared before both frozen selections")
     if args.command == "infer":
         frozen = validate_selection(selection, split=args.split, adapter_sha256=adapter_hash, policy_sha256=policy_sha,
             adapter_config_sha256=adapter_config_hash, inference_config_sha256=inference_hash)

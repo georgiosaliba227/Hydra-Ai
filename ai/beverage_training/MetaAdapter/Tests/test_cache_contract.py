@@ -20,6 +20,8 @@ class CacheContractTests(unittest.TestCase):
         run={'schema_version':'beverage-encoder-run-v1','encoder_config_sha256':enc,'vision_only':True,'language_loaded':False,'loaded_weight_namespaces':['vision_adapter','vision_projection','vision_tower'],'started_utc':'2026-11-02T12:00:00Z','completed_utc':'2026-11-02T12:01:00Z'}
         (root/'encoder-run.json').write_text(json.dumps(run))
         entry={'image_id':'a','image_sha256':'a'*64,'split':'train','outcome':'success','error':None,'tensor_path':'sample.safetensors','tensor_sha256':hashlib.sha256(tensor).hexdigest(),'feature_key':'vision_features','feature_dtype':'F32','feature_shape':[1,6656],'tokens_key':'prompt_tokens','tokens_dtype':'I32','tokens_shape':[4],'prompt_tokens_sha256':hashlib.sha256(tokens).hexdigest()}
+        run['actual_feature_writes']=[dict(image_id='a',feature_sha256=entry['tensor_sha256'])]
+        (root/'encoder-run.json').write_text(json.dumps(run))
         descriptor={'schema_version':'beverage-feature-cache-v1','execution_policy':'separate-frozen-vision-v1','encoder_config_sha256':enc,'encoder_config_path':'encoder-config.json','encoder_run_path':'encoder-run.json','encoder_run_sha256':hashlib.sha256((root/'encoder-run.json').read_bytes()).hexdigest(),'source_manifest_sha256':'b'*64,'split_policy_sha256':'c'*64,'split':'train','outcome':'complete','started_utc':'2026-11-02T12:00:00Z','completed_utc':'2026-11-02T12:01:01Z','entries':[entry]}
         path=root/'feature-cache.json';path.write_text(json.dumps(descriptor))
         args={'rows':[{'image_id':'a','image_sha256':'a'*64,'split':'train'}],'split':'train','encoder_sha256':enc,'source_manifest_sha256':'b'*64,'split_policy_sha256':'c'*64}
@@ -29,6 +31,30 @@ class CacheContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path,descriptor,args=self.fixture(Path(directory).resolve())
             self.assertEqual(cache.verify_cache(path,**args)['entries'][0]['image_id'],'a')
+
+    def test_rebound_valid_tensor_cannot_disagree_with_preserved_encoder_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory).resolve();path,d,args=self.fixture(root)
+            tensor=root/'sample.safetensors';data=bytearray(tensor.read_bytes())
+            header_size=struct.unpack('<Q',data[:8])[0]
+            data[8+header_size:12+header_size]=struct.pack('<f',1)
+            tensor.write_bytes(data)
+            d['entries'][0]['tensor_sha256']=hashlib.sha256(data).hexdigest()
+            path.write_text(json.dumps(d))
+            with self.assertRaisesRegex(ValueError,'encoder.*writ|writ.*encoder'):
+                cache.verify_cache(path,**args)
+
+    def test_encoder_writes_require_exact_unique_successful_case_hashes(self):
+        for invalid in (None,[],[dict(image_id='foreign',feature_sha256='a'*64)],
+                        [dict(image_id='a',feature_sha256='a'*64)]*2):
+            with self.subTest(invalid=invalid),tempfile.TemporaryDirectory() as directory:
+                root=Path(directory).resolve();path,d,args=self.fixture(root)
+                run_path=root/'encoder-run.json';run=json.loads(run_path.read_text())
+                run['actual_feature_writes']=invalid;run_path.write_text(json.dumps(run))
+                d['encoder_run_sha256']=hashlib.sha256(run_path.read_bytes()).hexdigest()
+                path.write_text(json.dumps(d))
+                with self.assertRaisesRegex(ValueError,'encoder.*writ|writ.*encoder'):
+                    cache.verify_cache(path,**args)
 
     def test_tampered_tensor_and_wrong_split_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

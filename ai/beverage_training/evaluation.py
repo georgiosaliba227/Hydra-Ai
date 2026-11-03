@@ -5,6 +5,8 @@ Use independent photo review and actual training inspection before making claims
 """
 from __future__ import annotations
 
+from ai.beverage_training.MetaAdapter.cache_contract import validate_encoder_writes
+
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -222,7 +224,8 @@ def _valid_prediction(prediction: Row) -> bool:
     return (prediction.get("outcome") == "success"
         and all(field in prediction and (prediction[field] is None or isinstance(prediction[field], str))
                 for field in ("brand", "product"))
-        and (prediction.get("capacity_ml") is None or _capacity(prediction["capacity_ml"]))
+        and "capacity_ml" in prediction
+        and (prediction["capacity_ml"] is None or _capacity(prediction["capacity_ml"]))
         and type(prediction.get("latency_ms")) in (int, float)
         and math.isfinite(prediction["latency_ms"]) and prediction["latency_ms"] >= 0
         and prediction.get("error") in (None, ""))
@@ -528,6 +531,7 @@ def validate_feature_cache(holder: Row, rows: list[Row], artifact_root: Path, co
                 raise ValueError("failed cache entry cannot assert successful tensors")
         else:
             raise ValueError("cache entry outcome must be explicit")
+    validate_encoder_writes(encoder_run.get("actual_feature_writes"), successful)
     uses = actual.get("actual_feature_uses")
     used = set()
     if not isinstance(uses,list):
@@ -741,8 +745,8 @@ def evaluate_files(*, manifest_path: Path, predictions_path: Path, policy_path: 
         execution_policy=metadata.get("execution_policy", "direct-pixel-frozen-prefix-v1"),
         encoder_config_sha256=metadata.get("encoder_config_sha256"),
         feature_cache_sha256=metadata.get("feature_cache_sha256"),
-        adapter_target_met=measurement_class == "measured_adapter" and report["above_70_percent"],
+        metric_role="legacy_name_alias_comparison", adapter_target_met=False,
         provenance_limit="Artifact hashes do not authenticate real training updates, independent photo labels or provider origin of base weights; the launcher verifies files against externally trusted provider provenance.",
-        target_definition="Strictly >70% top1 full identity AND exact positive printed capacity over all test images; unknown capacity is not positive success.",
+        target_definition="Legacy literal-name comparison only; current target requires the separately bound dual identity reviews in evaluate_equivalence_files(). Exact printed capacity and all test cases remain required.",
         generated_utc=datetime.now(timezone.utc).isoformat())
     return report

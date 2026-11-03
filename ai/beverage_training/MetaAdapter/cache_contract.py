@@ -57,6 +57,20 @@ def utc(value: str) -> datetime:
     return parsed
 
 
+def validate_encoder_writes(writes: object, successful: dict[str, str]) -> None:
+    """Bind each admitted tensor to the encoder's preserved per-image output."""
+    if not isinstance(writes, list) or len(writes) != len(successful):
+        raise ValueError('encoder writes must cover exactly successful cache cases')
+    seen = set()
+    for write in writes:
+        if (not isinstance(write, dict) or set(write) != {'image_id', 'feature_sha256'}
+                or not isinstance(write['image_id'], str) or write['image_id'] in seen
+                or write['image_id'] not in successful
+                or write['feature_sha256'] != successful[write['image_id']]):
+            raise ValueError('encoder writes differ from admitted per-image tensors')
+        seen.add(write['image_id'])
+
+
 def validate_tensor(path: Path, entry: dict, image_tokens: int) -> None:
     if path.stat().st_size > 32 * 1024 * 1024 or file_sha256(path) != entry['tensor_sha256']:
         raise ValueError('cache tensor size/hash mismatch')
@@ -127,6 +141,7 @@ def verify_cache(path: Path, *, rows: list[dict], split: str, encoder_sha256: st
     entries = descriptor.get('entries')
     if not isinstance(entries, list) or len(entries) != len(expected) or len({entry.get('image_id') for entry in entries}) != len(entries) or {entry.get('image_id') for entry in entries} != expected.keys():
         raise ValueError('cache must retain every split case exactly once')
+    successful = {}
     for entry in entries:
         row = expected[entry['image_id']]
         if entry.get('image_sha256') != row['image_sha256'] or entry.get('split') != split:
@@ -140,4 +155,6 @@ def verify_cache(path: Path, *, rows: list[dict], split: str, encoder_sha256: st
         if entry.get('outcome') != 'success':
             raise ValueError('invalid cache case outcome')
         validate_tensor(safe_path(root, entry['tensor_path']), entry, config['image_tokens'])
+        successful[entry['image_id']] = entry['tensor_sha256']
+    validate_encoder_writes(evidence.get('actual_feature_writes'), successful)
     return descriptor

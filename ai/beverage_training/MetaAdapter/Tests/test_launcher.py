@@ -38,6 +38,46 @@ class LauncherTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             launcher.validate_selection(None, split="test", adapter_sha256=None, policy_sha256="a" * 64)
 
+    def admission_fixture(self):
+        from ai.beverage_training.identity_packets import IDENTITY_POLICY_SHA256
+        selected=dict(selected_using="train_validation_only",adapter_sha256="b"*64,
+            adapter_config_sha256="c"*64,inference_config_sha256="d"*64,
+            split_policy_sha256="a"*64,encoder_config_sha256="e"*64,
+            identity_policy_sha256=IDENTITY_POLICY_SHA256,validation_image_ids=["v1","v2"],
+            checkpoint_frozen_utc="2026-11-03T03:00:00Z")
+        args=dict(admission=dict(selected),encoder_sha256="e"*64,policy_sha256="a"*64,
+            validation_image_ids=["v1","v2"],adapter_sha256="b"*64,
+            adapter_config_sha256="c"*64,inference_config_sha256="d"*64)
+        return selected,args
+
+    def test_test_admission_binds_complete_checkpoint_configuration_and_owner_policy(self):
+        selected,args=self.admission_fixture()
+        launcher.validate_test_admission(selected,**args)
+        baseline=dict(selected,adapter_sha256=None,adapter_config_sha256=None,inference_config_sha256="f"*64)
+        launcher.validate_test_admission(baseline,**dict(args,adapter_sha256=None,
+            adapter_config_sha256=None,inference_config_sha256="f"*64))
+        with self.assertRaises(ValueError):
+            launcher.validate_test_admission(selected,**dict(args,inference_config_sha256="f"*64))
+
+    def test_test_cache_cannot_start_with_missing_checkpoint_or_identity_commitments(self):
+        for holder in ("selection","admission"):
+            for key in ("adapter_sha256","adapter_config_sha256","inference_config_sha256","identity_policy_sha256"):
+                selected,args=self.admission_fixture()
+                target=selected if holder=="selection" else args["admission"]
+                target.pop(key)
+                with self.subTest(holder=holder,key=key),self.assertRaises(ValueError):
+                    launcher.validate_test_admission(selected,**args)
+
+    def test_test_cache_rejects_false_policy_late_policy_or_incomplete_hash_bindings(self):
+        for changes in (dict(identity_policy_sha256="0"*64),dict(checkpoint_frozen_utc="2026-11-02T12:00:00Z"),
+                        dict(adapter_sha256="not-a-hash"),dict(adapter_sha256=None),
+                        dict(inference_config_sha256=None),dict(validation_image_ids=["v1","v1"])):
+            for holder in ("selection","admission"):
+                selected,args=self.admission_fixture()
+                (selected if holder=="selection" else args["admission"]).update(changes)
+                with self.subTest(holder=holder,changes=changes),self.assertRaises(ValueError):
+                    launcher.validate_test_admission(selected,**args)
+
     def test_selection_binds_adapter_and_policy(self):
         selection = {"selected_using": "train_validation_only", "adapter_sha256": "b" * 64, "split_policy_sha256": "a" * 64, "checkpoint_frozen_utc": "2026-11-02T12:00:00Z", "adapter_config_sha256": "c" * 64, "inference_config_sha256": "d" * 64}
         self.assertEqual(launcher.validate_selection(selection, split="test", adapter_sha256="b" * 64, policy_sha256="a" * 64, adapter_config_sha256="c" * 64, inference_config_sha256="d" * 64), "2026-11-02T12:00:00Z")
