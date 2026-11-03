@@ -2,7 +2,9 @@
 
 ## November 3 — Home score, personal Wonder and actual Muse-guided training
 
-`codex/wonder-personal-risk-admission` adds the owner-selected experimental Home
+[PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
+`codex/wonder-personal-risk-admission`, is open with Amine requested as reviewer.
+It adds the owner-selected experimental Home
 score: 50 points for current chosen-goal alignment, 30 for recorded seven-day
 consistency and 20 for valid manual-session support. The weights are visible
 product rules, not physiological inference. Missing/corrupt sources remain

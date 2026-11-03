@@ -2,7 +2,8 @@
 
 ## November 3 — latest operational handoff
 
-1. Review `codex/wonder-personal-risk-admission`, stacked on PR #72; preserve
+1. Review [PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
+   `codex/wonder-personal-risk-admission`, stacked on PR #72; preserve
    PR #65/#71/#72 dependencies and human merge. Home research score, ongoing
    owner-risk admission and actual Muse-guided research training are implemented
    and verified. Camera branches remain separate.
