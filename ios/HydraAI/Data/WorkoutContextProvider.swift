@@ -18,6 +18,9 @@ struct WorkoutContextDraft: Equatable {
     var workoutProvenance: String?
     /// "Weather from Open-Meteo for your area".
     var weatherProvenance: String?
+    /// The requested planned-workout time and actual forecast hour; current-area weather is separate.
+    var weatherRequestedTime: Date?
+    var weatherForecastHour: Date?
     /// Set when the Health activity type had no direct match and Other was used.
     var activityNote: String?
     var typicalSessions: TypicalWorkoutSessions?
@@ -76,13 +79,20 @@ final class WorkoutContextProvider: ObservableObject {
     /// energy for display, provenance and the typical-session summary. Errors land in `workoutState`.
     @discardableResult
     func useLastWorkout(plannedStart: Date? = nil) async -> WorkoutContextDraft {
+        await refreshWorkouts(requestAuthorization: true, plannedStart: plannedStart)
+        return draft
+    }
+
+    /// Existing Health access only by default. The daily coordinator never requests read permission.
+    @discardableResult
+    func refreshWorkouts(requestAuthorization: Bool = false, plannedStart: Date? = nil) async -> Bool {
         let generation = UUID()
         workoutGeneration = generation
         workoutState = .loading
         do {
-            try await health.requestWorkoutReadAccess()
+            if requestAuthorization { try await health.requestWorkoutReadAccess() }
             let workouts = try await health.recentWorkouts(limit: Self.recentWorkoutLimit)
-            guard generation == workoutGeneration else { return draft }
+            guard generation == workoutGeneration, !Task.isCancelled else { return false }
             guard let last = workouts.first else { throw HealthWorkoutError.noWorkouts }
             draft.activity = last.activity.rawValue
             draft.activityNote = last.mapping.note
@@ -94,12 +104,13 @@ final class WorkoutContextProvider: ObservableObject {
             draft.workoutProvenance = (last.source == .sample ? Self.sampleWorkoutProvenancePrefix : Self.healthWorkoutProvenancePrefix) + when
             draft.typicalSessions = TypicalWorkoutSessions.summarize(workouts)
             workoutState = .loaded
+            return true
         } catch {
-            guard generation == workoutGeneration else { return draft }
+            guard generation == workoutGeneration, !Task.isCancelled else { return false }
             workoutState = .failed((error as? LocalizedError)?.errorDescription
                 ?? "Apple Health workouts could not be read. You can still enter the workout yourself.")
         }
-        return draft
+        return false
     }
 
     /// "Fill in the weather". Requires `isWeatherConsentGranted`; otherwise nothing is requested and
@@ -110,11 +121,17 @@ final class WorkoutContextProvider: ObservableObject {
         weatherGeneration = generation
         weatherState = .loading
         do {
-            let conditions = try await weather.conditions(nearest: startsAt ?? draft.startsAt ?? now())
+            let requestedTime = startsAt ?? draft.startsAt ?? now()
+            let conditions = try await weather.conditions(nearest: requestedTime)
+            guard abs(conditions.forecastHour.timeIntervalSince(requestedTime)) <= OpenMeteoForecastParser.maximumDistance else {
+                throw WeatherAutofillError.outOfForecastRange
+            }
             guard generation == weatherGeneration, weather.consent.isGranted else { return draft }
             draft.temperatureC = conditions.temperatureC
             draft.humidityPercent = conditions.humidityPercent
             draft.weatherProvenance = Self.weatherProvenanceText
+            draft.weatherRequestedTime = requestedTime
+            draft.weatherForecastHour = conditions.forecastHour
             weatherState = .loaded
         } catch {
             guard generation == weatherGeneration else { return draft }
@@ -136,8 +153,40 @@ final class WorkoutContextProvider: ObservableObject {
                 draft.temperatureC = nil
                 draft.humidityPercent = nil
                 draft.weatherProvenance = nil
+                draft.weatherRequestedTime = nil
+                draft.weatherForecastHour = nil
             }
         }
+    }
+
+    /// Invalidate weather provenance when a planned start changes; late replies cannot restore it.
+    func invalidateWeather(for startsAt: Date) {
+        guard draft.weatherRequestedTime != startsAt else { return }
+        weatherGeneration = UUID()
+        draft.temperatureC = nil
+        draft.humidityPercent = nil
+        draft.weatherProvenance = nil
+        draft.weatherRequestedTime = nil
+        draft.weatherForecastHour = nil
+        weatherState = .idle
+    }
+
+    func cancelPendingWorkouts() {
+        workoutGeneration = UUID()
+        if workoutState == .loading { workoutState = .idle }
+    }
+
+    func clearHealthContext() {
+        cancelPendingWorkouts()
+        draft.activity = nil
+        draft.startsAt = nil
+        draft.durationMinutes = nil
+        draft.averageHeartRate = nil
+        draft.activeEnergyKilocalories = nil
+        draft.workoutProvenance = nil
+        draft.activityNote = nil
+        draft.typicalSessions = nil
+        workoutState = .idle
     }
 
     /// Forget all suggestions (for example when leaving the screen). Late replies are discarded.
