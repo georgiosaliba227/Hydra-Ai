@@ -35,6 +35,21 @@ private final class DailyWeather: WeatherForecastClient {
 }
 
 @MainActor
+private final class SuspendedDailyHealth: HealthWorkoutClient {
+    var isAvailable = true
+    var accessRequests = 0
+    var reads = 0
+    var suspend = true
+    var pending: CheckedContinuation<Void, Never>?
+    func requestWorkoutReadAccess() async throws { accessRequests += 1 }
+    func recentWorkouts(limit: Int) async throws -> [HealthWorkoutSummary] {
+        reads += 1
+        if suspend { await withCheckedContinuation { pending = $0 } }
+        return SampleHealthWorkoutClient.sampleWorkouts(endingAt: Date(timeIntervalSince1970: 1_793_750_000))
+    }
+}
+
+@MainActor
 final class DailyContextTests: XCTestCase {
     private var defaults: UserDefaults!
     private var suite = ""
@@ -362,6 +377,69 @@ final class DailyContextTests: XCTestCase {
         await context.refreshIfNeeded()
         await context.refreshIfNeeded()
         XCTAssertEqual(health.reads, 2)
+    }
+
+    func testCancelledExplicitHealthConnectReleasesStateAndAllowsAutomaticRead() async {
+        let suspended = SuspendedDailyHealth()
+        let context = DailyContextCoordinator(health: suspended, location: location, weather: weather,
+            defaults: defaults, now: { self.date })
+        let connect = Task { await context.connectHealth() }
+        while suspended.pending == nil { await Task.yield() }
+        connect.cancel()
+        suspended.pending?.resume(); suspended.pending = nil
+        await connect.value
+        XCTAssertFalse(context.isRefreshing)
+        XCTAssertNotEqual(context.healthState, .loading)
+        XCTAssertNotEqual(context.workoutContext.workoutState, .loading)
+        XCTAssertNil(context.lastHealthSuccess)
+        suspended.suspend = false
+        await context.refreshIfNeeded()
+        XCTAssertEqual(suspended.accessRequests, 1)
+        XCTAssertEqual(suspended.reads, 2)
+        XCTAssertNotNil(context.lastHealthSuccess)
+    }
+
+    func testManualWeatherReturningToCachedStartRejectsConflictingPendingReply() async {
+        let consent = WeatherLocationConsentStore(defaults: defaults)
+        consent.isGranted = true
+        let provider = WorkoutContextProvider(health: health,
+            weather: WeatherAutofillService(consent: consent, location: location, weather: weather))
+        let startA = date
+        let startB = date.addingTimeInterval(6 * 3600)
+        _ = await provider.fillInWeather(startsAt: startA)
+        weather.suspend = true
+        let pending = Task { await provider.fillInWeather(startsAt: startB) }
+        while weather.pending == nil { await Task.yield() }
+        provider.invalidateWeather(for: startA)
+        weather.pending?.resume(); weather.pending = nil
+        let returned = await pending.value
+        XCTAssertEqual(provider.draft.weatherRequestedTime, startA)
+        XCTAssertEqual(provider.draft.weatherForecastHour, startA)
+        XCTAssertEqual(returned.weatherRequestedTime, startA)
+        XCTAssertNotEqual(provider.weatherState, .loading)
+    }
+
+    func testObservedSystemRevocationRejectsOldCurrentWeatherReplyAfterRegrant() async {
+        let context = make()
+        await context.enableAutomaticWeather()
+        date.addTimeInterval(25 * 3600)
+        weather.suspend = true
+        let original = Task { await context.refreshIfNeeded(mode: .background) }
+        while weather.pending == nil { await Task.yield() }
+        location.hasExistingAuthorization = false
+        let observeRevocation = Task { await context.refreshIfNeeded(mode: .background) }
+        // Wait for the entry-point revocation cleanup, independently of the old network reply.
+        while context.currentWeather != nil { await Task.yield() }
+        XCTAssertNil(DailyContextPreferences(defaults: defaults).savedCoordinate)
+        location.hasExistingAuthorization = true
+        weather.pending?.resume(); weather.pending = nil
+        await original.value
+        await observeRevocation.value
+        XCTAssertNil(context.currentWeather)
+        XCTAssertNil(context.lastWeatherSuccess)
+        XCTAssertEqual(weather.calls, 2)
+        XCTAssertNotEqual(context.weatherState, .loaded)
+        XCTAssertFalse(context.isRefreshing)
     }
 
 }

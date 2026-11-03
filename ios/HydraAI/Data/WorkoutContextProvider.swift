@@ -164,8 +164,13 @@ final class WorkoutContextProvider: ObservableObject {
 
     /// Invalidate weather provenance when a planned start changes; late replies cannot restore it.
     func invalidateWeather(for startsAt: Date) {
-        guard draft.weatherRequestedTime != startsAt else { return }
+        // A matching cached hour may coexist with a pending request for another start.
+        // Invalidate that reply before deciding whether the cached values can be retained.
         weatherGeneration = UUID()
+        guard draft.weatherRequestedTime != startsAt else {
+            if weatherState == .loading { weatherState = .loaded }
+            return
+        }
         draft.temperatureC = nil
         draft.humidityPercent = nil
         draft.weatherProvenance = nil

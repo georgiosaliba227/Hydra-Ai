@@ -28,6 +28,8 @@ final class DailyContextCoordinator: ObservableObject {
     private var plannedWeatherTime: Date?
     private var plannedRequestID = UUID()
     private var generation = UUID()
+    /// Rotated whenever system location revocation is observed, even if access returns later.
+    private var weatherAccessGeneration = UUID()
     private var healthSuccessDay: DateComponents?
     private var weatherSuccessDay: DateComponents?
     private let refreshInterval: TimeInterval = 3600
@@ -79,6 +81,15 @@ final class DailyContextCoordinator: ObservableObject {
         }
         let token = generation
         isRefreshing = true
+        defer {
+            if token == generation {
+                isRefreshing = false
+                if healthState == .loading {
+                    workoutContext.cancelPendingWorkouts()
+                    healthState = .idle
+                }
+            }
+        }
         healthState = .loading
         lastHealthAttempt = now()
         let success = await workoutContext.refreshWorkouts(requestAuthorization: true)
@@ -225,6 +236,11 @@ final class DailyContextCoordinator: ObservableObject {
     private func localDay() -> DateComponents { calendar().dateComponents([.era, .year, .month, .day], from: now()) }
 
     private func clearRevokedWeather() {
+        weatherAccessGeneration = UUID()
+        plannedWeatherTask?.cancel()
+        plannedWeatherTask = nil
+        plannedWeatherTime = nil
+        plannedRequestID = UUID()
         preferences.clearWeather()
         currentWeather = nil
         lastWeatherSuccess = nil
@@ -257,6 +273,7 @@ final class DailyContextCoordinator: ObservableObject {
 
     private func refreshWeather(mode: DailyContextRefreshMode, requestPermission: Bool, token: UUID) async {
         guard weatherAutoEnabled, valid(token) else { return }
+        let accessToken = weatherAccessGeneration
         lastWeatherAttempt = now()
         weatherState = .loading
         do {
@@ -272,13 +289,14 @@ final class DailyContextCoordinator: ObservableObject {
                     coordinate = saved
                 }
             }
-            guard valid(token), weatherAutoEnabled else { return }
+            guard valid(token), accessToken == weatherAccessGeneration, weatherAutoEnabled else { return }
             preferences.savedCoordinate = coordinate
             let requestedTime = now()
             let conditions = try await weather.conditions(at: coordinate, nearest: requestedTime)
-            guard valid(token), weatherAutoEnabled else { return }
+            guard valid(token), accessToken == weatherAccessGeneration, weatherAutoEnabled else { return }
             guard location.hasExistingAuthorization else { throw WeatherAutofillError.locationDenied }
-            guard usable(conditions, coordinate: coordinate, requestedTime: requestedTime),
+            guard preferences.savedCoordinate == coordinate,
+                  usable(conditions, coordinate: coordinate, requestedTime: requestedTime),
                   abs(conditions.forecastHour.timeIntervalSince(now())) <= OpenMeteoForecastParser.maximumDistance else {
                 throw WeatherAutofillError.invalidResponse
             }
@@ -287,7 +305,7 @@ final class DailyContextCoordinator: ObservableObject {
             weatherSuccessDay = localDay()
             weatherState = .loaded
         } catch {
-            guard valid(token), weatherAutoEnabled else { return }
+            guard valid(token), accessToken == weatherAccessGeneration, weatherAutoEnabled else { return }
             if (error as? WeatherAutofillError) == .locationDenied {
                 clearRevokedWeather()
             }
