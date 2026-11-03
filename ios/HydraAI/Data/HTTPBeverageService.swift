@@ -316,6 +316,22 @@ actor HTTPBeverageService: BeverageService {
         return result
     }
 
+    /// A GET-only financial status check; never sends an inference request.
+    func wonderReadiness() async throws -> WonderReadiness {
+        try await send("v1/wonder/readiness")
+    }
+    func hydrationScorePreview(_ request: HydrationScoreRequest) async throws -> HydrationScorePreview {
+        try request.validate()
+        return try await richAnalysisPost("v1/wonder/score/preview", body: JSONEncoder().encode(request))
+    }
+    func explainHydrationScore(_ request: HydrationScoreExplanationRequest) async throws -> HydrationScoreExplanationResponse {
+        try request.validate()
+        let response: HydrationScoreExplanationResponse = try await richAnalysisPost("v1/wonder/score", body: JSONEncoder().encode(request))
+        try response.result.validate()
+        guard response.result.payload_sha256 == request.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
+
     func wonderTrendPreview(timezone: String) async throws -> TrendPreview {
         let preview: TrendPreview = try await send("v1/wonder/trends", query: [.init(name: "timezone", value: timezone)])
         try preview.validate()

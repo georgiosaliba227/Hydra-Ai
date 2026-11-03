@@ -1,0 +1,116 @@
+{
+  "replayed": false,
+  "saved": true,
+  "result": {
+    "version": "wonder-score-live-v1",
+    "facts": {
+      "version": "hydration-research-score-v1",
+      "local_date": "2026-11-03",
+      "timezone": "America/New_York",
+      "goal_ml": 1800,
+      "today_ml": 725,
+      "previous_days": [
+        {
+          "local_date": "2026-10-27",
+          "total_ml": 0,
+          "logged": false
+        },
+        {
+          "local_date": "2026-10-28",
+          "total_ml": 250,
+          "logged": true
+        },
+        {
+          "local_date": "2026-10-29",
+          "total_ml": 1000,
+          "logged": true
+        },
+        {
+          "local_date": "2026-10-30",
+          "total_ml": 2200,
+          "logged": true
+        },
+        {
+          "local_date": "2026-10-31",
+          "total_ml": 777,
+          "logged": true
+        },
+        {
+          "local_date": "2026-11-01",
+          "total_ml": 0,
+          "logged": false
+        },
+        {
+          "local_date": "2026-11-02",
+          "total_ml": 1350,
+          "logged": true
+        }
+      ],
+      "measurement_count": 2,
+      "research_only": true,
+      "components": {
+        "today_points": 20.13888888888889,
+        "consistency_points": 12.326190476190476,
+        "measurement_points": 6.666666666666666
+      },
+      "score": 39
+    },
+    "payload_sha256": "bf16883d0e53e15bf9fad220837182403db9c7693a7e61dab3f1a7e6145d5d02",
+    "insights": [
+      {
+        "id": "today_alignment",
+        "title": "Today's goal alignment",
+        "text": "Today's logged beverage volume is compared with the current chosen goal."
+      },
+      {
+        "id": "recent_consistency",
+        "title": "Recorded consistency",
+        "text": "Recorded prior-day volumes are compared with the current chosen goal."
+      },
+      {
+        "id": "measurement_support",
+        "title": "Measurement support",
+        "text": "Validated manual sessions contribute measurement support to this snapshot."
+      },
+      {
+        "id": "goal_cap",
+        "title": "Capped goal rewards",
+        "text": "Logged volume beyond the current chosen goal earns no extra score points."
+      },
+      {
+        "id": "research_meaning",
+        "title": "Experimental meaning",
+        "text": "This score is an unvalidated product rubric, not a physiological measurement."
+      },
+      {
+        "id": "unlogged_unknown",
+        "title": "Unlogged intake is unknown",
+        "text": "Unlogged prior dates earn no recorded-consistency points; actual consumption is unknown."
+      }
+    ],
+    "generated_at": "2026-11-03T17:00:00+00:00",
+    "provenance": {
+      "mode": "meta_live",
+      "provider": "Meta",
+      "model": "muse-wonder-1.0",
+      "account_id": "aminealichaouche",
+      "attempt_id": "00000000-0000-0000-0000-00000000007b",
+      "selection_origin": "muse-wonder-1.0",
+      "text_origin": "hydra_reviewed_selected_by_muse",
+      "numbers_checked_against": "facts"
+    },
+    "provider_observations": {
+      "latency_ms": 1,
+      "input_tokens": 1000,
+      "output_tokens": 200,
+      "usage_derived_cost_micro_usd": 8000,
+      "billed_cost_usd": null
+    },
+    "limitations": [
+      "Experimental product rubric; not hydration status or a drinking requirement.",
+      "Extra logged volume above the current chosen goal earns no extra points.",
+      "An unlogged day does not establish no actual consumption.",
+      "Measurement support does not establish physiological accuracy or narrower uncertainty."
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject private var store: BeverageStore
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showingManualLog = false
 
     private var todaysLogs: [BeverageLog] {
@@ -25,6 +26,7 @@ struct DashboardView: View {
                     StatusBanner(text: "Today's total appears once your drinks have loaded.",
                                  systemImage: "hourglass", tint: .secondary)
                 }
+                HydrationScoreCard(history: store.calibrationHistory)
                 QuickAddCard(showingManualLog: $showingManualLog)
                 insightsSection
                 recentSection
@@ -33,7 +35,7 @@ struct DashboardView: View {
             .hydraScreen()
         }
         .background(Color.hydraBackground)
-        .refreshable { await store.refresh() }
+        .refreshable { try? store.calibrationHistory.reload(); await store.refresh() }
         .navigationTitle("Today")
         .sheet(isPresented: $showingManualLog) {
             NavigationStack {
@@ -41,7 +43,17 @@ struct DashboardView: View {
             }
         }
         .task {
+            try? store.calibrationHistory.reload()
             await store.refresh()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { try? store.calibrationHistory.reload(); await store.refresh() } }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            Task { try? store.calibrationHistory.reload(); await store.refresh() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
+            Task { try? store.calibrationHistory.reload(); await store.refresh() }
         }
     }
 

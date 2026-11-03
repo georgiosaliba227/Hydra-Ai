@@ -85,6 +85,7 @@ struct BackendSettingsView: View {
                 Text("Optional. Reads today's steps on this iPhone; Health records aren't sent anywhere.")
             }
             if !store.isOffline && store.isConfigured {
+                WonderReadinessSection()
                 Section {
                     NavigationLink { OwnerSyntheticWonderView() } label: {
                         Label("Recorded Wonder test", systemImage: "text.magnifyingglass")

@@ -28,7 +28,8 @@ label is requested from Muse.
 uses the same authoritative financial policy and one-use ticket, purpose
 `synthetic_training_plan`, and requires the explicit research authorization
 reference. No HTTP training-plan dispatch route or separate ledger is added.
-The ordinary finality/readiness/budget gates still apply. No real generation is
+The selected policy's readiness/budget and billing gates still apply, including
+the separately recorded ongoing billing-wait waiver when configured. No real generation is
 claimed from a fake transport or an offline fixture.
 
 Result envelope:
@@ -114,5 +115,9 @@ scores cannot establish accuracy for Georgio or satisfy the real-history goal.
 
 Tests must prove payload/parser bounds, reproduction, mass-balance consistency,
 source/group separation, unchanged holdouts, invalid/forged plan rejection,
-offline-stub honesty and serving exclusion. The real Muse request/training step
-remains pending until current financial admission gates pass.
+offline-stub honesty and serving exclusion. The real request/training step
+requires current admission gates. On November 3 these passed under the separately
+approved owner-risk waiver: one real fixed plan request and offline training
+completed, with all five output files reproduced byte-for-byte. See
+[the actual run](../MUSE_GUIDED_TRAINING_2026-11-03.md). The earlier `offline_stub`
+report remains a separately labeled engineering run.

@@ -1,5 +1,35 @@
 # Hydra AI next actions
 
+## November 3 — latest operational handoff
+
+1. Review `codex/wonder-personal-risk-admission`, stacked on PR #72; preserve
+   PR #65/#71/#72 dependencies and human merge. Home research score, ongoing
+   owner-risk admission and actual Muse-guided research training are implemented
+   and verified. Camera branches remain separate.
+2. Physical installation remains deferred at the owner's request. When chosen,
+   install the updated HealthKit-signed original bundle and verify real workout
+   import, permission prompts, weather and final Home/analysis screens. Do not
+   repeat requests for the owner to stay awake or reconnect during Simulator work.
+3. On the real profile, choose a personal beverage goal and log actual drinks.
+   Collect protocol-confirmed manual workout measurements with error bounds;
+   at least six qualified comparable records are needed for experimental fitting,
+   which may still retain the baseline. Never import simulated training rows as
+   actual history or interpret the product score as body hydration.
+4. The local owner backend is configured for personal Wonder under the explicitly
+   accepted uncertainty. Each new personal disclosure still requires exact in-app
+   aggregate preview and fresh Meta consent. Verify the actual personal-data flow
+   when records/phone are available; the controlled eight-section synthetic test
+   and public-only training plan are not that verification.
+5. Preserve all reservations and invoice-unknown labels. Recheck readiness and
+   renew genuine account/price observations if expired; reuse standing human
+   references without inventing new approvals or resetting counters. A failure or
+   missing usage/publication still requires review. Mac hosting works while awake
+   on the same LAN; an always-on deployment remains separately unapproved.
+
+See [actual Muse training](MUSE_GUIDED_TRAINING_2026-11-03.md) and the
+[personal policy](architecture/WONDER_PERSONAL_OWNER_POLICY.md). Older next steps
+below retain their dated evidence and do not override the newer explicit waiver.
+
 ## November 3 operational follow-up
 
 1. Review `codex/wonder-owner-once`, stacked on PR #71. Preserve the explicit

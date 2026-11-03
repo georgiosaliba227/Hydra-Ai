@@ -1,5 +1,31 @@
 # Hydra AI blockers
 
+## November 3 — latest remaining gaps
+
+- **Real iPhone:** a fresh original-bundle build has valid HealthKit signing, but
+  installation/real permissions/workout import/weather/final screens remain
+  deferred by the owner. Four actual Simulator flows and 167 unit tests pass;
+  these do not establish hardware behavior.
+- **Real personal evidence:** the owner needs to collect measurements. Actual
+  Muse-guided simulation/training is complete and byte-reproduced, but synthetic
+  rows cannot fill personal history or validate real-person accuracy. The Home
+  score is an explicitly unvalidated 50/30/20 product rubric.
+- **Actual personal Meta flow:** the owner-local backend now reports ready and
+  both a real comprehensive synthetic response and real public-only simulation
+  plan exist. Own-record disclosure still needs exact preview/consent and a
+  recorded verification in the app; no raw HealthKit disclosure is introduced.
+- **Billing uncertainty is accepted, not resolved:** the owner explicitly waived
+  ongoing billing waits/unknown Amine status, keeping every hold and the same
+  $30 allocation. It no longer blocks the configured owner-risk path after all
+  other checks pass. Default verified mode retains its gates. Final invoices and
+  provider extras remain unverified; a failed/incomplete attempt still blocks.
+- **Integration/hosting:** stacked review branches are unmerged. No always-on
+  deployment is approved; local access depends on the Mac/LAN and current
+  observations. Readiness truthfully blocks after evidence expires.
+
+The newer owner-risk policy supersedes older operational blockers only within
+its explicit scope; historical reports below remain unchanged evidence.
+
 ## November 3 operational update
 
 Valid HealthKit signing for the original app identifier is now locally verified;

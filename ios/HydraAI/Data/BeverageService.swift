@@ -1,6 +1,8 @@
 import Foundation
 
 protocol BeverageService: Sendable {
+    func hydrationScorePreview(_ request: HydrationScoreRequest) async throws -> HydrationScorePreview
+    func explainHydrationScore(_ request: HydrationScoreExplanationRequest) async throws -> HydrationScoreExplanationResponse
     func listBeverages() async throws -> [BeverageLog]
     func createBeverage(_ request: CreateBeverageRequest, idempotencyKey: UUID) async throws -> BeverageLog
     func dailySummary(date: String, timezone: String) async throws -> DailySummary
@@ -102,6 +104,8 @@ actor MockBeverageService: BeverageService {
 
 
 extension BeverageService {
+    func hydrationScorePreview(_ request: HydrationScoreRequest) async throws -> HydrationScorePreview { throw ServiceError.invalidResponse }
+    func explainHydrationScore(_ request: HydrationScoreExplanationRequest) async throws -> HydrationScoreExplanationResponse { throw ServiceError.invalidResponse }
     func workoutForecastV3(_ request: WorkoutForecastRequest) async throws -> WorkoutForecast { throw ServiceError.invalidResponse }
     func hydrationAnalysisV3(_ request: WorkoutForecastRequest) async throws -> HydrationAnalysis { throw ServiceError.invalidResponse }
     func wonderAnalysisPreviewV3(_ request: WorkoutForecastRequest) async throws -> WonderAnalysisPreview { throw ServiceError.invalidResponse }

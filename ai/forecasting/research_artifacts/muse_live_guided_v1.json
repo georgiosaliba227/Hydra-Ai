@@ -1,0 +1,255 @@
+{
+  "actual_muse_plan_pending": false,
+  "augmentation_seed": 20261104,
+  "augmented_record_count": 1792,
+  "base_partitions": {
+    "calibration": {
+      "rows": 172,
+      "source_anchor_groups": 15
+    },
+    "test": {
+      "rows": 184,
+      "source_anchor_groups": 15
+    },
+    "train": {
+      "rows": 448,
+      "source_anchor_groups": 33
+    },
+    "validation": {
+      "rows": 156,
+      "source_anchor_groups": 15
+    }
+  },
+  "base_record_count": 960,
+  "base_records_sha256": "e2bfd46d9609c2e24a149cfa8bf1b45272caa182e8e1befca647f7aa8c724694",
+  "base_seed": 20261103,
+  "bundle_files_sha256": {
+    "evaluation.json": "bda6168558074c3dd929eb4d425354fa5a63df9a1052d0f057be35b8e320bef9",
+    "model.json": "04ab2fa672737cddaa317252d6ad0c3a029939caaa6ee1c9bd68a51de9446b56",
+    "plan-provenance.json": "153ab7b528eb1b61fac3fa09ffe20eda7c593222d02d67e8acb3ad3431c6fed9",
+    "records.json": "81fb2ea9f30b4592d77b9ade5905aa15a9492b12c9f5c0b37d83350e4f842f8a",
+    "split-manifest.json": "49e02a6f09492b059b0d2f3a70a4239fd5016f85ac47b7229509fdf59d7a0a88"
+  },
+  "calibration_curve": [
+    {
+      "nominal_coverage": 0.5,
+      "participant_test_coverage": 0.4666666666666667,
+      "radius_ml": 157.65670456057774
+    },
+    {
+      "nominal_coverage": 0.8,
+      "participant_test_coverage": 0.8,
+      "radius_ml": 247.43116970814947
+    },
+    {
+      "nominal_coverage": 0.9,
+      "participant_test_coverage": 0.8,
+      "radius_ml": 272.51547090810067
+    }
+  ],
+  "candidate_comparison": {
+    "cohort_rate_baseline": {
+      "test": {
+        "bias_ml": -63.61754900197888,
+        "interval_coverage": null,
+        "mae_ml": 107.33840360947092,
+        "n": 184,
+        "rmse_ml": 152.6875219047676
+      },
+      "validation": {
+        "bias_ml": 2.4497687876288374,
+        "interval_coverage": null,
+        "mae_ml": 76.04746703619018,
+        "n": 156,
+        "rmse_ml": 98.37663167026922
+      }
+    },
+    "gradient_boosting": {
+      "test": {
+        "bias_ml": 0.5393106756651825,
+        "interval_coverage": null,
+        "mae_ml": 67.3966671309191,
+        "n": 184,
+        "rmse_ml": 86.44791146784533
+      },
+      "validation": {
+        "bias_ml": 23.15651822225135,
+        "interval_coverage": null,
+        "mae_ml": 63.35462679525063,
+        "n": 156,
+        "rmse_ml": 78.86150939758699
+      }
+    },
+    "random_forest": {
+      "test": {
+        "bias_ml": -3.2231154466064793,
+        "interval_coverage": null,
+        "mae_ml": 80.25711445723674,
+        "n": 184,
+        "rmse_ml": 102.72739273785274
+      },
+      "validation": {
+        "bias_ml": 22.948088232725794,
+        "interval_coverage": null,
+        "mae_ml": 63.041892603591585,
+        "n": 156,
+        "rmse_ml": 83.3436646287109
+      }
+    },
+    "ridge": {
+      "test": {
+        "bias_ml": 8.342065398948737,
+        "interval_coverage": null,
+        "mae_ml": 76.28714089690654,
+        "n": 184,
+        "rmse_ml": 98.333323121514
+      },
+      "validation": {
+        "bias_ml": 37.73083308513893,
+        "interval_coverage": null,
+        "mae_ml": 80.089646017148,
+        "n": 156,
+        "rmse_ml": 103.02946815802146
+      }
+    }
+  },
+  "control_selected_model": "random_forest",
+  "control_test": {
+    "bias_ml": -35.81436138973554,
+    "interval_coverage": 0.8804347826086957,
+    "mae_ml": 92.18109623097787,
+    "n": 184,
+    "rmse_ml": 126.5615278598526
+  },
+  "executed_on": "2026-11-03",
+  "frozen_holdout_hashes": {
+    "calibration": "7565c81cca3fc22504b02d38e6094b8afcdfed2221879c6f4c34834c36545eeb",
+    "test": "406a3699f9c38ff73f5d28554d81d6758fd6cbdbddce4e90832b3f0d014b1832",
+    "validation": "b4dec798bbb52ace55366a1b78988ccec8bdfa279191619263a5f200ae4df3b7"
+  },
+  "frozen_holdouts_unchanged": true,
+  "guided_minus_control_mae_ml": -11.923981773741133,
+  "guided_test": {
+    "bias_ml": -3.2231154466064793,
+    "interval_coverage": 0.9782608695652174,
+    "mae_ml": 80.25711445723674,
+    "n": 184,
+    "rmse_ml": 102.72739273785274
+  },
+  "hyperparameters": {
+    "max_depth": 3,
+    "min_samples_leaf": 3,
+    "n_estimators": 32,
+    "n_jobs": 1,
+    "random_state": 20261103
+  },
+  "interval": {
+    "calibration_participants": 15,
+    "kind": "participant_split_conformal",
+    "limitation": "Exchangeable participants within this source only; no external-study coverage guarantee.",
+    "nominal_coverage": 0.9,
+    "radius_ml": 272.51547090810067
+  },
+  "limitations": [
+    "Muse selects a simulation mixture; Hydra generates every numerical label under declared assumptions.",
+    "Study mass-loss proxy rates are reinterpreted as duration-linear simulated loss, not validated physiological truth.",
+    "Noise, missingness and contamination are software stress settings, not measured instrument accuracy or population distributions.",
+    "Exact duplicate training vectors are deterministically resampled and counted; simulated clones are not independent observations.",
+    "Anchor-group holdouts are simulated clones of real TRAIN anchors, not independent people or real measured validation.",
+    "Synthetic interval coverage and model gains cannot establish accuracy for a real person.",
+    "Weather, humidity, intensity, HR, HRV, caffeine and creatine have no numerical effect.",
+    "This artifact is offline research only, never a personal calibration history or drinking prescription."
+  ],
+  "manifest_sha256": "47d3736c089b43b14421973a524c0e0aac4349dcbfa16adcdba92950dd7f2dc9",
+  "muse_inference_used": true,
+  "numeric_labels_generated_by": "Hydra deterministic simulator; Muse selected fixed recipe weights",
+  "original_artifacts_unchanged": true,
+  "participant_simultaneous_coverage": 0.8,
+  "personal_serving_promotion": false,
+  "plan": {
+    "training_weights": {
+      "base": 1,
+      "missing_covariates": 1,
+      "outlier": 1,
+      "wide_noise": 1
+    },
+    "version": "muse-synthetic-plan-v1"
+  },
+  "plan_origin": "muse_wonder",
+  "plan_sha256": "5852645b175680b6d57494acc24f7341711a79f3f105925c2f5bf342ae7e8490",
+  "provider_observations": {
+    "automatic_retries": false,
+    "billed_cost_usd": null,
+    "input_tokens": 230,
+    "latency_ms": 2683,
+    "model": "muse-wonder-1.0",
+    "output_tokens": 219,
+    "personal_data_used": false,
+    "reservation_micro_usd": 250000,
+    "usage_derived_cost_micro_usd": 5300
+  },
+  "real_world_improvement_established": false,
+  "runtime_use": "offline_research_only",
+  "selected_model": "random_forest",
+  "source_attribution": {
+    "license": "CC-BY-4.0",
+    "normalized_study_id": "spectrophon-v1",
+    "url": "https://data.mendeley.com/public-files/datasets/jt22782wjh/files/a6427fc3-3419-482f-a91c-33e3df048ccf/file_downloaded"
+  },
+  "source_records_sha256": "404df884c6f4f5bc60b4301c7a962eff4d1212e0a2dbd866ab79f6bcc6511be4",
+  "source_rows": 200,
+  "source_study": "spectrophon-v1",
+  "source_train_sha256": "2572389bae7e0db66fddc00789f7bf520f51cd5a6e3684336f9f0b4c8e6f5434",
+  "split_seed": 20261103,
+  "stress_tests": {
+    "context_only_shift": {
+      "bias_ml": -3.2231154466064793,
+      "interval_coverage": 0.9782608695652174,
+      "mae_ml": 80.25711445723674,
+      "maximum_prediction_change_ml": 0.0,
+      "n": 184,
+      "rmse_ml": 102.72739273785274
+    },
+    "long_duration": {
+      "bias_ml": -447.89303901214737,
+      "interval_coverage": 0.31521739130434784,
+      "mae_ml": 450.2287333441221,
+      "n": 184,
+      "rmse_ml": 508.5134511702556
+    },
+    "missing_covariates": {
+      "bias_ml": -31.675024073910443,
+      "interval_coverage": 0.9293478260869565,
+      "mae_ml": 110.22646284638179,
+      "n": 184,
+      "rmse_ml": 150.26962474136553
+    },
+    "outlier": {
+      "bias_ml": -127.83962326111225,
+      "interval_coverage": 0.7391304347826086,
+      "mae_ml": 191.60642586222346,
+      "n": 184,
+      "rmse_ml": 277.527273671097
+    },
+    "short_duration": {
+      "bias_ml": 104.49754823669132,
+      "interval_coverage": 1,
+      "mae_ml": 104.49754823669132,
+      "n": 184,
+      "rmse_ml": 111.73962348223571
+    },
+    "wide_noise": {
+      "bias_ml": -4.625608063063107,
+      "interval_coverage": 0.9565217391304348,
+      "mae_ml": 103.33721410542277,
+      "n": 184,
+      "rmse_ml": 129.30798079738835
+    }
+  },
+  "synthetic": true,
+  "target_name": "simulated_exercise_loss_proxy_ml",
+  "total_records": 2752,
+  "training_reproduced_byte_for_byte": true,
+  "verification": "existing_authoritative_ledger_read_only_attempt_purpose_payload_and_output_digest",
+  "version": "muse-live-guided-research-verification-v1"
+}

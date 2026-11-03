@@ -41,11 +41,11 @@ struct WonderAnalysisSection: View {
                 if let estimate = preview.worst_case_micro_usd {
                     Text("Reference cost estimate: \(HydraFormat.usd(micro: Double(estimate))).")
                         .font(.caption).accessibilityIdentifier("richAnalysisReferenceCost")
-                    Text("Reference prices are not a verified live quote or final charge. Backend spending checks and the \(HydraFormat.usd(micro: Double(preview.per_request_cap_micro_usd))) request cap still apply.")
+                    Text("Reference prices are not a verified live quote or final charge. Backend checks and the \(HydraFormat.usd(micro: Double(preview.per_request_cap_micro_usd))) token limit still apply. Provider extras may be unverified; check live Wonder availability in Settings.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 if !preview.live_available || !preview.dispatch_supported {
-                    Text("Detailed Muse Wonder analysis isn't enabled on this backend. Nothing can be sent to Meta from here.")
+                    Text("Live detailed analysis is currently unavailable. Check live Wonder availability in Settings for setup and billing requirements. Saved results can still be viewed without another Meta request.")
                         .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("richAnalysisUnavailable")
                 } else if !preview.explainable {
                     Text("More personal observations or logs are needed before requesting this explanation. Your local research analysis remains available.")

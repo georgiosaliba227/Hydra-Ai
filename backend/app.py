@@ -382,13 +382,14 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import saved_trends, saved_workouts, saved_analyses
+        from .wonder_results import saved_trends, saved_workouts, saved_analyses, saved_scores
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
                 "wonder_trends": saved_trends(results_dir) if results_dir else [],
                 "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else [],
-                "wonder_analysis_explanations": saved_analyses(results_dir) if results_dir else []}
+                "wonder_analysis_explanations": saved_analyses(results_dir) if results_dir else [],
+                "wonder_score_explanations": saved_scores(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
@@ -400,14 +401,15 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             return error_response("wonder_busy", 409, request.state.request_id, retryable=True)
         try:
             results_dir = getattr(request.app.state, "wonder_results_dir", None)
-            from .wonder_results import delete_trends, delete_workouts, delete_analyses, delete_pending_results
+            from .wonder_results import delete_trends, delete_workouts, delete_analyses, delete_pending_results, delete_scores
             deleted = request.app.state.repository.delete_all("local-demo")
             if results_dir:
                 delete_pending_results(results_dir)
             return {"deleted_beverages": deleted, "settings_cleared": True,
                     "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
                     "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0,
-                    "deleted_analysis_explanations": delete_analyses(results_dir) if results_dir else 0}
+                    "deleted_analysis_explanations": delete_analyses(results_dir) if results_dir else 0,
+                    "deleted_score_explanations": delete_scores(results_dir) if results_dir else 0}
         finally:
             lock.release()
 
@@ -445,4 +447,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_wonder_live_routes(app, error_response=error_response)
     from .wonder_owner_once_routes import install_owner_once_routes
     install_owner_once_routes(app)  # Recorded synthetic output only; never dispatches.
+    from .wonder_readiness_routes import install_wonder_readiness_routes
+    install_wonder_readiness_routes(app)  # Owner-authenticated availability; never dispatches.
+    from .wonder_score_routes import install_wonder_score_routes
+    install_wonder_score_routes(app, enabled=analysis_enabled == "true", error_response=error_response)
     return app

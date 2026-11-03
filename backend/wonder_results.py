@@ -16,11 +16,13 @@ from uuid import UUID
 from ai.assistant import SUGGESTED
 from .hydration_context_v2 import SCENARIOS, build_scenario, comparison_result, validate_selection
 from .meta_accounts import ACCOUNTS
+from .meta_provider import strict_json
 from .wonder_assistant import ALLOWED, live_answer
 from .wonder_hydration import MODEL, live_comparison_provenance
 from .wonder_trends import trend_result, validate_explanation, validate_facts
 from . import wonder_workout
 from . import wonder_analysis
+from . import wonder_score
 
 SELECTION_FIELDS = ("factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions",
                     "numerical_abstention")
@@ -30,6 +32,7 @@ MAX_TREND_RECORDS = 500
 TREND_NAME = re.compile(r"trends-[a-f0-9]{64}")
 WORKOUT_NAME = re.compile(r"workout-[a-f0-9]{64}")
 ANALYSIS_NAME = re.compile(r"analysis-[a-f0-9]{64}")
+SCORE_NAME = re.compile(r"score-[a-f0-9]{64}")
 
 
 def validate_recorded(result: dict) -> dict:
@@ -166,6 +169,9 @@ def save_result(directory: Path, result: dict) -> Path:
     elif result.get("version") == wonder_analysis.LIVE_VERSION:
         validate_recorded_analysis(result)
         name = "analysis-" + result["payload_sha256"]
+    elif result.get("version") == wonder_score.LIVE_VERSION:
+        validate_recorded_score(result)
+        name = "score-" + result["payload_sha256"]
     elif "facts" in result:
         validate_recorded_trends(result)
         name = "trends-" + result["payload_sha256"]
@@ -311,6 +317,61 @@ def delete_analyses(directory: Path) -> int:
     return removed
 
 
+def validate_recorded_score(result: dict) -> dict:
+    """Rebuild the dated score snapshot, checked prose and complete provenance."""
+    try:
+        facts = wonder_score.validate_facts(result["facts"])
+        provenance, observations = result["provenance"], result["provider_observations"]
+        if (provenance["account_id"] not in ACCOUNTS or str(UUID(provenance["attempt_id"])) != provenance["attempt_id"]
+                or not _valid_observations(observations)):
+            raise ValueError
+        generated = datetime.fromisoformat(result["generated_at"])
+        if generated.tzinfo is None or generated.utcoffset().total_seconds() != 0:
+            raise ValueError
+        explanation = {"insights": [{"id": item["id"], "text": item["text"]} for item in result["insights"]]}
+        rebuilt = wonder_score.score_result(facts, explanation, account=provenance["account_id"],
+            attempt_id=provenance["attempt_id"], observations=observations, generated_at=result["generated_at"])
+        # Unlike Python equality, canonical JSON distinguishes booleans and integers.
+        if wonder_score.canonical(rebuilt) != wonder_score.canonical(result):
+            raise ValueError
+    except (KeyError, ValueError, TypeError, AttributeError, OverflowError):
+        raise ValueError("Recorded Wonder score failed validation") from None
+    return result
+
+
+def load_score(directory: Path, payload_sha256: str) -> dict | None:
+    if type(payload_sha256) is not str or not re.fullmatch(r"[a-f0-9]{64}", payload_sha256):
+        raise ValueError("Payload fingerprint required")
+    raw = _read(directory, "score-" + payload_sha256)
+    if raw is None:
+        return None
+    if raw.get("payload_sha256") != payload_sha256:
+        raise ValueError("Recorded score belongs to another payload")
+    return validate_recorded_score(raw)
+
+
+def saved_scores(directory: Path) -> list[dict]:
+    results = []
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and SCORE_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
+            try:
+                result = load_score(directory, entry.name[len("score-"):-5])
+                if result is not None:
+                    results.append(result)
+            except (OSError, ValueError, TypeError):
+                continue
+    return sorted(results, key=lambda result: result["generated_at"])
+
+
+def delete_scores(directory: Path) -> int:
+    removed = 0
+    for entry in os.scandir(_private_directory(directory)):
+        if entry.name.endswith(".json") and SCORE_NAME.fullmatch(entry.name[:-5]) and entry.is_file(follow_symlinks=False):
+            os.unlink(entry.path)
+            removed += 1
+    return removed
+
+
 def delete_pending_results(directory: Path) -> int:
     """Confirmed owner deletion also clears interrupted private publications."""
     removed = 0
@@ -347,7 +408,7 @@ def _read(directory: Path, name: str) -> dict | None:
     if len(raw) > MAX_RESULT_BYTES:
         raise ValueError("Recorded result too large")
     try:
-        value = json.loads(raw)
+        value = strict_json(raw.decode("utf-8"))
     except RecursionError:
         raise ValueError("Recorded result nests too deeply") from None
     if not isinstance(value, dict):
