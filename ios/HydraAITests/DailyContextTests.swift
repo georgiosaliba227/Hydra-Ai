@@ -339,5 +339,29 @@ final class DailyContextTests: XCTestCase {
         XCTAssertNil(cancelled)
     }
 
+    func testEmptyReadAfterPriorSuccessClearsHealthSuggestionsAndBacksOff() async {
+        let context = make()
+        await context.connectHealth()
+        let prior = context.lastHealthSuccess
+        health.workouts = []
+        date.addTimeInterval(3600)
+        await context.refreshIfNeeded()
+        XCTAssertNil(context.workoutContext.draft.typicalSessions)
+        XCTAssertNil(context.workoutContext.draft.averageHeartRate)
+        XCTAssertNil(context.workoutContext.draft.workoutProvenance)
+        XCTAssertEqual(context.lastHealthSuccess, prior)
+        await context.refreshIfNeeded()
+        XCTAssertEqual(health.reads, 2)
+    }
+
+    func testFailedReloadAtSameClockInstantStillBacksOff() async {
+        let context = make()
+        await context.connectHealth()
+        context.workoutContext.clear()
+        health.workouts = []
+        await context.refreshIfNeeded()
+        await context.refreshIfNeeded()
+        XCTAssertEqual(health.reads, 2)
+    }
 
 }

@@ -130,7 +130,7 @@ final class DailyContextCoordinator: ObservableObject {
                 }
             }
             if self.healthAutoEnabled && self.eligible(success: self.lastHealthSuccess, attempt: self.lastHealthAttempt,
-                day: self.healthSuccessDay, missingMemory: self.workoutContext.draft.typicalSessions == nil) {
+                day: self.healthSuccessDay, failed: self.hasFailed(self.healthState), missingMemory: self.workoutContext.draft.typicalSessions == nil) {
                 self.lastHealthAttempt = self.now()
                 self.healthState = .loading
                 let success = await self.workoutContext.refreshWorkouts()
@@ -140,7 +140,7 @@ final class DailyContextCoordinator: ObservableObject {
             }
             guard self.valid(token) else { return }
             if self.weatherAutoEnabled && self.location.hasExistingAuthorization && self.eligible(
-                success: self.lastWeatherSuccess, attempt: self.lastWeatherAttempt, day: self.weatherSuccessDay) {
+                success: self.lastWeatherSuccess, attempt: self.lastWeatherAttempt, day: self.weatherSuccessDay, failed: self.hasFailed(self.weatherState)) {
                 await self.refreshWeather(mode: mode, requestPermission: false, token: token)
             }
             guard self.valid(token) else { return }
@@ -210,10 +210,10 @@ final class DailyContextCoordinator: ObservableObject {
     var nextRefreshDate: Date {
         let current = now()
         let tomorrow = calendar().date(byAdding: .day, value: 1, to: calendar().startOfDay(for: current)) ?? current.addingTimeInterval(86_400)
-        let candidates = [(healthAutoEnabled, lastHealthSuccess, lastHealthAttempt, healthSuccessDay),
-                          (weatherAutoEnabled, lastWeatherSuccess, lastWeatherAttempt, weatherSuccessDay)].compactMap { enabled, success, attempt, day -> Date? in
+        let candidates = [(healthAutoEnabled, lastHealthSuccess, lastHealthAttempt, healthSuccessDay, healthState),
+                          (weatherAutoEnabled, lastWeatherSuccess, lastWeatherAttempt, weatherSuccessDay, weatherState)].compactMap { enabled, success, attempt, day, state -> Date? in
             guard enabled else { return nil }
-            if let attempt, success == nil || attempt > success! { return max(current, attempt.addingTimeInterval(failureBackoff)) }
+            if let attempt, hasFailed(state) { return max(current, attempt.addingTimeInterval(failureBackoff)) }
             if day != localDay() { return current }
             return min(tomorrow, (success ?? current).addingTimeInterval(refreshInterval))
         }
@@ -233,9 +233,14 @@ final class DailyContextCoordinator: ObservableObject {
         weatherState = .failed(WeatherAutofillError.locationDenied.errorDescription!)
     }
 
-    private func eligible(success: Date?, attempt: Date?, day: DateComponents?, missingMemory: Bool = false) -> Bool {
+    private func hasFailed(_ state: LoadState) -> Bool {
+        if case .failed = state { return true }
+        return false
+    }
+
+    private func eligible(success: Date?, attempt: Date?, day: DateComponents?, failed: Bool, missingMemory: Bool = false) -> Bool {
         let current = now()
-        if let attempt, success == nil || attempt > success! {
+        if let attempt, failed {
             // A failed read is an attempt, never a fresh value. Avoid repeated foreground/day loops.
             if current.timeIntervalSince(attempt) < failureBackoff { return false }
         }

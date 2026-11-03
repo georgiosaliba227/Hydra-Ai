@@ -107,6 +107,9 @@ final class WorkoutContextProvider: ObservableObject {
             return true
         } catch {
             guard generation == workoutGeneration, !Task.isCancelled else { return false }
+            // Read denial is indistinguishable from no workouts. Do not retain private
+            // suggestions when a subsequent read returns empty; other failures stay stale.
+            if (error as? HealthWorkoutError) == .noWorkouts { clearHealthContext() }
             workoutState = .failed((error as? LocalizedError)?.errorDescription
                 ?? "Apple Health workouts could not be read. You can still enter the workout yourself.")
         }
