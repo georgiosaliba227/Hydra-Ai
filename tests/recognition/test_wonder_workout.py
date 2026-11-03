@@ -477,7 +477,9 @@ def test_preview_without_live_configuration(tmp_path, client_env):
     lambda r: {k: v for k, v in r.items() if k != "exercise"},
     lambda r: r | {"exercise": r["exercise"] | {"actual": session(1)}},
     lambda r: r | {"timezone": "Not/AZone"},
-    lambda r: r | {"samples": [session(-1)]},  # a "previous" session in the future
+    # Base this on the request's future start, not the fixed October study fixture.
+    # A fixed "future" date silently becomes a valid past measurement as time passes.
+    lambda r: r | {"samples": [session(-1, now=datetime.fromisoformat(r["exercise"]["starts_at"].replace("Z", "+00:00")))]},
 ])
 def test_invalid_requests_are_rejected(tmp_path, client_env, change):
     request = live_body()
