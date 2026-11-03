@@ -31,7 +31,7 @@ struct DailySummary: Codable, Sendable {
     }
 }
 
-struct GoalSettings: Decodable, Equatable, Sendable {
+struct GoalSettings: Codable, Equatable, Sendable {
     let version: String
     let daily_beverage_goal_ml: Int?
     let goal_basis: String

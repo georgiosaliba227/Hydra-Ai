@@ -204,13 +204,16 @@ private struct TodayProgressCard: View {
 
     private var ring: some View {
         ZStack {
-            Circle().stroke(Color.hydraTint.opacity(0.15), lineWidth: 14)
             if let validGoal {
+                Circle().stroke(Color.hydraTint.opacity(0.15), lineWidth: 14)
                 Circle()
                     .trim(from: 0, to: min(validGoal.progressRatio, 1))
                     .stroke(Color.hydraTint, style: StrokeStyle(lineWidth: 14, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.snappy, value: validGoal.progressRatio)
+            } else {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.hydraTint.opacity(0.10))
             }
             VStack(spacing: 0) {
                 Text(volumeMl.formatted())
@@ -249,8 +252,10 @@ private struct TodayProgressCard: View {
                     .font(.caption).foregroundStyle(.secondary)
             } else {
                 Text("No goal set").font(.title3.bold())
-                Text("You can choose your own goal in Settings.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                NavigationLink { BackendSettingsView() } label: {
+                    Text("Set your own goal").font(.subheadline.weight(.semibold))
+                }
+                .accessibilityIdentifier("setDailyGoal")
             }
         }
         .fixedSize(horizontal: false, vertical: true)

@@ -11,6 +11,58 @@ final class GoalTests: XCTestCase {
         return try HTTPBeverageService(configuration: configuration, session: URLSession(configuration: options))
     }
 
+    @MainActor
+    func testOfflineGoalPersistsAndUpdatesAfterLogging() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("drinks.json")
+        let config = APIConfiguration(baseURL: "", token: "", offline: true)
+        let store = BeverageStore(service: MockBeverageService(fileURL: file),
+                                  pendingURL: folder.appendingPathComponent("pending.json"), configuration: config)
+        await store.refresh()
+        XCTAssertNil(store.summary?.goal, "No target is invented before the user chooses one")
+        try await store.setGoal(1000)
+        try await store.add(category: "water", consumedMl: 250, at: .now)
+        XCTAssertEqual(store.summary?.beverageTotalMl, 250)
+        XCTAssertEqual(store.summary?.goal?.progressRatio, 0.25)
+        XCTAssertEqual(store.summary?.goal?.remainingMl, 750)
+        try await store.add(category: "tea", consumedMl: 500, at: .now)
+        XCTAssertEqual(store.summary?.goal?.progressRatio, 0.75)
+
+        let restarted = BeverageStore(service: MockBeverageService(fileURL: file),
+                                      pendingURL: folder.appendingPathComponent("pending.json"), configuration: config)
+        await restarted.refresh()
+        XCTAssertEqual(restarted.summary?.goal?.dailyBeverageGoalMl, 1000)
+        XCTAssertEqual(restarted.summary?.goal?.progressRatio, 0.75)
+        try await restarted.add(category: "coffee", consumedMl: 500, at: .now)
+        XCTAssertEqual(restarted.summary?.goal?.progressRatio, 1.25)
+        XCTAssertEqual(restarted.summary?.goal?.remainingMl, 0)
+        try await restarted.setGoal(nil)
+        XCTAssertNil(restarted.summary?.goal)
+        XCTAssertEqual(restarted.summary?.beverageTotalMl, 1250, "Clearing a goal preserves drinks")
+        let cleared = try await MockBeverageService(fileURL: file).goalSettings()
+        XCTAssertNil(cleared.daily_beverage_goal_ml)
+    }
+
+    func testOfflineGoalRejectsInvalidValuesAndStaysIsolated() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let demo = MockBeverageService(fileURL: folder.appendingPathComponent("demo.json"))
+        _ = try await demo.updateGoal(1500)
+        for value in [0, 99, 10_001] {
+            do {
+                _ = try await demo.updateGoal(value)
+                XCTFail("Invalid goal accepted: \(value)")
+            } catch BeverageValidationError.invalidVolume { }
+        }
+        let saved = try await demo.goalSettings()
+        XCTAssertEqual(saved.daily_beverage_goal_ml, 1500)
+        let separate = try await MockBeverageService(fileURL: folder.appendingPathComponent("other.json")).goalSettings()
+        XCTAssertNil(separate.daily_beverage_goal_ml, "Demo goals cannot leak between stores")
+    }
+
     func testSummaryGoalDecodesAndRejectsNonUserGoals() throws {
         let body = #"{"local_date":"2026-10-28","timezone":"UTC","beverage_total_ml":500,"estimated_water_ml":null,"forecast_status":"insufficient_data","goal":{"daily_beverage_goal_ml":2000,"basis":"user_confirmed","remaining_ml":1500,"progress_ratio":0.25}}"#
         let summary = try JSONDecoder().decode(DailySummary.self, from: Data(body.utf8))

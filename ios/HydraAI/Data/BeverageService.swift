@@ -149,11 +149,43 @@ extension BeverageService {
 }
 
 extension MockBeverageService {
+    private var goalFileURL: URL { fileURL.deletingPathExtension().appendingPathExtension("goal.json") }
+
+    func goalSettings() async throws -> GoalSettings { try loadGoal() }
+
+    private func loadGoal() throws -> GoalSettings {
+        guard FileManager.default.fileExists(atPath: goalFileURL.path) else {
+            return GoalSettings(version: "settings-v1", daily_beverage_goal_ml: nil, goal_basis: "user_confirmed")
+        }
+        let settings = try decoder.decode(GoalSettings.self, from: Data(contentsOf: goalFileURL))
+        guard settings.version == "settings-v1", settings.goal_basis == "user_confirmed",
+              settings.daily_beverage_goal_ml.map({ (100...10_000).contains($0) }) ?? true else {
+            throw ServiceError.invalidResponse
+        }
+        return settings
+    }
+
+    func updateGoal(_ milliliters: Int?) async throws -> GoalSettings {
+        guard milliliters.map({ (100...10_000).contains($0) }) ?? true else {
+            throw BeverageValidationError.invalidVolume
+        }
+        let settings = GoalSettings(version: "settings-v1", daily_beverage_goal_ml: milliliters, goal_basis: "user_confirmed")
+        try FileManager.default.createDirectory(at: goalFileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try encoder.encode(settings).write(to: goalFileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        return settings
+    }
+
     func dailySummary(date: String, timezone: String) throws -> DailySummary {
         guard let zone = TimeZone(identifier: timezone) else { throw ServiceError.invalidResponse }
         let formatter = DateFormatter(); formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = zone; formatter.dateFormat = "yyyy-MM-dd"
         let logs = try listBeverages().filter { formatter.string(from: $0.consumedAt) == date }
-        return DailySummary(localDate: date, timezone: timezone, beverageTotalMl: Double(logs.reduce(0) { $0 + $1.consumedMl }), estimatedWaterMl: logs.isEmpty ? 0 : nil, forecastStatus: "insufficient_data")
+        let total = Double(logs.reduce(0) { $0 + $1.consumedMl })
+        let goal = try loadGoal().daily_beverage_goal_ml.map { milliliters in
+            DailySummary.Goal(dailyBeverageGoalMl: milliliters, basis: "user_confirmed",
+                              remainingMl: max(Double(milliliters) - total, 0), progressRatio: total / Double(milliliters))
+        }
+        return DailySummary(localDate: date, timezone: timezone, beverageTotalMl: total,
+                            estimatedWaterMl: logs.isEmpty ? 0 : nil, forecastStatus: "insufficient_data", goal: goal)
     }
 }
