@@ -61,7 +61,7 @@ struct TrendsView: View {
                 Label("Muse Wonder 1.0", systemImage: "sparkles")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.hydraTint)
-                Text(result.summary)
+                Text(Self.summary(result, system: units.system))
                     .font(.title3.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("trendsSummary")
@@ -102,6 +102,12 @@ struct TrendsView: View {
         }
     }
 
+    static func summary(_ result: WonderTrends, system: DisplayUnitSystem) -> String { system.displayText(result.summary) }
+    static func canonicalFacts(_ facts: TrendFacts) -> String {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return (try? encoder.encode(facts)).map { String(decoding: $0, as: UTF8.self) } ?? "Exact facts unavailable; do not send."
+    }
+
     private static func symbol(for insight: String) -> String {
         switch insight {
         case "week_over_week": "arrow.left.arrow.right"
@@ -140,6 +146,11 @@ struct TrendsView: View {
                 .hydraCard(padding: 14)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("trendsPreview")
+                HydraDisclosure(title: "Exact canonical facts to be shared (mL)", identifier: "trendsCanonicalFacts") {
+                    Text(Self.canonicalFacts(facts))
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                }
                 Text("Daily totals, drink types, times of day and your goal for the 14 days through \(facts.through_date). Nothing else.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

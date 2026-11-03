@@ -29,7 +29,7 @@ struct HydrationAnalysisSection: View {
                                 if let fact = section.facts[key] {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(key.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.weight(.medium))
-                                        Text(factText(key, fact)).font(.caption).foregroundStyle(.secondary)
+                                        Text(Self.factText(key, fact, system: units.system)).font(.caption).foregroundStyle(.secondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
                                 }
@@ -64,19 +64,18 @@ struct HydrationAnalysisSection: View {
         default: "Context only"
         }
     }
-    private func factText(_ key: String, _ value: WorkoutForecast.Factor) -> String {
+    static func factText(_ key: String, _ value: WorkoutForecast.Factor, system: DisplayUnitSystem = .metric) -> String {
         guard case .number(let number) = value else {
-            if case .object(let values) = value { return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ")): \(factText($0, values[$0]!))" }.joined(separator: "; ") }
-            if case .array(let values) = value { return values.map { factText(key, $0) }.joined(separator: "; ") }
+            if case .object(let values) = value { return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ")): \(factText($0, values[$0]!, system: system))" }.joined(separator: "; ") }
+            if case .array(let values) = value { return values.map { factText(key, $0, system: system) }.joined(separator: "; ") }
             return value.display
         }
         if key.hasSuffix("_minutes") { return WonderAnalysisRenderer.duration(number) + " min" }
         if key.hasSuffix("_ml") {
-            let displayed = key.contains("lower_ml") ? floor(number) : key.contains("upper_ml") ? ceil(number) : number
-            return units.volume(displayed)
+            return system.volumeFact(number, key: key)
         }
-        if key.hasSuffix("_c") { return units.temperature(number) }
-        if key.hasSuffix("_kg") { return units.mass(number) }
+        if key.hasSuffix("_c") { return system.number(number, quantity: .temperature) + " " + system.symbol(for: .temperature) }
+        if key.hasSuffix("_kg") { return system.number(number, quantity: .mass) + " " + system.symbol(for: .mass) }
         let unit: String
         if key.hasSuffix("_ml") { unit = " mL" }
         else if key.hasSuffix("_mg") { unit = " mg" }

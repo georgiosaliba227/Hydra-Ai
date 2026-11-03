@@ -43,13 +43,19 @@ enum DisplayUnitSystem: String, CaseIterable {
     func displayText(_ canonicalText: String) -> String {
         guard self == .us else { return canonicalText }
         let numberPattern = #"(-?(?:[0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?|\.[0-9]+))"#
-        let pattern = #"(?<![A-Za-z0-9_.,])"# + numberPattern + #"(?:\s*(to|–|±)\s*"# + numberPattern + #")?\s+(mL|kg|°C)(?![A-Za-z])"#
+        let pattern = #"(?<![A-Za-z0-9_.,+\-−–—/])"# + numberPattern + #"(?:\s*(to|–|±)\s*"# + numberPattern + #")?\s+(mL|kg|°C)(?![A-Za-z])"#
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return canonicalText }
         var result = canonicalText
         for match in regex.matches(in: canonicalText, range: NSRange(canonicalText.startIndex..., in: canonicalText)).reversed() {
             func part(_ index: Int) -> String? {
                 Range(match.range(at: index), in: canonicalText).map { String(canonicalText[$0]) }
             }
+            // A spaced unsupported sign/range must not expose its final number as a new token.
+            guard let sourceRange = Range(match.range, in: canonicalText) else { continue }
+            let prefix = String(canonicalText[..<sourceRange.lowerBound])
+            if prefix.range(of: #"(?:[+\-−–—/]|[0-9.,]\s*[eE])\s*$"#, options: .regularExpression) != nil { continue }
+            if part(1)?.hasPrefix("-") == true,
+               prefix.range(of: #"[0-9.,]\s*$"#, options: .regularExpression) != nil { continue }
             guard let first = part(1).flatMap({ Double($0.replacingOccurrences(of: ",", with: "")) }), let unit = part(4), let target = Range(match.range, in: result) else { continue }
             let quantity: DisplayQuantity = unit == "mL" ? .volume : unit == "kg" ? .mass : .temperature
             var replacement = number(first, quantity: quantity)
@@ -59,16 +65,28 @@ enum DisplayUnitSystem: String, CaseIterable {
                     replacement += " ± " + number(second, quantity: errorQuantity)
                 } else {
                     // As with typed intervals, round the two displayed ends outward.
-                    let scale = quantity == .mass ? 1000.0 : 10.0
-                    let low = floor(displayValue(first, quantity: quantity) * scale) / scale
-                    let high = ceil(displayValue(second, quantity: quantity) * scale) / scale
-                    replacement = number(canonicalValue(low, quantity: quantity), quantity: quantity)
-                    replacement += (separator == "to" ? " to " : separator) + number(canonicalValue(high, quantity: quantity), quantity: quantity)
+                    replacement = endpoint(first, quantity: quantity, lower: true)
+                    replacement += (separator == "to" ? " to " : separator) + endpoint(second, quantity: quantity, lower: false)
                 }
             }
             result.replaceSubrange(target, with: replacement + " " + symbol(for: quantity))
         }
         return result
+    }
+    /// Directional rounding occurs after conversion, in the displayed unit.
+    func endpoint(_ canonical: Double, quantity: DisplayQuantity, lower: Bool) -> String {
+        let value = displayValue(canonical, quantity: quantity)
+        guard value.isFinite else { return "Unknown" }
+        let scale = quantity == .mass ? 1000.0 : (self == .metric && quantity == .volume ? 1.0 : 10.0)
+        let rounded = (value * scale).rounded(lower ? .down : .up) / scale
+        return number(canonicalValue(rounded, quantity: quantity), quantity: quantity)
+    }
+    func volumeFact(_ canonical: Double, key: String) -> String {
+        let text: String
+        if key.contains("lower_ml") { text = endpoint(canonical, quantity: .volume, lower: true) }
+        else if key.contains("upper_ml") { text = endpoint(canonical, quantity: .volume, lower: false) }
+        else { text = number(canonical, quantity: .volume) }
+        return text + " " + symbol(for: .volume)
     }
     func number(_ canonical: Double, quantity: DisplayQuantity) -> String {
         let value = displayValue(canonical, quantity: quantity)
@@ -142,11 +160,7 @@ struct CanonicalQuantityInput {
     func mass(_ value: Double) -> String { format(value, quantity: .mass) }
     func temperature(_ value: Double) -> String { format(value, quantity: .temperature) }
     func range(_ lower: Double, _ upper: Double, quantity: DisplayQuantity = .volume) -> String {
-        // Display interval endpoints outward so rounding cannot imply a narrower estimate.
-        let scale = quantity == .mass ? 1000.0 : (system == .metric && quantity == .volume ? 1.0 : 10.0)
-        let low = floor(system.displayValue(lower, quantity: quantity) * scale) / scale
-        let high = ceil(system.displayValue(upper, quantity: quantity) * scale) / scale
-        return "\(system.number(system.canonicalValue(low, quantity: quantity), quantity: quantity))–\(system.number(system.canonicalValue(high, quantity: quantity), quantity: quantity)) \(system.symbol(for: quantity))"
+        "\(system.endpoint(lower, quantity: quantity, lower: true))–\(system.endpoint(upper, quantity: quantity, lower: false)) \(system.symbol(for: quantity))"
     }
 }
 

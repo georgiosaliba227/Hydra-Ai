@@ -30,7 +30,7 @@ struct WonderAnalysisSection: View {
                     if let value = preview.facts.values[key] {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(title).font(.subheadline.weight(.semibold))
-                            Text(display(value)).font(.caption).foregroundStyle(.secondary)
+                            Text(Self.display(value, system: units.system)).font(.caption).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .accessibilityIdentifier("richAnalysisFacts-\(key)")
@@ -104,7 +104,7 @@ struct WonderAnalysisSection: View {
         ("activity", "Planned activity"), ("environment", "Environmental context"), ("calibration", "Comparable measurements"),
         ("trends", "Descriptive intake history"), ("accounting", "Exercise accounting"),
         ("workout_comparison", "Comparison with previous workouts"), ("trend_context", "Logged weekly and timing patterns"), ("missing_inputs", "Missing information")]
-    private func display(_ value: WonderAnalysisValue, key: String = "") -> String {
+    static func display(_ value: WonderAnalysisValue, key: String = "", system: DisplayUnitSystem = .metric) -> String {
         switch value {
         case .null: return "Unknown / unavailable"
         case .flag(let value): return value ? "Yes" : "No"
@@ -112,15 +112,14 @@ struct WonderAnalysisSection: View {
         case .number(let value):
             if key.hasSuffix("_minutes") { return WonderAnalysisRenderer.duration(value) + " min" }
             if key.hasSuffix("_ml") {
-                let displayed = key.contains("lower_ml") ? floor(value) : key.contains("upper_ml") ? ceil(value) : value
-                return units.volume(displayed)
+                return system.volumeFact(value, key: key)
             }
-            if key.hasSuffix("_c") { return units.temperature(value) }
-            if key.hasSuffix("_kg") { return units.mass(value) }
+            if key.hasSuffix("_c") { return system.number(value, quantity: .temperature) + " " + system.symbol(for: .temperature) }
+            if key.hasSuffix("_kg") { return system.number(value, quantity: .mass) + " " + system.symbol(for: .mass) }
             let unit = key.hasSuffix("_mg") ? " mg" : key.hasSuffix("_c") ? " °C" : key.hasSuffix("_percent") || key == "change_pct" ? "%" : key.hasSuffix("_minutes") ? " min" : ""
             return value.formatted(.number.precision(.fractionLength(0...1))) + unit
-        case .array(let values): return values.isEmpty ? "None" : values.map { display($0) }.joined(separator: "; ")
-        case .object(let values): return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ").capitalized): \(display(values[$0]!, key: $0))" }.joined(separator: "\n")
+        case .array(let values): return values.isEmpty ? "None" : values.map { display($0, system: system) }.joined(separator: "; ")
+        case .object(let values): return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ").capitalized): \(display(values[$0]!, key: $0, system: system))" }.joined(separator: "\n")
         }
     }
     private static func json(_ facts: WonderAnalysisFacts) -> String {

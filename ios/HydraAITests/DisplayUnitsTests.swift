@@ -36,6 +36,39 @@ final class DisplayUnitsTests: XCTestCase {
         XCTAssertEqual(DisplayUnitSystem.us.displayText("1,417 mL; 1,2 mL"), "47.9 fl oz; 1,2 mL")
         XCTAssertEqual(DisplayUnitSystem.us.displayText("Dose 250 mL/day; x250 mL; id_250 mL"), "Dose 8.5 fl oz/day; x250 mL; id_250 mL")
     }
+    func testUnsupportedNumericTokensAreNeverPartiallyConverted() {
+        for source in ["250-500 mL", "250 - 500 mL", "250 -500 mL", "250- 500 mL", "250—500 mL", "1/2 kg", "1e -3 kg", "1e-3 kg", "1e+3 mL", "−5 °C", "+-5 °C", "--5 °C", "1.2.3 kg", "x-5 °C", "id_-5 °C"] {
+            XCTAssertEqual(DisplayUnitSystem.us.displayText(source), source, source)
+        }
+        XCTAssertEqual(DisplayUnitSystem.us.displayText("-5 °C"), "23 °F")
+        XCTAssertEqual(DisplayUnitSystem.us.displayText("250–500 mL"), "8.4–17 fl oz")
+    }
+    @MainActor func testBothTypedFactPathsRoundEndpointsOutwardInSelectedUnit() {
+        for (key, value, expected) in [("lower_ml", 250.0, "8.4 fl oz"), ("upper_ml", 500.0, "17 fl oz"), ("upper_ml", 755.0, "25.6 fl oz")] {
+            XCTAssertEqual(HydrationAnalysisSection.factText(key, .number(value), system: .us), expected)
+            XCTAssertEqual(WonderAnalysisSection.display(.number(value), key: key, system: .us), expected)
+        }
+        XCTAssertEqual(HydrationAnalysisSection.factText("lower_ml", .number(250.4), system: .metric), "250 mL")
+        XCTAssertEqual(WonderAnalysisSection.display(.number(755.1), key: "upper_ml", system: .metric), "756 mL")
+    }
+    @MainActor func testTrendsSummaryDisplayAndExactDisclosurePreserveFactsAndDigest() throws {
+        let result = try JSONDecoder().decode(WonderTrends.self, from: Data(WonderTrendsTests.resultJSON.utf8))
+        let preview = try JSONDecoder().decode(TrendPreview.self, from: Data(WonderTrendsTests.previewJSON.utf8))
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        let original = try encoder.encode(preview.facts)
+        let digest = preview.payload_sha256
+        for system in [DisplayUnitSystem.us, .metric, .us] {
+            let disclosure = TrendsView.canonicalFacts(preview.facts)
+            let decoded = try? JSONDecoder().decode(TrendFacts.self, from: Data(disclosure.utf8))
+            XCTAssertEqual(decoded, preview.facts)
+            XCTAssertTrue(disclosure.contains("\"goal_ml\""))
+            let summary = TrendsView.summary(result, system: system)
+            XCTAssertEqual(summary, system == .us ? "You logged 459.9 fl oz this past week." : result.summary)
+        }
+        XCTAssertEqual(try encoder.encode(preview.facts), original)
+        XCTAssertEqual(preview.payload_sha256, digest)
+        XCTAssertEqual(result.summary, "You logged 13600 mL this past week.")
+    }
     func testWholeMlValidationBeforeRoundingAndSmallErrorDisplay() {
         XCTAssertEqual(CanonicalQuantityInput.wholeMilliliters(250), 250)
         XCTAssertNil(CanonicalQuantityInput.wholeMilliliters(5000.1))
