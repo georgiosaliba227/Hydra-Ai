@@ -1,0 +1,8 @@
+{
+  "initial_parameter_tensor_count": 32,
+  "initial_parameter_tensors_equal": true,
+  "schema_version": "beverage-early-stopping-comparison-v1",
+  "scope": "Development train evidence only; not an accuracy or target result.",
+  "training_loss_prefix_exact_match": true,
+  "training_loss_prefix_max_abs_difference": 0.0
+}
