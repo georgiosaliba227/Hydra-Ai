@@ -4,7 +4,8 @@
 
 1. Review [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) with Amine, preserving PR #65 as its
    dependency and requiring human merge. Native experimental mode, the Date
-   correction, 145 XCTest and two actual mock Simulator flows are verified.
+   correction, 145 XCTest and three actual mock Simulator flows are verified,
+   including the selected fit from saved synthetic history through deletion.
    Screens were inspected; camera branches remain separate.
 2. Collect consented, dated, protocol-confirmed repeat workouts with consumed fluid,
    urine and independently supported error bounds for prospective personal-model

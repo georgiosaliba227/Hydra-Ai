@@ -117,13 +117,25 @@ local signing. The original app was preserved. See the
 scope and local artifacts. Final v3 native checks use Simulator at the user's
 request; physical UI and production HealthKit permissions remain unverified.
 
-Final native integration: **145 XCTest and two actual mock-backend Simulator UI
+Final native integration: **145 XCTest and three actual mock-backend Simulator UI
 flows passed**. The default workflow and explicit experimental cold-start path
 exercise separate rich-preview consent, disabled live controls and clearing
-results/consent when switching models. Selected-fit native rendering/binding uses
-fully producer-reproduced fixtures; the actual three-endpoint loopback walk fits
-six synthetic records and checks matching numerical and minimized preview facts.
-No selected-fit UI run with a six-record history is claimed.
+results/consent when switching models. The additional selected-fit test loads six
+saved synthetic measurements through the actual app, requires fresh processing
+consent, and displays the backend's fitted **442 mL [280–700]** result. Its local
+analysis and separately consented rich preview repeat those numbers. Live actions
+are absent, and all six records are deleted through the app before the test ends.
+The history was prepared only in an empty synthetic Simulator profile, using
+`scripts/prepare_runtime_ui_fixture.py`; production startup is unchanged. The
+helper's nonempty-history refusal was also executed and confirmed nonmutating.
+This is real app/backend execution with invented measurements, not real-person
+accuracy or live Muse Wonder evidence.
+
+Selected-fit UI artifact (one test, 198.544 seconds, zero failures):
+`/Users/georgiosaliba/Library/Developer/Xcode/DerivedData/HydraAI-grtpiouhpncseiertdarvygufccy/Logs/Test/Test-HydraAIEndToEnd-2026.11.03_01-24-10--0500.xcresult`.
+Log: `/tmp/hydra-selected-runtime-ui-enabled.log`. Its separate default-off gate
+check passed with one expected skip. Screenshots were visually inspected for
+readability; the original two workout UI flows remain separately recorded below.
 
 Final UI artifact:
 `/Users/georgiosaliba/Library/Developer/Xcode/DerivedData/HydraAI-cncabecfdzawlmawinijecnmjgbo/Logs/Test/Test-HydraAIEndToEnd-2026.11.03_00-59-17--0500.xcresult`.

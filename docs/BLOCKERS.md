@@ -22,7 +22,8 @@
   invoice finality. Comprehensive dispatch remains separately off by default. No
   provider request or private financial operation was attempted.
 - **Human integration review:** v3/date compatibility integration, 145 native
-  tests and two actual Simulator flows pass. Numerical/backend/native reviews
+  tests and three actual Simulator flows pass, including a fitted forecast from
+  six saved synthetic records through local analysis, preview and deletion. Numerical/backend/native reviews
   have no outstanding findings, and the integrated 1,278-test Python suite passes.
   [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with Amine
   requested as reviewer. PR #65 remains its dependency; human merge is required.

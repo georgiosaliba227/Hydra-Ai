@@ -65,8 +65,9 @@ Local evidence, retained outside Git:
 The user then requested Xcode Simulator for remaining tests while going to sleep.
 No physical UI workflow or final v3 runtime run is claimed. The date correction
 is integrated into the maintained native code with equality/subsecond boundary
-coverage. Final verification passed 145 Simulator unit tests and two actual mock
-UI flows; their selected-fit coverage uses producer fixtures, with actual UI
-covering cold start and disabled-live preview. The temporary physical backend
+coverage. Final verification passed 145 Simulator unit tests and three actual mock
+UI flows, including a selected fit from six saved synthetic records through the
+real backend, matching analysis/preview and in-app deletion. These later checks
+used Simulator and do not expand the hardware scope above. The temporary physical backend
 was stopped after this check. Device diagnostics remain private; nothing was
 sent to a provider or posted to GitHub.

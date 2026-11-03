@@ -36,11 +36,13 @@ available as an explicit experimental option, not an accuracy upgrade. The
 calendar-time learner remains offline. See [runtime report](FORECAST_PERSONAL_RUNTIME.md)
 and [runtime contract](architecture/PERSONAL_RUNTIME_API.md).
 
-Final native verification: **145 XCTest and two actual mock-backend UI flows pass**
+Final native verification: **145 XCTest and three actual mock-backend UI flows pass**
 on Simulator, including the default workflow, explicit experimental cold start,
 fresh detailed-preview consent, absent live controls and model-switch reset.
-Selected-fit display/binding uses producer-reproduced fixtures; a three-endpoint
-actual loopback walk separately fits six synthetic records and binds all numbers.
+The additional selected-fit flow loads six saved synthetic measurements with fresh
+consent, displays the actual backend fit **442 mL [280–700]**, verifies matching
+local analysis and rich preview, then deletes all six records through the app.
+Its external empty-profile fixture helper adds no production startup behavior.
 Protected opt-in connection-scoped manual history passed save/relaunch/restore/
 selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
 3,200 rendered sections and 384 rejected adversarial selections, with zero provider

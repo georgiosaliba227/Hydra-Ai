@@ -97,3 +97,8 @@
   binding into the iPhone flow; rerun XCTest and real simulator UI.
 - [x] Independently review the fit/selection and boundary integration, then run
   physical-device checks when connected and record actual evidence.
+- [x] Close the selected-fit UI coverage gap: opt-in Simulator flow loads six
+  externally prepared synthetic saved records with fresh consent, displays the
+  actual backend fit and matching analysis/preview, then deletes the records.
+  Production startup is unchanged; the empty-profile helper refuses nonempty
+  histories and does not store consent.
