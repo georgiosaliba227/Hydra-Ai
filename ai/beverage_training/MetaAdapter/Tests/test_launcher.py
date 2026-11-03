@@ -14,6 +14,14 @@ launcher = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(launcher)
 
 class LauncherTests(unittest.TestCase):
+    def test_high_resolution_adapter_dimensions_stay_bounded_before_model_launch(self):
+        launcher.validate_experiment_dimensions(image_tokens=1024, layers=8, rank=16)
+        for name, value in (("image_tokens", 1025), ("image_tokens", 15), ("layers", 9), ("layers", 0), ("rank", 17), ("rank", True)):
+            dimensions = dict(image_tokens=1024, layers=8, rank=16)
+            dimensions[name] = value
+            with self.assertRaises(ValueError):
+                launcher.validate_experiment_dimensions(**dimensions)
+
     def test_child_manifest_excludes_held_out_labels_and_training_test_rows(self):
         train = {"image_id": "a", "image_path": "a.jpg", "image_sha256": "a" * 64, "split": "train", "review_status": "reviewed", "brand": "TRAIN LABEL", "product": "type", "capacity_ml": 100, "capacity_visible": True}
         test = {"image_id": "b", "image_path": "b.jpg", "image_sha256": "b" * 64, "split": "test", "review_status": "reviewed", "brand": "HELD OUT LABEL", "source_product_id": "BARCODE"}

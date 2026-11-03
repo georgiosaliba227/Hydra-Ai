@@ -211,8 +211,15 @@ def parser() -> argparse.ArgumentParser:
     return p
 
 
+def validate_experiment_dimensions(*, image_tokens: int, layers: int, rank: int) -> None:
+    for name, value, low, high in (("image_tokens", image_tokens, 16, 1024), ("layers", layers, 1, 8), ("rank", rank, 1, 16)):
+        if type(value) is not int or not low <= value <= high:
+            raise ValueError(f"invalid experiment dimension: {name}")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
+    validate_experiment_dimensions(image_tokens=args.image_tokens, layers=args.layers, rank=args.rank)
     if not 1 <= args.rss_limit_gb <= 20:
         raise ValueError("RSS budget must be between 1 and 20 GiB")
     rows = [json.loads(line) for line in args.manifest.read_text(encoding="utf-8").splitlines() if line.strip()]

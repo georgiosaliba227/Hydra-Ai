@@ -375,7 +375,7 @@ class ProvenanceTests(ManifestTests):
         selection_path.write_text(json.dumps(selection))
         metadata.update(selection_path=selection_path.name, selection_sha256=sha(selection_path.read_bytes()))
 
-    def prepare_cached_run(self, *, adapter=False, failed=None, missing=None, encoder_changes=None):
+    def prepare_cached_run(self, *, adapter=False, failed=None, missing=None, encoder_changes=None, image_tokens=128):
         args, metadata = self.prepare_run("adapter" if adapter else "baseline")
         if adapter:
             path = self.root / "adapter.safetensors"
@@ -399,7 +399,7 @@ class ProvenanceTests(ManifestTests):
         metadata["model_provenance_sha256"] = sha(model_path.read_bytes())
         config = json.loads((self.root / metadata["inference_config_path"]).read_text())
         config.update(execution_policy="separate-frozen-vision-v1", vision_release_policy="separate-frozen-vision-v1",
-            vision_release_enabled=False, model_provenance_sha256=metadata["model_provenance_sha256"])
+            vision_release_enabled=False, model_provenance_sha256=metadata["model_provenance_sha256"], image_tokens=image_tokens)
         encoder = {key:config[key] for key in ("model_id","base_revision","model_provenance_sha256","runtime_revision",
             "runtime_patch_sha256","executable_sha256","prompt_sha256","generation_header","template_current_date",
             "reasoning_strength","image_tokens")}
@@ -464,7 +464,7 @@ class ProvenanceTests(ManifestTests):
         runtime=json.loads((self.root / metadata["runtime_config_path"]).read_text())
         runtime.update({key:metadata[key] for key in ("model_provenance_sha256","vision_release_policy","vision_release_enabled",
             "execution_policy","encoder_config_sha256","feature_cache_sha256","language_started_utc")})
-        runtime.update(language_only=True,vision_loaded=False,actual_feature_uses=uses)
+        runtime.update(language_only=True,vision_loaded=False,actual_feature_uses=uses,image_tokens=image_tokens)
         runtime_path=self.root / metadata["runtime_config_path"]
         runtime_path.write_text(json.dumps(runtime))
         metadata["runtime_config_sha256"]=sha(runtime_path.read_bytes())
@@ -498,6 +498,19 @@ class ProvenanceTests(ManifestTests):
         runtime_path.write_text(json.dumps(runtime))
         metadata["runtime_config_sha256"]=sha(runtime_path.read_bytes())
         args["run_metadata_path"].write_text(json.dumps(metadata))
+
+    def test_high_resolution_selection_keeps_all_failures_in_the_same_denominator(self):
+        args, metadata = self.prepare_cached_run(image_tokens=1024, failed="image-175", missing="image-176")
+        report = ev.evaluate_files(**args)
+        self.assertEqual(report["joint"]["total"], 75)
+        self.assertEqual(report["joint"]["correct"], 73)
+        self.assertEqual(report["counts"]["failed"], 1)
+        self.assertEqual(report["counts"]["missing"], 1)
+
+    def test_resolution_above_1024_is_rejected_even_when_consistently_frozen(self):
+        args, metadata = self.prepare_cached_run(image_tokens=1025)
+        with self.assertRaises(ValueError):
+            ev.evaluate_files(**args)
 
     def test_separate_feature_cache_keeps_failed_and_missing_cases_in_denominator(self):
         args,metadata=self.prepare_cached_run(failed="image-175",missing="image-176")

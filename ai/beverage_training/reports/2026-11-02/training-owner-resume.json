@@ -1,0 +1,12 @@
+{
+  "schema_version": "beverage-owner-resume-v1",
+  "resumed_utc": "2026-11-03T01:08:25.396083+00:00",
+  "reason": "Owner set goal active",
+  "resumed_pids": [
+    44918,
+    46409,
+    46410,
+    46425
+  ],
+  "continues_existing_epoch": true
+}

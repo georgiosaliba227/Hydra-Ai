@@ -28,3 +28,12 @@ The old retained-vision 512-token preflight and later direct-pixel validation we
 ## Runtime follow-up required by measured validation paging
 
 Preserve the two completed baseline validation predictions and operator-stop evidence from baseline-validation-512-001. Implemented separate vision-only feature preparation and language-only adapter execution under the architecture addendum. Paired image conditioning, cache tampering/split/privacy failures, provenance and real hardware preflight passed. The 25-image baseline validation cache is now being prepared; sequential baseline, 150-image train cache, full one-epoch training and adapter validation follow, stopping on any failed stage. The frozen dataset and untouched test remain unchanged.
+
+## Validation-led second iteration (in progress)
+
+The complete first epoch passed 150 actual updates and save/reload verification, but validation declined from 8/25 to 5/25 joint; retain this checkpoint/result and do not expose test data to it. The observed failures are repeated label verbosity/brand-range partitioning/metric-versus-US conversion with three additional identity regressions.
+
+1. Expand validated input resolution to 1024 tokens and optional adapter bounds to 8 layers/rank16; keep memory/residency guards, model weights and all reference/scoring data unchanged. Revise only the generic label-reading instruction; no case answers or dataset metadata in the prompt.
+2. Verify dimension admission, unchanged failed/missing denominator, oversize rejection, existing paired conditioning and full regression tests; request a bounded review.
+3. Run a real train-only 1024-token, 8-layer/rank16 one-update save/reload preflight. If it exceeds existing guards, preserve failure and adjust within those guards.
+4. Run higher-resolution baseline validation, prepare the 150 train cache, and train the larger adapter with lower learning rate (0.00003) for two epochs. Validate that full checkpoint before selecting any final test pipeline. Keep the test set untouched until selection.

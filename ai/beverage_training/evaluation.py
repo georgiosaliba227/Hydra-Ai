@@ -590,7 +590,7 @@ def validate_inference_evidence(metadata: Row, rows: list[Row], artifact_root: P
     if (not _sha(metadata["executable_sha256"]) or not isinstance(metadata["runtime_revision"], str)
             or not re.fullmatch(r"[0-9a-f]{40}", metadata["runtime_revision"])):
         raise ValueError("pinned executable and runtime provenance required")
-    for field, low, high in (("image_tokens",16,512), ("prefill_step",1,128), ("max_output_tokens",16,192),
+    for field, low, high in (("image_tokens",16,1024), ("prefill_step",1,128), ("max_output_tokens",16,192),
                              ("memory_limit_bytes",16*1024**3,19*1024**3),
                              ("rss_limit_bytes",1024**3,20*1024**3)):
         if type(config.get(field)) is not int or not low <= config[field] <= high:

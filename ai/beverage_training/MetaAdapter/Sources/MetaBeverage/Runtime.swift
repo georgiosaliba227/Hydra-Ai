@@ -250,7 +250,7 @@ func runModelJob() async throws {
   guard !FileManager.default.fileExists(atPath: output.path) else {
     throw ContractError.invalid("output directory already exists; preserve prior artifacts")
   }
-  let imageTokens = try options.integer("image-tokens", 128, range: 16...512)
+  let imageTokens = try options.integer("image-tokens", 128, range: 16...1024)
   let prefillStep = try options.integer("prefill-step", 32, range: 1...128)
   let maxAnswer = try options.integer("max-answer-tokens", 96, range: 16...192)
   let maxOutput = try options.integer("max-output-tokens", 96, range: 16...192)
@@ -387,8 +387,8 @@ func runModelJob() async throws {
       }
       settings["predictions_sha256"] = try fileSHA256(predictions)
     } else {
-      let layers = try options.integer("layers", 1, range: 1...2)
-      let rank = try options.integer("rank", 4, range: 1...8)
+      let layers = try options.integer("layers", 1, range: 1...8)
+      let rank = try options.integer("rank", 4, range: 1...16)
       let epochs = try options.integer("epochs", 1, range: 1...10)
       let maxSteps = try options.integer(
         "steps", options.command == "smoke" ? 1 : 1500, range: 1...1500)
