@@ -2,6 +2,7 @@ import SwiftUI
 
 /// A GET-only viewer: opening or refreshing this screen cannot invoke a model.
 struct OwnerSyntheticWonderView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = OwnerSyntheticWonderController()
     var body: some View {
@@ -31,7 +32,7 @@ struct OwnerSyntheticWonderView: View {
                     ForEach(record.result.sections) { section in
                         HydraDisclosure(title: section.title, systemImage: "text.alignleft",
                                         identifier: "ownerWonderSection-\(section.id)") {
-                            Text((try? record.localText(section)) ?? "Validated analysis unavailable.")
+                            Text(units.text((try? record.localText(section)) ?? "Validated analysis unavailable."))
                                 .fixedSize(horizontal: false, vertical: true)
                             Text("Simulated evidence").font(.caption).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("ownerWonderEvidence-\(section.id)")

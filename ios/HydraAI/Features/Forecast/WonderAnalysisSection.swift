@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WonderAnalysisSection: View {
+    @EnvironmentObject private var units: DisplayUnits
     @ObservedObject var controller: WonderAnalysisController
     @Binding var backendConsent: Bool
     @Binding var metaConsent: Bool
@@ -29,13 +30,13 @@ struct WonderAnalysisSection: View {
                     if let value = preview.facts.values[key] {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(title).font(.subheadline.weight(.semibold))
-                            Text(Self.display(value)).font(.caption).foregroundStyle(.secondary)
+                            Text(display(value)).font(.caption).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .accessibilityIdentifier("richAnalysisFacts-\(key)")
                     }
                 }
-                DisclosureGroup("Exact facts to be shared") {
+                DisclosureGroup("Exact canonical facts to be shared (mL, kg, °C)") {
                     Text(Self.json(preview.facts)).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
                 }
                 if let estimate = preview.worst_case_micro_usd {
@@ -73,7 +74,7 @@ struct WonderAnalysisSection: View {
             .font(.subheadline.weight(.semibold)).accessibilityIdentifier("richAnalysisResult")
         ForEach(result.sections) { section in
             DisclosureGroup(section.title) {
-                Text(localText(result, section)).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                Text(units.text(localText(result, section))).font(.subheadline).fixedSize(horizontal: false, vertical: true)
                 ForEach(Array(section.insights.enumerated()), id: \.element.id) { index, insight in
                     Text("\(index + 1). \(insight.title)").font(.caption).foregroundStyle(.secondary)
                 }
@@ -103,7 +104,7 @@ struct WonderAnalysisSection: View {
         ("activity", "Planned activity"), ("environment", "Environmental context"), ("calibration", "Comparable measurements"),
         ("trends", "Descriptive intake history"), ("accounting", "Exercise accounting"),
         ("workout_comparison", "Comparison with previous workouts"), ("trend_context", "Logged weekly and timing patterns"), ("missing_inputs", "Missing information")]
-    private static func display(_ value: WonderAnalysisValue, key: String = "") -> String {
+    private func display(_ value: WonderAnalysisValue, key: String = "") -> String {
         switch value {
         case .null: return "Unknown / unavailable"
         case .flag(let value): return value ? "Yes" : "No"
@@ -112,8 +113,10 @@ struct WonderAnalysisSection: View {
             if key.hasSuffix("_minutes") { return WonderAnalysisRenderer.duration(value) + " min" }
             if key.hasSuffix("_ml") {
                 let displayed = key.contains("lower_ml") ? floor(value) : key.contains("upper_ml") ? ceil(value) : value
-                return HydraFormat.milliliters(displayed) + " mL"
+                return units.volume(displayed)
             }
+            if key.hasSuffix("_c") { return units.temperature(value) }
+            if key.hasSuffix("_kg") { return units.mass(value) }
             let unit = key.hasSuffix("_mg") ? " mg" : key.hasSuffix("_c") ? " °C" : key.hasSuffix("_percent") || key == "change_pct" ? "%" : key.hasSuffix("_minutes") ? " min" : ""
             return value.formatted(.number.precision(.fractionLength(0...1))) + unit
         case .array(let values): return values.isEmpty ? "None" : values.map { display($0) }.joined(separator: "; ")

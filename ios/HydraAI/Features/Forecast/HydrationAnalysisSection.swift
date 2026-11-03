@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HydrationAnalysisSection: View {
+    @EnvironmentObject private var units: DisplayUnits
     @ObservedObject var controller: HydrationAnalysisController
     var body: some View {
         Section {
@@ -15,20 +16,20 @@ struct HydrationAnalysisSection: View {
                 Text("Hydra computed this analysis on your backend. Loading it makes no Meta request. Muse Wonder's explanation is labeled separately below.")
                     .font(.caption).foregroundStyle(.secondary)
                 if let volume = result.intake.beverage_volume_ml {
-                    LabeledContent("Logged beverage volume", value: "\(HydraFormat.milliliters(volume)) mL")
+                    LabeledContent("Logged beverage volume", value: units.volume(volume))
                 }
-                LabeledContent("Documented water content", value: result.intake.water_ml.map { "\(HydraFormat.milliliters($0)) mL" } ?? "Unknown")
+                LabeledContent("Documented water content", value: result.intake.water_ml.map { units.volume($0) } ?? "Unknown")
                 Text("Intake records may be incomplete. Beverage volume, water content and fluid retained by the body are different quantities.")
                     .font(.caption).foregroundStyle(.secondary)
                 ForEach(result.sections) { section in
                     DisclosureGroup {
-                        Text(section.text).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                        Text(units.text(section.text)).font(.subheadline).fixedSize(horizontal: false, vertical: true)
                         DisclosureGroup("Facts and provenance") {
                             ForEach(section.facts.keys.sorted(), id: \.self) { key in
                                 if let fact = section.facts[key] {
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(key.replacingOccurrences(of: "_", with: " ").capitalized).font(.caption.weight(.medium))
-                                        Text(Self.fact(key, fact)).font(.caption).foregroundStyle(.secondary)
+                                        Text(factText(key, fact)).font(.caption).foregroundStyle(.secondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
                                 }
@@ -63,17 +64,19 @@ struct HydrationAnalysisSection: View {
         default: "Context only"
         }
     }
-    private static func fact(_ key: String, _ value: WorkoutForecast.Factor) -> String {
+    private func factText(_ key: String, _ value: WorkoutForecast.Factor) -> String {
         guard case .number(let number) = value else {
-            if case .object(let values) = value { return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ")): \(fact($0, values[$0]!))" }.joined(separator: "; ") }
-            if case .array(let values) = value { return values.map { fact(key, $0) }.joined(separator: "; ") }
+            if case .object(let values) = value { return values.keys.sorted().map { "\($0.replacingOccurrences(of: "_", with: " ")): \(factText($0, values[$0]!))" }.joined(separator: "; ") }
+            if case .array(let values) = value { return values.map { factText(key, $0) }.joined(separator: "; ") }
             return value.display
         }
         if key.hasSuffix("_minutes") { return WonderAnalysisRenderer.duration(number) + " min" }
         if key.hasSuffix("_ml") {
             let displayed = key.contains("lower_ml") ? floor(number) : key.contains("upper_ml") ? ceil(number) : number
-            return "\(HydraFormat.milliliters(displayed)) mL"
+            return units.volume(displayed)
         }
+        if key.hasSuffix("_c") { return units.temperature(number) }
+        if key.hasSuffix("_kg") { return units.mass(number) }
         let unit: String
         if key.hasSuffix("_ml") { unit = " mL" }
         else if key.hasSuffix("_mg") { unit = " mg" }

@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Muse Wonder explains the user's own 14-day trends. The exact data is shown before anything is sent.
 struct TrendsView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = WonderTrendsController()
     @State private var consent = false
@@ -72,7 +73,7 @@ struct TrendsView: View {
                     IconBadge(systemName: Self.symbol(for: insight.id))
                     VStack(alignment: .leading, spacing: 4) {
                         Text(insight.title).font(.headline)
-                        Text(insight.text)
+                        Text(units.text(insight.text))
                             .font(.subheadline)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("trendsInsight-\(insight.id)")
@@ -124,12 +125,12 @@ struct TrendsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 SectionTitle("What would be sent to Meta")
                 VStack(alignment: .leading, spacing: 0) {
-                    factRow("Last 7 days", "\(facts.last_7_days.total_ml.formatted()) mL · \(facts.last_7_days.logged_days) of 7 days logged")
+                    factRow("Last 7 days", "\(units.volume(facts.last_7_days.total_ml)) · \(facts.last_7_days.logged_days) of 7 days logged")
                     Divider()
-                    factRow("Previous 7 days", "\(facts.previous_7_days.total_ml.formatted()) mL · \(facts.previous_7_days.logged_days) of 7 days logged")
+                    factRow("Previous 7 days", "\(units.volume(facts.previous_7_days.total_ml)) · \(facts.previous_7_days.logged_days) of 7 days logged")
                     if let goal = facts.goal_ml, let met = facts.goal_met_days_last_7 {
                         Divider()
-                        factRow("Your goal", "\(goal.formatted()) mL · reached \(met) of the last 7 days")
+                        factRow("Your goal", "\(units.volume(goal)) · reached \(met) of the last 7 days")
                     }
                     if !facts.categories.isEmpty {
                         Divider()
