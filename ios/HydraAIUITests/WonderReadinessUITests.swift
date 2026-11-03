@@ -3,6 +3,27 @@ import XCTest
 /// Explicitly opted-in Simulator check against a staged, financially blocked backend.
 /// Uses labeled sample workout context; no history is saved and no Meta action is tapped.
 final class WonderReadinessUITests: XCTestCase {
+    /// Owner-assisted physical follow-up after setup. No connection overrides or
+    /// Save action: the GET must authenticate using the URL and Keychain already saved.
+    func testSavedOwnerConnectionReportsReadinessWithoutInjectedCredentials() throws {
+        continueAfterFailure = false
+        guard ProcessInfo.processInfo.environment["HYDRA_E2E_SAVED_WONDER_READY"] == "1" else {
+            throw XCTSkip("Requires an explicitly activated owner backend and completed on-device setup")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = [:]
+        app.launch(); addTeardownBlock { app.terminate() }
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 12))
+        app.tabBars.buttons["Settings"].tap()
+        let check = app.buttons["checkWonderReadiness"]; reveal(check, in: app, attempts: 18); check.tap()
+        let status = app.staticTexts["wonderReadinessStatus"]
+        XCTAssertTrue(status.waitForExistence(timeout: 15))
+        XCTAssertEqual(status.label, "Ready for a previewed, consented request")
+        let risk = app.staticTexts["wonderReadinessRisk"]; reveal(risk, in: app)
+        XCTAssertTrue(risk.label.contains("final billing remain unverified"))
+        // No screenshot or personal values collected; no paid control is tapped.
+    }
+
     func testReadyOwnerRiskStatusStillDisclosesUnverifiedBillingWithoutDispatch() throws {
         continueAfterFailure = false
         let env = ProcessInfo.processInfo.environment
