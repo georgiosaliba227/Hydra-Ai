@@ -70,3 +70,10 @@ unchanged. The authenticated billing observation must be genuinely renewed
 before the next request. The Mac is locked, so browser renewal is currently
 unavailable. Existing accepted-risk/invoice-wait waivers remain in force and
 were not requested again.
+
+## Review handoff
+
+[PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77),
+`codex/guided-hydration-goal`, is stacked on PR #76 with Amine requested as
+reviewer. Installed Swift source is `84b7ba6`; later handoff edits are docs only.
+No automatic merge was performed.

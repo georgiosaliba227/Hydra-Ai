@@ -89,4 +89,4 @@ HTTP/privacy tests and shared docs. New pure/store tasks do not edit these files
 - [x] Obtain independent whole-branch review and fix/reverify findings.
 - [x] Build/install the HealthKit-signed original app without reset.
 - [ ] Complete owner-assisted guided confirmation on the phone (status only).
-- [ ] Publish final verification/docs and review PR stacked on #76. No merge.
+- [x] Publish final verification/docs and PR #77 stacked on #76, Amine requested. No merge.

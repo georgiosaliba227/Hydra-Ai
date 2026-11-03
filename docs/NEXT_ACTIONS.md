@@ -6,7 +6,8 @@
    installed on the phone; 217 native tests, six Simulator flows and the physical
    saved-connection check pass. Owner-assisted automatic Health/weather setup
    also passes. Preserve the existing PR dependencies and human merge.
-2. Review the implemented guided starting-goal branch on PR #76's base. The
+2. Review [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77), the
+   implemented guided starting-goal branch stacked on PR #76. The
    protected local profile, explicit adult beverage reference and confirmation
    have 254 native/1509 Python checks plus three passing Simulator flows; finish
    the owner-assisted status check. No height/weight/creatine multiplier is used.

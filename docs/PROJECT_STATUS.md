@@ -3,7 +3,8 @@
 ## November 3 — guided starting goal implemented
 
 The requested on-device age/birthday, height, weight and supplement form is
-implemented on `codex/guided-hydration-goal`, stacked on PR #76. Its reviewed
+implemented in [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77),
+`codex/guided-hydration-goal`, stacked on PR #76 with Amine requested as reviewer. Its reviewed
 adult beverage starting reference requires explicit confirmation; body and
 supplement context adds no invented multiplier. Profiles stay on the iPhone;
 only the confirmed goal integer reaches the backend. Custom goals remain.
