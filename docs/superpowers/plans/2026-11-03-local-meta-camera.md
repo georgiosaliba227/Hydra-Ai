@@ -30,27 +30,29 @@
 Files: `backend/local_meta.py`, `backend/local_meta_runtime.py`, `scripts/local_label_ocr.swift`, `tests/recognition/test_local_meta.py`.
 Interface: `LocalMetaRecognizer.analyze(AnalysisRequest) -> AnalysisResult`; runtime `recognize(jpeg: bytes) -> tuple[dict, str]` returns validated native prediction and OCR label evidence.
 
-- [ ] Write/run failing tests for prediction identity/checkpoint binding, label-only capacity, conflicts, missing evidence and no retries.
-- [ ] Implement pinned startup configuration and isolated sequential subprocess execution with timeout, sampled RSS checks and cleanup.
-- [ ] Compile OCR helper and exercise a real label fixture; run focused tests.
-- [ ] Commit verified runtime boundary.
+- [x] Write/run failing tests for prediction identity/checkpoint binding, label-only capacity, conflicts, missing evidence and no retries.
+- [x] Implement pinned startup configuration and isolated sequential subprocess execution with timeout, sampled RSS checks and cleanup.
+- [x] Compile OCR helper and exercise a real label fixture; run focused tests.
+- [x] Commit verified runtime boundary.
 
 ### Task 2: API and durable local receipt
 
 Files: `backend/recognition.py`, `backend/app.py`, `backend/recognition_feedback.py`, `backend/schemas.py`, `database/repository.py`, API tests in `tests/recognition/test_local_meta.py`.
 Interface: additive `local_meta` recognition mode; repository records/reads/exports/deletes local receipts; confirmed logs retain local model/checkpoint provenance.
 
-- [ ] Write/run failing API tests for local mode, consent, result receipts, correction memory, no photo retention, invalid receipt/image/reference rejection, exact hydration volume and unchanged financial bytes.
-- [ ] Implement mode selection, local receipt checks and bounded storage.
-- [ ] Run focused tests and complete pytest suite; commit.
+- [x] Write/run failing API tests for local mode, consent, result receipts, correction memory, no photo retention, invalid receipt/image/reference rejection, exact hydration volume and unchanged financial bytes.
+- [x] Implement mode selection, local receipt checks and bounded storage.
+- [x] Run focused tests and complete pytest suite; commit.
 
 ### Task 3: iPhone connection and verification
 
 Files: existing Swift camera models/session/views/service and their XCTest files; local setup guide.
 Interface: `local_meta` with separate model validation, local source copy, longer bounded timeout, existing confirmation payload.
 
-- [ ] Add/run failing XCTest for local source validation, consent gating, timeout, exact capacity and review draft.
-- [ ] Extend mode/source handling without changing Confirm/Edit accounting.
-- [ ] Run XCTest and relevant UI checks; build/install on physical phone if connected.
-- [ ] Start credential-free local backend using existing owner app token/database, test real inference, report exact observed status and remaining physical steps.
-- [ ] Fresh whole-branch review, fix material findings, commit/push feature branch; preserve GitHub publication limitations if still applicable.
+- [x] Add/run failing XCTest for local source validation, consent gating, timeout, exact capacity and review draft.
+- [x] Extend mode/source handling without changing Confirm/Edit accounting.
+- [x] Run XCTest and relevant UI checks; build signed physical app.
+- [ ] Install/test physical phone: blocked by CoreDevice4016, trusted wireless connection unavailable; USB or restored paired wireless connection required.
+- [x] Start credential-free local backend using existing owner app token/database, test real inference, report exact observed status and remaining physical steps.
+- [x] Fresh whole-branch review and fixes; commit verified changes.
+- [ ] Push feature branch and preserve review handoff; GitHub PR creation previously denied by integration403.

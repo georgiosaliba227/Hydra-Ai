@@ -21,7 +21,11 @@ final class LiveConsentTests: XCTestCase {
         app.buttons["chooseBeveragePhoto"].tap()
         let image = app.images.matching(NSPredicate(format: "label CONTAINS '2051'")).firstMatch
         let cell = app.cells.matching(NSPredicate(format: "label CONTAINS '2051'")).firstMatch
-        if image.waitForExistence(timeout: 8) { image.tap() }
+        if image.waitForExistence(timeout: 8) {
+            // Photos exposes this tile as an AX image without a computed hit
+            // point. Tap the center of the uniquely identified owned asset.
+            image.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
         else if cell.exists { cell.tap() }
         else {
             if app.buttons["Cancel"].exists { app.buttons["Cancel"].tap() }
@@ -38,12 +42,16 @@ final class LiveConsentTests: XCTestCase {
         analyze.tap()
         XCTAssertTrue(app.staticTexts["reviewDrinkName"].waitForExistence(timeout: 210))
         XCTAssertTrue(app.staticTexts["reviewDrinkName"].label.uppercased().contains("DASANI"))
-        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label, "Printed size: 1000 mL")
-        XCTAssertEqual(app.staticTexts["photoVolume"].label, "1000 mL")
+        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.replacingOccurrences(of: ",", with: ""), "Printed size: 1000 mL")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.replacingOccurrences(of: ",", with: ""), "1000 mL")
         XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Assuming a full container, all consumed.")
         XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        let review = XCTAttachment(screenshot: app.screenshot())
+        review.name = "Local trained Meta exact one-litre confirmation"
+        review.lifetime = .keepAlways; add(review)
         app.buttons["editRecognitionEntry"].tap()
         XCTAssertTrue(app.textFields["photoIdentity"].waitForExistence(timeout: 5))
+        if !app.textFields["photoConsumed"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.textFields["photoConsumed"].exists)
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "Local trained Meta exact one-litre label and edit review"
