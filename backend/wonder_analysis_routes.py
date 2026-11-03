@@ -1,5 +1,6 @@
 """Consent to an exact eight-section aggregate payload; disabled by default."""
 from datetime import datetime, timezone
+from collections.abc import Callable
 import json
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo
@@ -31,7 +32,12 @@ class AnalysisExplanationRequest(WorkoutForecastInput):
         return value
 
 
-def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_response) -> None:
+def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_response,
+                                   path: str = "/v1/wonder/analysis", personal_predictor: Callable[..., dict] | None = None,
+                                   analysis_version: str = "hydration-analysis-v1", embedded_workout_wonder: bool = True,
+                                   comparison_builder: Callable[[WorkoutForecastInput, datetime], dict | None] | None = None,
+                                   project_forecast: bool = False,
+                                   numerical_contract: str | None = None) -> None:
     def facts_for(payload: WorkoutForecastInput) -> dict:
         # Consent to server processing is already required by WorkoutForecastInput.
         # Preview never discloses data externally, and synthetic reads no real logs.
@@ -39,7 +45,8 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
         records = [] if payload.mode == "synthetic_demo" else app.state.repository.list_all("local-demo")
         logs = tuple(to_engine(record) for record in records)
         try:
-            local = build_analysis(payload, logs, generated_at=now)
+            local = build_analysis(payload, logs, generated_at=now, personal_predictor=personal_predictor,
+                                   version=analysis_version, embedded_workout_wonder=embedded_workout_wonder)
             context = None
             if payload.mode == "personal":
                 # Reuse the existing descriptive calculation, then allowlist only
@@ -53,7 +60,10 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
                                "change_pct": trends["change_pct"], "time_of_day_ml": trends["time_of_day_ml"]}
                 except ValueError:
                     pass  # Unsupported aggregation never invents a pattern.
-            return wonder_analysis.build_facts(local, trend_context=context)
+            comparison = comparison_builder(payload, now) if comparison_builder is not None else None
+            return wonder_analysis.build_facts(local, trend_context=context, expected_analysis_version=analysis_version,
+                workout_comparison=comparison, use_embedded_workout_preview=embedded_workout_wonder,
+                project_forecast=project_forecast)
         except (ValueError, CalculationError):
             raise HTTPException(422, "invalid_request") from None
 
@@ -71,6 +81,8 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
         view.update(dispatch_supported=enabled,
                     live_available=bool(enabled and view["explainable"] and config and app.state.wonder_trends_gateway),
                     account_id=config.account if config else None, saved=None)
+        if numerical_contract is not None:
+            view["numerical_contract"] = numerical_contract
         directory = app.state.wonder_results_dir
         if directory and payload.mode == "personal":
             try:
@@ -79,11 +91,11 @@ def install_wonder_analysis_routes(app, to_engine, *, enabled: bool, error_respo
                 pass
         return view
 
-    @app.post("/v1/wonder/analysis/preview")
+    @app.post(path + "/preview")
     def analysis_preview(payload: WorkoutForecastInput):
         return view_for(payload)
 
-    @app.post("/v1/wonder/analysis")
+    @app.post(path)
     def explain_analysis(payload: AnalysisExplanationRequest, request: Request):
         request_id = request.state.request_id
         if not app.state.wonder_lock.acquire(blocking=False):

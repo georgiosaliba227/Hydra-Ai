@@ -79,7 +79,7 @@ class RequestGuard:
         request_id = str(uuid4())
         scope.setdefault("state", {})["request_id"] = request_id
         headers = {key.lower(): value for key, value in scope.get("headers", [])}
-        if scope["path"].startswith(("/v1", "/v2")):
+        if scope["path"].startswith(("/v1", "/v2", "/v3")):
             provided = headers.get(b"authorization", b"")
             expected = ("Bearer " + self.token).encode()
             if not hmac.compare_digest(provided, expected):
@@ -88,7 +88,9 @@ class RequestGuard:
         if scope["path"] == "/v1/recognitions":
             body_limit = 1_400_000
         elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/hydration-analysis", "/v1/wonder/workout/preview",
-                               "/v1/wonder/workout", "/v1/wonder/analysis/preview", "/v1/wonder/analysis"):
+                               "/v1/wonder/workout", "/v1/wonder/analysis/preview", "/v1/wonder/analysis",
+                               "/v3/workout-forecasts", "/v3/hydration-analysis", "/v3/wonder/analysis/preview",
+                               "/v3/wonder/analysis"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
             body_limit = MAX_BODY_BYTES
@@ -437,6 +439,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_hydration_analysis_routes(app, to_engine, error_response=error_response)
     from .wonder_analysis_routes import install_wonder_analysis_routes
     install_wonder_analysis_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
+    from .personal_runtime_routes import install_personal_runtime_routes
+    install_personal_runtime_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
     return app

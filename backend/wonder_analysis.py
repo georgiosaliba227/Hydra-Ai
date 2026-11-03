@@ -140,7 +140,8 @@ class Forecast(Strict):
     lower_ml: Amount | None
     upper_ml: Amount | None
     interval_kind: Literal["historical_error_envelope", "conditional_measurement_envelope",
-                           "synthetic_participant_split_conformal", "synthetic_empirical_calibration_envelope"]
+                           "synthetic_participant_split_conformal", "synthetic_empirical_calibration_envelope",
+                           "personal_runtime_measurement_error_envelope"]
 
 
 class Intake(Strict):
@@ -307,10 +308,12 @@ def validate_facts(facts: dict) -> dict:
     return checked
 
 
-def build_facts(analysis: dict, *, trend_context: dict | None = None) -> dict:
+def build_facts(analysis: dict, *, trend_context: dict | None = None,
+                expected_analysis_version: str = "hydration-analysis-v1", workout_comparison: dict | None = None,
+                use_embedded_workout_preview: bool = True, project_forecast: bool = False) -> dict:
     """Allowlist local aggregates; never carry identifiers, times or caller text."""
     try:
-        if (analysis["version"] != "hydration-analysis-v1" or analysis["research_only"] is not True
+        if (analysis["version"] != expected_analysis_version or analysis["research_only"] is not True
                 or analysis["text_origin"] != "deterministic_local"
                 or analysis["numerical_forecast"]["units"] != "mL"
                 or analysis["numerical_forecast"]["quantity"] != "estimated_sweat_loss"
@@ -328,8 +331,11 @@ def build_facts(analysis: dict, *, trend_context: dict | None = None) -> dict:
             "trends": {key: trends[key] for key in ("window_days", "logged_days", "beverage_lower_ml", "beverage_upper_ml")},
             "accounting": {key: analysis["exercise_accounting"][key] for key in ("status", "quantity", "value_ml", "lower_ml", "upper_ml")},
             "missing_inputs": list(analysis["missing_inputs"]), "trend_context": trend_context,
-            "workout_comparison": None}
-        view = analysis["wonder"]["preview"]
+            "workout_comparison": workout_comparison}
+        if project_forecast and numerical["status"] == "estimated":
+            facts["forecast"].update(value_ml=round(numerical["value_ml"]), lower_ml=floor(numerical["lower_ml"]),
+                                     upper_ml=ceil(numerical["upper_ml"]))
+        view = analysis["wonder"]["preview"] if use_embedded_workout_preview else None
         if view is not None:
             planned, history = view["facts"]["planned"], view["facts"]["history"]
             facts["workout_comparison"] = {
@@ -396,7 +402,8 @@ def applicable_insights(facts: dict) -> dict[str, list[str]]:
         "trends_week_missing": context is not None and any(week["logged_days"] < 7 for week in (context["last_7_days"], context["previous_7_days"])),
         "trends_timing": context is not None and sum(context["time_of_day_ml"].values()) > 0,
         "trends_calibration": c["comparable_samples"] > 0,
-        "uncertainty_missing": bool(facts["missing_inputs"]), "uncertainty_history": f["interval_kind"] == "historical_error_envelope",
+        "uncertainty_missing": bool(facts["missing_inputs"]), "uncertainty_history": f["interval_kind"] in (
+            "historical_error_envelope", "personal_runtime_measurement_error_envelope"),
         "uncertainty_actual": f["interval_kind"] == "conditional_measurement_envelope", "uncertainty_synthetic": synthetic,
         "uncertainty_accounting": accounting["status"] == "estimated", "uncertainty_no_accounting": accounting["status"] != "estimated",
         "measurement_comparable": True,

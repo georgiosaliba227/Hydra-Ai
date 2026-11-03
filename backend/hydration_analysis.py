@@ -105,12 +105,14 @@ def _wonder(exercise: Exercise | None, samples: tuple[SweatSample, ...], timezon
     return result
 
 
-def build_analysis(payload: WorkoutForecastInput, logs: tuple[BeverageLog, ...], *, generated_at: datetime) -> dict:
+def build_analysis(payload: WorkoutForecastInput, logs: tuple[BeverageLog, ...], *, generated_at: datetime,
+                   personal_predictor: Callable[..., dict] | None = None, version: str = VERSION,
+                   embedded_workout_wonder: bool = True) -> dict:
     synthetic = payload.mode == "synthetic_demo"
     exercise = payload.exercise.engine() if payload.exercise else None
     samples = tuple(sample.engine() for sample in payload.samples)
     numerical = (predict_workout(None, generated_at=generated_at, mode="synthetic_demo") if synthetic
-                 else predict_longitudinal(exercise, samples, generated_at=generated_at))
+                 else (personal_predictor or predict_longitudinal)(exercise, samples, generated_at=generated_at))
     # Defense in depth: callers cannot cause real log content to enter a demo.
     logs = () if synthetic else logs
     intake = _intake(logs, generated_at, payload.timezone, synthetic=synthetic)
@@ -134,7 +136,9 @@ def build_analysis(payload: WorkoutForecastInput, logs: tuple[BeverageLog, ...],
     if environment["temperature_c"] is None or environment["humidity_percent"] is None:
         missing.append("environmental_context")
     trends = _trends(logs, generated_at, payload.timezone, synthetic=synthetic)
-    wonder = _wonder(exercise, samples, payload.timezone, generated_at, synthetic=synthetic)
+    wonder = (_wonder(exercise, samples, payload.timezone, generated_at, synthetic=synthetic) if embedded_workout_wonder
+              else {"status": "not_applicable", "preview": None, "saved": None,
+                    "reason": "comprehensive_v3_preview_required", "provider_called": False})
 
     def section(identifier: str, title: str, facts: dict, text: str, evidence_status: str = "context_only") -> dict:
         return {"id": identifier, "title": title, "facts": facts, "text": text,
@@ -185,22 +189,25 @@ def build_analysis(payload: WorkoutForecastInput, logs: tuple[BeverageLog, ...],
             "timing and instrument error bounds can improve the evidence available for later predictions. "
             "Check mismatched windows and protocols before comparing measurements."),
     ]
-    return {"version": VERSION, "generated_at": utc_string(generated_at), "timezone": payload.timezone,
+    return {"version": version, "generated_at": utc_string(generated_at), "timezone": payload.timezone,
             "mode": payload.mode, "research_only": True, "text_origin": "deterministic_local",
             "numerical_forecast": numerical, "intake": intake, "exercise_accounting": accounting,
             "environmental_context": environment, "calibration": calibration, "missing_inputs": list(dict.fromkeys(missing)),
             "sections": sections, "wonder": wonder, "limitations": list(LIMITATIONS)}
 
 
-def install_hydration_analysis_routes(app: FastAPI, to_engine: Callable[[dict], BeverageLog], *, error_response) -> None:
-    @app.post("/v1/hydration-analysis")
+def install_hydration_analysis_routes(app: FastAPI, to_engine: Callable[[dict], BeverageLog], *, error_response,
+                                     path: str = "/v1/hydration-analysis", personal_predictor: Callable[..., dict] | None = None,
+                                     version: str = VERSION, embedded_workout_wonder: bool = True) -> None:
+    @app.post(path)
     def hydration_analysis(payload: WorkoutForecastInput, request: Request):
         generated_at = datetime.now(timezone.utc)
         # Synthetic demonstrations do not even read the user's beverage repository.
         logs = (() if payload.mode == "synthetic_demo" else
                 tuple(to_engine(record) for record in request.app.state.repository.list_all("local-demo")))
         try:
-            result = build_analysis(payload, logs, generated_at=generated_at)
+            result = build_analysis(payload, logs, generated_at=generated_at, personal_predictor=personal_predictor,
+                                    version=version, embedded_workout_wonder=embedded_workout_wonder)
         except CalculationError:
             raise HTTPException(422, "invalid_request") from None
         except Exception:
