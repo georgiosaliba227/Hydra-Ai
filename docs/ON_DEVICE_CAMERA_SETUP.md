@@ -60,11 +60,13 @@ on the Mac; this is not physical iPhone performance evidence.
 
 The signed generic iPhone build uses the existing Hydra team/profile and bundle
 identifier. Install in place; do not uninstall Hydra or erase its container.
-The owner has no cable available and the paired physical phone is currently
-unreachable wirelessly. The signed `.app`, source/signature manifest and UI proof
-are staged in the owner's private `on-device-camera-20261104` directory for later
-installation. A reachable previously paired wireless Xcode connection may also
-install it. Installation and physical airplane-mode inference remain pending.
+The owner completed wireless pairing through Xcode 27 Device Hub. The signed
+update was installed in place over Wi-Fi on the registered iPhone 17 Pro and its
+process launched successfully. The signed `.app`, source/signature manifest and
+UI proof remain staged in the owner's private `on-device-camera-20261104` directory.
+Saving the local mode, physical airplane-mode recognition/save and force-close/
+reopen persistence are awaiting the owner's final device check. No physical
+latency or recognition-accuracy claim is made.
 
 Development details and model source/metrics are in
 `docs/architecture/ON_DEVICE_CAMERA.md` and `ai/on_device/README.md`. Weights,

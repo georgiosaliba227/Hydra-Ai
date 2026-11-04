@@ -38,10 +38,11 @@ Validation:
   independent capacity correction, backup policy and clock-rollback issues.
   Reproductions were observed fail, fixes integrated, and full checks passed.
 
-The owner has no cable and the paired phone is currently unreachable wirelessly.
-The signed build and UI proof are staged privately. Installation, physical
-airplane-mode analysis and physical restart remain pending; no physical inference
-or performance claim is made. No hosted calls, financial-ledger changes, public
+The owner completed wireless Device Hub pairing. The signed update was installed
+in place over Wi-Fi on the registered iPhone 17 Pro and launched successfully.
+The signed build and UI proof remain staged privately. Physical airplane-mode
+analysis/save and force-close/reopen checks are awaiting the owner; no physical
+inference or performance claim is made. No hosted calls, financial-ledger changes, public
 deployment or merge are part of this PR.
 
 @aminealichaouche — please review the local persistence and recognition boundary.

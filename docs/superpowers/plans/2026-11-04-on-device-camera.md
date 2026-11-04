@@ -55,7 +55,8 @@ Interface: explicit on-iPhone mode works without capabilities HTTP; Confirm save
 - [x] Wire on-device analysis, source/consent copy, local export/delete and source provenance into existing Confirm/Edit.
 - [x] Run complete pytest/XCTest, real model simulator case, signed generic device build and fresh whole-branch review.
 - [x] Stage signed app and strict signature/profile verification; report exact physical limits.
-- [ ] Install in place and verify airplane-mode/restart when phone reachable. Owner has no cable and paired tunnel is unavailable.
+- [x] Install signed update in place and launch on registered physical iPhone over Wi-Fi after owner-completed Device Hub pairing.
+- [ ] Verify physical airplane-mode recognition/save and force-close/reopen persistence; owner check pending.
 - [x] Commit verified branch and prepare review handoff without merging/deployment.
 
-Final code verification: 1,336 pytest passed, 5 skipped, 58 subtests; 129 signed simulator XCTest passed; two real-model UI cases passed. Four independent-review Important groups and source-copy issue fixed with regression tests. The signed app is staged privately; installation/physical verification remain pending.
+Final code verification: 1,336 pytest passed, 5 skipped, 58 subtests; 129 signed simulator XCTest passed; two real-model UI cases passed. Four independent-review Important groups and source-copy issue fixed with regression tests. The signed app is staged privately and installed/launched wirelessly on the registered phone. Physical offline recognition/save and force-close/reopen verification remain pending.
