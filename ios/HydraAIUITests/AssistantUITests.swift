@@ -15,10 +15,14 @@ final class AssistantUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
-        let link = app.buttons["askAssistant"]
+        app.tabBars.buttons["Insights"].tap()
+        let link = app.buttons["insightsAsk"]
         for _ in 0..<4 where !link.isHittable { app.swipeUp() }
         XCTAssertTrue(link.waitForExistence(timeout: 10)); link.tap()
 
+        let all = app.buttons["assistantAllQuestions"]
+        for _ in 0..<4 where !all.isHittable { app.swipeUp() }
+        if all.exists { all.tap() }
         let suggestion = app.buttons["suggested-creatine_water"]
         XCTAssertTrue(suggestion.waitForExistence(timeout: 15)); suggestion.tap()
         let creatine = app.staticTexts["assistantAnswer-creatine"]

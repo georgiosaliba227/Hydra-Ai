@@ -26,12 +26,12 @@ struct DashboardView: View {
                                  systemImage: "hourglass", tint: .secondary)
                 }
                 QuickAddCard(showingManualLog: $showingManualLog)
-                insightsSection
                 recentSection
-                weekSection
+                insightsSection
             }
             .hydraScreen()
         }
+        .hydraReadableScrollEdges()
         .background(Color.hydraBackground)
         .refreshable { await store.refresh() }
         .navigationTitle("Today")
@@ -74,35 +74,17 @@ struct DashboardView: View {
     }
 
     private var insightsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Insights")
-            VStack(spacing: 0) {
-                NavigationLink { TrendsView() } label: {
-                    FeatureRow(title: "Your trends", subtitle: "Meta AI explains your last 14 days",
-                               systemImage: "chart.line.uptrend.xyaxis")
-                }
-                .accessibilityIdentifier("wonderTrends")
-                Divider().padding(.leading, 50)
-                NavigationLink { WorkoutForecastView() } label: {
-                    FeatureRow(title: "Plan a workout", subtitle: "Estimate sweat loss for a planned session",
-                               systemImage: "figure.run")
-                }
-                .accessibilityIdentifier("workoutForecast")
-                Divider().padding(.leading, 50)
-                NavigationLink { AssistantView() } label: {
-                    FeatureRow(title: "Ask Hydra", subtitle: "Reviewed answers with sources",
-                               systemImage: "bubble.left.and.text.bubble.right")
-                }
-                .accessibilityIdentifier("askAssistant")
-            }
-            .buttonStyle(.plain)
-            .hydraCard(padding: 12)
+        NavigationLink { InsightsView() } label: {
+            FeatureRow(title: "Explore insights", subtitle: "Trends, workouts and drink questions", systemImage: "sparkles")
         }
+        .buttonStyle(.plain)
+        .hydraCard(padding: 12)
+        .accessibilityIdentifier("exploreInsights")
     }
 
     private var recentSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Today's drinks", trailing: todaysLogs.isEmpty ? nil : "\(todaysLogs.count) logged")
+            SectionTitle("Today's drinks")
             VStack(alignment: .leading, spacing: 0) {
                 if todaysLogs.isEmpty {
                     Label {
@@ -133,46 +115,7 @@ struct DashboardView: View {
         }
     }
 
-    private var weekSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionTitle("Previous 7 days")
-            VStack(alignment: .leading, spacing: 8) {
-                if let history = store.intakeHistory?.historicalLoggedIntake {
-                    if let lower = history.beverageLowerMl, let upper = history.beverageUpperMl {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(HydraFormat.milliliters(lower))–\(HydraFormat.milliliters(upper))")
-                                .font(.title2.bold().monospacedDigit())
-                            Text("mL on days you logged").font(.subheadline).foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
-                    } else {
-                        Text("No drinks logged in the previous 7 days.").font(.subheadline)
-                    }
-                    Text("\(history.loggedDays) days with logs · \(history.daysWithoutLogs) without")
-                        .font(.subheadline)
-                        .accessibilityIdentifier("historyCoverage")
-                    InfoNote("Days without logs are unknown, not zero.")
-                } else if case .loading = store.intakeHistoryState {
-                    ProgressView().frame(maxWidth: .infinity, alignment: .leading)
-                } else if case .failed(let message) = store.intakeHistoryState {
-                    Text(message).font(.subheadline).foregroundStyle(.secondary)
-                } else {
-                    Text(store.isOffline ? "Connect to your backend to see past days." : "Pull down to refresh past days.")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                }
-            }
-            .hydraCard()
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("intakeHistoryCard")
 
-            Text("Hydra shows the drinks you log. It doesn't measure hydration or set a daily requirement — any goal is one you choose.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 4)
-                .accessibilityIdentifier("dailyRequirementUnavailable")
-        }
-    }
 }
 
 // MARK: - Progress
@@ -261,6 +204,7 @@ private struct TodayProgressCard: View {
 
 /// One tap logs a common drink through the same confirmed store path as the full form.
 private struct QuickAddCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: BeverageStore
     @Binding var showingManualLog: Bool
     @State private var confirmation: String?
@@ -286,7 +230,7 @@ private struct QuickAddCard: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle("Log a drink")
             VStack(alignment: .leading, spacing: HydraSpacing.item) {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
+                LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
                     ForEach(presets) { preset in
                         Button { Task { await add(preset) } } label: {
                             HStack(spacing: 10) {

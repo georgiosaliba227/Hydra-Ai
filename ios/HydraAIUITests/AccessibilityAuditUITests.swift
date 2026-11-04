@@ -47,7 +47,8 @@ final class AccessibilityAuditUITests: XCTestCase {
 
         app.tabBars.buttons["Today"].tap()
         screen = "AskHydra"
-        let link = app.buttons["askAssistant"]
+        app.tabBars.buttons["Insights"].tap()
+        let link = app.buttons["insightsAsk"]
         for _ in 0..<4 where !link.isHittable { app.swipeUp() }
         link.tap()
         let suggestion = app.buttons["suggested-coffee_counts"]

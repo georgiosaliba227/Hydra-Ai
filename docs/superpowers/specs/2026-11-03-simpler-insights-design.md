@@ -1,6 +1,6 @@
 # Simpler workouts and Muse insights
 
-Status: proposed design for review; no product implementation yet.
+Status: Guided layout implemented. See [native verification](../../UI_SIMPLIFICATION_VERIFICATION.md) for evidence and limits.
 
 ## Intent
 
@@ -49,9 +49,9 @@ truncating generated answers, or making a medical or drinking recommendation.
    optional areas. Faster for experienced users, but fields and prerequisites
    still compete with results on smaller phones.
 
-The layout preference was asked asynchronously. Until the user chooses, the
-guided option is a proposed default, not a recorded user decision. A clickable
-preview compares both layouts. Product implementation follows design approval.
+The user selected “Guided steps: workout → conditions → result” after the
+clickable preview and written design were shared. Guided is the implementation
+direction; Compact remains a considered alternative.
 
 ## Screen design
 
@@ -166,7 +166,9 @@ Keep logged volume, quick logging, and recent drinks as the main content. Replac
 the three repeated feature entries with one “Explore insights” link. Existing
 destination identifiers/tests are updated to navigate through Insights. Move the
 previous-week report into History, where WeeklyVolumeView already lives; retain
-the full report and its missing-log qualification there rather than removing it.
+the full report and its missing-log qualification under a collapsed “Logging
+details” disclosure there rather than removing it. The weekly chart keeps a short
+missing-log qualification visible.
 Do not change logging, totals, goals, pending submissions, camera, or settings.
 
 ## Implementation boundaries and builder decisions
@@ -216,8 +218,9 @@ intentional action away and sending always requires a complete review and consen
   default-off review consent, disabled explanation preview before consent and
   consent reset after cancel/reopen. Inspected the review at a 320-pixel browser
   width and corrected the heading layout.
-- No SwiftUI product changes have been made. Implementation and its acceptance
-  checks remain pending approval.
+- The preceding design-stage checks happened before product implementation.
+  The user subsequently selected Guided, and implementation proceeded in the
+  existing SwiftUI app. Implementation verification is recorded separately.
 
 ## Implementation baseline
 

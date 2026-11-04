@@ -7,6 +7,7 @@ struct AssistantView: View {
     @State private var question = ""
     @State private var includeToday = false
     @State private var recordedWonder = false
+    @State private var showingAllQuestions = false
     @State private var task: Task<Void, Never>?
     @FocusState private var questionFocused: Bool
 
@@ -14,50 +15,65 @@ struct AssistantView: View {
     private var trimmed: String { question.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: HydraSpacing.section) {
-                if !connected {
-                    StatusBanner(text: "Connect to your backend in Settings to ask questions.", systemImage: "link", tint: .hydraTint)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: HydraSpacing.section) {
+                    if !connected {
+                        StatusBanner(text: "Connect to your backend in Settings to ask questions.", systemImage: "link", tint: .hydraTint)
+                    }
+                    composer
+                    // Answers sit above the suggestions so a tapped question's reply is visible without scrolling.
+                    if controller.state == .loading {
+                        ProgressView("Finding a reviewed answer…").frame(maxWidth: .infinity).hydraCard()
+                    }
+                    if case .failed(let message) = controller.state { StatusBanner(text: message) }
+                    if let answer = controller.answer { answerSection(answer).id("assistantResponse") }
+                    suggestions
+                    InfoNote("Reviewed answers with sources. Wellness information, not medical advice.",
+                             systemImage: "checkmark.shield")
+                        .padding(.horizontal, 4)
                 }
-                composer
-                // Answers sit above the suggestions so a tapped question's reply is visible without scrolling.
-                if controller.state == .loading {
-                    ProgressView("Finding a reviewed answer…").frame(maxWidth: .infinity).hydraCard()
-                }
-                if case .failed(let message) = controller.state { StatusBanner(text: message) }
-                if let answer = controller.answer { answerSection(answer) }
-                suggestions
-                InfoNote("Answers are reviewed text with sources, chosen by rules on your backend. Wellness information, not medical advice.",
-                         systemImage: "checkmark.shield")
-                    .padding(.horizontal, 4)
+                .hydraScreen()
             }
-            .hydraScreen()
+            .onChange(of: controller.state) { _, state in
+                if state == .loaded, controller.answer != nil { proxy.scrollTo("assistantResponse", anchor: .top) }
+            }
         }
         .scrollDismissesKeyboard(.interactively)
+        .hydraReadableScrollEdges()
         .background(Color.hydraBackground)
         .navigationTitle("Ask Hydra")
-        .task {
+        .task(id: store.configurationGeneration) {
             guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
             await controller.loadQuestions(service: service)
         }
         .onChange(of: question) { _, _ in invalidate() }
         .onChange(of: includeToday) { _, _ in invalidate() }
-        .onChange(of: recordedWonder) { _, _ in invalidate() }
-        .onChange(of: store.configurationGeneration) { _, _ in invalidate() }
+        .onChange(of: recordedWonder) { _, _ in
+            includeToday = false; questionFocused = false; invalidate()
+        }
+        .onChange(of: store.configurationGeneration) { _, _ in
+            includeToday = false; recordedWonder = false; invalidate()
+        }
         .onDisappear { invalidate() }
     }
 
     private var composer: some View {
         VStack(alignment: .leading, spacing: HydraSpacing.item) {
-            TextField("Ask something, like “does coffee count?”", text: $question, axis: .vertical)
-                .lineLimit(1...4)
-                .focused($questionFocused)
-                .padding(12)
-                .background(Color.hydraBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .accessibilityIdentifier("assistantQuestion")
-            Toggle("Include today's logged total", isOn: $includeToday)
-                .font(.subheadline)
-                .accessibilityIdentifier("assistantIncludeToday")
+            if recordedWonder {
+                Label("Recorded Muse picks", systemImage: "play.rectangle")
+                    .font(.headline)
+                    .accessibilityIdentifier("assistantRecordedMode")
+                Text("Choose a question below to replay an earlier selection. Nothing is sent to Meta; today's total is not included.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+            } else {
+                TextField("Does coffee count?", text: $question, axis: .vertical)
+                    .lineLimit(1...4)
+                    .focused($questionFocused)
+                    .padding(12)
+                    .background(Color.hydraBackground, in: RoundedRectangle(cornerRadius: 12))
+                    .accessibilityIdentifier("assistantQuestion")
+            }
             Button {
                 questionFocused = false
                 ask(.make(question: trimmed, includeToday: includeToday))
@@ -68,8 +84,16 @@ struct AssistantView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!connected || trimmed.isEmpty || trimmed.count > 300 || controller.state == .loading)
+            .disabled(recordedWonder || !connected || trimmed.isEmpty || trimmed.count > 300 || controller.state == .loading)
             .accessibilityIdentifier("assistantAsk")
+            HydraDisclosure(title: "Answer options", systemImage: "slider.horizontal.3", identifier: "assistantOptions") {
+                Toggle("Include today's logged total", isOn: $includeToday)
+                    .disabled(recordedWonder)
+                    .accessibilityIdentifier("assistantIncludeToday")
+                Toggle("Use Muse Wonder's recorded picks", isOn: $recordedWonder)
+                    .accessibilityIdentifier("assistantRecordedWonder")
+                Text("Recorded picks replay reviewed answers selected earlier. No new Meta request is made.")
+            }
         }
         .hydraCard()
     }
@@ -79,7 +103,7 @@ struct AssistantView: View {
             VStack(alignment: .leading, spacing: 10) {
                 SectionTitle("Popular questions")
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(controller.questions) { suggestion in
+                    ForEach(Array(showingAllQuestions ? controller.questions[...] : controller.questions.prefix(3))) { suggestion in
                         Button {
                             questionFocused = false
                             ask(recordedWonder ? .recordedWonder(questionId: suggestion.id)
@@ -108,18 +132,11 @@ struct AssistantView: View {
                 }
                 .hydraCard(padding: 12)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Toggle("Use Muse Wonder's recorded picks", isOn: $recordedWonder)
-                        .font(.subheadline)
-                        .accessibilityIdentifier("assistantRecordedWonder")
-                    Text(recordedWonder
-                         ? "Replays answers Muse Wonder 1.0 chose earlier from the reviewed set. Nothing is sent to Meta, and today's total is not included."
-                         : "Optional: see which reviewed answers Meta's Muse Wonder picked in an earlier, recorded run.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                if controller.questions.count > 3 {
+                    Button(showingAllQuestions ? "Fewer questions" : "All questions") { showingAllQuestions.toggle() }
+                        .frame(minHeight: 44)
+                        .accessibilityIdentifier("assistantAllQuestions")
                 }
-                .hydraCard()
             }
         }
     }
@@ -142,7 +159,7 @@ struct AssistantView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("assistantAnswer-\(item.topic)")
                     if !item.evidence.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
+                        HydraDisclosure(title: "Sources", systemImage: "book.closed", identifier: "assistantSources-\(item.topic)") {
                             ForEach(Array(item.evidence.enumerated()), id: \.offset) { _, source in
                                 if let link = source.url.flatMap(URL.init(string:)) {
                                     Link(destination: link) {

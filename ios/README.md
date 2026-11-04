@@ -73,10 +73,61 @@ Camera fetches authenticated recognition capabilities and fails closed if mode c
 
 If Xcode hangs after passing simulator tests while collecting verbose diagnostics, `--skip-simulator-diagnostics` adds `-collect-test-diagnostics never`. Assertions and result bundles remain enabled; the flag is refused for physical destinations. `run_live_simulation.py` forwards this optional switch.
 
-## Workout forecast prototype
+## Simpler Insights and workouts
 
-Today → **Workout forecast · separate from intake** opens a separate estimate screen. **Run synthetic demonstration** submits only mode/timezone and requests the server-owned fixed fixture; the result is labeled simulated, never added to consumption. The local mock Meta explanation integration is explicitly labeled mock and makes no live provider request.
+Today keeps logging and recent drinks together, with one **Explore insights** link.
+Insights offers three compact rows: Your trends, Plan a workout, and Ask Hydra.
+The previous-seven-days range and missing-log coverage now live under Logging
+details in History, keeping the drink list easy to reach.
 
-For a personal estimate, manually enter a planned workout and comparable conditions. Add completed manual weighing measurements with recorded intake/urine and independently established absolute error bounds. Explicit calibration-processing consent is required before upload. Unknown values must stay unknown: do not enter zero or invent instrument bounds. Missing usable calibration returns insufficient data; the trained research artifact does not silently supply physiological ground truth.
+Workout uses **Your workout → Conditions → Review & estimate**. Back/Edit retain
+the draft; leaving the flow or changing connection clears the session. Personal
+estimates require comparable measured workouts and explicit processing consent.
+**Past measurements** opens the full measured-workout form separately, including
+all required instrument error bounds. Unknown measurements stay blank. A disabled
+estimate action explains the missing prerequisite before any request is made.
 
-Session measurements/results remain in screen memory, are cleared on leaving or changing connection, and are not saved to HealthKit or beverage storage. Edits invalidate the displayed result and late responses. The backend processes calibration in memory, with no persistence or provider export. Numbers are estimated workout sweat loss, not consumed water, remaining need, diagnosis or recommended intake. A simulator run cannot validate physiology or physical-device behavior.
+**Try a demo instead** opens an independent simulated example. Its result is
+labeled simulated and never changes confirmed consumption or the personal draft.
+Recorded Muse explanations and research comparisons are available inside the demo,
+with their recorded/mock labels. Model/provenance details stay collapsed; the result
+always shows units, the returned range, essential uncertainty, and that it is not
+a drinking target. No new inference or HealthKit integrations are enabled.
+
+Your trends leads with any saved explanation and its own date window, then the
+first complete insight. More insights and Sources & details reveal the rest.
+**Review data & explain** opens a separate sheet with weekly totals and a complete
+14-day summary. It includes all daily totals/counts, categories, timing, goal and
+timezone; the exact typed data payload is also available. The Meta recipient,
+selected account, maximum cost, default-off consent and send action stay together.
+Opening/dismissing never sends; reopening or changing connection resets consent.
+A mock backend offers no live send action. Existing server billing and validation
+gates are unchanged, and no request is automatically retried.
+
+Ask Hydra shows three common questions. **All questions**, **Answer options**, and
+per-answer **Sources** reveal supporting choices. Recorded mode remains visibly
+labeled and cannot include today's total or submit a free-text question. Reviewed
+answer wording, urgent instructions, and essential limitations remain intact.
+
+### UI verification fixture
+
+`SimplerInsightsUITests` uses the existing opt-in loopback setup. Additional
+`TrendsConsentUITests` requires `HYDRA_E2E_REVIEW_BACKEND_URL` pointing to
+`scripts/insights_review_fixture.py`. This fixture always creates a disposable
+synthetic database, forces mock mode, and rejects every trends POST before it can
+reach provider code. It only exposes a fake capability so the native consent UI
+can be checked. It is never a live backend and must not receive a provider key.
+
+Run it with the backend test environment and a mode-0600 JSON file containing a
+random **local test** token in its `token` field:
+
+```sh
+PYTHONPATH=. python scripts/insights_review_fixture.py --token-file /private/path/test-token.json
+```
+
+Pass that same token as `HYDRA_E2E_API_TOKEN` in a private UI `.xctestrun` file.
+The consent test checks the fixture's explicit nonbillable identity before launch,
+then verifies that opening, toggling consent, closing and reopening create no send
+attempt and leave consent off. No tokens or populated test-run files are committed.
+
+Simulator checks do not establish scientific accuracy or physical-device behavior.

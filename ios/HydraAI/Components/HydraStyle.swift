@@ -41,6 +41,13 @@ extension View {
         modifier(HydraCardModifier(padding: padding))
     }
 
+    /// Keep text above the floating tab bar readable instead of fading it into glass.
+    @ViewBuilder
+    func hydraReadableScrollEdges() -> some View {
+        if #available(iOS 26.0, *) { self.scrollEdgeEffectHidden(true, for: .bottom) }
+        else { self }
+    }
+
     /// Scrollable screen of cards on the grouped background.
     func hydraScreen() -> some View {
         self
@@ -119,37 +126,51 @@ struct FeatureRow: View {
     let subtitle: String
     let systemImage: String
     var badge: String? = nil
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(spacing: 14) {
-            IconBadge(systemName: systemImage)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(title).font(.headline).foregroundStyle(.primary)
-                    if let badge {
-                        Text(badge)
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(Color.hydraTint)
-                            .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(Color.hydraTint.opacity(0.12), in: Capsule())
-                    }
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 6) {
+                    titleText
+                    badgeText
+                    subtitleText
                 }
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 14) {
+                    IconBadge(systemName: systemImage)
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) { titleText; badgeText }
+                        subtitleText
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
             }
-            Spacer(minLength: 8)
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.tertiary)
-                .accessibilityHidden(true)
         }
         .frame(minHeight: 44)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+    }
+
+    private var titleText: some View {
+        Text(title).font(.headline).foregroundStyle(.primary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    private var subtitleText: some View {
+        Text(subtitle).font(.subheadline).foregroundStyle(.secondary)
+            .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+    }
+    @ViewBuilder private var badgeText: some View {
+        if let badge {
+            Text(badge).font(.caption2.weight(.semibold)).foregroundStyle(Color.hydraTint)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(Color.hydraTint.opacity(0.12), in: Capsule())
+        }
     }
 }
 
@@ -161,15 +182,21 @@ struct HydraDisclosure<Content: View>: View {
     var identifier: String? = nil
     @ViewBuilder var content: () -> Content
     @State private var expanded = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button {
-                withAnimation(.snappy) { expanded.toggle() }
+                withAnimation(reduceMotion ? nil : .snappy) { expanded.toggle() }
             } label: {
                 HStack {
-                    Label(title, systemImage: systemImage)
-                        .font(.subheadline.weight(.medium))
+                    Group {
+                        if dynamicTypeSize.isAccessibilitySize { Text(title) }
+                        else { Label(title, systemImage: systemImage) }
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .font(.footnote.weight(.semibold))
