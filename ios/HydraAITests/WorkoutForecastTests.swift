@@ -19,6 +19,18 @@ final class WorkoutForecastTests: XCTestCase {
     private let configuration = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "x", count: 32), offline: false)
     override func tearDown() { FixtureURLProtocol.handler = nil }
 
+    func testWorkoutNumbersRespectDecimalSeparatorsWithoutGuessingGrouping() {
+        let dot = Locale(identifier: "en_US")
+        let comma = Locale(identifier: "fr_FR")
+        XCTAssertEqual(WorkoutDraft.parsedNumber("0.05", locale: dot), 0.05)
+        XCTAssertEqual(WorkoutDraft.parsedNumber("0,05", locale: comma), 0.05)
+        XCTAssertEqual(WorkoutDraft.parsedNumber("-2,5", locale: comma), -2.5)
+        for invalid in ["", "NaN", "inf", "1e309", "1,234.5", "1 234,5", "0.05kg"] {
+            XCTAssertNil(WorkoutDraft.parsedNumber(invalid, locale: comma), invalid)
+        }
+        XCTAssertNil(WorkoutDraft.parsedNumber("1,234", locale: dot), "Grouping must not be guessed")
+    }
+
     func testDemoRequestContainsNoMeasurementsAndUsesAuthNoStore() async throws {
         let options = URLSessionConfiguration.ephemeral; options.protocolClasses = [FixtureURLProtocol.self]
         FixtureURLProtocol.handler = { request in

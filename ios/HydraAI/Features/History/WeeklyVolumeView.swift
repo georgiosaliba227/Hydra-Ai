@@ -50,7 +50,7 @@ struct WeeklyVolumeView: View {
                     .accessibilityLabel("\(days[index].formatted(date: .abbreviated, time: .omitted)), \(dailyVolumes[index]) milliliters logged")
                 }
             }
-            Text("Bars compare logged days with each other, not with a daily target.")
+            Text("Logged volume only. Days without logs are unknown intake.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

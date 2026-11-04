@@ -16,9 +16,12 @@ final class TrendsUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
-        let link = app.buttons["wonderTrends"]
+        app.tabBars.buttons["Insights"].tap()
+        let link = app.buttons["insightsTrends"]
         for _ in 0..<4 where !(link.waitForExistence(timeout: 2) && link.isHittable) { app.swipeUp() }
         link.tap()
+        XCTAssertTrue(app.buttons["reviewTrendsData"].waitForExistence(timeout: 15))
+        app.buttons["reviewTrendsData"].tap()
         let preview = app.descendants(matching: .any).matching(identifier: "trendsPreview").firstMatch
         XCTAssertTrue(preview.waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["What would be sent to Meta"].exists)

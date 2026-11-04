@@ -31,6 +31,12 @@ struct HistoryView: View {
                     .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
             }
 
+            Section {
+                HydraDisclosure(title: "Logging details", systemImage: "chart.bar", identifier: "historyDetails") {
+                    IntakeHistoryCard()
+                }
+            }
+
             if days.isEmpty {
                 ContentUnavailableView("No drinks yet", systemImage: "drop",
                                        description: Text("Drinks you log will appear here."))
@@ -68,6 +74,7 @@ struct HistoryView: View {
                 }
             }
         }
+        .hydraReadableScrollEdges()
         .refreshable { await store.refresh() }
         .sheet(item: $editing) { log in
             NavigationStack { EditBeverageView(log: log) }

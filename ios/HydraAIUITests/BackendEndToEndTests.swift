@@ -23,8 +23,14 @@ final class BackendEndToEndTests: XCTestCase {
         guard let value = total.value as? String, let initial = Int(value) else {
             XCTFail("Daily total must expose its integer mL value."); return
         }
-        XCTAssertTrue(app.staticTexts["historyCoverage"].waitForExistence(timeout: 15), "History-only forecast must load from the combined backend")
+        app.tabBars.buttons["History"].tap()
+        XCTAssertFalse(app.staticTexts["historyCoverage"].exists)
+        app.buttons["historyDetails"].tap()
+        let coverage = app.staticTexts["historyCoverage"]
+        for _ in 0..<4 where !coverage.waitForExistence(timeout: 2) { app.swipeUp() }
+        XCTAssertTrue(coverage.exists, "History-only forecast remains available in History")
         XCTAssertTrue(app.staticTexts["dailyRequirementUnavailable"].exists)
+        app.tabBars.buttons["Today"].tap()
         XCTAssertFalse(app.buttons["retryPending"].exists, "Resolve any existing pending test beverage before this run.")
         let logButton = app.buttons["logBeverage"]
         XCTAssertTrue(logButton.isEnabled)
