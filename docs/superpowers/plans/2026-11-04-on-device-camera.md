@@ -51,8 +51,11 @@ Interfaces: `OnDeviceRecognizer.analyze(jpeg: Data) async throws -> RecognitionR
 Files: camera presentation/session/view, confirmation view, backend settings, UI tests, setup docs.
 Interface: explicit on-iPhone mode works without capabilities HTTP; Confirm saves into local store and always requires user review; server paths keep their own controls.
 
-- [ ] Add/run failing mode/stale-session and offline camera UI tests.
-- [ ] Wire on-device analysis, source/consent copy, local export/delete and source provenance into existing Confirm/Edit.
-- [ ] Run complete pytest/XCTest, real model simulator case, signed generic device build and fresh whole-branch review.
-- [ ] Stage signed app, install in place and verify airplane-mode/restart when phone reachable; report exact physical limits.
-- [ ] Commit verified branch and prepare review handoff without merging/deployment.
+- [x] Add/run failing mode/stale-session and offline camera UI tests.
+- [x] Wire on-device analysis, source/consent copy, local export/delete and source provenance into existing Confirm/Edit.
+- [x] Run complete pytest/XCTest, real model simulator case, signed generic device build and fresh whole-branch review.
+- [x] Stage signed app and strict signature/profile verification; report exact physical limits.
+- [ ] Install in place and verify airplane-mode/restart when phone reachable. Owner has no cable and paired tunnel is unavailable.
+- [x] Commit verified branch and prepare review handoff without merging/deployment.
+
+Final code verification: 1,336 pytest passed, 5 skipped, 58 subtests; 129 signed simulator XCTest passed; two real-model UI cases passed. Four independent-review Important groups and source-copy issue fixed with regression tests. The signed app is staged privately; installation/physical verification remain pending.
