@@ -24,6 +24,7 @@ struct CameraCaptureView: View {
     private var recognitionMode: String? { cameraSession.mode }
     private var isLoadingCapabilities: Bool { cameraSession.isLoadingCapabilities }
     private var presentation: RecognitionPresentation { RecognitionPresentation(mode: recognitionMode) }
+    private var isOnDevice: Bool { store.isOnDevice }
     private var isLive: Bool { recognitionMode == "meta_live" }
     @State private var scenario = "ambiguous"
     private var isAnalyzing: Bool { cameraSession.isAnalyzing }
@@ -57,7 +58,7 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
-                    if let preparedPhoto, presentation != .onDevice {
+                    if let preparedPhoto, !isOnDevice {
                         ShareLink(item: preparedPhoto.export, preview: SharePreview("Prepared beverage photo", image: Image(uiImage: capturedImage))) {
                             Label("Export prepared photo for approval", systemImage: "square.and.arrow.up")
                         }
@@ -66,7 +67,7 @@ struct CameraCaptureView: View {
                         Text("Share this exact resized JPEG with your developer for image approval. Analysis uses the same copy. Exporting does not approve analysis or automatically send it to Meta.")
                             .font(.footnote).foregroundStyle(.secondary)
                     }
-                    Text(presentation.photoDescription)
+                    Text(isOnDevice && recognitionMode == nil ? OnDeviceRecognitionError.modelUnavailable.localizedDescription : presentation.photoDescription)
                         .font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("recognitionSource")
                     if presentation == .mock { Picker("Demo response", selection: $scenario) {
@@ -78,7 +79,7 @@ struct CameraCaptureView: View {
                     }
                     .accessibilityIdentifier("mockScenario")
                     .disabled(isAnalyzing) }
-                    Toggle(presentation == .onDevice ? "Allow this photo to be analyzed on this iPhone" : "Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
+                    Toggle(isOnDevice ? "Allow this photo to be analyzed on this iPhone" : "Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
                         .accessibilityIdentifier("photoConsent")
                         .disabled(isAnalyzing || isLoadingCapabilities)
                     if isLive {
@@ -130,7 +131,7 @@ struct CameraCaptureView: View {
                     captureOptions
                 }
 
-                Text(presentation == .onDevice
+                Text(isOnDevice
                      ? "Analysis and confirmed drinks stay on this iPhone. No photo is sent to a server or saved for training. Printed size does not measure the liquid present. Confirm logs the whole drink under your stated assumption; edit anything unclear."
                      : "Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Analysis does not save the photo. A separate training opt-in on confirmation lets your backend retain that photo and corrected details. Confirmed logs contain details you approve.")
                     .font(.footnote)
@@ -305,7 +306,7 @@ struct CameraCaptureView: View {
                 .accessibilityHidden(true)
             Text("Add a beverage photo")
                 .font(.title2.bold())
-            Text(presentation.header)
+            Text(isOnDevice && recognitionMode == nil ? "On-device analysis is unavailable. Use a complete Hydra build or log your drink manually." : presentation.header)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("recognitionHeader")
             Button(isLoadingCapabilities ? "Refreshing analysis mode…" : "Refresh analysis mode") {

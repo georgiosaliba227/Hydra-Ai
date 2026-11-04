@@ -17,7 +17,10 @@ The signed build still needs to be installed on the phone first.
    this mode because the photo stays on the phone.
 4. Review **Your drink**. Confirm means the whole drink was finished under the
    displayed assumption. Use Edit to correct the name/type/size or choose a
-   different amount. Unknown sizes remain blank until you enter one.
+   different amount. In Edit, **Container size (optional)** can be corrected in
+   mL/US fl oz/L or cleared. **Amount to log** is separate. Editing a full-container
+   size updates that assumed amount; partial amounts stay separate. The original
+   photo suggestion is preserved. Unknown sizes remain blank until you enter one.
 5. Confirm, then check Today and History. Close/reopen Hydra to check persistence.
    Settings offers local goal, JSON export and deletion of this mode's records.
 
@@ -35,7 +38,8 @@ entry. This is a remaining physical-device check, not a claim already verified.
   Serving-only, multipack, conflicting or ambiguous declarations remain unknown.
 - Protected local drink records, original model suggestion, confirmed corrected
   name/type/capacity/amount, explicit consumption assumption, safe retry and
-  restart persistence. Photos and unrelated background OCR are not retained.
+  restart persistence. Local records and on-device pending writes are excluded
+  from device backups. Photos and unrelated background OCR are not retained.
 
 Category accuracy on the existing product-separated held-out cohort was 50/75
 (67%); this is experimental category recognition, not brand/size accuracy. The

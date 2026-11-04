@@ -10,11 +10,45 @@ final class OnDeviceCameraTests: XCTestCase {
         }
         for text in ["Serving size 250 mL", "Nutrition per 100 ml", "6 x 330 mL", "6 cans 330 mL",
                      "6-pack 330 mL", "6pk 330 mL",
+                     "250 mL x 6", "NET 250 mL per serving", "250 mL\nNET 500 mL",
+                     "NET 500 mL (32 fl oz)", "USAGE: mix with 250 mL of water",
                      "500 mL 1 L", "12 fl oz", "-500 ml", "1,500 ml", "50000ml", "0 ml", "5.1 L"] {
             XCTAssertNil(OnDeviceLabel.capacity(text),text)
         }
         XCTAssertEqual(OnDeviceLabel.capacity("Net 500 mL Nutrition per 100 mL")?.milliliters,500)
         XCTAssertNil(OnDeviceLabel.capacity("Net 500 mL / 12 US fl oz"))
+        let long="NET 500 mL\n"+String(repeating:"background words ",count:50)+"NET 1 L"
+        XCTAssertNil(OnDeviceLabel.candidate(scores:Array(repeating:0,count:12),text:long).containerMl)
+    }
+
+    func testContainerCorrectionsPreserveOriginalAndSeparateAmount() {
+        var candidate=RecognitionCandidate(identity:"Water",productId:nil,containerMl:500,confidence:"low",uncertaintyReasons:["Verify"])
+        candidate.labelCapacityMl=500
+        for size in [355,750] {
+            var draft=RecognitionEntryDraft(candidate:candidate,allowsCapacityCorrection:true)
+            draft.setCapacity(String(size))
+            XCTAssertTrue(draft.valid)
+            XCTAssertEqual(draft.confirmedCapacityMl,size)
+            XCTAssertEqual(draft.consumedMl,size)
+            XCTAssertEqual(draft.assumption,"full_container")
+            XCTAssertEqual(draft.candidate.containerMl,500)
+        }
+        var cleared=RecognitionEntryDraft(candidate:candidate,allowsCapacityCorrection:true)
+        cleared.setCapacity("")
+        XCTAssertNil(cleared.confirmedCapacityMl); XCTAssertNil(cleared.consumedMl)
+        cleared.setVolume("240")
+        XCTAssertEqual(cleared.consumedMl,240); XCTAssertTrue(cleared.valid)
+        XCTAssertEqual(cleared.assumption,"entire_liquid")
+        var partial=RecognitionEntryDraft(candidate:candidate,allowsCapacityCorrection:true)
+        partial.setDrankAll(false); partial.setVolume("125"); partial.setCapacity("355")
+        XCTAssertEqual(partial.consumedMl,125); XCTAssertEqual(partial.confirmedCapacityMl,355)
+        partial.setCapacity(""); XCTAssertNil(partial.confirmedCapacityMl); XCTAssertEqual(partial.consumedMl,125)
+        var tooLarge=RecognitionEntryDraft(candidate:candidate,allowsCapacityCorrection:true)
+        tooLarge.setVolume("750"); XCTAssertFalse(tooLarge.valid)
+        tooLarge.setCapacity("750"); XCTAssertTrue(tooLarge.valid)
+        var typing=RecognitionEntryDraft(candidate:candidate,allowsCapacityCorrection:true)
+        typing.setCapacity("");typing.setCapacity("3");typing.setCapacity("35");typing.setCapacity("355")
+        XCTAssertEqual(typing.consumedMl,355,"Replacing capacity text must retain the full-container assumption through intermediate empty input")
     }
 
     func testUnrelatedOCRIsNeverReturnedAsDrinkIdentity() {
@@ -132,5 +166,19 @@ final class OnDeviceCameraTests: XCTestCase {
         XCTAssertNotNil(result.recognitionId)
         print("ON_DEVICE_SIMULATOR_ANALYSIS_SECONDS",Date().timeIntervalSince(started))
         do { _=try await OnDeviceRecognizer.shared.analyze(jpeg:Data("invalid".utf8)); XCTFail("Invalid photo accepted") } catch { }
+    }
+
+    @MainActor func testCompleteOCRCannotLoseConflictingSizeAfterFortyLines() async throws {
+        let image=UIGraphicsImageRenderer(size:CGSize(width:800,height:1600)).image { context in
+            UIColor.white.setFill(); context.fill(CGRect(x:0,y:0,width:800,height:1600))
+            let attributes:[NSAttributedString.Key:Any]=[.font:UIFont.boldSystemFont(ofSize:24),.foregroundColor:UIColor.black]
+            ("NET 500 mL" as NSString).draw(at:CGPoint(x:40,y:30),withAttributes:attributes)
+            for index in 0..<45 {
+                ("ROW \(index)" as NSString).draw(at:CGPoint(x:40,y:80+index*30),withAttributes:attributes)
+            }
+            ("NET 1 L" as NSString).draw(at:CGPoint(x:40,y:1500),withAttributes:attributes)
+        }
+        let result=try await OnDeviceRecognizer.shared.analyze(jpeg:PhotoPreparation.jpeg(image))
+        XCTAssertNil(result.candidates.first?.containerMl,"Complete OCR must reject conflicting size beyond the old forty-line cutoff")
     }
 }

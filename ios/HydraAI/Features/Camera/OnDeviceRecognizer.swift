@@ -66,11 +66,13 @@ actor OnDeviceRecognizer {
               output.count==12 else { throw OnDeviceRecognitionError.invalidOutput }
         let scores=(0..<12).map { output[$0].doubleValue }
         guard scores.allSatisfy(\.isFinite) else { throw OnDeviceRecognitionError.invalidOutput }
-        let lines=(text.results ?? []).prefix(40).compactMap { observation -> String? in
+        let lines=(text.results ?? []).compactMap { observation -> String? in
             guard let value=observation.topCandidates(1).first,value.confidence>=0.4 else { return nil }
             return value.string
         }
-        let evidence=String(lines.joined(separator:"\n").prefix(600))
+        // Check complete recognized context. Truncating can hide a second size,
+        // serving qualifier or multipack. The label boundary abstains above600.
+        let evidence=lines.joined(separator:"\n")
         let candidate=OnDeviceLabel.candidate(scores:scores,text:evidence)
         let result=RecognitionResult(version:"recognition-v1",mode:"on_device",model:Self.modelID,
                                      candidates:[candidate],requiresConfirmation:true,recognitionId:UUID())

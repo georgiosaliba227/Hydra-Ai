@@ -2,6 +2,51 @@ import XCTest
 
 /// Generated label pixels, real bundled Meta inference, no backend or provider.
 final class OnDeviceCameraUITests: XCTestCase {
+    private func replace(_ field: XCUIElement, with text: String, app: XCUIApplication) {
+        for _ in 0..<5 where !field.isHittable { app.swipeUp() }
+        let value=field.value as? String ?? ""
+        if value.isEmpty || value==field.placeholderValue {
+            field.tap()
+        } else {
+            field.tap(withNumberOfTaps:3,numberOfTouches:1)
+            field.typeText(String(repeating:XCUIKeyboardKey.delete.rawValue,count:value.count))
+        }
+        field.typeText(text)
+        if app.buttons["photoKeyboardDone"].exists { app.buttons["photoKeyboardDone"].tap() }
+    }
+
+    func testContainerSizeCanBeCorrectedDownUpAndClearedIndependently() throws {
+        #if !targetEnvironment(simulator)
+        throw XCTSkip("Simulator-only generated-image test")
+        #endif
+        continueAfterFailure=false
+        let app=XCUIApplication()
+        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15));app.tabBars.buttons["Camera"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10));app.buttons["syntheticPhoto"].tap()
+        let consent=app.switches["photoConsent"]
+        for _ in 0..<4 where !consent.isHittable {app.swipeUp()}
+        consent.switches.firstMatch.tap();app.buttons["analyzePhoto"].tap()
+        XCTAssertTrue(app.buttons["editRecognitionEntry"].waitForExistence(timeout:60));app.buttons["editRecognitionEntry"].tap()
+        let capacity=app.textFields["photoContainerCapacity"]
+        XCTAssertTrue(capacity.waitForExistence(timeout:10))
+        replace(capacity,with:"355",app:app)
+        XCTAssertEqual(app.staticTexts["photoVolume"].label,"355 mL")
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        replace(capacity,with:"750",app:app)
+        XCTAssertEqual(app.staticTexts["photoVolume"].label,"750 mL")
+        let clear=app.buttons["clearPhotoCapacity"]
+        for _ in 0..<4 where !clear.isHittable {app.swipeUp()}
+        clear.tap()
+        XCTAssertFalse(app.buttons["savePhotoBeverage"].isEnabled)
+        XCTAssertEqual(app.staticTexts["confirmedPhotoCapacity"].label,"Container size: unknown")
+        replace(app.textFields["photoConsumed"],with:"240",app:app)
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
+        let screenshot=XCTAttachment(screenshot:app.screenshot());screenshot.name="Independent container correction";screenshot.lifetime = .keepAlways;add(screenshot)
+        app.buttons["Cancel"].tap()
+    }
+
     func testOfflineRealInferenceEditConfirmAndRestart() throws {
         #if !targetEnvironment(simulator)
         throw XCTSkip("Simulator-only generated-image test; physical airplane-mode verification is separate")

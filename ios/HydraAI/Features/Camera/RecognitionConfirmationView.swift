@@ -16,14 +16,14 @@ struct RecognitionConfirmationView: View {
     @State private var shareTraining = false
     @State private var saving = false
     @State private var error: String?
-    private enum InputField: Hashable { case identity, volume }
+    private enum InputField: Hashable { case identity, volume, capacity }
     @FocusState private var focusedField: InputField?
 
     init(candidate: RecognitionCandidate, mode: String = "mock", recognitionId: UUID? = nil, initiallyEditing: Bool = false,
          feedbackContext: RecognitionFeedbackContext? = nil, onSaved: @escaping () -> Void) {
         self.candidate = candidate; self.mode = mode; self.recognitionId = recognitionId
         self.feedbackContext = feedbackContext; self.onSaved = onSaved
-        let initialDraft = RecognitionEntryDraft(candidate: candidate)
+        let initialDraft = RecognitionEntryDraft(candidate: candidate, allowsCapacityCorrection: mode == "on_device")
         _draft = State(initialValue: initialDraft)
         _editing = State(initialValue: initiallyEditing)
         _needsSizeEntry = State(initialValue: initialDraft.consumedMl == nil)
@@ -47,8 +47,12 @@ struct RecognitionConfirmationView: View {
                     Text(draft.consumedMl.map { "\($0) mL" } ?? "Volume unclear")
                         .font(editing ? .title2.bold() : .largeTitle.bold()).accessibilityIdentifier("photoVolume")
                     if let label = candidate.labelCapacityMl {
-                        Text("Printed size: \(label) mL")
+                        Text(draft.capacityWasEdited ? "Photo size suggestion: \(label) mL" : "Printed size: \(label) mL")
                             .font(.subheadline.bold()).accessibilityIdentifier("photoLabelCapacity")
+                    }
+                    if draft.capacityWasEdited {
+                        Text(draft.confirmedCapacityMl.map { "Edited container size: \($0) mL" } ?? "Container size: unknown")
+                            .font(.subheadline).accessibilityIdentifier("confirmedPhotoCapacity")
                     }
                     Text(draft.drankAll ? "Confirm logs the whole drink." : "Confirm logs your edited amount.")
                         .font(.subheadline).accessibilityIdentifier("consumptionAssumptionSummary")
@@ -78,6 +82,7 @@ struct RecognitionConfirmationView: View {
                     }.accessibilityIdentifier("photoDrinkType")
                 }
             }
+            if editing && mode == "on_device" { capacityEditor }
             if editing || needsSizeEntry { volumeEditor }
             if editing {
                 if draft.isCorrection, let context = feedbackContext, context.memoryAvailable || context.trainingAvailable {
@@ -136,9 +141,25 @@ struct RecognitionConfirmationView: View {
         }
         .interactiveDismissDisabled(saving)
     }
+    private var capacityEditor: some View {
+        Section("Container size (optional)") {
+            TextField("Unknown",text:Binding(get:{draft.capacityText},set:{draft.setCapacity($0)}))
+                .keyboardType(.decimalPad).focused($focusedField,equals:.capacity).accessibilityIdentifier("photoContainerCapacity")
+            Picker("Container unit",selection:Binding(get:{draft.capacityUnit},set:{draft.setCapacityUnit($0)})) {
+                ForEach(RecognitionVolumeUnit.allCases) { Text($0.rawValue).tag($0) }
+            }.pickerStyle(.segmented).accessibilityIdentifier("photoCapacityUnit")
+            Button("Clear container size") { draft.setCapacity("") }
+                .accessibilityIdentifier("clearPhotoCapacity")
+            Text("Correct the container's capacity, or clear it if unknown. The amount to log is separate; using the full container is an explicit assumption.")
+                .font(.footnote)
+            if !draft.capacityIsValid {
+                Text("Enter a valid container size at least as large as the amount to log, or clear the size if unknown.").font(.footnote).foregroundStyle(.red)
+            }
+        }
+    }
     private var volumeEditor: some View {
-        Section(draft.drankAll ? "Drink size" : "Amount to log") {
-            TextField(draft.drankAll ? "Drink size" : "Amount to log",
+        Section(editing && mode == "on_device" ? "Amount to log" : draft.drankAll ? "Drink size" : "Amount to log") {
+            TextField(editing && mode == "on_device" ? "Amount to log" : draft.drankAll ? "Drink size" : "Amount to log",
                       text: Binding(get: { draft.volumeText }, set: { draft.setVolume($0) }))
                 .keyboardType(.decimalPad).focused($focusedField, equals: .volume).accessibilityIdentifier("photoConsumed")
             Picker("Unit", selection: Binding(get: { draft.unit }, set: { draft.setUnit($0) })) {
