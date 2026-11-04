@@ -1,6 +1,26 @@
 # Hydra AI project status
 
-## November 3 — current phone build and cold-start finding
+## November 3 — combined app installed and opened
+
+The camera exclusive check finished. `codex/combined-camera-hydration` combines
+camera PR #75 with the hydration stack through PR #77. The complete HealthKit-
+signed original app is installed and launched normally; post-update owner status
+is pending. One owner backend now serves both features on the saved camera port,
+preserving its token, data and pinned local model. Both previous databases remain;
+only the already confirmed goal was carried into the previously goal-free camera
+store after an explicit notice. No provider inference was made.
+
+276 native tests, 1768 Python tests +58 subtests (four optional offline-tool
+skips), six distinct actual synthetic Simulator flows and independent integration
+review establish the reported scope. Detailed Wonder works with a numerical
+cold start and saved replay in the fake-provider Simulator run. Actual personal
+Wonder still needs a genuine account renewal and exact on-phone preview/consent;
+current readiness blocks only on the stale observation. See the
+[combined report](COMBINED_EXPERIENCE_2026-11-03.md), including test limits and
+the remaining historical-date UI check. Older installation/hold notices below
+retain their milestone scopes and are superseded by this update.
+
+## Earlier November 3 — camera build and cold-start finding
 
 The camera chat reports restoring its PR #75 build and backend on the same
 iPhone. PR #75 is merged on `main` as `27cc907`; that Settings source lacks the

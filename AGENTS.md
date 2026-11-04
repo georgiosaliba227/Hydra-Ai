@@ -1,6 +1,20 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 combined continuation: the camera chat released exclusive phone use
+after owner-reported success. The combined local product includes camera PR #75
+and the hydration stack through PR #77. Keep the saved camera port/token and
+existing camera database; both features now share that owner backend. Preserve
+the old hydration database and connection-scoped local profiles. Only the already
+confirmed goal was carried to the previously goal-free camera store after an
+explicit notice, without moving drinks, body answers or HealthKit records.
+`HYDRA_LOCAL_META_ALLOW_WONDER` defaults false and only permits explicitly
+configured coexistence; it does not relax any Wonder admission or consent gate,
+and camera recognition remains local with no hosted fallback. The old camera-only
+installer is a rollback artifact and can replace the combined app/configuration;
+do not run it over this milestone inadvertently. Keep Simulator tests paused
+during actual local-camera demos. See docs/COMBINED_EXPERIENCE_2026-11-03.md.
+
 November 3 later UX direction (Georgio): use American units and ask for optional
 Health/workout and weather access on first use, then update context automatically.
 The installed implementation uses US fl oz/°F/lb presentation, canonical API

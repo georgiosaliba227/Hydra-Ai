@@ -1,6 +1,28 @@
 # Hydra AI next actions
 
-## Current order — combine the installed experience after camera verification
+## Current order — verify the installed combined experience
+
+1. Review `codex/combined-camera-hydration`, containing the local camera/main
+   ancestry and complete hydration stack. Preserve human review and no automatic
+   merge. The combined report records 276 native, 1768 Python +58 subtests and
+   six distinct passing Simulator flows, with their limits.
+2. Complete the pending status-only owner check of Home's US goal/score and the
+   local trained camera after the in-place update. Keep the saved camera URL/token;
+   both feature sets now share that backend. Do not use the older camera-only
+   installer over the combined milestone or silently migrate the other data store.
+3. Renew the stale account observation from a genuinely rendered authenticated
+   billing source. The current billing route is blank; dashboard selected-window
+   spend is not gross spending/finality. Preserve all holds and accepted-risk
+   references, and do not repeat risk-approval questions.
+4. Once readiness is ready, verify the owner's exact aggregate preview, fresh
+   consent, one actual comprehensive response and saved replay. Numerical cold
+   start does not prevent this separate flow. No automatic request or invented
+   personal record is permitted.
+5. Collect genuine comparable manual workout measurements; retain the default
+   baseline and experimental-off setting. Always-on deployment and independent
+   personal scientific validation remain separate work.
+
+## Earlier order — before combined installation
 
 1. Respect the camera chat's exclusive phone check. Leave the installed app,
    saved backend/token and camera service untouched; do not start local Hydra

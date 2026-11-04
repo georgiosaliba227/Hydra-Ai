@@ -1,6 +1,14 @@
 # Guided beverage goal — November 3, 2026
 
-Current installation scope: the camera chat later restored its PR #75 build and
+Current installation scope: the signed combined product `4b2ac8e` is installed
+and launched normally, after release of the camera check. It retains the guided
+goal and local-camera features. Only the existing owner-confirmed goal integer
+was carried into the previously goal-free camera backend after an explicit
+notice; body/profile answers remain in their original on-device scope. The
+post-update owner Home/camera check is pending. See the
+[combined report](COMBINED_EXPERIENCE_2026-11-03.md).
+
+Earlier installation scope: the camera chat restored its PR #75 build and
 backend on the same phone. The guided-goal owner-assisted pass below remains
 valid for source `84b7ba6`, but does not describe that restored camera build.
 Hydration installs/relaunches, saved connection changes and local Simulator/UI

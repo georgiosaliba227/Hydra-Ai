@@ -1,6 +1,24 @@
 # Physical hydration milestone verification
 
-## Current scope — camera build restored after these milestones
+## Current scope — combined original app installed and launched
+
+After the camera chat released its exclusive check, the combined product source
+`4b2ac8e` was built with valid HealthKit signing, installed over the original
+bundle and launched normally. Strict signature, unexpired profile and inclusion
+of the paired phone pass. No uninstall/reset, launch connection override or token
+injection was used. Post-update owner Home/camera status is pending; no actual
+personal forecast, Wonder result or replay is claimed from install/launch alone.
+
+One owner backend now serves local trained camera and guarded Wonder on the saved
+camera port. Startup preserved both database row snapshots, pinned runtime config
+and financial bytes. After an explicit notice, the previously confirmed goal was
+carried into the goal-free camera store; drinks/corrections/photos and the source
+database were unchanged. Raw profile/HealthKit/calibration records were not moved.
+The old hydration database remains; its server was stopped. No inference was
+performed. Readiness currently blocks only on the stale account observation.
+See the [combined verification report](COMBINED_EXPERIENCE_2026-11-03.md).
+
+## Earlier scope — camera build restored after these milestones
 
 The camera chat subsequently reported restoring its PR #75 app/backend over the
 same original bundle. Its merged source (`27cc907`) lacks this hydration branch's
