@@ -50,8 +50,8 @@ class AssistantRequest(BaseModel):
         return self
 
 
-def install_assistant_routes(app, to_engine) -> None:
-    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "")
+def install_assistant_routes(app, to_engine, *, allow_intake_context: bool = True, allow_recorded: bool = True) -> None:
+    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "") if allow_recorded else ""
     results_dir = Path(configured) if configured else None
     if results_dir is not None and not results_dir.is_absolute():
         raise ValueError("HYDRA_WONDER_RESULTS_DIR must be absolute")
@@ -62,7 +62,11 @@ def install_assistant_routes(app, to_engine) -> None:
 
     @app.post("/v1/assistant")
     def ask(payload: AssistantRequest, request: Request):
+        if not allow_intake_context and payload.context_scope != "none":
+            raise HTTPException(422, "invalid_request")
         if payload.source == "recorded_wonder":
+            if not allow_recorded:
+                raise HTTPException(404, "not_found")
             from backend.wonder_results import load_recorded_answer
             try:
                 recorded = load_recorded_answer(results_dir, payload.question_id) if results_dir else None
