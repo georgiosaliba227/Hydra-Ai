@@ -216,6 +216,29 @@ intentional action away and sending always requires a complete review and consen
   default-off review consent, disabled explanation preview before consent and
   consent reset after cancel/reopen. Inspected the review at a 320-pixel browser
   width and corrected the heading layout.
-- No SwiftUI product changes, XCTest runs, pytest runs, or physical-device checks
-  have been performed for this design-only commit. Implementation and its
-  acceptance checks remain pending approval.
+- No SwiftUI product changes have been made. Implementation and its acceptance
+  checks remain pending approval.
+
+## Implementation baseline
+
+Verified on the unchanged product at `350f1b7` before implementation:
+
+- Full maintained Python suite: **1,319 passed, 5 skipped**, plus 58 passing
+  subtests. The one warning is the existing FastAPI/Starlette TestClient httpx
+  deprecation; no dependencies were changed. Command:
+  `/Users/georgiosaliba/Desktop/Hydra-Ai/.venv/bin/python -m pytest -q tests`.
+- iOS unit suite: **102 tests passed, 0 failures**, using Xcode's iOS 26.5
+  iPhone 17 Pro simulator and ad-hoc signing. Command:
+  `xcodebuild -project ios/HydraAI.xcodeproj -scheme HydraAI -destination
+  'platform=iOS Simulator,id=91E9720B-63F2-4A99-8982-5BF28B810F66'
+  -derivedDataPath /tmp/hydra-simplify-baseline-derived
+  -resultBundlePath /tmp/hydra-simplify-baseline-unit.xcresult
+  CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES -only-testing:HydraAITests
+  -parallel-testing-enabled NO -collect-test-diagnostics never test`.
+- Both commands exited successfully. Local logs are
+  `/tmp/hydra-simplify-baseline-pytest.log` and
+  `/tmp/hydra-simplify-baseline-xctest.log`; the XCTest result bundle is at the
+  path above. These temporary artifacts are not part of the review commit.
+- These are baseline results for existing code, not proof of the redesign.
+  Native UI automation, physical-device checks and the proposed accessibility
+  acceptance checks remain to be performed after implementation.
