@@ -59,7 +59,7 @@
 - [x] Replace verbose hub cards, duplicate Today destinations and repeated footer explanations; retain logging, goal, pending-delivery and history coverage behavior.
 - [x] Run all maintained pytest, full iOS unit suite and affected opt-in UI suite on the mock backend. Inspect light/dark, small/large simulator layouts and accessibility text. Fix functional/accessibility issues; document limits.
 - [x] Update docs and plan verification record. Commit, request one fresh whole-branch code review and address important findings with regression coverage.
-- [ ] Create an unmerged review PR for Amine.
+- [x] Create an unmerged review PR for Amine: https://github.com/georgiosaliba227/Hydra-Ai/pull/79.
 
 ## Execution record
 

@@ -2,7 +2,7 @@
 
 The user selected the guided workout design on November 3, 2026. This change
 implements that design in the native SwiftUI app; the earlier browser preview
-was illustrative. The branch is intended for an unmerged review PR.
+was illustrative. Review PR: [#79](https://github.com/georgiosaliba227/Hydra-Ai/pull/79), left unmerged.
 
 ## Implemented experience
 
