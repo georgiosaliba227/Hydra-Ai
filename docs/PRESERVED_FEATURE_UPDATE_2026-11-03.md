@@ -43,3 +43,29 @@ The optional skips are offline dependency/environment checks; no dependency was
 added. Existing prediction/scientific limitations and real-provider readiness
 requirements remain unchanged. A passing local integration test does not renew
 financial authorization, supply personal-data consent or establish health accuracy.
+
+## Device/runtime delivery
+
+The signed preserved-feature build is **308**, from source revision `627cf5b`.
+It was installed in place on the paired owner phone; no uninstall, URL override,
+token injection or data-reset operation was used. The private backend now runs
+an immutable staged copy of the same revision. Startup verified unchanged
+database rows, financial-ledger bytes, model configuration and connection-file
+bytes. Existing provider configuration was preserved; no financial authority
+was renewed and no inference was requested.
+
+The additional synthetic guided-goal/profile-relaunch/Home-score native check
+passed, as did the exact one-litre US camera review. The extra
+`CombinedExperienceUITests.testColdStartStillOffersConsentedDetailedWonderAndFreeReplay`
+rerun initially lacked the logged evidence required by the real API and correctly
+offered no send action. After supplying an invented prior-day drink, its rerun
+was stopped because XCTest repeatedly waited 60 seconds for app-idle/animation
+notifications. No fake provider call had begun. No passing result is claimed for
+that extra rerun; the comprehensive API/grounding/replay tests still pass.
+
+PR #81 targets the existing combined feature branch and passes GitHub's Python
+3.13, Python 3.14 and iOS unit checks. PR #80 remains the merged fix on `main`.
+Final normal launch and protected on-device file verification await the owner
+unlocking the phone: iOS explicitly refused launch while it was locked. The
+installed-build check already confirms build 308. Private operation receipts
+and the previous signed build are retained for recovery.
