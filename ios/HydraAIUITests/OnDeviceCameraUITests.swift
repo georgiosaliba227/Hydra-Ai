@@ -47,7 +47,9 @@ final class OnDeviceCameraUITests: XCTestCase {
             app.tabBars.buttons["Settings"].tap()
             let field=app.textFields["goalField"]
             XCTAssertTrue(field.waitForExistence(timeout:10))
-            app.buttons["Clear goal"].tap()
+            let clear = app.buttons["Clear goal"]
+            for _ in 0..<5 where !clear.isHittable { app.swipeUp() }
+            XCTAssertTrue(clear.waitForExistence(timeout: 5)); clear.tap()
             replace(field,with:String(value),app:app)
             XCTAssertEqual(field.value as? String,String(value))
             if app.buttons["Done"].exists { app.buttons["Done"].tap() }
@@ -157,6 +159,10 @@ final class OnDeviceCameraUITests: XCTestCase {
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:15))
         app.tabBars.buttons["Settings"].tap()
         XCTAssertEqual(app.switches["onDeviceMode"].value as? String,"1")
+        let insights = app.switches["backendInsightsMode"]
+        if insights.value as? String == "1" {
+            insights.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        }
         XCTAssertFalse(app.textFields["backendURL"].exists)
         app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
