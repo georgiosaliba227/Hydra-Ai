@@ -40,9 +40,12 @@ Validation:
 
 The owner completed wireless Device Hub pairing. The signed update was installed
 in place over Wi-Fi on the registered iPhone 17 Pro and launched successfully.
-The signed build and UI proof remain staged privately. Physical airplane-mode
-analysis/save and force-close/reopen checks are awaiting the owner; no physical
-inference or performance claim is made. No hosted calls, financial-ledger changes, public
+The signed build and UI proof remain staged privately. A focused physical-device
+XCTest passed on iPhone 17 Pro/iOS 27.2: the real bundled model and OCR analyzed a
+generated label in about 2.9s with wireless debugging connected (one test, zero
+failures). The original signed app was restored in place afterward. Physical
+airplane-mode analysis/save and force-close/reopen checks are awaiting the owner;
+real-camera accuracy and general performance remain unverified. No hosted calls, financial-ledger changes, public
 deployment or merge are part of this PR.
 
 @aminealichaouche — please review the local persistence and recognition boundary.

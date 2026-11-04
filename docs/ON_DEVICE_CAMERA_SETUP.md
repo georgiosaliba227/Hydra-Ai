@@ -10,7 +10,10 @@ The signed build still needs to be installed on the phone first.
 1. Open Hydra → Settings. Enable **On this iPhone (works offline)** and tap
    **Save connection**. Your server settings, server history and legacy demo
    history remain separate. An existing unresolved pending save must be
-   reconciled before changing destinations.
+   reconciled before changing destinations. Check that **Status** now says
+   **On this iPhone**; changing the toggle alone does not save the connection.
+   If Camera says analysis is unavailable until the backend mode is verified,
+   return here, save the local mode, then tap **Refresh analysis mode** in Camera.
 2. Open Camera and take or choose a drink photo. Show the printed size clearly.
 3. Enable **Allow this photo to be analyzed on this iPhone**, then tap
    **Analyze on this iPhone**. No backend or Meta-upload consent is needed for
@@ -72,9 +75,17 @@ The owner completed wireless pairing through Xcode 27 Device Hub. The signed
 update was installed in place over Wi-Fi on the registered iPhone 17 Pro and its
 process launched successfully. The signed `.app`, source/signature manifest and
 UI proof remain staged in the owner's private `on-device-camera-20261104` directory.
+A focused XCTest also passed on the physical iPhone 17 Pro (iOS 27.2): real bundled
+model inference and OCR on a generated 500 mL label, including missing-model and
+invalid-photo rejection, completed with zero failures. That generated-image
+analysis took about 2.9s with wireless debugging connected; this does not establish
+real-camera accuracy or general latency. The original signed app was restored in
+place after the test, preserving its data.
+
 Saving the local mode, physical airplane-mode recognition/save and force-close/
-reopen persistence are awaiting the owner's final device check. No physical
-latency or recognition-accuracy claim is made.
+reopen persistence are awaiting the owner's final device check. The owner reported
+the backend-mode-unverified message; the model test passed, and the next check is
+selecting and saving **On this iPhone** in Settings.
 
 Development details and model source/metrics are in
 `docs/architecture/ON_DEVICE_CAMERA.md` and `ai/on_device/README.md`. Weights,
