@@ -17,8 +17,8 @@ running owner backend while preparing a reviewable nonbillable integration.
    backend. Verify real owner connection safely, without personal-data API probes
    or paid requests. Review, run suites, build/sign and install in place.
 
-- [ ] Restored goal core and protected local profile scope.
-- [ ] Guided setup and saved-goal circle verified.
-- [ ] One-button local analysis verified.
+- [x] Restored goal core and protected local profile scope; 41 focused and 170 native tests in isolated subtask.
+- [ ] Research a new individualized goal method first (latest explicit owner choice); setup/adoption awaits suitable evidence.
+- [x] One-button local analysis verified; expected checkbox regression RED, four real-model/progress UI tests GREEN.
 - [ ] Backend contract and feature routing verified with synthetic data.
 - [ ] Complete checks/review, signed install and truthful physical handoff.
