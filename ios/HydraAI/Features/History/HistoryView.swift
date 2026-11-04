@@ -38,8 +38,15 @@ struct HistoryView: View {
             }
 
             if days.isEmpty {
-                ContentUnavailableView("No drinks yet", systemImage: "drop",
-                                       description: Text("Drinks you log will appear here."))
+                VStack(spacing: 12) {
+                    Image(systemName: "drop").font(.largeTitle).foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                    Text("No drinks yet").font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Drinks you log will appear here.").font(.subheadline).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .multilineTextAlignment(.center).frame(maxWidth: .infinity).padding(.vertical, 24)
             }
 
             ForEach(days, id: \.self) { day in

@@ -88,3 +88,9 @@ associated correction and training copy. Financial history is excluded from
 these operations. Financial databases are never automatically migrated with
 feedback tables: use a separate beverage database and the existing financial
 authority through a backend-only `HYDRA_META_LEDGER_PATH` setting.
+
+Standalone manual details and no-match placeholders have no authentic original
+candidate, so the iPhone does not attach correction memory/training feedback to
+those entries. Successful delete-all invalidates displayed and delayed camera
+results and their registered receipts before another pending save can be made.
+A local analysis that crosses deletion cannot restore its receipt afterward.

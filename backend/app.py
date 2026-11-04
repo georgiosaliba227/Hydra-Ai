@@ -219,6 +219,7 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     app = FastAPI(title="Hydra AI Local Prototype", version="1.0.0")
     app.state.repository = BeverageRepository(db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
     app.state.recognition_mode = "meta_live" if mode == "guarded_meta" else mode
+    app.state.data_generation = 0
     app.state.meta_ledger = AccountLedger(os.getenv("HYDRA_META_LEDGER_PATH") or db_path or os.getenv("HYDRA_DATABASE_PATH", "database/hydra.sqlite3"))
     if mode == "guarded_meta":
         account = os.getenv("HYDRA_META_ACCOUNT", "")
@@ -310,6 +311,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     def analyze_beverage(payload: AnalysisRequest, request: Request):
         if payload.mode != request.app.state.recognition_mode:
             raise RecognitionUnavailable()
+        with request.app.state.wonder_lock:
+            data_generation = request.app.state.data_generation
         # Validate even injected adapter output, then enrich only from the catalogue.
         try:
             result = AnalysisResult.model_validate(request.app.state.recognizer.analyze(payload)).model_dump()
@@ -329,10 +332,13 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
             if result["mode"] == "local_meta":
                 from .local_meta import ADAPTER_SHA256
                 original=[{k:v for k,v in item.items() if k not in ("nutrition","personal_correction")} for item in result["candidates"]]
-                request.app.state.repository.record_local_recognition("local-demo",{
-                    "recognition_id":result["recognition_id"],"image_sha256":result["image_sha256"],
-                    "mode":"local_meta","model":LOCAL_MODEL,"adapter_sha256":ADAPTER_SHA256,
-                    "created_at":utc_string(datetime.now(dt_timezone.utc)),"candidates":original})
+                with request.app.state.wonder_lock:
+                    if data_generation != request.app.state.data_generation:
+                        raise RecognitionUnavailable()
+                    request.app.state.repository.record_local_recognition("local-demo",{
+                        "recognition_id":result["recognition_id"],"image_sha256":result["image_sha256"],
+                        "mode":"local_meta","model":LOCAL_MODEL,"adapter_sha256":ADAPTER_SHA256,
+                        "created_at":utc_string(datetime.now(dt_timezone.utc)),"candidates":original})
             return result
         except (ValidationError, ValueError):
             raise RecognitionUnavailable() from None
@@ -482,12 +488,21 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         # An explicit phrase guards against an accidental or replayed bulk deletion.
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
-        results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import delete_trends, delete_workouts
-        deleted = request.app.state.repository.delete_all("local-demo")
-        return {"deleted_beverages": deleted, "settings_cleared": True,
-                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
-                "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0}
+        # A successful deletion must not be followed by an older explanation
+        # persisting the personal facts it captured before deletion.
+        lock = request.app.state.wonder_lock
+        if not lock.acquire(blocking=False):
+            return error_response("wonder_busy", 409, request.scope["state"]["request_id"], retryable=True)
+        try:
+            request.app.state.data_generation += 1
+            results_dir = getattr(request.app.state, "wonder_results_dir", None)
+            from .wonder_results import delete_trends, delete_workouts
+            deleted = request.app.state.repository.delete_all("local-demo")
+            return {"deleted_beverages": deleted, "settings_cleared": True,
+                    "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
+                    "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0}
+        finally:
+            lock.release()
 
     @app.get("/v1/settings")
     def get_settings(request: Request):

@@ -110,6 +110,15 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
 
     @app.post("/v1/wonder/trends")
     def explain_trends(payload: TrendRequest, request: Request):
+        if not in_flight.acquire(blocking=False):
+            return error_response("wonder_busy", 409, request.scope["state"]["request_id"], retryable=True)
+        try:
+            return explain_trends_locked(payload, request)
+        finally:
+            in_flight.release()
+
+    def explain_trends_locked(payload: TrendRequest, request: Request):
+        # Serialize the facts snapshot through persistence with delete-all.
         request_id = request.scope["state"]["request_id"]
         view = preview(facts_for(request, payload.timezone))
         if not view["explainable"]:
@@ -121,23 +130,18 @@ def install_wonder_trend_routes(app, *, live: bool, error_response) -> None:
         factory = request.app.state.wonder_trends_gateway
         if factory is None:
             return error_response("wonder_unavailable", 503, request_id)
-        if not in_flight.acquire(blocking=False):
-            return error_response("wonder_busy", 409, request_id, retryable=True)
+        gateway = factory()
         try:
-            gateway = factory()
-            try:
-                quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
-                result = gateway.explain_trends(view["facts"], quote,
-                                                f"in-app-consent:{request_id}:{payload.payload_sha256}")
-            except (RecognitionUnavailable, OSError, ValueError):
-                if gateway.last_attempt is None:
-                    return error_response("wonder_blocked", 409, request_id)
-                response = error_response("wonder_attempt_unresolved", 502, request_id)
-                # A billable request may have been sent: name the attempt so a developer can reconcile it.
-                return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
-                                    status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
-        finally:
-            in_flight.release()
+            quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
+            result = gateway.explain_trends(view["facts"], quote,
+                                            f"in-app-consent:{request_id}:{payload.payload_sha256}")
+        except (RecognitionUnavailable, OSError, ValueError):
+            if gateway.last_attempt is None:
+                return error_response("wonder_blocked", 409, request_id)
+            response = error_response("wonder_attempt_unresolved", 502, request_id)
+            # A billable request may have been sent: name the attempt so a developer can reconcile it.
+            return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
+                                status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
         try:
             save_result(results_dir, result)
             stored = True
