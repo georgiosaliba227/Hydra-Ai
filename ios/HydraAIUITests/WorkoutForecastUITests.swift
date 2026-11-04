@@ -10,7 +10,7 @@ final class WorkoutForecastUITests: XCTestCase {
             throw XCTSkip("Requires the nonbillable review fixture with --unavailable-demo")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Insights"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Insights"].tap(); app.buttons["insightsWorkout"].tap()
@@ -30,7 +30,7 @@ final class WorkoutForecastUITests: XCTestCase {
             throw XCTSkip("Requires opt-in local synthetic-data backend")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()

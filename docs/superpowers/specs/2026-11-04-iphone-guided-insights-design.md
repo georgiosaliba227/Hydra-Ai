@@ -2,20 +2,20 @@
 
 ## Latest owner steering
 
-The owner explicitly selected **research and validation of a new individualized
-goal method first**, rather than restoring the previous published adult reference
-as the calculation. The previous reference code is retained only as a tested
-comparison and the protected profile core is reusable. First-use calculation and
-automatic goal adoption remain pending the evidence assessment and method choice.
-Do not present the old reference or a water-turnover proxy as a validated personal
-beverage requirement. The independent camera and backend work continues.
+The owner requested research and validation of a new individualized goal method
+first. The evidence assessment (including 2026 studies) did not establish a
+validated profile-to-beverage-goal method. After reviewing that result, the owner
+explicitly selected **a clearly labelled adult starting reference, reviewed and
+confirmed by the user**, while individualized goal research continues. Restore
+the earlier method under that label; never present it or a water-turnover proxy
+as a measured personal requirement. No numerical supplement adjustment is added.
 
 The owner requested restoring the earlier biometric setup, making the circle fill
 from its saved goal, removing the local photo permission checkbox, and connecting
 Trends, Ask Hydra and related backend features. The supplied Today screenshot
 shows no saved goal. The water renderer itself is already tested and installed.
 
-## Earlier restoration design, superseded for numerical method
+## Confirmed interim setup design
 
 Reuse the reviewed goal/profile implementation from `codex/preserve-combined-latest`
 (`e9b8dde`, originating at `84b7ba6`) without importing the unrelated financial or

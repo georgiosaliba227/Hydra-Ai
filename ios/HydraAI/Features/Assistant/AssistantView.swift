@@ -11,7 +11,7 @@ struct AssistantView: View {
     @State private var task: Task<Void, Never>?
     @FocusState private var questionFocused: Bool
 
-    private var connected: Bool { store.isConfigured && !store.isOffline }
+    private var connected: Bool { store.hasInsightsConnection }
     private var trimmed: String { question.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
@@ -44,7 +44,7 @@ struct AssistantView: View {
         .background(Color.hydraBackground)
         .navigationTitle("Ask Hydra")
         .task(id: store.configurationGeneration) {
-            guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+            guard connected, let service = try? store.insightsService() else { return }
             await controller.loadQuestions(service: service)
         }
         .onChange(of: question) { _, _ in invalidate() }
@@ -90,6 +90,9 @@ struct AssistantView: View {
                 Toggle("Include today's logged total", isOn: $includeToday)
                     .disabled(recordedWonder)
                     .accessibilityIdentifier("assistantIncludeToday")
+                if store.isOnDevice {
+                    Text("Your question goes to your Hydra backend. Including today's total shares only the total from this iPhone's log.")
+                }
                 Toggle("Use Muse Wonder's recorded picks", isOn: $recordedWonder)
                     .accessibilityIdentifier("assistantRecordedWonder")
                 Text("Recorded picks replay reviewed answers selected earlier. No new Meta request is made.")
@@ -225,9 +228,23 @@ struct AssistantView: View {
     }
 
     private func ask(_ request: AssistantRequest) {
-        guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        guard connected, let service = try? store.insightsService() else { return }
         task?.cancel()
-        task = Task { await controller.ask(request, service: service) }
+        let connection = store.configurationGeneration
+        let local = store.isOnDevice && !request.wantsRecordedWonder
+        task = Task {
+            guard connection == store.configurationGeneration, !Task.isCancelled else { return }
+            if local {
+                await controller.ask(request, service: service, deviceSummary: {
+                    guard connection == store.configurationGeneration, !Task.isCancelled else { throw GoalMutationError.connectionChanged }
+                    let total = try await store.deviceAssistantTotal(for: request, generation: connection)
+                    guard connection == store.configurationGeneration, !Task.isCancelled else { throw GoalMutationError.connectionChanged }
+                    return total
+                })
+            } else {
+                await controller.ask(request, service: service)
+            }
+        }
     }
 
     private func invalidate() {

@@ -5,6 +5,23 @@ import XCTest
 final class GoalLifecycleTests: XCTestCase {
     private let configuration = APIConfiguration(baseURL: "http://127.0.0.1:8000", token: String(repeating: "x", count: 32), offline: false)
 
+    func testDeletingPhoneDataPreservesOtherConnectionsLocalProfile() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let serverID = UUID(), profiles = GoalProfileStore(directory: directory.appendingPathComponent("profiles"), scopeResolver: { _ in serverID })
+        let phone = APIConfiguration(baseURL: "", token: "", offline: false, onDevice: true)
+        profiles.configure(phone)
+        try profiles.save(GoalProfile(ageYears: 30), consent: true)
+        profiles.configure(configuration)
+        try profiles.save(GoalProfile(ageYears: 40), consent: true)
+        let store = BeverageStore(service: SuspendedGoalService(), pendingURL: directory.appendingPathComponent("pending.json"),
+                                  configuration: phone, goalProfiles: profiles)
+        _ = try await store.deleteAllData()
+        XCTAssertNil(profiles.profile)
+        profiles.configure(configuration)
+        XCTAssertEqual(profiles.profile?.ageYears, 40, "Deleting the selected phone destination must preserve other connection profiles")
+    }
+
     func testLateGoalReadCannotReturnAnotherConnectionsValue() async throws {
         let saved = try SavedConnectionState(); defer { saved.restore() }
         let service = SuspendedGoalService(), store = makeStore(service)

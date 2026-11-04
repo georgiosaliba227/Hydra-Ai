@@ -12,7 +12,7 @@ final class PhysicalRecognitionTests: XCTestCase {
     }
     private func launch(libraryFixture: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": env["HYDRA_E2E_BACKEND_URL"]!,
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": env["HYDRA_E2E_BACKEND_URL"]!,
                                  "HYDRA_TEST_API_TOKEN": env["HYDRA_E2E_API_TOKEN"]!, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         if libraryFixture { app.launchEnvironment["HYDRA_TEST_LIBRARY_FIXTURE"] = "1" }
         app.launch()
@@ -117,7 +117,7 @@ final class PhysicalRecognitionTests: XCTestCase {
             let pendingMessage = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Retry pending beverage'")).firstMatch
             XCTAssertTrue(pendingMessage.waitForExistence(timeout: 5))
             cancel.tap()
-            app.terminate(); app.launchEnvironment = [:]; app.launch()
+            app.terminate(); app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1"]; app.launch()
             XCTAssertTrue(app.buttons["retryPending"].waitForExistence(timeout: 20))
         } catch {
             try? control("resume")

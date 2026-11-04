@@ -24,6 +24,11 @@ final class GuidedDeviceGoalUITests: XCTestCase {
         let confirm = app.buttons["useGoalReference"]; reveal(confirm, app)
         XCTAssertTrue(confirm.isEnabled); confirm.tap()
         waitForSetupDismissal(app)
+        app.tabBars.buttons["Today"].tap()
+        app.buttons["quickAdd-water-500"].tap()
+        let progress = app.descendants(matching: .any).matching(identifier: "goalProgress").firstMatch
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS '17%'"), object: progress)], timeout: 10), .completed)
+        let proof = XCTAttachment(screenshot: app.screenshot()); proof.name = "Confirmed reference drives water progress"; proof.lifetime = .keepAlways; add(proof)
         openSettingsSetup(app)
         XCTAssertEqual(app.textFields["profileAgeYears"].value as? String, "30")
         let height = app.textFields["profileHeightCm"]; reveal(height, app)

@@ -21,7 +21,7 @@ struct WorkoutForecastView: View {
     @State private var requestTask: Task<Void, Never>?
     @FocusState private var focusedField: String?
 
-    private var connected: Bool { store.isConfigured && !store.isOffline }
+    private var connected: Bool { store.hasInsightsConnection }
     private var loading: Bool { controller.state == .loading }
 
     var body: some View {
@@ -264,7 +264,7 @@ struct WorkoutForecastView: View {
 
     private func estimate() {
         guard connected, !loading, !samples.isEmpty, draft.consent, draft.comparable,
-              let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+              let service = try? store.insightsService() else { return }
         do {
             let request = try WorkoutForecastRequest(mode: "personal", timezone: TimeZone.current.identifier,
                 exercise: draft.exercise(), samples: samples, calibration_processing_consent: draft.consent)

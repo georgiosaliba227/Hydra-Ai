@@ -9,7 +9,7 @@ final class OnDeviceCameraUITests: XCTestCase {
         #endif
         continueAfterFailure=false
         let app=XCUIApplication()
-        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
+        app.launchEnvironment=["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15));app.tabBars.buttons["Camera"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10));app.buttons["syntheticPhoto"].tap()
@@ -31,7 +31,7 @@ final class OnDeviceCameraUITests: XCTestCase {
         #endif
         continueAfterFailure=false
         let app=XCUIApplication()
-        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1"]
+        app.launchEnvironment=["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_ON_DEVICE":"1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout:15))
         let total=app.descendants(matching:.any).matching(identifier:"dailyTotal").firstMatch
@@ -120,7 +120,7 @@ final class OnDeviceCameraUITests: XCTestCase {
         #endif
         continueAfterFailure=false
         let app=XCUIApplication()
-        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
+        app.launchEnvironment=["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15));app.tabBars.buttons["Camera"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10));app.buttons["syntheticPhoto"].tap()
@@ -152,7 +152,7 @@ final class OnDeviceCameraUITests: XCTestCase {
         #endif
         continueAfterFailure=false
         let app=XCUIApplication()
-        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
+        app.launchEnvironment=["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout:15))
         app.tabBars.buttons["Settings"].tap()
@@ -191,7 +191,7 @@ final class OnDeviceCameraUITests: XCTestCase {
         app.tabBars.buttons["Today"].tap()
         let expected=String(initial+500)
         XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@",expected),object:total)],timeout:15),.completed)
-        app.terminate(); app.launchEnvironment=[:]; app.launch()
+        app.terminate(); app.launchEnvironment=["HYDRA_TEST_SKIP_GOAL_SETUP": "1"]; app.launch()
         XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout:15))
         XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"value == %@",expected),object:total)],timeout:15),.completed)
         app.tabBars.buttons["History"].tap()

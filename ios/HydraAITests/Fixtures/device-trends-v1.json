@@ -1,0 +1,141 @@
+{
+  "version": "device-insights-v1",
+  "source": "on_device_summary",
+  "facts": {
+    "version": "wonder-trends-facts-v1",
+    "timezone": "GMT",
+    "through_date": "2026-11-01",
+    "window_days": 14,
+    "days": [
+      {
+        "date": "2026-10-19",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-20",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-21",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-22",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-23",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-24",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-25",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-26",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-27",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-28",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-29",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-30",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-10-31",
+        "total_ml": 0,
+        "drinks": 0
+      },
+      {
+        "date": "2026-11-01",
+        "total_ml": 250,
+        "drinks": 1
+      }
+    ],
+    "goal_ml": 2000,
+    "categories": [
+      {
+        "category": "water",
+        "total_ml": 250,
+        "share_pct": 100
+      }
+    ],
+    "other_categories_ml": 0,
+    "time_of_day_ml": {
+      "morning_ml": 0,
+      "afternoon_ml": 250,
+      "evening_ml": 0,
+      "night_ml": 0
+    },
+    "last_7_days": {
+      "total_ml": 250,
+      "average_ml": 36,
+      "logged_days": 1
+    },
+    "previous_7_days": {
+      "total_ml": 0,
+      "average_ml": 0,
+      "logged_days": 0
+    },
+    "change_pct": null,
+    "goal_met_days_last_7": 0,
+    "applicable_insights": [
+      "goal_progress",
+      "logging_consistency",
+      "beverage_mix",
+      "timing"
+    ]
+  },
+  "payload_sha256": "70087c43e503e335320114adde78bc0ce9e396c2317b6884ebd3e97a4e2f3c7b",
+  "summary": "You logged 250 mL over 1 recorded days in this 14-day window.",
+  "insights": [
+    {
+      "id": "goal_progress",
+      "title": "Your goal",
+      "text": "Logged totals reached your 2000 mL goal on 0 of the last 7 days."
+    },
+    {
+      "id": "logging_consistency",
+      "title": "Logging habit",
+      "text": "Drinks were recorded on 1 of these 14 days. Days without logs are unknown intake."
+    },
+    {
+      "id": "beverage_mix",
+      "title": "What you drink",
+      "text": "water: 250 mL (100% of logged volume)."
+    }
+  ],
+  "provenance": {
+    "mode": "deterministic",
+    "provider": null,
+    "model": null,
+    "history_source": "on_device_summary",
+    "storage": "ephemeral"
+  }
+}

@@ -14,7 +14,7 @@ final class TrendsConsentUITests: XCTestCase {
         let counter = base.appendingPathComponent("__test__/trend-sends")
         let before = try get(counter, token: token)["count"] as? Int
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": baseText, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": baseText, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Insights"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Insights"].tap(); app.buttons["insightsTrends"].tap()
@@ -53,7 +53,7 @@ final class TrendsConsentUITests: XCTestCase {
         guard let latest = preview["latest"] as? [String: Any], let facts = latest["facts"] as? [String: Any],
               let through = facts["through_date"] as? String else { throw XCTSkip("Enable --saved-example on the fixture") }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": baseText, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": baseText, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Insights"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Insights"].tap(); app.buttons["insightsTrends"].tap()

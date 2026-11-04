@@ -10,7 +10,7 @@ final class CameraCorrectionsUITests: XCTestCase {
             throw XCTSkip("Requires a disposable local-camera fixture with no model process")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Camera"].tap()
@@ -45,7 +45,7 @@ final class CameraCorrectionsUITests: XCTestCase {
             throw XCTSkip("Requires a dedicated synthetic camera-correction backend")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()

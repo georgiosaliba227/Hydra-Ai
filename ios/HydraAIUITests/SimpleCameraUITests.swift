@@ -8,7 +8,7 @@ final class SimpleCameraUITests: XCTestCase {
         // Physical runs use an isolated synthetic server. Restore the owner's
         // normal connection even if a UI assertion failed; never erase app data.
         let app = XCUIApplication(); app.terminate()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": restore, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": restore, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
@@ -22,7 +22,7 @@ final class SimpleCameraUITests: XCTestCase {
         let env = ProcessInfo.processInfo.environment
         guard env["HYDRA_E2E_SIMPLE_CAMERA"] == "1", let url = env["HYDRA_E2E_BACKEND_URL"], let token = env["HYDRA_E2E_API_TOKEN"] else { throw XCTSkip("Synthetic simple-camera backend required") }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()

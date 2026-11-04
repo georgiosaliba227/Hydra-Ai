@@ -8,7 +8,7 @@ struct WorkoutDemoView: View {
     @StateObject private var wonder = RecordedWonderController()
     @State private var requestTask: Task<Void, Never>?
     @State private var wonderTask: Task<Void, Never>?
-    private var connected: Bool { store.isConfigured && !store.isOffline }
+    private var connected: Bool { store.hasInsightsConnection }
 
     var body: some View {
         ScrollView {
@@ -65,15 +65,18 @@ struct WorkoutDemoView: View {
             }
         }
         .onDisappear { requestTask?.cancel(); wonderTask?.cancel(); controller.invalidate(); wonder.invalidate() }
+        .onChange(of: store.configurationGeneration) { _, _ in
+            requestTask?.cancel(); wonderTask?.cancel(); controller.invalidate(); wonder.invalidate()
+        }
     }
 
     private func run() {
-        guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        guard connected, let service = try? store.insightsService() else { return }
         requestTask?.cancel()
         requestTask = Task { await controller.load(.demonstration(timezone: TimeZone.current.identifier), service: service) }
     }
     private func loadWonder() {
-        guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        guard connected, let service = try? store.insightsService() else { return }
         wonderTask?.cancel()
         wonderTask = Task { await wonder.load(service: service) }
     }

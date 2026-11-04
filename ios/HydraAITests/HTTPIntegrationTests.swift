@@ -155,6 +155,8 @@ private actor RecordingService: BeverageService {
 struct SavedConnectionState {
     private let url = UserDefaults.standard.object(forKey: "hydra.backendURL")
     private let offline = UserDefaults.standard.object(forKey: "hydra.offline")
+    private let onDevice = UserDefaults.standard.object(forKey: "hydra.onDevice")
+    private let insights = UserDefaults.standard.object(forKey: "hydra.backendInsights")
     private let credential: [String: Any]?
     private static let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "HydraAI.localBackend", kSecAttrAccount as String: "development-session"]
 
@@ -171,6 +173,8 @@ struct SavedConnectionState {
     func restore() {
         UserDefaults.standard.set(url, forKey: "hydra.backendURL")
         UserDefaults.standard.set(offline, forKey: "hydra.offline")
+        UserDefaults.standard.set(onDevice, forKey: "hydra.onDevice")
+        UserDefaults.standard.set(insights, forKey: "hydra.backendInsights")
         let deleted = SecItemDelete(Self.query as CFDictionary)
         XCTAssertTrue(deleted == errSecSuccess || deleted == errSecItemNotFound)
         if let credential, let data = credential[kSecValueData as String] {

@@ -105,3 +105,19 @@ Test route authentication, strict schema/privacy rejection, deterministic parity
 empty history, date/timezone boundaries, repository/provider non-access and no
 persistence. Client tests must cover source routing, no backend-history fallback,
 failed requests preserving local logging and stale-connection invalidation.
+
+## Features-only local runtime
+
+`backend.device_insights_app.create_device_insights_app(api_token=...)` provides
+the phone features without constructing a beverage repository, financial ledger,
+recognizer or provider. The owner launcher supplies its existing Hydra backend
+token explicitly. This is never a Meta API key. Bind only to the owner's private
+LAN address for the local prototype; the existing full backend remains separate.
+
+The factory ignores ambient live/provider, database, ledger and recorded-result
+settings. Its health response reports `features_only: true`,
+`billable_requests_enabled: false`, `provider_dispatch: false`, `storage: none`.
+It exposes ephemeral summaries, reviewed questions/answers and stateless local
+v2 workout/context calculations. Legacy assistant requests with server-history
+context are rejected; recorded provider replays return 404. No record migration,
+financial initialization, provider activation or automatic fallback occurs.

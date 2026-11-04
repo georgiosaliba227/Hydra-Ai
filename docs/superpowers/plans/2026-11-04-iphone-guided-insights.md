@@ -18,7 +18,8 @@ running owner backend while preparing a reviewable nonbillable integration.
    or paid requests. Review, run suites, build/sign and install in place.
 
 - [x] Restored goal core and protected local profile scope; 41 focused and 170 native tests in isolated subtask.
-- [ ] Research a new individualized goal method first (latest explicit owner choice); setup/adoption awaits suitable evidence.
+- [x] Research individualized goal methods, including 2026 evidence; no validated daily beverage target established. Owner then chose a clearly labelled, confirmed adult starting reference during further research.
+- [ ] Integrate confirmed interim reference into first use, Today and Settings.
 - [x] One-button local analysis verified; expected checkbox regression RED, four real-model/progress UI tests GREEN.
 - [ ] Backend contract and feature routing verified with synthetic data.
 - [ ] Complete checks/review, signed install and truthful physical handoff.

@@ -21,6 +21,12 @@ struct DashboardView: View {
                 statusBanners
                 if store.summary != nil {
                     TodayProgressCard(volumeMl: todayVolumeMl, goal: store.summary?.goal)
+                    if store.summary?.goal == nil && !store.configuration.offline {
+                        NavigationLink {
+                            GuidedGoalSetupView(profileStore: store.goalProfiles)
+                        } label: { Label("Set up your daily goal", systemImage: "target") }
+                            .accessibilityIdentifier("todayGoalSetup")
+                    }
                 } else {
                     StatusBanner(text: "Today's total appears once your drinks have loaded.",
                                  systemImage: "hourglass", tint: .secondary)

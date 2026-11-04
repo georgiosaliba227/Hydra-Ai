@@ -59,13 +59,51 @@ final class BeverageStore: ObservableObject {
     var isConfigured: Bool { service != nil }
     var isOffline: Bool { configuration.offline || configuration.onDevice }
     var isOnDevice: Bool { configuration.onDevice }
+    var hasInsightsConnection: Bool { configuration.backendInsightsConfiguration != nil }
+    func insightsService() throws -> HTTPBeverageService {
+        guard let connection = configuration.backendInsightsConfiguration else { throw ServiceError.configuration }
+        return try HTTPBeverageService(configuration: connection)
+    }
+
+    /// Read from the selected phone destination, never from server history.
+    func deviceTrendSnapshot(now: Date = .now, zone: TimeZone = .current) async throws -> DeviceTrendSnapshot {
+        guard isOnDevice, canLog, let service else { throw ServiceError.pending }
+        let generation = configurationGeneration, version = refreshVersion
+        let logs = try await service.listBeverages()
+        let goal = try await service.goalSettings().daily_beverage_goal_ml
+        try Task.checkCancellation()
+        guard generation == configurationGeneration, version == refreshVersion, canLog else { throw GoalMutationError.connectionChanged }
+        return try DeviceTrendSnapshot.make(logs: logs, goal: goal, now: now, zone: zone)
+    }
+
+    func deviceAssistantTotal(for request: AssistantRequest, generation: UUID) async throws -> Int? {
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        guard isOnDevice else { throw ServiceError.configuration }
+        guard request.context_scope == "today_logged_total" else { return nil }
+        guard canLog, let service else { throw ServiceError.pending }
+        guard let date = request.date, let timezone = request.timezone else { throw ServiceError.invalidResponse }
+        let version = refreshVersion
+        let result = try await service.dailySummary(date: date, timezone: timezone)
+        try Task.checkCancellation()
+        guard generation == configurationGeneration, version == refreshVersion, canLog else { throw GoalMutationError.connectionChanged }
+        guard result.localDate == date, result.timezone == timezone, result.beverageTotalMl.isFinite,
+              (0...1_000_000_000).contains(result.beverageTotalMl), result.beverageTotalMl.rounded() == result.beverageTotalMl else { throw ServiceError.invalidResponse }
+        return Int(result.beverageTotalMl)
+    }
     var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving && !isSettingGoal }
     private var destination: String { Self.destination(for: configuration) }
     private static func destination(for config: APIConfiguration) -> String {
         config.onDevice ? "on_device" : config.offline ? "offline" : config.baseURL
     }
     private static func makeService(for config: APIConfiguration) throws -> any BeverageService {
-        if config.onDevice { return LocalBeverageService() }
+        if config.onDevice {
+            #if DEBUG
+            if let directory = goalTestDirectory {
+                return LocalBeverageService(fileURL: directory.appendingPathComponent("beverages.json"))
+            }
+            #endif
+            return LocalBeverageService()
+        }
         if config.offline { return MockBeverageService() }
         return try HTTPBeverageService(configuration: config)
     }
@@ -76,7 +114,11 @@ final class BeverageStore: ObservableObject {
         self.goalProfiles = goalProfiles ?? Self.makeGoalProfiles()
         self.goalProfiles.configure(configuration)
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        #if DEBUG
+        self.pendingURL = pendingURL ?? Self.goalTestDirectory?.appendingPathComponent("pending.json") ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
+        #else
         self.pendingURL = pendingURL ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
+        #endif
         self.service = service ?? (try? Self.makeService(for: configuration))
         if FileManager.default.fileExists(atPath: self.pendingURL.path) {
             do {
@@ -93,15 +135,21 @@ final class BeverageStore: ObservableObject {
 
     private static func makeGoalProfiles() -> GoalProfileStore {
         #if DEBUG
-        if let suite = ProcessInfo.processInfo.environment["HYDRA_TEST_GOAL_PROFILE_SUITE"],
-           suite.hasPrefix("HydraUITests."), let id = UUID(uuidString: String(suite.suffix(36))) {
-            let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-                .resolvingSymlinksInPath().appendingPathComponent("HydraAI/goal-profile-tests-v1/\(id.uuidString)", isDirectory: true)
-            return GoalProfileStore(directory: directory)
+        if let directory = goalTestDirectory {
+            return GoalProfileStore(directory: directory.appendingPathComponent("profiles", isDirectory: true))
         }
         #endif
         return GoalProfileStore()
     }
+
+    #if DEBUG
+    private static var goalTestDirectory: URL? {
+        guard let suite = ProcessInfo.processInfo.environment["HYDRA_TEST_GOAL_PROFILE_SUITE"],
+              suite.hasPrefix("HydraUITests."), let id = UUID(uuidString: String(suite.suffix(36))) else { return nil }
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath().appendingPathComponent("HydraAI/goal-setup-tests-v1/\(id.uuidString)", isDirectory: true)
+    }
+    #endif
 
     func configure(_ config: APIConfiguration) throws {
         if let pending, pending.destination != Self.destination(for: config) { throw ServiceError.pending }
@@ -220,12 +268,12 @@ final class BeverageStore: ObservableObject {
         return try await service.exportData()
     }
 
-    /// Erases every log and the goal on the backend; blocked while a creation is pending.
+    /// Erases the selected destination's records and local profile; other scopes stay separate.
     func deleteAllData() async throws -> Int {
         guard canLog, let service, !configuration.offline else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
-        try goalProfiles.deleteAll()
+        try goalProfiles.deleteCurrent()
         let count = try await service.deleteAllData()
         // Delete-all also erases local camera receipts on the backend. Revoke
         // displayed and delayed results before they can become pending saves.

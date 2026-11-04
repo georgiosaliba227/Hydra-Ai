@@ -11,13 +11,19 @@ struct ExportDocument: FileDocument {
 
 struct BackendSettingsView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     @State private var url = ""
     @State private var token = ""
     @State private var offline = false
     @State private var onDevice = false
+    @State private var insightsEnabled = false
+    @State private var connectionMessage: String?
+    @State private var checkingConnection = false
     @State private var error: String?
     @State private var goalText = ""
     @State private var goalMessage: String?
+    @State private var goalEditRevision = UUID()
+    @State private var loadingGoal = true
     @FocusState private var goalFocused: Bool
     @State private var export: ExportDocument?
     @State private var confirmingDeleteAll = false
@@ -38,7 +44,15 @@ struct BackendSettingsView: View {
                     Toggle("Offline demo (separate local data)", isOn: $offline)
                         .accessibilityIdentifier("offlineMode")
                 }
-                if !offline && !onDevice {
+                if onDevice {
+                    Toggle("Connect backend features", isOn: $insightsEnabled)
+                        .accessibilityIdentifier("backendInsightsMode")
+                    if insightsEnabled {
+                        Text("Trends sends a summary of your phone's drink totals after you review it. Ask Hydra sends your question and today's total only if you include it. Workout estimates send the inputs you review. Your photos and stored drinks stay on this iPhone.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                if !offline && (!onDevice || insightsEnabled) {
                     TextField("Backend URL", text: $url)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("backendURL")
@@ -48,12 +62,19 @@ struct BackendSettingsView: View {
                 }
                 Button("Save connection") {
                     do {
-                        try store.configure(.init(baseURL: url.trimmingCharacters(in: .whitespacesAndNewlines), token: token, offline: offline, onDevice: onDevice))
+                        try store.configure(.init(baseURL: url.trimmingCharacters(in: .whitespacesAndNewlines), token: token, offline: offline, onDevice: onDevice, insightsEnabled: insightsEnabled))
                         error = nil
+                        connectionMessage = nil
                         Task { await store.refresh() }
                     } catch { self.error = error.localizedDescription }
                 }
                 .accessibilityIdentifier("saveConnection")
+                if store.hasInsightsConnection {
+                    Button(checkingConnection ? "Checking backend…" : "Check backend features") { Task { await checkConnection() } }
+                        .disabled(checkingConnection)
+                        .accessibilityIdentifier("checkBackendInsights")
+                }
+                if let connectionMessage { Text(connectionMessage).font(.footnote).accessibilityIdentifier("backendInsightsStatus") }
                 if let error { Text(error).foregroundStyle(.red) }
             } header: {
                 Text("Connection").foregroundStyle(.primary)
@@ -64,8 +85,12 @@ struct BackendSettingsView: View {
             }
             if (!store.isOffline || store.isOnDevice) && store.isConfigured {
                 Section {
+                    NavigationLink {
+                        GuidedGoalSetupView(profileStore: store.goalProfiles)
+                    } label: { Label("Guided goal setup", systemImage: "person.crop.circle.badge.checkmark") }
+                        .accessibilityIdentifier("guidedGoalSetup")
                     HStack {
-                        TextField("e.g. 2000", text: $goalText)
+                        TextField("e.g. 2000", text: Binding(get: { goalText }, set: { goalText = $0; goalEditRevision = UUID() }))
                             .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
                             .keyboardType(.numberPad)
                             .focused($goalFocused)
@@ -74,17 +99,22 @@ struct BackendSettingsView: View {
                         Text("mL").foregroundStyle(.secondary).accessibilityHidden(true)
                     }
                     Button("Save goal") { goalFocused = false; Task { await saveGoal(Int(goalText)) } }
-                        .disabled(Int(goalText).map { !(100...10_000).contains($0) } ?? true)
+                        .disabled(loadingGoal || store.isSettingGoal || (Int(goalText).map { !(100...10_000).contains($0) } ?? true))
                         .accessibilityIdentifier("saveGoal")
                     Button("Clear goal", role: .destructive) { Task { await saveGoal(nil) } }
+                        .disabled(loadingGoal || store.isSettingGoal)
                     if let goalMessage { Text(goalMessage).font(.footnote).accessibilityIdentifier("goalMessage") }
                 } header: {
                     Text("Daily goal (optional)")
                 } footer: {
-                    Text("A goal you choose for logged drinks. Hydra doesn't recommend an amount; daily needs vary and include water from food.")
+                    Text("Review a published adult starting reference in guided setup, or choose your own goal for logged drinks. A starting reference is not a measured personal requirement.")
                 }
             }
             Section {
+                Picker("Display units", selection: $units.system) {
+                    Text("US").tag(DisplayUnitSystem.us)
+                    Text("Metric").tag(DisplayUnitSystem.metric)
+                }.accessibilityIdentifier("displayUnits")
                 NavigationLink { HealthActivityPermissionView() } label: {
                     Label("Apple Health", systemImage: "heart.text.square")
                 }
@@ -102,7 +132,7 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text(store.isOnDevice ? "Export includes this iPhone's drinks, goal and original camera suggestions. Deleting clears only these local records. Server and demo data stay separate."
+                    Text(store.isOnDevice ? "Export includes this iPhone's drinks, goal and original camera suggestions. Profile answers have their own export in guided setup. Deleting clears these local records and this destination's saved profile. Other connection profiles, server and demo data stay separate."
                          : "Export includes your drinks, goal, saved corrections and training photos you opted in to contribute. Deleting erases them from your backend and can't be undone.")
                 }
             }
@@ -128,15 +158,20 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text(store.isOnDevice ? "This iPhone's local drinks, goal and original suggestions will be erased. This cannot be undone. Server and demo records stay separate."
+            Text(store.isOnDevice ? "This iPhone's local drinks, goal, original suggestions and saved profile will be erased. This cannot be undone. Other connection profiles, server and demo records stay separate."
                  : "Your drinks, goal, correction memory and opted-in training photos are erased from the backend. This cannot be undone.")
         }
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { goalFocused = false }
         } }
-        .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.configuration.offline; onDevice = store.isOnDevice }
-        .task {
-            if let goal = try? await store.currentGoal() { goalText = String(goal) }
+        .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.configuration.offline; onDevice = store.isOnDevice; insightsEnabled = store.configuration.insightsEnabled }
+        .task(id: store.configurationGeneration) {
+            let connection = store.configurationGeneration, revision = goalEditRevision
+            goalText = ""; goalMessage = nil; loadingGoal = true
+            defer { if connection == store.configurationGeneration { loadingGoal = false } }
+            let goal = try? await store.currentGoal()
+            guard connection == store.configurationGeneration, revision == goalEditRevision, !Task.isCancelled else { return }
+            goalText = goal.map(String.init) ?? ""
         }
     }
 
@@ -157,12 +192,28 @@ struct BackendSettingsView: View {
 
     @MainActor
     private func saveGoal(_ milliliters: Int?) async {
+        let revision = goalEditRevision
         do {
             try await store.setGoal(milliliters)
-            goalText = milliliters.map(String.init) ?? ""
+            if revision == goalEditRevision { goalText = milliliters.map(String.init) ?? "" }
             goalMessage = milliliters == nil ? "Goal cleared." : "Goal saved."
         } catch {
             goalMessage = "Could not save the goal. \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    private func checkConnection() async {
+        let generation = store.configurationGeneration
+        checkingConnection = true
+        defer { checkingConnection = false }
+        do {
+            _ = try await store.insightsService().deviceInsightsCapabilities()
+            guard generation == store.configurationGeneration, !Task.isCancelled else { return }
+            connectionMessage = "Backend features connected. No drink data was sent."
+        } catch {
+            guard generation == store.configurationGeneration, !Task.isCancelled else { return }
+            connectionMessage = "Backend features unavailable. \(error.localizedDescription)"
         }
     }
 

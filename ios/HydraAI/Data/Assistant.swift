@@ -120,16 +120,26 @@ struct AssistantAnswer: Decodable, Sendable {
 
     func loadQuestions(service: any BeverageService) async {
         guard questions.isEmpty else { return }
-        if let loaded = try? await service.assistantQuestions(), loaded.count <= 20 { questions = loaded }
+        let current = generation
+        if let loaded = try? await service.assistantQuestions(), loaded.count <= 20,
+           current == generation, !Task.isCancelled { questions = loaded }
     }
 
-    func ask(_ request: AssistantRequest, service: any BeverageService) async {
+    func ask(_ request: AssistantRequest, service: any BeverageService,
+             deviceSummary: (@MainActor () async throws -> Int?)? = nil) async {
         invalidate()
         let current = generation
         state = .loading
         do {
             try request.validate()
-            let answer = try await service.askAssistant(request)
+            let answer: AssistantAnswer
+            if let deviceSummary {
+                let total = try await deviceSummary()
+                guard current == generation, !Task.isCancelled else { return }
+                answer = try await service.askDeviceAssistant(DeviceAssistantEnvelope(request: request, todayLoggedTotalMl: total))
+            } else {
+                answer = try await service.askAssistant(request)
+            }
             try answer.validate(request: request)
             guard current == generation, !Task.isCancelled else { return }
             self.answer = answer; state = .loaded
