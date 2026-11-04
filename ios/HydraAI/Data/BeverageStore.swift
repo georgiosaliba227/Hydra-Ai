@@ -36,6 +36,7 @@ final class BeverageStore: ObservableObject {
     private var refreshVersion = 0
     private var historyTask: Task<Void, Never>?
     private var currentRecognitionReceipts: Set<UUID> = []
+    private var onDeviceResults: [UUID: OnDeviceRecognitionProvenance] = [:]
 
     private func invalidateHistory() {
         refreshVersion += 1
@@ -43,15 +44,24 @@ final class BeverageStore: ObservableObject {
         intakeHistory = nil; intakeHistoryState = .idle
     }
     var isConfigured: Bool { service != nil }
-    var isOffline: Bool { configuration.offline }
+    var isOffline: Bool { configuration.offline || configuration.onDevice }
+    var isOnDevice: Bool { configuration.onDevice }
     var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving }
-    private var destination: String { configuration.offline ? "offline" : configuration.baseURL }
+    private var destination: String { Self.destination(for: configuration) }
+    private static func destination(for config: APIConfiguration) -> String {
+        config.onDevice ? "on_device" : config.offline ? "offline" : config.baseURL
+    }
+    private static func makeService(for config: APIConfiguration) throws -> any BeverageService {
+        if config.onDevice { return LocalBeverageService() }
+        if config.offline { return MockBeverageService() }
+        return try HTTPBeverageService(configuration: config)
+    }
 
     init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load()) {
         self.configuration = configuration
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         self.pendingURL = pendingURL ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
-        self.service = service ?? (configuration.offline ? MockBeverageService() : try? HTTPBeverageService(configuration: configuration))
+        self.service = service ?? (try? Self.makeService(for: configuration))
         if FileManager.default.fileExists(atPath: self.pendingURL.path) {
             do {
                 let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
@@ -64,12 +74,13 @@ final class BeverageStore: ObservableObject {
     }
 
     func configure(_ config: APIConfiguration) throws {
-        if let pending, pending.destination != (config.offline ? "offline" : config.baseURL) { throw ServiceError.pending }
-        let next: any BeverageService = config.offline ? MockBeverageService() : try HTTPBeverageService(configuration: config)
+        if let pending, pending.destination != Self.destination(for: config) { throw ServiceError.pending }
+        let next = try Self.makeService(for: config)
         try config.save()
         invalidateHistory()
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
+        onDeviceResults.removeAll()
         configuration = config; service = next; logs = []; summary = nil; state = .idle
     }
 
@@ -112,8 +123,22 @@ final class BeverageStore: ObservableObject {
     /// A transient camera result may be confirmed only on its original backend
     /// configuration. Already-persisted pending mutations retain their retry path.
     func registerRecognitionReceipt(_ receipt: UUID, generation: UUID) -> Bool {
-        guard generation == configurationGeneration else { return false }
+        guard generation == configurationGeneration, !isOnDevice else { return false }
         currentRecognitionReceipts.insert(receipt)
+        return true
+    }
+
+    /// Only the active on-phone recognizer can register a local confirmation.
+    func registerOnDeviceResult(_ result: RecognitionResult, generation: UUID) -> Bool {
+        guard isOnDevice, generation == configurationGeneration,
+              result.version == "recognition-v1", result.mode == "on_device",
+              result.model == "dinov2-small-beverage-v1", result.requiresConfirmation,
+              result.candidates.count == 1, let receipt = result.recognitionId,
+              let candidate = result.candidates.first else { return false }
+        let provenance = OnDeviceRecognitionProvenance(modelID: result.model, originalCandidate: candidate, processedAt: .now)
+        guard (try? provenance.validate()) != nil else { return false }
+        currentRecognitionReceipts.insert(receipt)
+        onDeviceResults[receipt] = provenance
         return true
     }
 
@@ -122,8 +147,12 @@ final class BeverageStore: ObservableObject {
         if let recognitionId, !currentRecognitionReceipts.contains(recognitionId) {
             throw ServiceError.liveRecognitionUnverified
         }
-        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl, recognitionFeedback: recognitionFeedback, consumptionAssumption: consumptionAssumption, beverageType: beverageType)
-        try request.validate()
+        if isOnDevice && source == "confirmed_recognition" {
+            guard let recognitionId, onDeviceResults[recognitionId] != nil, recognitionFeedback == nil else { throw ServiceError.invalidResponse }
+        }
+        var request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl, recognitionFeedback: recognitionFeedback, consumptionAssumption: consumptionAssumption, beverageType: beverageType)
+        request.onDeviceRecognition = isOnDevice ? recognitionId.flatMap { onDeviceResults[$0] } : nil
+        try request.validate(allowOnDevice: isOnDevice)
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
         do {
             let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
@@ -152,13 +181,13 @@ final class BeverageStore: ObservableObject {
     }
 
     func exportData() async throws -> Data {
-        guard let service, !isOffline else { throw ServiceError.configuration }
+        guard let service, !configuration.offline else { throw ServiceError.configuration }
         return try await service.exportData()
     }
 
     /// Erases every log and the goal on the backend; blocked while a creation is pending.
     func deleteAllData() async throws -> Int {
-        guard canLog, let service, !isOffline else { throw ServiceError.pending }
+        guard canLog, let service, !configuration.offline else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
         let count = try await service.deleteAllData()
@@ -166,6 +195,7 @@ final class BeverageStore: ObservableObject {
         // displayed and delayed results before they can become pending saves.
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
+        onDeviceResults.removeAll()
         await refresh()
         return count
     }
@@ -197,7 +227,8 @@ final class BeverageStore: ObservableObject {
 
     func retryPending() async throws {
         guard !isSaving, !pendingReadError, let service, let item = pending, item.destination == destination else { throw ServiceError.pending }
-        try item.request.validate()
+        try item.request.validate(allowOnDevice: isOnDevice)
+        if isOnDevice && item.request.source == "confirmed_recognition" && item.request.onDeviceRecognition == nil { throw ServiceError.invalidResponse }
         invalidateHistory()
         isSaving = true
         defer { isSaving = false }

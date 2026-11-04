@@ -4,16 +4,28 @@ import Security
 struct APIConfiguration {
     var baseURL: String
     var token: String
-    var offline: Bool
+    var offline: Bool { didSet { if offline { onDevice = false } } }
+    var onDevice: Bool { didSet { if onDevice { offline = false } } }
+
+    init(baseURL: String, token: String, offline: Bool, onDevice: Bool = false) {
+        self.baseURL = baseURL
+        self.token = token
+        self.offline = offline && !onDevice
+        self.onDevice = onDevice
+    }
 
     static func load() -> APIConfiguration {
         let defaults = UserDefaults.standard
-        var config = APIConfiguration(baseURL: defaults.string(forKey: "hydra.backendURL") ?? "http://127.0.0.1:8000", token: CredentialStore.read() ?? "", offline: defaults.bool(forKey: "hydra.offline"))
+        var config = APIConfiguration(baseURL: defaults.string(forKey: "hydra.backendURL") ?? "http://127.0.0.1:8000", token: CredentialStore.read() ?? "", offline: defaults.bool(forKey: "hydra.offline"), onDevice: defaults.bool(forKey: "hydra.onDevice"))
         #if DEBUG
         // Runtime-only simulator configuration; no credential is shipped in the app.
         let env = ProcessInfo.processInfo.environment
         if let url = env["HYDRA_TEST_BACKEND_URL"], let token = env["HYDRA_TEST_API_TOKEN"] {
             config = APIConfiguration(baseURL: url, token: token, offline: false)
+        }
+        // UI/inference tests opt in explicitly; production never changes mode automatically.
+        if env["HYDRA_TEST_ON_DEVICE"] == "1" {
+            config.onDevice = true
         }
         #endif
         return config
@@ -37,10 +49,11 @@ struct APIConfiguration {
     }
 
     func save() throws {
-        if !offline { _ = try validatedURL() }
+        if !offline && !onDevice { _ = try validatedURL() }
         try CredentialStore.write(token)
         UserDefaults.standard.set(baseURL, forKey: "hydra.backendURL")
         UserDefaults.standard.set(offline, forKey: "hydra.offline")
+        UserDefaults.standard.set(onDevice, forKey: "hydra.onDevice")
     }
 }
 

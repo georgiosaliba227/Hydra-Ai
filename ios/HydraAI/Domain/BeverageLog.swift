@@ -1,5 +1,33 @@
 import Foundation
 
+/// Original on-phone suggestion, kept separately from user-confirmed consumption.
+/// No image, image hash, training payload or unrelated label transcript is stored.
+struct OnDeviceRecognitionProvenance: Codable, Equatable, Sendable {
+    let modelID: String
+    let originalCandidate: RecognitionCandidate
+    let processedAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case modelID = "model_id", originalCandidate = "original_candidate", processedAt = "processed_at"
+    }
+
+    func validate(now: Date = .now) throws {
+        guard modelID == "dinov2-small-beverage-v1",
+              processedAt.timeIntervalSince1970.isFinite,
+              DateBoundary.onOrAfter(processedAt, Date(timeIntervalSince1970: 946_684_800)),
+              DateBoundary.onOrBefore(processedAt, now.addingTimeInterval(60)),
+              originalCandidate.personalCorrection == nil else { throw ServiceError.invalidResponse }
+        try originalCandidate.validate()
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        // Candidate's transient SwiftUI id is deliberately excluded by Codable.
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        return lhs.modelID == rhs.modelID && lhs.processedAt == rhs.processedAt
+            && (try? encoder.encode(lhs.originalCandidate)) == (try? encoder.encode(rhs.originalCandidate))
+    }
+}
+
 /// The v1 log contract. User-assumed consumption is explicitly tagged; units are mL.
 struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
@@ -11,6 +39,7 @@ struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
     let revision: Int
     var consumptionAssumption: String? = nil
     var beverageType: String? = nil
+    var onDeviceRecognition: OnDeviceRecognitionProvenance? = nil
     var assumptionDescription: String? {
         switch consumptionAssumption {
         case "entire_liquid": "Assumed all liquid consumed"
@@ -25,6 +54,7 @@ struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
         case consumedAt = "consumed_at"
         case consumptionAssumption = "consumption_assumption"
         case beverageType = "beverage_type"
+        case onDeviceRecognition = "on_device_recognition"
     }
 }
 
@@ -41,6 +71,7 @@ struct CreateBeverageRequest: Codable, Sendable {
     var recognitionFeedback: RecognitionFeedback? = nil
     var consumptionAssumption: String? = nil
     var beverageType: String? = nil
+    var onDeviceRecognition: OnDeviceRecognitionProvenance? = nil
 
     enum CodingKeys: String, CodingKey {
         case category, timezone, source
@@ -48,6 +79,7 @@ struct CreateBeverageRequest: Codable, Sendable {
         case recognitionFeedback = "recognition_feedback"
         case consumptionAssumption = "consumption_assumption"
         case beverageType = "beverage_type"
+        case onDeviceRecognition = "on_device_recognition"
         case consumedMl = "consumed_ml"
         case consumedAt = "consumed_at"
     }
@@ -106,7 +138,11 @@ enum BeverageValidationError: LocalizedError {
 }
 
 extension CreateBeverageRequest {
-    func validate(now: Date = .now) throws {
+    func validate(now: Date = .now, allowOnDevice: Bool = false) throws {
+        if let onDeviceRecognition {
+            guard allowOnDevice, source == "confirmed_recognition", recognitionId != nil, recognitionFeedback == nil else { throw ServiceError.invalidResponse }
+            try onDeviceRecognition.validate(now: now)
+        }
         guard !category.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               category.count <= 80 else { throw BeverageValidationError.invalidCategory }
         guard (1...5_000).contains(consumedMl) else { throw BeverageValidationError.invalidVolume }
@@ -123,7 +159,7 @@ extension CreateBeverageRequest {
                 guard (recognitionFeedback.sourceMode != "mock") == (recognitionId != nil),
                       recognitionFeedback.correctedLiquidMl.map({ $0 <= (containerMl ?? 5000) }) ?? true else { throw BeverageValidationError.invalidVolume }
             }
-        } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil || consumptionAssumption != nil || beverageType != nil { throw BeverageValidationError.invalidCategory }
+        } else if productId != nil || containerMl != nil || recognitionId != nil || recognitionFeedback != nil || consumptionAssumption != nil || beverageType != nil || onDeviceRecognition != nil { throw BeverageValidationError.invalidCategory }
         guard TimeZone(identifier: timezone) != nil else { throw BeverageValidationError.invalidTimezone }
         guard DateBoundary.onOrAfter(consumedAt, Date(timeIntervalSince1970: 946_684_800)) else { throw BeverageValidationError.historicalDate }
         guard DateBoundary.onOrBefore(consumedAt, now.addingTimeInterval(60)) else { throw BeverageValidationError.futureDate }
