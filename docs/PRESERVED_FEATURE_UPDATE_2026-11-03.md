@@ -65,7 +65,10 @@ that extra rerun; the comprehensive API/grounding/replay tests still pass.
 
 PR #81 targets the existing combined feature branch and passes GitHub's Python
 3.13, Python 3.14 and iOS unit checks. PR #80 remains the merged fix on `main`.
-Final normal launch and protected on-device file verification await the owner
-unlocking the phone: iOS explicitly refused launch while it was locked. The
-installed-build check already confirms build 308. Private operation receipts
-and the previous signed build are retained for recovery.
+After the owner unlocked the phone, build 308 launched normally without test
+environment, token or connection overrides and remained running. Metadata-only
+checks confirmed its nonempty, pre-existing preferences file, with a modification
+time predating the update. No preferences, HealthKit records or protected file
+contents were exported. iOS reassigned container paths during installation;
+container-path equality is therefore not used as evidence of data retention.
+Private operation receipts and the previous signed build are retained for recovery.
