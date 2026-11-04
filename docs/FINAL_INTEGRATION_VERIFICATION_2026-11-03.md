@@ -90,3 +90,16 @@ explicitly disabled by the existing flow configuration; this check does not
 enable or claim those integrations. The deletion lock/generation guarantee is
 for the existing single-process local prototype, not a multi-worker deployment.
 Physical-device smoke testing and public-release review remain separate.
+
+## Review handoff
+
+The fixes and this report are committed and pushed on
+`codex/final-integration-checks`; `main` was preserved. PR creation could not
+complete: the connected GitHub integration returned 403 and the existing CLI
+identity was refused because it is not a repository collaborator. The browser
+has no signed-in GitHub session. No credentials or permissions were changed.
+The complete PR description is retained locally at
+`/tmp/hydra-final-checks/pr-body.md`.
+
+[Review the pushed branch and open a PR](https://github.com/georgiosaliba227/Hydra-Ai/compare/main...codex/final-integration-checks?expand=1).
+Amine's human review remains pending; no PR or merge is claimed.
