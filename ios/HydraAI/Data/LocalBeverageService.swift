@@ -82,16 +82,22 @@ actor LocalBeverageService: BeverageService {
               ["manual", "confirmed_recognition"].contains(log.source),
               log.consumptionAssumption.map({ ["entire_liquid", "full_container"].contains($0) }) ?? true,
               log.beverageType.map({ !$0.isEmpty && $0.count <= 80 }) ?? true else { throw ServiceError.storage }
+        if let capacity=log.containerMl {
+            guard (1...5000).contains(capacity),log.consumedMl<=capacity else { throw ServiceError.storage }
+        }
+        if log.consumptionAssumption=="full_container" {
+            guard log.containerMl==log.consumedMl else { throw ServiceError.storage }
+        }
         if log.source == "confirmed_recognition" {
             guard let provenance = log.onDeviceRecognition else { throw ServiceError.storage }
             try provenance.validate()
-        } else if log.onDeviceRecognition != nil || log.consumptionAssumption != nil || log.beverageType != nil { throw ServiceError.storage }
+        } else if log.onDeviceRecognition != nil || log.consumptionAssumption != nil || log.beverageType != nil || log.containerMl != nil { throw ServiceError.storage }
     }
     private func makeLog(_ request: CreateBeverageRequest, key: UUID) -> BeverageLog {
         BeverageLog(id: key, consumedMl: request.consumedMl, category: request.category,
             consumedAt: request.consumedAt, timezone: request.timezone, source: request.source, revision: 1,
             consumptionAssumption: request.consumptionAssumption, beverageType: request.beverageType,
-            onDeviceRecognition: request.onDeviceRecognition)
+            onDeviceRecognition: request.onDeviceRecognition, containerMl: request.containerMl)
     }
 
     func listBeverages() async throws -> [BeverageLog] {
@@ -128,7 +134,8 @@ actor LocalBeverageService: BeverageService {
                 category: request.category ?? current.category, consumedAt: request.consumedAt ?? current.consumedAt,
                 timezone: current.timezone, source: current.source, revision: current.revision + 1,
                 consumptionAssumption: request.consumedMl.map({ $0 != current.consumedMl }) == true ? nil : current.consumptionAssumption,
-                beverageType: current.beverageType, onDeviceRecognition: current.onDeviceRecognition)
+                beverageType: current.beverageType, onDeviceRecognition: current.onDeviceRecognition,
+                containerMl: current.containerMl.flatMap { (request.consumedMl ?? current.consumedMl)<=$0 ? $0 : nil })
             try validate(updated)
             records.beverages[index] = updated
             try write(records)

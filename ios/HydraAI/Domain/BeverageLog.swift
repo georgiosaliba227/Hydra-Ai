@@ -40,6 +40,7 @@ struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
     var consumptionAssumption: String? = nil
     var beverageType: String? = nil
     var onDeviceRecognition: OnDeviceRecognitionProvenance? = nil
+    var containerMl: Int? = nil
     var assumptionDescription: String? {
         switch consumptionAssumption {
         case "entire_liquid": "Assumed all liquid consumed"
@@ -55,6 +56,7 @@ struct BeverageLog: Codable, Identifiable, Equatable, Sendable {
         case consumptionAssumption = "consumption_assumption"
         case beverageType = "beverage_type"
         case onDeviceRecognition = "on_device_recognition"
+        case containerMl = "container_ml"
     }
 }
 
