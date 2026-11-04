@@ -5,7 +5,7 @@ and launched normally, after release of the camera check. It retains the guided
 goal and local-camera features. Only the existing owner-confirmed goal integer
 was carried into the previously goal-free camera backend after an explicit
 notice; body/profile answers remain in their original on-device scope. The
-post-update owner Home/camera check is pending. See the
+owner confirms the Home US goal/score and trained camera mode both appear. See the
 [combined report](COMBINED_EXPERIENCE_2026-11-03.md).
 
 Earlier installation scope: the camera chat restored its PR #75 build and

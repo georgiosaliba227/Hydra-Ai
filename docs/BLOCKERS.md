@@ -6,15 +6,17 @@ The camera exclusive hold is released. The combined signed app is installed and
 opened normally, with a unified owner backend on the existing camera connection.
 Backend rows/runtime configuration/financial bytes were preserved; only the
 previously confirmed goal was adopted in the previously goal-free camera store.
-Post-update owner Home/camera status is pending. See the
+The owner confirms the Home US goal/score and trained camera mode appear. See the
 [combined evidence](COMBINED_EXPERIENCE_2026-11-03.md).
 
-Live Wonder currently blocks only on `account_observation_stale`. The authenticated
-Meta dashboard loads, but its billing route has returned a blank view; do not
-invent fresh credit observations or invoice finality. Pricing was rechecked.
-Standing accepted-risk waivers remain valid and were not requested again. After
-genuine renewal, actual personal preview/consent/result/replay still needs an
-owner-assisted check. Real calibration measurements remain absent. Four optional
+Live Wonder reports ready at the read-only 00:18 UTC November 4 check. A fresh
+owner credit report renewed the observation, labeled owner-attested rather than
+operator-visible billing. Account identity, credential binding and pricing were
+checked separately; current payable/final gross/cross-ledger billing remain
+unverified. Existing holds/limits and accepted-risk references remain unchanged.
+The observation expires at 01:14:49 UTC November 4. Actual personal
+preview/consent/result/replay still needs an owner-assisted check. Real
+calibration measurements remain absent. Four optional
 offline dataset-tool tests were skipped, and an older-date camera picker UI
 round trip remains an explicit minor test gap.
 

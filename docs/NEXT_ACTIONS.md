@@ -6,15 +6,16 @@
    ancestry and complete hydration stack. Preserve human review and no automatic
    merge. The combined report records 276 native, 1768 Python +58 subtests and
    six distinct passing Simulator flows, with their limits.
-2. Complete the pending status-only owner check of Home's US goal/score and the
-   local trained camera after the in-place update. Keep the saved camera URL/token;
+2. Preserve the owner-confirmed Home US goal/score and trained camera mode in
+   the combined app. Keep the saved camera URL/token;
    both feature sets now share that backend. Do not use the older camera-only
    installer over the combined milestone or silently migrate the other data store.
-3. Renew the stale account observation from a genuinely rendered authenticated
-   billing source. The current billing route is blank; dashboard selected-window
-   spend is not gross spending/finality. Preserve all holds and accepted-risk
-   references, and do not repeat risk-approval questions.
-4. Once readiness is ready, verify the owner's exact aggregate preview, fresh
+3. Check readiness before a later request. The 00:18 UTC November 4 check is
+   ready after a fresh owner-attested credit report; that observation expires
+   at 01:14:49 UTC. It does not establish payable balance, gross charges or
+   invoice finality. Preserve all holds and accepted-risk references, and do
+   not repeat risk-approval questions.
+4. Verify the owner's exact aggregate preview, fresh
    consent, one actual comprehensive response and saved replay. Numerical cold
    start does not prevent this separate flow. No automatic request or invented
    personal record is permitted.

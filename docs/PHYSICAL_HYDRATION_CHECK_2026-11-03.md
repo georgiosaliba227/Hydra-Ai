@@ -6,8 +6,9 @@ After the camera chat released its exclusive check, the combined product source
 `4b2ac8e` was built with valid HealthKit signing, installed over the original
 bundle and launched normally. Strict signature, unexpired profile and inclusion
 of the paired phone pass. No uninstall/reset, launch connection override or token
-injection was used. Post-update owner Home/camera status is pending; no actual
-personal forecast, Wonder result or replay is claimed from install/launch alone.
+injection was used. The owner confirms the Home US goal/score and trained camera
+mode both appear. No new image inference, numerical personal forecast, actual
+Wonder result or replay is claimed from that scoped status check.
 
 One owner backend now serves local trained camera and guarded Wonder on the saved
 camera port. Startup preserved both database row snapshots, pinned runtime config
@@ -15,7 +16,8 @@ and financial bytes. After an explicit notice, the previously confirmed goal was
 carried into the goal-free camera store; drinks/corrections/photos and the source
 database were unchanged. Raw profile/HealthKit/calibration records were not moved.
 The old hydration database remains; its server was stopped. No inference was
-performed. Readiness currently blocks only on the stale account observation.
+performed. At 00:18 UTC November 4, read-only readiness reports ready following
+a fresh owner-attested credit report; final billing remains unverified.
 See the [combined verification report](COMBINED_EXPERIENCE_2026-11-03.md).
 
 ## Earlier scope — camera build restored after these milestones

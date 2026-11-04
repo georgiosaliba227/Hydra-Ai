@@ -7,8 +7,9 @@ with the hydration stack through PR #77 (`1c28dad`). Local merge `4b2ac8e`
 contains the combined product; `8078493` adds test-only/plan clarifications.
 The complete original app was built with valid HealthKit signing, installed in
 place and launched normally on the paired iPhone. No uninstall/reset or launch
-URL/token injection was used. The owner-assisted post-update Home/camera status
-check remains pending; installation and launch alone do not prove every screen.
+URL/token injection was used. The owner subsequently confirmed both the Home
+goal/score in US units and the trained Meta camera mode. This is a scoped status
+check, not a new image-inference or personal Wonder result.
 
 The backend now serves both feature sets on the existing camera port 8771 with
 the same owner token, camera beverage database, pinned model/runtime/OCR and
@@ -77,18 +78,23 @@ reference-epoch precision.
   of the paired phone were checked. Backend startup/capabilities, goal preservation
   and installation/normal launch have private status-only receipts. No personal
   values, private photos, device diagnostics or credentials were published.
+- GitHub checks for `1de7d76` passed: Python 3.13, Python 3.14 and iOS unit tests.
 
 ## Remaining checks
 
-At the latest runtime check, Wonder is configured but blocked only by
-`account_observation_stale`. Meta's authenticated dashboard renders, while its
-billing route has returned a blank view. Published Wonder pricing was rechecked
-in the official documentation; an old credit observation must not be retimestamped.
-Existing owner risk waivers remain accepted, all holds/limits remain intact, and
-unknown final billing/cross-ledger status remains unverified.
+At 00:18 UTC on November 4 (November 3 locally), the authenticated read-only
+runtime check reports Wonder **ready**. The owner supplied a fresh current
+available-credit report; it is recorded privately as owner-attested, not an
+operator-visible billing balance. Authenticated account identity, the existing
+credential binding and published pricing were checked separately. The renewal
+appended one authorization event and retained the original policy/quote end times,
+all previous rows, holds, limits, frozen flag and risk-waiver references. It made
+no provider request. Current payable balance, final gross charges and cross-ledger
+billing status remain unverified. The new account-observation window ends at
+01:14:49 UTC November 4; readiness must be checked again for a later send.
 
-After a genuine account renewal, the owner still needs to preview the exact
-personal aggregates, consent and verify one actual eight-section response and
+The owner still needs to preview the exact personal aggregates, consent and
+verify one actual eight-section response and
 saved replay. The operator cannot supply that consent or fabricate actual drinks
 or calibration history. Genuine comparable workout measurements are still absent;
 experimental fitting stays off by default. Scientific accuracy, unattended iOS
