@@ -520,6 +520,8 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_forecast_routes(app, to_engine)
     from .assistant_routes import install_assistant_routes
     install_assistant_routes(app, to_engine)
+    from .device_insights import install_device_insights_routes
+    install_device_insights_routes(app)
     from .workout_forecasts import install_workout_forecast_routes
     install_workout_forecast_routes(app)
     from .hydration_context_v2 import install_context_v2_routes
