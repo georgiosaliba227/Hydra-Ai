@@ -57,11 +57,17 @@
 
 - [x] Add a UI assertion that Today has one Insights entry and Insights exposes 3 compact destinations; update affected existing tests to use the new route. Run before shell changes; expect missing Explore insights.
 - [x] Replace verbose hub cards, duplicate Today destinations and repeated footer explanations; retain logging, goal, pending-delivery and history coverage behavior.
-- [ ] Run all maintained pytest, full iOS unit suite and affected opt-in UI suite on the mock backend. Inspect light/dark, small/large simulator layouts and accessibility text. Fix functional/accessibility issues; document limits.
-- [ ] Update docs and plan verification record. Commit, request one fresh whole-branch code review, address important findings with regression coverage, then create an unmerged review PR for Amine.
+- [x] Run all maintained pytest, full iOS unit suite and affected opt-in UI suite on the mock backend. Inspect light/dark, small/large simulator layouts and accessibility text. Fix functional/accessibility issues; document limits.
+- [x] Update docs and plan verification record. Commit, request one fresh whole-branch code review and address important findings with regression coverage.
+- [ ] Create an unmerged review PR for Amine.
 
 ## Execution record
 
 - User selected “Guided steps: workout → conditions → result” after the preview and design were shared. Implement this layout directly; routine code organization remains the builder's decision.
 - Native execution chosen to keep the tightly related SwiftUI changes in one context, followed by one independent review.
 - Existing baseline: 1,319 pytest passed / 5 skipped; 102 XCTest passed. These precede implementation and do not verify the redesign.
+
+- Implementation validation: 1,322 Python tests / 5 skips / 58 subtests; starter 3;
+  iOS unit 103. Nineteen affected native UI cases, separate persistence/history-edit,
+  final main-screen accessibility audit and four compact dark-mode UI cases pass.
+  See `docs/UI_SIMPLIFICATION_VERIFICATION.md` for exact scope and limits.

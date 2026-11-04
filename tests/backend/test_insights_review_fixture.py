@@ -33,3 +33,15 @@ def test_saved_example_uses_a_different_date_window(tmp_path):
         assert len(value["latest"]["insights"]) == 3
         assert value["latest"]["facts"]["last_7_days"]["total_ml"] == 500
         assert value["saved"] is None
+
+
+def test_unavailable_demo_uses_the_real_missing_artifact_response(tmp_path):
+    token = "synthetic-ui-review-token-0000000000"
+    with TestClient(make_fixture(tmp_path / "synthetic.sqlite3", token, unavailable_demo=True)) as client:
+        response = client.post("/v2/workout-forecasts", headers={"Authorization": "Bearer " + token},
+            json={"mode": "synthetic_demo", "timezone": "UTC", "samples": [], "calibration_processing_consent": False})
+        assert response.status_code == 200
+        value = response.json()
+        assert value["synthetic"] is True
+        assert value["status"] == "insufficient_data" and value["value_ml"] is None
+        assert value["data_sufficiency"] == "artifact_unavailable"

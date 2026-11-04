@@ -42,8 +42,19 @@ struct WorkoutDraft: Equatable {
         let message: String
     }
 
+    static func parsedNumber(_ text: String, locale: Locale = .current) -> Double? {
+        let separator = locale.decimalSeparator ?? "."
+        // Accept a decimal point or the keyboard's decimal separator, never grouping.
+        if separator != ".", text.contains(separator), text.contains(".") { return nil }
+        let canonical = text.replacingOccurrences(of: separator, with: ".")
+        guard canonical.range(of: #"^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"#,
+                              options: .regularExpression) != nil,
+              let value = Double(canonical), value.isFinite else { return nil }
+        return value
+    }
+
     private func number(_ text: String, minimum: Double = 0, maximum: Double, field: String = "Value") throws -> Double {
-        guard let value = Double(text), value.isFinite, value >= minimum, value <= maximum else {
+        guard let value = Self.parsedNumber(text), value >= minimum, value <= maximum else {
             throw InputError(field: field, message: "Enter \(field.lowercased()) from \(minimum.formatted()) to \(maximum.formatted()).")
         }
         return value

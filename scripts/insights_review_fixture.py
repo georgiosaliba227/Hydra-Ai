@@ -26,16 +26,21 @@ from backend.wonder_trends import build_facts, trend_result
 
 
 class ReviewFixture:
-    def __init__(self, app, token: str, saved_example: bool = False):
+    def __init__(self, app, token: str, saved_example: bool = False, unavailable_demo: Path | None = None):
         self.app = app
         self.token = token
         self.send_attempts = 0
         self.saved_example = saved_example
+        self.unavailable_demo = unavailable_demo
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
         path = scope["path"]
+        if path == "/v2/workout-forecasts" and self.unavailable_demo is not None:
+            # Exercise the real server's missing-artifact response without touching repository artifacts.
+            with patch("ai.forecasting.predict.ARTIFACT_DIR", self.unavailable_demo):
+                return await self.app(scope, receive, send)
         if path in ("/__test__/trend-sends", "/v1/wonder/trends"):
             headers = dict(scope.get("headers", []))
             if headers.get(b"authorization") != ("Bearer " + self.token).encode():
@@ -77,7 +82,7 @@ class ReviewFixture:
         await JSONResponse(value)(scope, receive, send)
 
 
-def make_fixture(database: Path, token: str, saved_example: bool = False) -> ReviewFixture:
+def make_fixture(database: Path, token: str, saved_example: bool = False, unavailable_demo: bool = False) -> ReviewFixture:
     clean_env = {k: v for k, v in os.environ.items() if not k.startswith(("HYDRA_", "META_")) and k != "MODEL_API_KEY"}
     clean_env.update(HYDRA_AI_MODE="mock", META_BILLABLE_REQUESTS_ENABLED="false",
                      HYDRA_META_HYDRATION_ENABLED="false", HYDRA_WONDER_LIVE="false",
@@ -89,7 +94,7 @@ def make_fixture(database: Path, token: str, saved_example: bool = False) -> Rev
             "Idempotency-Key": str(uuid4())}, json={"category": "water", "consumed_ml": 500,
             "source": "manual", "timezone": "UTC", "consumed_at": datetime.now(timezone.utc).isoformat()})
         response.raise_for_status()
-    return ReviewFixture(app, token, saved_example)
+    return ReviewFixture(app, token, saved_example, database.parent / "absent-demo-artifacts" if unavailable_demo else None)
 
 
 def main():
@@ -97,10 +102,11 @@ def main():
     parser.add_argument("--token-file", required=True, type=Path, help="Private JSON file containing a generated local test token")
     parser.add_argument("--port", type=int, default=8769)
     parser.add_argument("--saved-example", action="store_true", help="Include a fabricated saved result for the previous date window")
+    parser.add_argument("--unavailable-demo", action="store_true", help="Exercise the server's missing demo artifact response")
     args = parser.parse_args()
     token = json.loads(args.token_file.read_text())["token"]
     with tempfile.TemporaryDirectory(prefix="hydra-review-fixture-") as directory:
-        app = make_fixture(Path(directory) / "synthetic.sqlite3", token, args.saved_example)
+        app = make_fixture(Path(directory) / "synthetic.sqlite3", token, args.saved_example, args.unavailable_demo)
         uvicorn.run(app, host="127.0.0.1", port=args.port, access_log=False)
 
 

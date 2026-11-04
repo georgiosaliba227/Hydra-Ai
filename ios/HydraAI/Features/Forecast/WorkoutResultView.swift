@@ -28,11 +28,13 @@ struct WorkoutResultView: View {
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
                 } else {
-                    Text("More measurements needed").font(.title2.bold())
+                    Text(result.synthetic ? "Demo unavailable" : "More measurements needed").font(.title2.bold())
                         .accessibilityIdentifier("workoutInsufficientData")
-                    Text("There isn't enough comparable data for a personal estimate yet.")
+                    Text(result.synthetic
+                         ? "The simulated example isn't available on this backend. You don't need to add personal measurements for the demo."
+                         : "There isn't enough comparable data for a personal estimate yet.")
                         .font(.subheadline).foregroundStyle(.secondary)
-                    if let missing = result.missingInputs, !missing.isEmpty {
+                    if !result.synthetic, let missing = result.missingInputs, !missing.isEmpty {
                         Text("Needed: " + missing.map { $0.replacingOccurrences(of: "_", with: " ") }.joined(separator: ", "))
                             .font(.subheadline).accessibilityIdentifier("workoutMissingMeasurements")
                     }

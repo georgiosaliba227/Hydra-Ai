@@ -55,7 +55,7 @@ struct AssistantView: View {
         .onChange(of: store.configurationGeneration) { _, _ in
             includeToday = false; recordedWonder = false; invalidate()
         }
-        .onDisappear { invalidate() }
+        .onDisappear { includeToday = false; questionFocused = false; invalidate() }
     }
 
     private var composer: some View {

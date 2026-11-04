@@ -2,6 +2,26 @@ import XCTest
 
 /// A loopback backend with only synthetic test data is required; no live AI.
 final class WorkoutForecastUITests: XCTestCase {
+    func testUnavailableDemoDoesNotAskForPersonalMeasurements() throws {
+        continueAfterFailure = false
+        let environment = ProcessInfo.processInfo.environment
+        guard let backend = environment["HYDRA_E2E_REVIEW_BACKEND_URL"],
+              let token = environment["HYDRA_E2E_API_TOKEN"], token.count >= 32 else {
+            throw XCTSkip("Requires the nonbillable review fixture with --unavailable-demo")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Insights"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Insights"].tap(); app.buttons["insightsWorkout"].tap()
+        app.buttons["openWorkoutDemo"].tap(); app.buttons["runWorkoutDemo"].tap()
+        let unavailable = app.staticTexts["workoutInsufficientData"]
+        XCTAssertTrue(unavailable.waitForExistence(timeout: 15))
+        XCTAssertEqual(unavailable.label, "Demo unavailable")
+        XCTAssertFalse(app.staticTexts["There isn't enough comparable data for a personal estimate yet."].exists)
+        XCTAssertTrue(app.staticTexts["SIMULATED · not your measurements"].exists)
+    }
+
     func testSyntheticPredictionIsSeparateFromConsumedVolume() throws {
         continueAfterFailure = false
         let environment = ProcessInfo.processInfo.environment

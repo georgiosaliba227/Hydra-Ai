@@ -51,11 +51,6 @@ struct WorkoutForecastView: View {
                             .buttonStyle(.borderedProminent).controlSize(.large)
                             .accessibilityIdentifier("workoutContinue")
                     }
-                    if step > 1 {
-                        Button("Back") { inputError = nil; focusedField = nil; step -= 1 }
-                            .frame(minHeight: 44)
-                            .accessibilityIdentifier("workoutBack")
-                    }
                     if step == 1 {
                         Button { focusedField = nil; showingDemo = true } label: {
                             Label("Try a demo instead", systemImage: "play.circle")
@@ -76,11 +71,27 @@ struct WorkoutForecastView: View {
         .background(Color.hydraBackground)
         .navigationTitle("Plan a workout")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(step > 1)
         .scrollDismissesKeyboard(.interactively)
-        .toolbar { ToolbarItemGroup(placement: .keyboard) {
-            Spacer(); Button("Done") { focusedField = nil }.accessibilityIdentifier("workoutKeyboardDone")
-        } }
-        .onChange(of: draft) { _, _ in invalidate(); inputError = nil }
+        .toolbar {
+            if step > 1 {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Back", systemImage: "chevron.left") {
+                        invalidate(); inputError = nil; focusedField = nil; step -= 1
+                    }
+                    .accessibilityIdentifier("workoutBack")
+                }
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer(); Button("Done") { focusedField = nil }.accessibilityIdentifier("workoutKeyboardDone")
+            }
+        }
+        .onChange(of: draft) { previous, current in
+            var previousInputs = previous
+            previousInputs.consent = current.consent
+            guard previousInputs != current else { return }
+            draft.consent = false; invalidate(); inputError = nil
+        }
         .onChange(of: inputError) { _, message in
             if let message { UIAccessibility.post(notification: .announcement, argument: message) }
         }
@@ -196,6 +207,7 @@ struct WorkoutForecastView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("\(samples.count) measurements in this session").font(.headline)
                     Toggle("I agree to backend processing of these manual measurements", isOn: $draft.consent)
+                        .disabled(loading)
                         .accessibilityIdentifier("workoutCalibrationConsent")
                     Text("Processed for this estimate only. Not stored or sent to Meta; cleared when you leave this flow.")
                         .font(.footnote).foregroundStyle(.secondary)
@@ -235,15 +247,15 @@ struct WorkoutForecastView: View {
     private func next() {
         focusedField = nil
         if step == 1 {
-            guard let duration = Double(draft.duration), duration.isFinite, (0.01...1440).contains(duration) else {
+            guard let duration = WorkoutDraft.parsedNumber(draft.duration), (0.01...1440).contains(duration) else {
                 inputError = "Enter a duration from 0.01 to 1,440 minutes."; focusedField = "Duration"; return
             }
             guard draft.startsAt > .now else { showingStart = true; inputError = "Choose a future start time."; return }
         } else {
-            guard let temperature = Double(draft.temperature), temperature.isFinite, (-60...60).contains(temperature) else {
+            guard let temperature = WorkoutDraft.parsedNumber(draft.temperature), (-60...60).contains(temperature) else {
                 inputError = "Enter a temperature from −60 to 60 °C."; focusedField = "Temperature"; return
             }
-            guard let humidity = Double(draft.humidity), humidity.isFinite, (0...100).contains(humidity) else {
+            guard let humidity = WorkoutDraft.parsedNumber(draft.humidity), (0...100).contains(humidity) else {
                 inputError = "Enter humidity from 0 to 100%."; focusedField = "Humidity"; return
             }
         }
@@ -257,6 +269,8 @@ struct WorkoutForecastView: View {
             let request = try WorkoutForecastRequest(mode: "personal", timezone: TimeZone.current.identifier,
                 exercise: draft.exercise(), samples: samples, calibration_processing_consent: draft.consent)
             try request.validate()
+            // The captured request has this consent; another attempt needs a fresh opt-in.
+            draft.consent = false
             requestTask?.cancel()
             requestTask = Task { await controller.load(request, service: service) }
         } catch { inputError = "Check the workout start time and conditions before estimating." }

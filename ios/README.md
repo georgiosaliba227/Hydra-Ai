@@ -122,7 +122,7 @@ Run it with the backend test environment and a mode-0600 JSON file containing a
 random **local test** token in its `token` field:
 
 ```sh
-PYTHONPATH=. python scripts/insights_review_fixture.py --token-file /private/path/test-token.json
+PYTHONPATH=. python scripts/insights_review_fixture.py --token-file /private/path/test-token.json --saved-example --unavailable-demo
 ```
 
 Pass that same token as `HYDRA_E2E_API_TOKEN` in a private UI `.xctestrun` file.
@@ -131,3 +131,6 @@ then verifies that opening, toggling consent, closing and reopening create no se
 attempt and leave consent off. No tokens or populated test-run files are committed.
 
 Simulator checks do not establish scientific accuracy or physical-device behavior.
+
+Native redesign validation and known limits are recorded in
+[`docs/UI_SIMPLIFICATION_VERIFICATION.md`](../docs/UI_SIMPLIFICATION_VERIFICATION.md).

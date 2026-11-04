@@ -70,6 +70,30 @@ final class SimplerInsightsUITests: XCTestCase {
         XCTAssertTrue(app.keyboards.firstMatch.exists)
     }
 
+    func testNavigationBackReturnsToThePreviousWorkoutStep() throws {
+        let app = try launch()
+        tap("insightsWorkout", in: app)
+        app.textFields["Duration, min"].tap(); app.textFields["Duration, min"].typeText("45")
+        app.buttons["workoutKeyboardDone"].tap()
+        tap("workoutContinue", in: app)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.textFields["Duration, min"].exists)
+        XCTAssertEqual(app.textFields["Duration, min"].value as? String, "45")
+    }
+
+    func testAssistantContextConsentResetsWhenLeavingTheTab() throws {
+        let app = try launch()
+        tap("insightsAsk", in: app)
+        tap("assistantOptions", in: app)
+        app.switches["assistantIncludeToday"].tap()
+        XCTAssertEqual(app.switches["assistantIncludeToday"].value as? String, "1")
+        tap("assistantOptions", in: app)
+        app.tabBars.buttons["Today"].tap(); app.tabBars.buttons["Insights"].tap()
+        if app.buttons["insightsAsk"].exists { tap("insightsAsk", in: app) }
+        tap("assistantOptions", in: app)
+        XCTAssertEqual(app.switches["assistantIncludeToday"].value as? String, "0")
+    }
+
     func testPersonalEstimateRequiresConsentAndLeavingClearsMeasurements() throws {
         let app = try launch()
         tap("insightsWorkout", in: app)
@@ -111,6 +135,20 @@ final class SimplerInsightsUITests: XCTestCase {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "Personal estimate from synthetic measurements with uncertainty"
         attachment.lifetime = .keepAlways; add(attachment)
+        tap("editWorkout", in: app)
+        XCTAssertFalse(app.staticTexts["workoutPrediction"].exists)
+        fill("Duration, min", "1")
+        let editedDuration = try XCTUnwrap(app.textFields["Duration, min"].value as? String)
+        XCTAssertNotEqual(Double(editedDuration), 30)
+        tap("workoutContinue", in: app); tap("workoutContinue", in: app)
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        XCTAssertEqual(consent.value as? String, "0", "An edited estimate needs fresh processing consent")
+        XCTAssertFalse(app.buttons["estimateWorkout"].isEnabled)
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.textFields["Temperature, °C"].exists)
+        XCTAssertTrue(app.buttons["workoutMeasurements"].label.contains("1 in this session"))
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertEqual(app.textFields["Duration, min"].value as? String, editedDuration)
         app.navigationBars.buttons.firstMatch.tap()
         tap("insightsWorkout", in: app)
         XCTAssertEqual(app.textFields["Duration, min"].value as? String, "—")
