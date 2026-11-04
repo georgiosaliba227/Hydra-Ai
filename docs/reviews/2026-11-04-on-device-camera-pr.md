@@ -27,9 +27,15 @@ uncalibrated/low confidence; open-world and natural-glass accuracy are unvalidat
 Validation:
 
 - Complete pytest: 1,336 passed, 5 skipped, 58 subtests; existing FastAPI/httpx warning.
-- Signed simulator XCTest: 129 passed, including real bundled Core ML + OCR.
+- Signed simulator XCTest: 129 passed, including real bundled Core ML + OCR;
+  rerun successfully on iOS 27.2 after the water-fill follow-up.
 - Two real-inference simulator UI cases passed: size correction downward/upward/
   clear with independent amount; Analyze→Edit→Confirm→normal restart persistence.
+- The owner's follow-up adds translucent water rising inside Today's circle using
+  the existing user-goal ratio. The interior visual assertion failed on old code;
+  rendered 50%/100% checks and both camera cases passed on a fresh disposable
+  iPhone 17 Pro/iOS 27.2 simulator (three tests, zero failures). A bounded review
+  found no product blockers. Goal values, logs and network paths are unchanged.
 - Signed generic iPhone build and staged copy pass strict code-signature checks;
   the existing profile includes the owner's phone. No credentials were changed.
 - Exact trained-head/weight reproducibility and three-case FP16 Core ML parity
@@ -44,8 +50,9 @@ The signed build and UI proof remain staged privately. A focused physical-device
 XCTest passed on iPhone 17 Pro/iOS 27.2: the real bundled model and OCR analyzed a
 generated label in about 2.9s with wireless debugging connected (one test, zero
 failures). The original signed app was restored in place afterward. Physical
-airplane-mode analysis/save and force-close/reopen checks are awaiting the owner;
-real-camera accuracy and general performance remain unverified. No hosted calls, financial-ledger changes, public
+airplane-mode analysis/save and force-close/reopen persistence were separately
+verified by the owner after saving the on-device connection mode. Broad real-camera
+accuracy and general performance remain unverified. No hosted calls, financial-ledger changes, public
 deployment or merge are part of this PR.
 
 @aminealichaouche — please review the local persistence and recognition boundary.

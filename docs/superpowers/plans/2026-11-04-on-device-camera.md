@@ -56,7 +56,28 @@ Interface: explicit on-iPhone mode works without capabilities HTTP; Confirm save
 - [x] Run complete pytest/XCTest, real model simulator case, signed generic device build and fresh whole-branch review.
 - [x] Stage signed app and strict signature/profile verification; report exact physical limits.
 - [x] Install signed update in place and launch on registered physical iPhone over Wi-Fi after owner-completed Device Hub pairing.
-- [ ] Verify physical airplane-mode recognition/save and force-close/reopen persistence; owner check pending.
+- [x] Verify physical airplane-mode recognition/save and force-close/reopen persistence; owner confirmed both worked with Wi-Fi off.
 - [x] Commit verified branch and prepare review handoff without merging/deployment.
 
-Final code verification: 1,336 pytest passed, 5 skipped, 58 subtests; 129 signed simulator XCTest passed; two real-model UI cases passed. Four independent-review Important groups and source-copy issue fixed with regression tests. The signed app is staged privately and installed/launched wirelessly on the registered phone. Physical offline recognition/save and force-close/reopen verification remain pending.
+Final code verification: 1,336 pytest passed, 5 skipped, 58 subtests; 129 signed simulator XCTest passed; two real-model UI cases passed. Four independent-review Important groups and source-copy issue fixed with regression tests. The signed app is staged privately and installed/launched wirelessly on the registered phone. A focused physical model/OCR XCTest passed; the owner separately confirmed offline analysis/save with airplane mode on and Wi-Fi off, and entry persistence after force-close/reopen.
+
+Follow-up: owner reported that Today's circle does not fill. Investigate goal configuration and rendering without inventing a daily requirement or changing consumption records.
+
+### Follow-up: water inside Today's progress circle
+
+The owner clarified the desired behavior: water should fill inside the circle.
+The existing outline renders at 50% and 100% in a visual UI test; the missing
+behavior is the interior fill. Add a translucent bottom-aligned fill behind the
+number, clipped to the circular interior, using the same existing user-goal ratio.
+Clamp the visible level to 0...1; no goal stays empty, and over-goal progress stays
+full. Preserve the outline, goal values, total, accessibility and record storage.
+
+- [x] Observe the interior visual assertion fail before changing product code.
+- [x] Add the bounded interior fill and verify 50%/100% rendered pixels.
+- [x] Run relevant XCTest/UI checks and build/sign: 129 XCTest, three UI tests, full pytest 1,336/5 skipped; signed device build verified.
+- [ ] Install the water-fill update in place when the paired phone reconnects.
+
+The visual test waits on rendered pixels so the water animation can finish. A
+fresh disposable iPhone 17 Pro/iOS 27.2 simulator is used for final UI verification,
+with a known synthetic 500 mL record; no owner data or goal is changed. Out-of-range
+test setup fails explicitly instead of skipping the visual assertions.

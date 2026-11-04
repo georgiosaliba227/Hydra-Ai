@@ -129,6 +129,7 @@ private struct TodayProgressCard: View {
     @ScaledMetric(relativeTo: .largeTitle) private var numberSize: CGFloat = 32
 
     private var validGoal: DailySummary.Goal? { goal.flatMap { $0.isValid ? $0 : nil } }
+    private var visibleProgress: Double { min(max(validGoal?.progressRatio ?? 0, 0), 1) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -147,6 +148,15 @@ private struct TodayProgressCard: View {
 
     private var ring: some View {
         ZStack {
+            // Water rises inside the outline using the user's existing goal.
+            // Keep it translucent so the logged amount remains readable.
+            Circle()
+                .fill(Color.hydraTint.opacity(0.24))
+                .mask(alignment: .bottom) {
+                    Rectangle().frame(height: max(0, ringSize - 14) * visibleProgress)
+                }
+                .padding(7)
+                .animation(.snappy, value: visibleProgress)
             Circle().stroke(Color.hydraTint.opacity(0.15), lineWidth: 14)
             if let validGoal {
                 Circle()

@@ -27,17 +27,24 @@ The signed build still needs to be installed on the phone first.
 5. Confirm, then check Today and History. Close/reopen Hydra to check persistence.
    Settings offers local goal, JSON export and deletion of this mode's records.
 
+Today's circle fills upward with translucent water toward the daily goal you set
+in Settings. It reaches the top at 100%; the logged amount remains visible even
+above the goal. Without a goal, the circle stays empty. The display represents
+logged drink volume, not measured hydration or a recommended drinking amount.
+
 For physical verification, enable airplane mode (including Wi-Fi off), repeat
 capture/analyze/review/save, then terminate/reopen the app and check the saved
-entry. This is a remaining physical-device check, not a claim already verified.
+entry. The owner completed this check on the installed build: analysis worked
+with airplane mode on and Wi-Fi off, and the confirmed entry remained after
+force-closing and reopening Hydra.
 
 Stop **Device Hub screen sharing** before testing the physical camera. Apple
 disables camera/microphone access during Device Hub interaction; both Hydra and
 the built-in Camera can show a black preview. Select the phone's **Stop Screen
 Sharing** action, then force-close/reopen the camera apps. Pairing/install over
 Wi-Fi can remain available without viewing the screen. During this handoff, the
-owner confirmed both previews worked once sharing stopped; inference/save/restart
-verification is still separate. See [Apple's Device Hub documentation](https://developer.apple.com/documentation/xcode/interacting-with-your-app-in-device-hub).
+owner confirmed both previews worked once sharing stopped, then separately
+verified offline analysis/save/restart. See [Apple's Device Hub documentation](https://developer.apple.com/documentation/xcode/interacting-with-your-app-in-device-hub).
 
 ## What the prototype can support
 
@@ -82,10 +89,11 @@ analysis took about 2.9s with wireless debugging connected; this does not establ
 real-camera accuracy or general latency. The original signed app was restored in
 place after the test, preserving its data.
 
-Saving the local mode, physical airplane-mode recognition/save and force-close/
-reopen persistence are awaiting the owner's final device check. The owner reported
-the backend-mode-unverified message; the model test passed, and the next check is
-selecting and saving **On this iPhone** in Settings.
+The owner confirmed saving **On this iPhone** resolved the backend-mode-unverified
+message. They then verified analysis with airplane mode on and Wi-Fi off, confirmed
+an entry and verified it remained after force-closing and reopening Hydra. This is
+owner-observed physical verification, separate from the automated generated-label
+test; it does not establish recognition accuracy across drinks.
 
 Development details and model source/metrics are in
 `docs/architecture/ON_DEVICE_CAMERA.md` and `ai/on_device/README.md`. Weights,
