@@ -65,7 +65,9 @@ final class BeverageStore: ObservableObject {
         if FileManager.default.fileExists(atPath: self.pendingURL.path) {
             do {
                 let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
-                pending = try decoder.decode(PendingBeverage.self, from: Data(contentsOf: self.pendingURL))
+                let restored = try decoder.decode(PendingBeverage.self, from: Data(contentsOf: self.pendingURL))
+                if restored.destination == "on_device" { try OnDeviceProtectedFile.protectExisting(self.pendingURL) }
+                pending = restored
             } catch {
                 pendingReadError = true
                 state = .failed("The saved pending beverage could not be read. Logging is blocked to avoid duplicate entries; preserve the pending file for recovery.")
@@ -156,8 +158,12 @@ final class BeverageStore: ObservableObject {
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
         do {
             let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
-            try FileManager.default.createDirectory(at: pendingURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try encoder.encode(item).write(to: pendingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            if isOnDevice {
+                try OnDeviceProtectedFile.write(encoder.encode(item), to: pendingURL)
+            } else {
+                try FileManager.default.createDirectory(at: pendingURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try encoder.encode(item).write(to: pendingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            }
         } catch { throw ServiceError.storage }
         pending = item
         try await retryPending()

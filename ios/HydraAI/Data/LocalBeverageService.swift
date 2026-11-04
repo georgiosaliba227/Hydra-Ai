@@ -5,6 +5,7 @@ import CryptoKit
 /// Every mutation commits its idempotency record and beverage in one protected write.
 actor LocalBeverageService: BeverageService {
     private let fileURL: URL
+    private let now: @Sendable () -> Date
     // Multiple service instances can exist while settings replace the active one.
     // Keep their read/modify/write transactions atomic within this app process.
     private static let fileLock = NSLock()
@@ -23,7 +24,8 @@ actor LocalBeverageService: BeverageService {
         }
     }
 
-    init(fileURL: URL? = nil) {
+    init(fileURL: URL? = nil, now: @escaping @Sendable () -> Date = { .now }) {
+        self.now = now
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         self.fileURL = fileURL ?? folder.appendingPathComponent("HydraAI/local-beverages-v1.json")
     }
@@ -47,6 +49,7 @@ actor LocalBeverageService: BeverageService {
     private func read() throws -> Records {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return .empty }
         do {
+            try OnDeviceProtectedFile.protectExisting(fileURL)
             let records = try decoder().decode(Records.self, from: Data(contentsOf: fileURL))
             guard records.version == "local-beverages-v1",
                   Set(records.beverages.map(\.id)).count == records.beverages.count,
@@ -60,15 +63,11 @@ actor LocalBeverageService: BeverageService {
     }
     private func write(_ records: Records) throws {
         do {
-            let parent = fileURL.deletingLastPathComponent()
-            try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700, .protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
-            try encoder().encode(records).write(to: fileURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
+            try OnDeviceProtectedFile.write(encoder().encode(records), to: fileURL)
         } catch { throw ServiceError.storage }
     }
     private func validate(_ request: CreateBeverageRequest) throws {
-        try request.validate(allowOnDevice: true)
+        try request.validate(now: now(), allowOnDevice: true)
         // Server/mock receipts must never become real on-phone recognition logs.
         guard request.recognitionFeedback == nil,
               request.source != "confirmed_recognition" || request.onDeviceRecognition != nil else { throw ServiceError.invalidResponse }
@@ -78,7 +77,6 @@ actor LocalBeverageService: BeverageService {
               log.category.count <= 80, (1...5000).contains(log.consumedMl),
               TimeZone(identifier: log.timezone) != nil,
               DateBoundary.onOrAfter(log.consumedAt, Date(timeIntervalSince1970: 946_684_800)),
-              DateBoundary.onOrBefore(log.consumedAt, Date.now.addingTimeInterval(60)),
               ["manual", "confirmed_recognition"].contains(log.source),
               log.consumptionAssumption.map({ ["entire_liquid", "full_container"].contains($0) }) ?? true,
               log.beverageType.map({ !$0.isEmpty && $0.count <= 80 }) ?? true else { throw ServiceError.storage }
@@ -90,7 +88,7 @@ actor LocalBeverageService: BeverageService {
         }
         if log.source == "confirmed_recognition" {
             guard let provenance = log.onDeviceRecognition else { throw ServiceError.storage }
-            try provenance.validate()
+            try provenance.validatePersisted()
         } else if log.onDeviceRecognition != nil || log.consumptionAssumption != nil || log.beverageType != nil || log.containerMl != nil { throw ServiceError.storage }
     }
     private func makeLog(_ request: CreateBeverageRequest, key: UUID) -> BeverageLog {
@@ -124,7 +122,7 @@ actor LocalBeverageService: BeverageService {
     }
 
     func updateBeverage(id: UUID, _ request: UpdateBeverageRequest) async throws -> BeverageLog {
-        try request.validate()
+        try request.validate(now: now())
         return try transaction {
             var records = try read()
             guard let index = records.beverages.firstIndex(where: { $0.id == id }) else { throw ServiceError.server(404) }

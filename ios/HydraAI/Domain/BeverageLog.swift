@@ -12,10 +12,15 @@ struct OnDeviceRecognitionProvenance: Codable, Equatable, Sendable {
     }
 
     func validate(now: Date = .now) throws {
+        try validatePersisted()
+        guard DateBoundary.onOrBefore(processedAt, now.addingTimeInterval(60)) else { throw ServiceError.invalidResponse }
+    }
+
+    /// Saved provenance must remain readable when the device clock moves backward.
+    func validatePersisted() throws {
         guard modelID == "dinov2-small-beverage-v1",
               processedAt.timeIntervalSince1970.isFinite,
               DateBoundary.onOrAfter(processedAt, Date(timeIntervalSince1970: 946_684_800)),
-              DateBoundary.onOrBefore(processedAt, now.addingTimeInterval(60)),
               originalCandidate.personalCorrection == nil else { throw ServiceError.invalidResponse }
         try originalCandidate.validate()
     }

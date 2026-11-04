@@ -167,6 +167,100 @@ final class LocalBeverageServiceTests: XCTestCase {
         XCTAssertFalse(config.offline)
     }
 
+    func testLocalRecordsRemainExcludedFromBackupAcrossAtomicReplacements() async throws {
+        let root = directory(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appendingPathComponent("real.json")
+        let service = LocalBeverageService(fileURL: url)
+        _ = try await service.createBeverage(request(), idempotencyKey: UUID())
+        XCTAssertEqual(try URL(fileURLWithPath: url.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+        _ = try await service.updateGoal(2_000)
+        XCTAssertEqual(try URL(fileURLWithPath: url.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+        let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+        XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.intValue, 0o600)
+        _ = try await service.deleteAllData()
+        XCTAssertEqual(try URL(fileURLWithPath: url.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+    }
+
+    @MainActor func testOnDevicePendingBackupExclusionSurvivesRestartAndSubsequentWrite() async throws {
+        let root = directory(); defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let blocker = root.appendingPathComponent("blocked"), pendingURL = root.appendingPathComponent("pending.json")
+        try Data("block writes".utf8).write(to: blocker)
+        let configuration = APIConfiguration(baseURL: "", token: "", offline: false, onDevice: true)
+        let localURL = blocker.appendingPathComponent("real.json")
+        let store = BeverageStore(service: LocalBeverageService(fileURL: localURL), pendingURL: pendingURL, configuration: configuration)
+        do { try await store.add(category: "Water", consumedMl: 250, at: .now); XCTFail("Write should fail") } catch { }
+        XCTAssertNotNil(store.pending)
+        XCTAssertEqual(try URL(fileURLWithPath: pendingURL.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+        let originalBytes = try Data(contentsOf: pendingURL), key = try XCTUnwrap(store.pending?.key)
+        // Simulate old metadata at restart; repairing metadata must preserve the mutation.
+        var unexcludedURL = pendingURL, values = URLResourceValues(); values.isExcludedFromBackup = false
+        try unexcludedURL.setResourceValues(values)
+        let restored = BeverageStore(service: LocalBeverageService(fileURL: localURL), pendingURL: pendingURL, configuration: configuration)
+        XCTAssertEqual(try URL(fileURLWithPath: pendingURL.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+        XCTAssertEqual(try Data(contentsOf: pendingURL), originalBytes)
+        XCTAssertEqual(restored.pending?.key, key)
+        try FileManager.default.removeItem(at: blocker)
+        try await restored.retryPending()
+        XCTAssertEqual(restored.logs.map(\.id), [key]); XCTAssertNil(restored.pending)
+        let secondBlocker = root.appendingPathComponent("blocked-again")
+        try Data("block writes".utf8).write(to: secondBlocker)
+        let second = BeverageStore(service: LocalBeverageService(fileURL: secondBlocker.appendingPathComponent("real.json")), pendingURL: pendingURL, configuration: configuration)
+        do { try await second.add(category: "Tea", consumedMl: 150, at: .now); XCTFail("Write should fail") } catch { }
+        XCTAssertNotNil(second.pending)
+        XCTAssertEqual(try URL(fileURLWithPath: pendingURL.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+    }
+
+    func testSavedRecognitionRemainsUsableAfterClockRollbackWhileNewFutureInputIsRejected() async throws {
+        let root = directory(); defer { try? FileManager.default.removeItem(at: root) }
+        let url = root.appendingPathComponent("real.json")
+        let admittedAt = Date(timeIntervalSince1970: 2_000_000_000), earlier = admittedAt.addingTimeInterval(-3_600)
+        var submitted = CreateBeverageRequest(category: "Water", consumedMl: 500, consumedAt: admittedAt, timezone: "UTC", source: "confirmed_recognition", recognitionId: UUID(), containerMl: 500, consumptionAssumption: "full_container")
+        submitted.onDeviceRecognition = OnDeviceRecognitionProvenance(modelID: "dinov2-small-beverage-v1", originalCandidate: result().candidates[0], processedAt: admittedAt)
+        let original = LocalBeverageService(fileURL: url, now: { admittedAt })
+        let saved = try await original.createBeverage(submitted, idempotencyKey: UUID())
+        let rolledBack = LocalBeverageService(fileURL: url, now: { earlier })
+        let logs = try await rolledBack.listBeverages()
+        XCTAssertEqual(logs, [saved])
+        XCTAssertEqual(logs.first?.containerMl, 500)
+        XCTAssertEqual(logs.first?.onDeviceRecognition?.processedAt, admittedAt)
+        let export = try await rolledBack.exportData(); XCTAssertFalse(export.isEmpty)
+        _ = try await rolledBack.updateGoal(2_000)
+        let fresh = CreateBeverageRequest(category: "Tea", consumedMl: 100, consumedAt: earlier, timezone: "UTC", source: "manual")
+        _ = try await rolledBack.createBeverage(fresh, idempotencyKey: UUID())
+        let futureConsumption = CreateBeverageRequest(category: "Tea", consumedMl: 100, consumedAt: admittedAt, timezone: "UTC", source: "manual")
+        do { _ = try await rolledBack.createBeverage(futureConsumption, idempotencyKey: UUID()); XCTFail("New future consumption accepted") } catch BeverageValidationError.futureDate { }
+        var futureProvenance = CreateBeverageRequest(category: "Water", consumedMl: 500, consumedAt: earlier, timezone: "UTC", source: "confirmed_recognition", recognitionId: UUID(), containerMl: 500)
+        futureProvenance.onDeviceRecognition = submitted.onDeviceRecognition
+        do { _ = try await rolledBack.createBeverage(futureProvenance, idempotencyKey: UUID()); XCTFail("New future provenance accepted") } catch ServiceError.invalidResponse { }
+        let changedTime = UpdateBeverageRequest(correcting: saved, category: saved.category, consumedMl: saved.consumedMl, consumedAt: admittedAt.addingTimeInterval(100))
+        do { _ = try await rolledBack.updateBeverage(id: saved.id, changedTime); XCTFail("New future timestamp accepted") } catch BeverageValidationError.futureDate { }
+        let changedAmount = UpdateBeverageRequest(correcting: saved, category: saved.category, consumedMl: 250, consumedAt: saved.consumedAt)
+        let updated = try await rolledBack.updateBeverage(id: saved.id, changedAmount)
+        XCTAssertEqual(updated.containerMl, 500)
+        XCTAssertEqual(updated.onDeviceRecognition, saved.onDeviceRecognition)
+        try await rolledBack.deleteBeverage(id: updated.id, revision: updated.revision)
+        let count = try await rolledBack.deleteAllData(); XCTAssertEqual(count, 1)
+    }
+
+    @MainActor func testLegacyServerAndDemoPendingBackupPolicyRemainsUnchanged() throws {
+        let root = directory(); defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        for (index, destination) in ["offline", "http://127.0.0.1:8123"].enumerated() {
+            let url = root.appendingPathComponent("pending-\(index).json")
+            let item = PendingBeverage(key: UUID(), request: request(), destination: destination)
+            let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
+            let bytes = try encoder.encode(item); try bytes.write(to: url, options: .atomic)
+            var mutableURL = url, values = URLResourceValues(); values.isExcludedFromBackup = false
+            try mutableURL.setResourceValues(values)
+            let store = BeverageStore(service: LocalBeverageService(fileURL: root.appendingPathComponent("unused.json")), pendingURL: url,
+                configuration: APIConfiguration(baseURL: destination, token: "", offline: destination == "offline"))
+            XCTAssertEqual(store.pending?.key, item.key)
+            XCTAssertEqual(try Data(contentsOf: url), bytes)
+            XCTAssertEqual(try URL(fileURLWithPath: url.path).resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, false)
+        }
+    }
+
     func testOnDeviceAndDemoSettingsAreMutuallyExclusive() {
         var config = APIConfiguration(baseURL: "saved", token: "saved", offline: true, onDevice: true)
         XCTAssertTrue(config.onDevice); XCTAssertFalse(config.offline)
