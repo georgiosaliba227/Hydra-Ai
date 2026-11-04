@@ -46,3 +46,5 @@ deployment or merge are part of this PR.
 
 @aminealichaouche — please review the local persistence and recognition boundary.
 Setup: `docs/ON_DEVICE_CAMERA_SETUP.md`. Model evidence: `ai/on_device/README.md`.
+
+Review handoff: branch `codex/iphone-offline-camera` is pushed. Both creation routes were denied: GitHub connector403 (Resource not accessible by integration) and existing CLI GraphQL (must be a collaborator). No PR was created. The pushed branch and this exact review text remain available for an authorized collaborator to open the PR. No credentials or account settings were changed.
