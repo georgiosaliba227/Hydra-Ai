@@ -18,6 +18,16 @@ struct PendingBeverage: Codable {
     let destination: String
 }
 
+enum GoalMutationError: LocalizedError {
+    case busy, connectionChanged
+    var errorDescription: String? {
+        switch self {
+        case .busy: "Another goal confirmation is in progress. Wait for it to finish."
+        case .connectionChanged: "The backend connection changed. Review your goal for the selected connection."
+        }
+    }
+}
+
 @MainActor
 final class BeverageStore: ObservableObject {
     @Published private(set) var logs: [BeverageLog] = []
@@ -29,6 +39,9 @@ final class BeverageStore: ObservableObject {
     @Published private(set) var configuration: APIConfiguration
     @Published private(set) var configurationGeneration = UUID()
     @Published private(set) var isSaving = false
+    @Published private(set) var isSettingGoal = false
+    let calibrationHistory: CalibrationHistoryStore
+    let goalProfiles: GoalProfileStore
 
     private var service: (any BeverageService)?
     private let pendingURL: URL
@@ -36,6 +49,7 @@ final class BeverageStore: ObservableObject {
     private var refreshVersion = 0
     private var historyTask: Task<Void, Never>?
     private var currentRecognitionReceipts: Set<UUID> = []
+    private var goalMutationID: UUID?
 
     private func invalidateHistory() {
         refreshVersion += 1
@@ -44,13 +58,18 @@ final class BeverageStore: ObservableObject {
     }
     var isConfigured: Bool { service != nil }
     var isOffline: Bool { configuration.offline }
-    var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving }
+    var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving && !isSettingGoal }
     private var destination: String { configuration.offline ? "offline" : configuration.baseURL }
 
-    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load()) {
+    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load(),
+         calibrationHistory: CalibrationHistoryStore? = nil, goalProfiles: GoalProfileStore? = nil) {
         self.configuration = configuration
+        self.calibrationHistory = calibrationHistory ?? CalibrationHistoryStore()
+        self.calibrationHistory.configure(configuration)
+        self.goalProfiles = goalProfiles ?? Self.makeGoalProfiles()
+        self.goalProfiles.configure(configuration)
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        self.pendingURL = pendingURL ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
+        self.pendingURL = pendingURL ?? Self.makePendingURL(in: folder)
         self.service = service ?? (configuration.offline ? MockBeverageService() : try? HTTPBeverageService(configuration: configuration))
         if FileManager.default.fileExists(atPath: self.pendingURL.path) {
             do {
@@ -63,14 +82,38 @@ final class BeverageStore: ObservableObject {
         }
     }
 
+    private static func makePendingURL(in folder: URL) -> URL {
+        #if DEBUG
+        if let suite = ProcessInfo.processInfo.environment["HYDRA_TEST_CONTEXT_SUITE"],
+           suite.hasPrefix("HydraUITests."), let id = UUID(uuidString: String(suite.suffix(36))) {
+            return folder.appendingPathComponent("HydraAI/pending-tests-v1/\(id.uuidString)/pending-beverage-v1.json")
+        }
+        #endif
+        return folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
+    }
+
+    private static func makeGoalProfiles() -> GoalProfileStore {
+        #if DEBUG
+        if let suite = ProcessInfo.processInfo.environment["HYDRA_TEST_GOAL_PROFILE_SUITE"],
+           suite.hasPrefix("HydraUITests."), let id = UUID(uuidString: String(suite.suffix(36))) {
+            let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+                .resolvingSymlinksInPath().appendingPathComponent("HydraAI/goal-profile-tests-v1/\(id.uuidString)", isDirectory: true)
+            return GoalProfileStore(directory: directory)
+        }
+        #endif
+        return GoalProfileStore()
+    }
+
     func configure(_ config: APIConfiguration) throws {
         if let pending, pending.destination != (config.offline ? "offline" : config.baseURL) { throw ServiceError.pending }
         let next: any BeverageService = config.offline ? MockBeverageService() : try HTTPBeverageService(configuration: config)
         try config.save()
         invalidateHistory()
         configurationGeneration = UUID()
+        // An outstanding PUT still owns its gate even if its connection was replaced.
         currentRecognitionReceipts.removeAll()
-        configuration = config; service = next; logs = []; summary = nil; state = .idle
+        configuration = config; calibrationHistory.configure(config); goalProfiles.configure(config)
+        service = next; logs = []; summary = nil; state = .idle
     }
 
     func refresh() async {
@@ -161,6 +204,11 @@ final class BeverageStore: ObservableObject {
         guard canLog, let service, !isOffline else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
+        // Clear all local manual profiles even if the backend is unavailable. Fail visibly if local erasure fails.
+        var localError: Error?
+        do { try calibrationHistory.deleteAll() } catch { localError = error }
+        do { try goalProfiles.deleteAll() } catch { if localError == nil { localError = error } }
+        if let localError { throw localError }
         let count = try await service.deleteAllData()
         await refresh()
         return count
@@ -168,14 +216,27 @@ final class BeverageStore: ObservableObject {
 
     func currentGoal() async throws -> Int? {
         guard let service else { throw ServiceError.configuration }
-        return try await service.goalSettings().daily_beverage_goal_ml
+        let generation = configurationGeneration
+        let result = try await service.goalSettings().daily_beverage_goal_ml
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        return result
     }
 
     /// Saves a goal the user chose (nil clears it), then reloads today's progress.
     func setGoal(_ milliliters: Int?) async throws {
         guard let service else { throw ServiceError.configuration }
+        guard !isSettingGoal && !isSaving else { throw GoalMutationError.busy }
+        try Task.checkCancellation()
+        let generation = configurationGeneration, mutation = UUID()
+        isSettingGoal = true; goalMutationID = mutation
+        defer { if goalMutationID == mutation { goalMutationID = nil; isSettingGoal = false } }
         _ = try await service.updateGoal(milliliters)
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
         await refresh()
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
     }
 
     func delete(_ log: BeverageLog) async throws {

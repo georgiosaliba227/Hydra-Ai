@@ -2,6 +2,12 @@ import XCTest
 @testable import HydraAI
 
 final class DateBoundaryTests: XCTestCase {
+    func testReferenceEpochAdjacentInstantsRemainDistinct() {
+        let earlier = Date(timeIntervalSinceReferenceDate: 0.000000001)
+        let later = Date(timeIntervalSinceReferenceDate: 0.000000002)
+        XCTAssertFalse(DateBoundary.onOrBefore(later, earlier))
+        XCTAssertFalse(DateBoundary.onOrAfter(earlier, later))
+    }
     func testInclusiveBoundsUseFiniteTimestamps() {
         let date = Date(timeIntervalSince1970: 946_684_800)
         XCTAssertTrue(DateBoundary.onOrAfter(date, date))

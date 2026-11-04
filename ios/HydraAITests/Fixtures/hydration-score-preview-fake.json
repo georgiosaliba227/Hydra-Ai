@@ -1,0 +1,65 @@
+{
+  "version": "wonder-score-preview-v1",
+  "facts": {
+    "version": "hydration-research-score-v1",
+    "local_date": "2026-11-03",
+    "timezone": "America/New_York",
+    "goal_ml": 1800,
+    "today_ml": 725,
+    "previous_days": [
+      {
+        "local_date": "2026-10-27",
+        "total_ml": 0,
+        "logged": false
+      },
+      {
+        "local_date": "2026-10-28",
+        "total_ml": 250,
+        "logged": true
+      },
+      {
+        "local_date": "2026-10-29",
+        "total_ml": 1000,
+        "logged": true
+      },
+      {
+        "local_date": "2026-10-30",
+        "total_ml": 2200,
+        "logged": true
+      },
+      {
+        "local_date": "2026-10-31",
+        "total_ml": 777,
+        "logged": true
+      },
+      {
+        "local_date": "2026-11-01",
+        "total_ml": 0,
+        "logged": false
+      },
+      {
+        "local_date": "2026-11-02",
+        "total_ml": 1350,
+        "logged": true
+      }
+    ],
+    "measurement_count": 2,
+    "research_only": true,
+    "components": {
+      "today_points": 20.13888888888889,
+      "consistency_points": 12.326190476190476,
+      "measurement_points": 6.666666666666666
+    },
+    "score": 39
+  },
+  "payload_sha256": "bf16883d0e53e15bf9fad220837182403db9c7693a7e61dab3f1a7e6145d5d02",
+  "model": "muse-wonder-1.0",
+  "input_bound_tokens": 4245,
+  "max_output_tokens": 1024,
+  "worst_case_micro_usd": 37460,
+  "per_request_cap_micro_usd": 250000,
+  "live_available": false,
+  "account_id": null,
+  "saved": null,
+  "cost_estimate_policy": "existing_reference_prices_not_a_verified_live_quote"
+}

@@ -2,12 +2,13 @@ import SwiftUI
 
 /// Corrects one confirmed log. Photo-confirmed logs keep their product category.
 struct EditBeverageView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @Environment(\.dismiss) private var dismiss
 
     let log: BeverageLog
     @State private var category: String
-    @State private var volumeText: String
+    @State private var volumeMl: Double?
     @State private var consumedAt: Date
     @State private var isSaving = false
     @State private var errorMessage: String?
@@ -15,13 +16,12 @@ struct EditBeverageView: View {
     init(log: BeverageLog) {
         self.log = log
         _category = State(initialValue: log.category)
-        _volumeText = State(initialValue: String(log.consumedMl))
+        _volumeMl = State(initialValue: Double(log.consumedMl))
         _consumedAt = State(initialValue: log.consumedAt)
     }
 
     private var parsedVolumeMl: Int? {
-        guard let value = Int(volumeText), (1...5_000).contains(value) else { return nil }
-        return value
+        CanonicalQuantityInput.wholeMilliliters(volumeMl)
     }
 
     private var isManual: Bool { log.source == "manual" }
@@ -35,10 +35,7 @@ struct EditBeverageView: View {
                 } else {
                     LabeledContent("Product", value: log.category)
                 }
-                TextField("Volume in mL", text: $volumeText)
-                    .keyboardType(.numberPad)
-                    .accessibilityLabel("Corrected beverage volume in milliliters")
-                    .accessibilityIdentifier("editVolume")
+                CanonicalQuantityField("Corrected beverage volume", value: $volumeMl, quantity: .volume, accessibilityIdentifier: "editVolume")
                 DatePicker("Consumed at", selection: $consumedAt, in: ...Date.now)
             }
             Section {

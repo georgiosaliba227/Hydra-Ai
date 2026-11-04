@@ -1,0 +1,94 @@
+{
+  "application_promotion": "not_enabled",
+  "assumptions": [
+    "Invented 300+20*participant mL/h, 60-minute workouts every three days.",
+    "Invented gradual +30 mL/h per workout or +200 mL/h after six workouts.",
+    "Uniform +/-10 mL noise and +/-10 g scale bounds are software assumptions.",
+    "Condition shift is a label, not an attributed temperature effect."
+  ],
+  "evidence_origin": "synthetic_software_scenarios",
+  "limitations": [
+    "Research candidate only; not enabled in the app or used by Muse Wonder.",
+    "A learned time trend is an engineering hypothesis, not validated physiological adaptation.",
+    "Selection uses earlier within-person errors; overlapping fits are not independent validation.",
+    "No population prior, weather coefficient, diagnosis, total hydration or drinking requirement.",
+    "The envelope preserves measurement and past errors; it is not a calibrated prediction interval."
+  ],
+  "real_world_improvement": false,
+  "scenarios": {
+    "abrupt_change": {
+      "interval_inclusion": 0.9090909090909091,
+      "ridge_selected_predictions": 36,
+      "systems": {
+        "baseline": {
+          "bias_ml": -54.00704856333945,
+          "mae_ml": 58.951766285599454,
+          "n": 110,
+          "rmse_ml": 103.91246114768879
+        },
+        "selected": {
+          "bias_ml": -39.164509913479336,
+          "mae_ml": 61.12878195066453,
+          "n": 110,
+          "rmse_ml": 99.88414825800139
+        }
+      }
+    },
+    "condition_shift": {
+      "interval_inclusion": 1,
+      "ridge_selected_predictions": 0,
+      "systems": {
+        "baseline": {
+          "bias_ml": 0.1808410598938002,
+          "mae_ml": 6.229993496554901,
+          "n": 100,
+          "rmse_ml": 7.408348582422685
+        },
+        "selected": {
+          "bias_ml": 0.1808410598938002,
+          "mae_ml": 6.229993496554901,
+          "n": 100,
+          "rmse_ml": 7.408348582422685
+        }
+      }
+    },
+    "gradual_change": {
+      "interval_inclusion": 0.5909090909090909,
+      "ridge_selected_predictions": 60,
+      "systems": {
+        "baseline": {
+          "bias_ml": -75.651352345774,
+          "mae_ml": 75.651352345774,
+          "n": 110,
+          "rmse_ml": 79.09456048306185
+        },
+        "selected": {
+          "bias_ml": -27.65703192300781,
+          "mae_ml": 29.753799106435938,
+          "n": 110,
+          "rmse_ml": 43.68560643180188
+        }
+      }
+    },
+    "stable": {
+      "interval_inclusion": 1,
+      "ridge_selected_predictions": 6,
+      "systems": {
+        "baseline": {
+          "bias_ml": 0.4331895372169062,
+          "mae_ml": 5.85438680022809,
+          "n": 110,
+          "rmse_ml": 7.188456547627253
+        },
+        "selected": {
+          "bias_ml": 0.31483601648546006,
+          "mae_ml": 5.853120098938451,
+          "n": 110,
+          "rmse_ml": 7.186774395300442
+        }
+      }
+    }
+  },
+  "seed": 20261102,
+  "version": "personal-rate-ridge-research-v1"
+}

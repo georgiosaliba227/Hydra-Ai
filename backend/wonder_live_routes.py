@@ -15,7 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from ai.assistant import SUGGESTED
 from .hydration_context_v2 import SCENARIOS
 from .meta_budget import BudgetDenied
-from .meta_experiments import ExperimentQuote
 from .recognition import RecognitionUnavailable
 from .wonder_assistant import assistant_payload
 from .wonder_hydration import input_bound, payload_sha256, wonder_payload, worst_case_micro_usd
@@ -77,7 +76,8 @@ def install_wonder_live_routes(app, *, error_response) -> None:
                 allocation = config.ledger.snapshot()
             except BudgetDenied:
                 allocation = None
-        return {"version": VERSION, "live_available": app.state.wonder_trends_gateway is not None,
+        return {"version": VERSION, "live_available": bool(config and config.supports_synthetic
+                    and app.state.wonder_trends_gateway is not None),
                 "account_id": config.account if config else None, "allocation": allocation, "items": items}
 
     @app.post("/v1/wonder/live")
@@ -90,7 +90,7 @@ def install_wonder_live_routes(app, *, error_response) -> None:
         if (saved := recorded(payload.kind, payload.id)) is not None:
             return {"replayed": True, "saved": True, "result": saved}
         factory, config = app.state.wonder_trends_gateway, app.state.wonder_live_config
-        if factory is None or config is None:
+        if factory is None or config is None or not config.supports_synthetic:
             return error_response("wonder_unavailable", 503, request_id)
         if not app.state.wonder_lock.acquire(blocking=False):
             return error_response("wonder_busy", 409, request_id, retryable=True)
@@ -98,7 +98,7 @@ def install_wonder_live_routes(app, *, error_response) -> None:
             gateway = factory()
             reference = f"owner:{request_id}"  # recorded with the ledger's case request event
             try:
-                quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
+                quote = config.read_quote()
                 result = (gateway.explain_synthetic(payload.id, quote, reference) if payload.kind == "scenario"
                           else gateway.answer_synthetic(payload.id, quote, reference))
             except (RecognitionUnavailable, OSError, ValueError):
@@ -110,11 +110,13 @@ def install_wonder_live_routes(app, *, error_response) -> None:
                 response = error_response("wonder_attempt_unresolved", 502, request_id)
                 return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
                                     status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
+            # Publication shares the lock with confirmed deletion. An active
+            # temporary result must not be mistaken for an orphan and removed.
+            try:
+                save_result(app.state.wonder_results_dir, result)
+                stored = True
+            except (OSError, ValueError):
+                stored = False
+            return {"replayed": False, "saved": stored, "result": result}
         finally:
             app.state.wonder_lock.release()
-        try:
-            save_result(app.state.wonder_results_dir, result)
-            stored = True
-        except (OSError, ValueError):
-            stored = False
-        return {"replayed": False, "saved": stored, "result": result}

@@ -11,13 +11,13 @@ final class CameraCorrectionsUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 15))
-        let initial = try XCTUnwrap(Int(total.value as? String ?? ""))
+        let initial = try XCTUnwrap(total.metricMillilitersValue)
         app.tabBars.buttons["Camera"].tap()
         try analyzeFixture(app)
         let edit = app.buttons["editRecognitionEntry"]
@@ -56,7 +56,7 @@ final class CameraCorrectionsUITests: XCTestCase {
         XCTAssertTrue(confirm.isEnabled); confirm.tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Today"].tap()
-        let counted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", String(initial + 125)), object: total)
+        let counted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "\(initial + 125) mL"), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [counted], timeout: 15), .completed)
         app.tabBars.buttons["Camera"].tap()
         try analyzeFixture(app)
@@ -80,15 +80,18 @@ final class CameraCorrectionsUITests: XCTestCase {
     private func replace(_ field: XCUIElement, with value: String) {
         let done = XCUIApplication().buttons["photoKeyboardDone"]
         if done.exists && done.isHittable { done.tap() }
+        let app = XCUIApplication()
+        for _ in 0..<12 {
+            if field.exists && field.isHittable,
+               field.frame.maxY < app.buttons["savePhotoBeverage"].frame.minY - 8 { break }
+            app.swipeUp()
+        }
         let current = field.value as? String ?? ""
-        if current.isEmpty || current == field.placeholderValue {
-            // Repeated taps on an empty lower row can hit the keyboard toolbar
-            // after the first tap changes layout. There is no text to select.
-            // LabeledContent exposes the whole row as the field's AX frame;
-            // its long visible-liquid label occupies the center of that row.
-            field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
-        } else {
-            field.tap(withNumberOfTaps: 3, numberOfTouches: 1)
+        // Focus once at the trailing edge. A triple tap reuses its first point
+        // after the keyboard moves the form and can hit another control.
+        field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        if !current.isEmpty && current != field.placeholderValue {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count))
         }
         field.typeText(value)

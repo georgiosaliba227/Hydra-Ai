@@ -11,17 +11,17 @@ final class HistoryEditUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 20))
-        guard let value = total.value as? String, let initial = Int(value) else { XCTFail("Daily total must be numeric"); return }
+        guard let initial = total.metricMillilitersValue else { XCTFail("Daily total must be numeric"); return }
 
         func expectTotal(_ expected: Int, _ message: String) {
             app.tabBars.buttons["Today"].tap()
-            let predicate = NSPredicate(format: "value == %@", String(expected))
+            let predicate = NSPredicate(format: "value == %@", "\(expected) mL")
             XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: total)], timeout: 20), .completed, message)
         }
         func row(_ milliliters: Int) -> XCUIElement {

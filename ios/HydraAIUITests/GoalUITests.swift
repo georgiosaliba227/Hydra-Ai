@@ -11,11 +11,14 @@ final class GoalUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
+        let custom = app.buttons["customGoalEntry"]
+        app.revealFormElement(custom)
+        custom.tap()
         let field = app.textFields["goalField"]
-        for _ in 0..<3 where !field.waitForExistence(timeout: 3) { app.swipeUp() }
+        app.revealFormElement(field)
         field.tap(); field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 6) + "1500")
         let done = app.toolbars.buttons["Done"]
         if done.waitForExistence(timeout: 3) { done.tap() }

@@ -178,8 +178,8 @@ struct LongitudinalHistory: Decodable, Sendable {
     func validate(request: WorkoutForecastRequest, forecast: WorkoutForecast) throws {
         guard !forecast.synthetic, history_retained_by_caller, total_samples == request.samples.count,
               comparable_samples >= 0, comparable_samples <= total_samples, recent_samples == min(5, comparable_samples),
-              method == "recent_comparable_median_with_historical_error_envelope" else { throw ServiceError.invalidResponse }
-        if forecast.status == "estimated", forecast.modelVersion == "personal-longitudinal-v2", comparable_samples != forecast.sampleCount {
+              method == (forecast.learning?.selectedMethod == .fitted ? "regularized_duration_rate_with_historical_error_envelope" : "recent_comparable_median_with_historical_error_envelope") else { throw ServiceError.invalidResponse }
+        if forecast.status == "estimated", ["personal-longitudinal-v2", "personal-runtime-rate-v1"].contains(forecast.modelVersion), comparable_samples != forecast.sampleCount {
             throw ServiceError.invalidResponse
         }
         if comparable_samples == 0 {
@@ -187,7 +187,7 @@ struct LongitudinalHistory: Decodable, Sendable {
         } else {
             guard let first_observed_at, let last_observed_at,
                   let first = Self.instant(first_observed_at), let last = Self.instant(last_observed_at),
-                  let generated = Self.instant(forecast.generatedAt), DateBoundary.onOrBefore(first, last), last < generated else { throw ServiceError.invalidResponse }
+                  let generated = Self.instant(forecast.generatedAt), DateOrdering.notAfter(first, last), last < generated else { throw ServiceError.invalidResponse }
         }
     }
     private static func instant(_ text: String) -> Date? {

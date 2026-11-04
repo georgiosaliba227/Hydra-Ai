@@ -79,15 +79,14 @@ struct RecognitionEntryDraft {
         if let ml { volumeText = next.text(for: ml) }
     }
     mutating func selectPreset(_ ml: Int) {
-        unit = .millilitres; setVolume(String(ml))
+        setVolume(unit.text(for: ml))
     }
     mutating func setDrankAll(_ all: Bool) {
         drankAll = all; fullContainer = false
-        unit = .millilitres
         if all { applyWholeDrinkDefault() } else { volumeText = "" }
     }
     private mutating func applyWholeDrinkDefault() {
-        volumeText = (correctedLiquidMl ?? candidate.wholeLiquidMl).map(String.init) ?? ""
+        volumeText = (correctedLiquidMl ?? candidate.wholeLiquidMl).map { unit.text(for: $0) } ?? ""
         guard correctedLiquidMl == nil, let label = candidate.labelCapacityMl,
               (1...5000).contains(label), candidate.suggestedCapacity == label else { return }
         // A readable label supports capacity, not measured fill. The review
@@ -104,7 +103,7 @@ struct RecognitionEntryDraft {
     mutating func useFullContainer() {
         guard let capacity = candidate.suggestedCapacity else { return }
         drankAll = true; fullContainer = true; correctedLiquidMl = nil
-        unit = .millilitres; volumeText = String(capacity)
+        volumeText = unit.text(for: capacity)
     }
     mutating func chooseType(_ type: String) {
         guard Self.drinkTypes.contains(type) else { return }

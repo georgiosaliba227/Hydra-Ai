@@ -58,7 +58,7 @@ final class WholeDrinkTests: XCTestCase {
         XCTAssertEqual(draft.consumedMl, 500)
         draft.selectPreset(355)
         XCTAssertEqual(draft.consumedMl, 355)
-        XCTAssertEqual(draft.unit, .millilitres)
+        XCTAssertEqual(draft.unit, .litres)
     }
     func testHiddenFillRequiresExplicitFullContainerChoiceAndTypeEditsPersist() {
         var draft = RecognitionEntryDraft(candidate: coffee(nil, nil, capacity: 500))
@@ -122,6 +122,31 @@ final class WholeDrinkTests: XCTestCase {
         candidate.labelCapacityMl = 1000
         let draft = RecognitionEntryDraft(candidate: candidate)
         XCTAssertNil(draft.consumedMl)
+    }
+
+    func testUSUnitSurvivesPresetsWholeDrinkAndPartialActions() {
+        var candidate = coffee(nil, nil, capacity: 1000)
+        candidate.labelCapacityMl = 1000
+        var draft = RecognitionEntryDraft(candidate: candidate)
+        draft.setUnit(.usFlOz)
+        XCTAssertEqual(draft.consumedMl, 1000)
+        draft.selectPreset(355)
+        XCTAssertEqual(draft.unit, .usFlOz)
+        XCTAssertEqual(draft.consumedMl, 355)
+        draft.useFullContainer()
+        XCTAssertEqual(draft.unit, .usFlOz)
+        XCTAssertEqual(draft.consumedMl, 1000)
+        XCTAssertEqual(draft.assumption, "full_container")
+        draft.setDrankAll(false)
+        XCTAssertEqual(draft.unit, .usFlOz)
+        XCTAssertNil(draft.consumedMl)
+        draft.setVolume("16.9")
+        XCTAssertEqual(draft.consumedMl, 500)
+        XCTAssertNil(draft.assumption)
+        XCTAssertNil(draft.correctedLiquidMl)
+        draft.setDrankAll(true)
+        XCTAssertEqual(draft.unit, .usFlOz)
+        XCTAssertEqual(draft.consumedMl, 1000)
     }
 
 }

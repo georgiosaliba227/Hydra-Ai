@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RootView: View {
+    @EnvironmentObject private var context: DailyContextCoordinator
     @State private var showingCameraManualLog = false
 
     var body: some View {
@@ -32,6 +33,9 @@ struct RootView: View {
         .tint(.hydraTint)
         .sheet(isPresented: $showingCameraManualLog) {
             NavigationStack { ManualLogView() }
+        }
+        .sheet(isPresented: Binding(get: { !context.setupCompleted }, set: { _ in })) {
+            DailyContextSetupView()
         }
     }
 }

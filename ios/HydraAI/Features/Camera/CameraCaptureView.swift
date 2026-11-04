@@ -5,6 +5,7 @@ import UIKit
 
 /// Consented analysis; durable photo storage additionally requires training opt-in.
 struct CameraCaptureView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     let onLogManually: () -> Void
 
@@ -182,15 +183,15 @@ struct CameraCaptureView: View {
             Text(candidate.suggestedIdentity).font(.headline)
             if let brand = candidate.brand { Text("Brand: \(brand)") }
             if let product = candidate.product { Text("Product: \(product)") }
-            Text(candidate.suggestedCapacity.map { "Container suggestion: \($0) mL" } ?? "Container capacity: unknown")
-            Text(candidate.liquidEstimateText).font(.subheadline)
+            Text(candidate.suggestedCapacity.map { "Container suggestion: \(units.volume($0))" } ?? "Container capacity: unknown")
+            Text(units.text(candidate.liquidEstimateText)).font(.subheadline)
             Text("\(RecognitionPresentation(mode: result?.mode).modelName) confidence: \(candidate.confidence) · verify the details").font(.footnote)
             if candidate.personalCorrection != nil {
                 Text("\(RecognitionPresentation(mode: result?.mode).modelName) suggested: \(candidate.identity)").font(.footnote)
                 Text("Your previous correction: \(candidate.suggestedIdentity)")
                     .font(.footnote).accessibilityIdentifier("personalCorrectionSuggestion")
                 if let liquid = candidate.personalLiquidText {
-                    Text(liquid).font(.footnote).accessibilityIdentifier("personalLiquidCorrection")
+                    Text(units.text(liquid)).font(.footnote).accessibilityIdentifier("personalLiquidCorrection")
                 }
             }
             HStack {

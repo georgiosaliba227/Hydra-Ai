@@ -285,8 +285,14 @@ enum BeverageStyle {
 // MARK: - Formatting
 
 enum HydraFormat {
+    /// Whole millilitres ("683", "1,417"): a tenth of a millilitre is false precision for any estimate here.
     static func milliliters(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...1)))
+        value.formatted(.number.precision(.fractionLength(0)))
+    }
+
+    /// A range of whole millilitres, e.g. "0–683 mL".
+    static func milliliterRange(_ lower: Double, _ upper: Double) -> String {
+        "\(milliliters(lower))–\(milliliters(upper)) mL"
     }
 
     static func usd(micro: Double) -> String {

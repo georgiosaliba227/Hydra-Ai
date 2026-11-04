@@ -58,6 +58,8 @@ def error_response(code: str, status: int, request_id: str, *, retryable: bool =
         "trends_insufficient_data": "Log drinks in the last 14 days before asking for trends.",
         "workout_preview_stale": "Your planned workout or history changed since the preview. Review the new preview first.",
         "workout_insufficient_history": "Add at least one previous session of this activity before asking for an explanation.",
+        "analysis_preview_stale": "The included workout, history or beverage totals changed. Review the new preview first.",
+        "analysis_insufficient_data": "The analysis is unavailable for this record. Review its missing information and cost bound.",
     }
     return JSONResponse(
         {"code": code, "message": messages.get(code, "The request could not be completed."),
@@ -80,7 +82,7 @@ class RequestGuard:
         request_id = str(uuid4())
         scope.setdefault("state", {})["request_id"] = request_id
         headers = {key.lower(): value for key, value in scope.get("headers", [])}
-        if scope["path"].startswith(("/v1", "/v2")):
+        if scope["path"].startswith(("/v1", "/v2", "/v3")):
             provided = headers.get(b"authorization", b"")
             expected = ("Bearer " + self.token).encode()
             if not hmac.compare_digest(provided, expected):
@@ -92,8 +94,10 @@ class RequestGuard:
             # A confirmed photo may carry its image only for separately opted-in
             # training collection. The typed schema rejects all other images.
             body_limit = 1_450_000
-        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/wonder/workout/preview",
-                               "/v1/wonder/workout"):
+        elif scope["path"] in ("/v1/workout-forecasts", "/v2/workout-forecasts", "/v1/hydration-analysis", "/v1/wonder/workout/preview",
+                               "/v1/wonder/workout", "/v1/wonder/analysis/preview", "/v1/wonder/analysis",
+                               "/v3/workout-forecasts", "/v3/hydration-analysis", "/v3/wonder/analysis/preview",
+                               "/v3/wonder/analysis"):
             body_limit = 128 * 1024  # Up to 32 bounded calibration samples.
         else:
             body_limit = MAX_BODY_BYTES
@@ -202,15 +206,20 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     billable = os.getenv("META_BILLABLE_REQUESTS_ENABLED", "false").lower()
     hydration_enabled = os.getenv("HYDRA_META_HYDRATION_ENABLED", "false").lower()
     wonder_live = os.getenv("HYDRA_WONDER_LIVE", "false").lower()
+    analysis_enabled = os.getenv("HYDRA_WONDER_ANALYSIS_ENABLED", "false").lower()
+    local_wonder = os.getenv("HYDRA_LOCAL_META_ALLOW_WONDER", "false").lower()
     camera_policy = os.getenv("HYDRA_META_CAMERA_POLICY", "legacy")
     if camera_policy not in ("legacy", "georgio-camera-cutoff-v1"):
         raise ValueError("Unsupported camera policy")
     if (mode not in ("mock", "guarded_meta", "local_meta") or billable not in ("false", "true")
-            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")):
+            or hydration_enabled not in ("false", "true") or wonder_live not in ("false", "true")
+            or analysis_enabled not in ("false", "true") or local_wonder not in ("false", "true")):
         raise ValueError("Unsupported AI configuration")
     live_feature = mode == "guarded_meta" or hydration_enabled == "true" or wonder_live == "true"
-    if mode == "local_meta" and (billable != "false" or hydration_enabled != "false" or wonder_live != "false"):
-        raise ValueError("Local Meta camera cannot enable hosted providers")
+    if local_wonder == "true" and (mode != "local_meta" or wonder_live != "true" or hydration_enabled != "false"):
+        raise ValueError("Local camera/Wonder coexistence requires explicit compatible features")
+    if mode == "local_meta" and local_wonder != "true" and (billable != "false" or hydration_enabled != "false" or wonder_live != "false"):
+        raise ValueError("Local Meta camera cannot enable hosted providers without explicit coexistence")
     if (billable == "true") != live_feature:
         raise ValueError("Mode and billable gate conflict")
     token = api_token if api_token is not None else os.getenv("HYDRA_API_TOKEN", "")
@@ -467,27 +476,39 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
         """Everything stored for this owner, for the user to keep. No ledger or provider data."""
         repository = request.app.state.repository
         results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import saved_trends, saved_workouts
-        corrections,training=repository.export_corrections("local-demo")
+        from .wonder_results import saved_trends, saved_workouts, saved_analyses, saved_scores
+        corrections, training = repository.export_corrections("local-demo")
         return {"version": "export-v1", "exported_at": utc_string(datetime.now(dt_timezone.utc)),
                 "recognition_corrections":corrections,"training_examples":training,
                 "local_recognition_receipts":repository.export_local_recognitions("local-demo"),
                 "beverages": repository.list_all("local-demo"),
                 "settings": settings_view(repository.get_settings("local-demo")),
                 "wonder_trends": saved_trends(results_dir) if results_dir else [],
-                "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else []}
+                "wonder_workout_explanations": saved_workouts(results_dir) if results_dir else [],
+                "wonder_analysis_explanations": saved_analyses(results_dir) if results_dir else [],
+                "wonder_score_explanations": saved_scores(results_dir) if results_dir else []}
 
     @app.delete("/v1/data")
     def delete_all_data(request: Request, confirm: Annotated[str, Query(max_length=64)] = ""):
         # An explicit phrase guards against an accidental or replayed bulk deletion.
         if confirm != "delete-all-my-data":
             raise HTTPException(422, "invalid_request")
-        results_dir = getattr(request.app.state, "wonder_results_dir", None)
-        from .wonder_results import delete_trends, delete_workouts
-        deleted = request.app.state.repository.delete_all("local-demo")
-        return {"deleted_beverages": deleted, "settings_cleared": True,
-                "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
-                "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0}
+        lock = request.app.state.wonder_lock
+        if not lock.acquire(blocking=False):
+            return error_response("wonder_busy", 409, request.state.request_id, retryable=True)
+        try:
+            results_dir = getattr(request.app.state, "wonder_results_dir", None)
+            from .wonder_results import delete_trends, delete_workouts, delete_analyses, delete_pending_results, delete_scores
+            deleted = request.app.state.repository.delete_all("local-demo")
+            if results_dir:
+                delete_pending_results(results_dir)
+            return {"deleted_beverages": deleted, "settings_cleared": True,
+                    "deleted_trend_explanations": delete_trends(results_dir) if results_dir else 0,
+                    "deleted_workout_explanations": delete_workouts(results_dir) if results_dir else 0,
+                    "deleted_analysis_explanations": delete_analyses(results_dir) if results_dir else 0,
+                    "deleted_score_explanations": delete_scores(results_dir) if results_dir else 0}
+        finally:
+            lock.release()
 
     @app.get("/v1/settings")
     def get_settings(request: Request):
@@ -513,6 +534,18 @@ def create_app(db_path: str | Path | None = None, api_token: str | None = None) 
     install_wonder_trend_routes(app, live=wonder_live == "true", error_response=error_response)
     from .wonder_workout_routes import install_wonder_workout_routes
     install_wonder_workout_routes(app, error_response=error_response)  # shares the trend config and lock
+    from .hydration_analysis import install_hydration_analysis_routes
+    install_hydration_analysis_routes(app, to_engine, error_response=error_response)
+    from .wonder_analysis_routes import install_wonder_analysis_routes
+    install_wonder_analysis_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
+    from .personal_runtime_routes import install_personal_runtime_routes
+    install_personal_runtime_routes(app, to_engine, enabled=analysis_enabled == "true", error_response=error_response)
     from .wonder_live_routes import install_wonder_live_routes
     install_wonder_live_routes(app, error_response=error_response)
+    from .wonder_owner_once_routes import install_owner_once_routes
+    install_owner_once_routes(app)  # Recorded synthetic output only; never dispatches.
+    from .wonder_readiness_routes import install_wonder_readiness_routes
+    install_wonder_readiness_routes(app)  # Owner-authenticated availability; never dispatches.
+    from .wonder_score_routes import install_wonder_score_routes
+    install_wonder_score_routes(app, enabled=analysis_enabled == "true", error_response=error_response)
     return app

@@ -29,6 +29,16 @@ Use the existing owner backend session token and separate beverage database. Con
 
 ## iPhone test
 
+For the combined hydration branch only, an operator can explicitly set
+`HYDRA_LOCAL_META_ALLOW_WONDER=true` alongside `HYDRA_WONDER_LIVE=true`,
+`META_BILLABLE_REQUESTS_ENABLED=true` and legacy hydration disabled. This permits
+the independently guarded Wonder routes to coexist with the local camera;
+comprehensive dispatch retains its own flag. It changes no budget, account,
+freshness, exact-preview or consent requirement. Camera photos still select only
+the local recognizer, with no hosted fallback. Default local-only configuration
+above remains unchanged. Keep the existing saved backend URL/token and beverage
+store when combining builds; a second backend database is not silently merged.
+
 Install the updated signed Hydra build through USB or a previously paired, reachable wireless Xcode connection. An old build does not accept `local_meta`; do not disguise it as hosted Spark or mock mode.
 
 1. In Settings, use `http://<Mac-LAN-IP>:8771`, preserve the owner backend token, and save the connection.

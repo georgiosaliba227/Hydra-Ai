@@ -68,7 +68,7 @@ final class LiveConsentTests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.buttons["saveConnection"].waitForExistence(timeout: 10));app.buttons["saveConnection"].tap()
@@ -162,7 +162,7 @@ final class LiveConsentTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["recognitionResultSource"].exists)
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
-        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '125'"), object: total)
+        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '125 mL'"), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [check], timeout: 20), .completed)
     }
 }

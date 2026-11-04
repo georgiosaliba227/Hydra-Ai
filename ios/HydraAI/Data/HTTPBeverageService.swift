@@ -180,6 +180,22 @@ actor HTTPBeverageService: BeverageService {
         return result
     }
 
+    /// Computes research analysis locally. This endpoint never dispatches to Meta.
+    func hydrationAnalysis(_ payload: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        try payload.validate()
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/hydration-analysis"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = try JSONEncoder().encode(payload)
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw ServiceError.server(response.statusCode) }
+        return try JSONDecoder().decode(HydrationAnalysis.self, from: data)
+    }
+
     /// Replays a recorded, already-settled Wonder result; the backend never dispatches for this call.
     func recordedWonderComparison(scenario: String) async throws -> HydrationContextComparison {
         var request = URLRequest(url: baseURL.appendingPathComponent("v2/hydration-context-comparison"))
@@ -293,6 +309,29 @@ actor HTTPBeverageService: BeverageService {
         return answer
     }
 
+    /// Read-only replay. This path has no corresponding client dispatch or retry action.
+    func ownerSyntheticWonderResult() async throws -> OwnerSyntheticWonderResult {
+        let result: OwnerSyntheticWonderResult = try await send("v1/wonder/owner-once/result")
+        try result.validate()
+        return result
+    }
+
+    /// A GET-only financial status check; never sends an inference request.
+    func wonderReadiness() async throws -> WonderReadiness {
+        try await send("v1/wonder/readiness")
+    }
+    func hydrationScorePreview(_ request: HydrationScoreRequest) async throws -> HydrationScorePreview {
+        try request.validate()
+        return try await richAnalysisPost("v1/wonder/score/preview", body: JSONEncoder().encode(request))
+    }
+    func explainHydrationScore(_ request: HydrationScoreExplanationRequest) async throws -> HydrationScoreExplanationResponse {
+        try request.validate()
+        let response: HydrationScoreExplanationResponse = try await richAnalysisPost("v1/wonder/score", body: JSONEncoder().encode(request))
+        try response.result.validate()
+        guard response.result.payload_sha256 == request.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
+
     func wonderTrendPreview(timezone: String) async throws -> TrendPreview {
         let preview: TrendPreview = try await send("v1/wonder/trends", query: [.init(name: "timezone", value: timezone)])
         try preview.validate()
@@ -310,13 +349,87 @@ actor HTTPBeverageService: BeverageService {
         return response
     }
 
-    private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = []) async throws -> (Data, Int) {
+    /// Not billable: computes the facts at the user's backend and returns exactly what would be sent to Meta.
+    func wonderWorkoutPreview(_ request: WorkoutForecastRequest) async throws -> WorkoutWonderPreview {
+        try request.validateForWonder()
+        let (data, status) = try await mutate("v1/wonder/workout/preview", method: "POST", body: try JSONEncoder().encode(request))
+        guard status == 200 else { throw WonderRequestError(status: status, body: data) }
+        let preview = try JSONDecoder().decode(WorkoutWonderPreview.self, from: data)
+        try preview.validate(request: request)
+        return preview
+    }
+
+    /// Billable when the backend is live: sends exactly the previewed workout, once, with the user's consent.
+    func explainWorkout(_ request: WorkoutExplanationRequest) async throws -> WorkoutExplanationResponse {
+        try request.forecast.validateForWonder()
+        guard request.payload_sha256.count == 64 else { throw ServiceError.invalidResponse }
+        // A live reply can take a while; a client timeout would not stop a request the backend already sent.
+        let (data, status) = try await mutate("v1/wonder/workout", method: "POST", body: try JSONEncoder().encode(request),
+                                              timeout: 60)
+        guard status == 200 else { throw WonderRequestError(status: status, body: data) }
+        let response = try JSONDecoder().decode(WorkoutExplanationResponse.self, from: data)
+        try response.result.validate()
+        guard response.result.payload_sha256 == request.payload_sha256,
+              response.result.facts.timezone == request.forecast.timezone else { throw ServiceError.invalidResponse }
+        return response
+    }
+
+    func workoutForecastV3(_ payload: WorkoutForecastRequest) async throws -> WorkoutForecast {
+        try payload.validate()
+        let result: WorkoutForecast = try await richAnalysisPost("v3/workout-forecasts", body: JSONEncoder().encode(payload))
+        try result.validate(request: payload, workflow: .experimentalRuntime)
+        return result
+    }
+    func hydrationAnalysisV3(_ payload: WorkoutForecastRequest) async throws -> HydrationAnalysis {
+        try payload.validate()
+        return try await richAnalysisPost("v3/hydration-analysis", body: JSONEncoder().encode(payload))
+    }
+    func wonderAnalysisPreviewV3(_ payload: WorkoutForecastRequest) async throws -> WonderAnalysisPreview {
+        try payload.validate()
+        return try await richAnalysisPost("v3/wonder/analysis/preview", body: JSONEncoder().encode(payload))
+    }
+    func explainHydrationAnalysisV3(_ payload: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse {
+        try payload.forecast.validate()
+        guard payload.forecast.mode == "personal", validAnalysisHash(payload.payload_sha256) else { throw ServiceError.invalidResponse }
+        let response: WonderAnalysisResponse = try await richAnalysisPost("v3/wonder/analysis", body: JSONEncoder().encode(payload))
+        try response.result.validate()
+        guard response.result.payload_sha256 == payload.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
+    func wonderAnalysisPreview(_ payload: WorkoutForecastRequest) async throws -> WonderAnalysisPreview {
+        try payload.validate()
+        return try await richAnalysisPost("v1/wonder/analysis/preview", body: JSONEncoder().encode(payload))
+    }
+    func explainHydrationAnalysis(_ payload: WorkoutExplanationRequest) async throws -> WonderAnalysisResponse {
+        try payload.forecast.validate()
+        guard payload.forecast.mode == "personal", validAnalysisHash(payload.payload_sha256) else { throw ServiceError.invalidResponse }
+        let response: WonderAnalysisResponse = try await richAnalysisPost("v1/wonder/analysis", body: JSONEncoder().encode(payload))
+        try response.result.validate()
+        guard response.result.payload_sha256 == payload.payload_sha256 else { throw ServiceError.invalidResponse }
+        return response
+    }
+    private func richAnalysisPost<T: Decodable>(_ path: String, body: Data) async throws -> T {
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"; request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 60
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        request.httpBody = body
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw ServiceError.invalidResponse }
+        guard response.statusCode == 200 else { throw WonderRequestError(status: response.statusCode, body: data) }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    private func mutate(_ path: String, method: String, body: Data?, query: [URLQueryItem] = [],
+                        timeout: TimeInterval? = nil) async throws -> (Data, Int) {
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         guard let url = components.url else { throw ServiceError.configuration }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.cachePolicy = .reloadIgnoringLocalCacheData
+        if let timeout { request.timeoutInterval = timeout }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let body {

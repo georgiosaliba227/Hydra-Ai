@@ -1,6 +1,73 @@
 # Hydra AI agent instructions
 
 ## Scope and approval
+November 3 combined continuation: the camera chat released exclusive phone use
+after owner-reported success. The combined local product includes camera PR #75
+and the hydration stack through PR #77. Keep the saved camera port/token and
+existing camera database; both features now share that owner backend. Preserve
+the old hydration database and connection-scoped local profiles. Only the already
+confirmed goal was carried to the previously goal-free camera store after an
+explicit notice, without moving drinks, body answers or HealthKit records.
+`HYDRA_LOCAL_META_ALLOW_WONDER` defaults false and only permits explicitly
+configured coexistence; it does not relax any Wonder admission or consent gate,
+and camera recognition remains local with no hosted fallback. The old camera-only
+installer is a rollback artifact and can replace the combined app/configuration;
+do not run it over this milestone inadvertently. Keep Simulator tests paused
+during actual local-camera demos. See docs/COMBINED_EXPERIENCE_2026-11-03.md.
+
+November 3 later UX direction (Georgio): use American units and ask for optional
+Health/workout and weather access on first use, then update context automatically.
+The installed implementation uses US fl oz/°F/lb presentation, canonical API
+units, separate automatic-weather opt-in and best-effort iOS background timing.
+This does not authorize automatic Meta disclosures/requests. The latest goal also
+requests birthday/age, height, weight and supplement questions to calculate a
+starting goal; use supported references and preserve the prohibition on arbitrary
+hydration multipliers or unsupported creatine adjustments. Keep profile data on
+device unless a separately reviewed, specifically consented flow permits export.
+
+November 3 later physical direction (Georgio): the owner explicitly answered
+**"Proceed with iPhone checks"** and subsequently unlocked the device for testing.
+This supersedes the earlier Simulator-only preference for this continuation.
+The full HealthKit-signed original app is installed; one scoped physical UI
+connection/readiness check passes. Actual Health permission choices, workout
+import, consented weather and own-record Meta preview/consent remain separate
+checks. Do not uninstall/reset personal data or seed simulated personal records.
+See docs/PHYSICAL_HYDRATION_CHECK_2026-11-03.md.
+
+November 3 ongoing Wonder billing-wait override (Georgio, explicit later reply):
+to the question whether the waiver should cover the newly completed test and
+unverified billing on Amine's ledgers while every $0.25 reservation remains
+counted against the existing $30 allocation, the owner answered **"Extend the
+billing-wait waiver to ongoing Wonder"**. This supersedes only the invoice-wait
+and cross-ledger billing-status gates for explicitly configured owner-risk
+Wonder requests. Record a separate explicit boolean and genuine authorization
+reference; default policies retain the existing gates. Successful recorded
+`billing_pending` replies may proceed only with valid provider identity, checked
+usage and durable validated-output/publication linkage. Reserved/dispatched/
+sending attempts, nonlegacy unresolved attempts, missing or malformed usage,
+output rejection and publication failures still block. Never mark unknown
+Amine status clear, invent finality, reduce any old hold, reset spending or
+increase limits. Preserve all $0.25 holds, the original eight identity-bound
+waivers, frozen flag, $30 allocation, account cutoffs, no retries/duplicates and
+fresh account/key/price/exact-input-consent gates. The fixed synthetic training
+plan remains once only, with a $0.019308 published-token upper bound and
+separately accepted unverified extras. See
+docs/architecture/WONDER_PERSONAL_OWNER_POLICY.md.
+
+November 3 owner direction (Georgio): continue the current verification in Xcode
+Simulator; physical installation is deferred. The owner explicitly directed the
+agent to ignore prior unresolved billing for the controlled Wonder verification,
+and separately accepted unverified provider charges "for all requests". This is
+standing acknowledgement of that financial uncertainty, not an increase to any
+allocation or account cutoff, proof of zero gross spending, invoice finality, or
+permission to erase/reset existing attempts. The current implementation executes
+one fixed synthetic comprehensive-analysis test through an audited one-use
+operator authorization in the existing ledger. Preserve all prior reservations,
+the frozen flag and evidence; ordinary admission remains unchanged. Published
+token bounds must be distinguished from any unverified provider extras. No
+personal or HealthKit data is authorized for this synthetic test. See
+docs/architecture/WONDER_OWNER_ONCE.md.
+
 November 1 account-owner policy replacement: the owner requested unlimited camera requests and explicitly instructed “disregard all financial constraints other than the cutoff and continue with meta ai image processing and analysis”. Implement the separate `georgio-camera-cutoff-v1` camera policy in docs/architecture/CAMERA_CUTOFF_POLICY.md. It supersedes earlier camera request-count, per-request spend, invoice-finality, financial-freeze and $100 approval gates only for that path. Preserve the $120 cutoff using atomic conservative reservations including all historical holds and the other allocation; preserve old financial history, privacy/consent, owner-only credentials, no retries/fallback and one request in flight. This is authorization to implement and activate this bounded recurring camera path, not to reset records or enable unaccounted calls.
 
 November 1 full-drink UX assignment: after analysis, automatically show a compact Confirm/Edit review. Default to the user's declared entire-liquid assumption using supported size evidence. Edit offers name/type and volume presets plus mL, US fl oz and litres. Persist assumptions distinctly from measured consumption; retain unknown capacity rather than inventing it. This extends the camera implementation scope below, without authorizing another paid request or relaxing billing/one-use gates.

@@ -1,8 +1,29 @@
 # Workout context prefill (iOS)
 
 Additive iOS contract, October 29, 2026. Status: data layer **implemented and
-unit-tested**; no screen calls it yet. The workout forecast contract
-(`WORKOUT_MODEL_API.md`) and request encoding are unchanged.
+unit-tested**, and wired into the "Plan a workout" screen (see "iOS integration" below).
+The workout forecast contract (`WORKOUT_MODEL_API.md`) and request encoding are unchanged.
+
+## iOS integration
+
+`WorkoutForecastView` holds one `WorkoutContextProvider.live()`.
+
+- **Use my last workout (Apple Health)** fills activity, whole-minute duration and the
+  suggested start (`WorkoutDraft.applyLastWorkout`). Intensity is never prefilled. The row
+  below shows the provenance line, the activity note, the typical-session line and, when the
+  workout has one, its average heart rate and energy with `heartRateContextNote`. The
+  provenance disappears as soon as the user edits the activity or duration.
+- **Weather.** A toggle "Use my location to fill in the weather" (subtitle: the approximate
+  location goes to Open-Meteo) backs `setWeatherConsent`; it is off by default and
+  "Fill in the weather" stays disabled until it is on (`canFillWeather`). Results fill
+  temperature and humidity with the Open-Meteo provenance line; turning consent off clears
+  values that still came from Open-Meteo, keeping anything the user typed. Each
+  `WeatherAutofillError` message is shown under the button.
+- Autofilled text is locale-independent ("22.5", no grouping), and the form also accepts a
+  comma decimal.
+- Tests: `ios/HydraAITests/WonderWorkoutTests.swift` (`WorkoutAutofillTests`) and the opt-in
+  `ios/HydraAIUITests/WorkoutFlowUITests.swift` (sample workouts, mock backend, no weather
+  lookup).
 
 The workout forecast form can be prefilled from two sources instead of typing:
 

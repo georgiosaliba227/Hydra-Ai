@@ -9,7 +9,7 @@ final class SimpleCameraUITests: XCTestCase {
         // normal connection even if a UI assertion failed; never erase app data.
         let app = XCUIApplication(); app.terminate()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": restore, "HYDRA_TEST_API_TOKEN": token]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.buttons["saveConnection"].waitForExistence(timeout: 10))
@@ -23,7 +23,7 @@ final class SimpleCameraUITests: XCTestCase {
         guard env["HYDRA_E2E_SIMPLE_CAMERA"] == "1", let url = env["HYDRA_E2E_BACKEND_URL"], let token = env["HYDRA_E2E_API_TOKEN"] else { throw XCTSkip("Synthetic simple-camera backend required") }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap()
         XCTAssertTrue(app.buttons["saveConnection"].waitForExistence(timeout: 10))
@@ -31,7 +31,7 @@ final class SimpleCameraUITests: XCTestCase {
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
         XCTAssertTrue(total.waitForExistence(timeout: 15))
-        return (app, try XCTUnwrap(Int(total.value as? String ?? "")))
+        return (app, try XCTUnwrap(total.metricMillilitersValue))
     }
     private func analyze(_ app: XCUIApplication, scenario: String = "Generic coffee") {
         app.tabBars.buttons["Camera"].tap()
@@ -46,7 +46,7 @@ final class SimpleCameraUITests: XCTestCase {
     private func total(_ app: XCUIApplication, _ expected: Int) {
         app.tabBars.buttons["Today"].tap()
         let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
-        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", String(expected)), object: total)
+        let check = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "\(expected) mL"), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [check], timeout: 15), .completed)
     }
     private func replace(_ field: XCUIElement, _ text: String) {
@@ -65,7 +65,7 @@ final class SimpleCameraUITests: XCTestCase {
         let (app, initial) = try start(); analyze(app)
         // Earlier edit tests can leave personal memory for this fixture. The
         // review must save the displayed whole-drink size in either case.
-        let wholeDrinkMl = try XCTUnwrap(Int(app.staticTexts["photoVolume"].label.filter(\.isNumber)))
+        let wholeDrinkMl = try XCTUnwrap(Int(app.staticTexts["photoVolume"].label.replacingOccurrences(of: ",", with: "").filter(\.isNumber)))
         XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
         XCTAssertFalse(app.textFields["photoConsumed"].exists)
         XCTAssertFalse(app.switches["assumeEntireLiquid"].exists)
@@ -91,7 +91,7 @@ final class SimpleCameraUITests: XCTestCase {
         XCTAssertFalse(app.buttons["savePhotoBeverage"].isEnabled)
         app.segmentedControls["photoVolumeUnit"].buttons["US fl oz"].tap()
         replace(size, "20")
-        XCTAssertEqual(app.staticTexts["photoVolume"].label.filter(\.isNumber), "591")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.replacingOccurrences(of: ",", with: "").filter(\.isNumber), "591")
         XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
         XCTAssertTrue(app.buttons["savePhotoBeverage"].isEnabled)
         screenshot(app, "Finished drink size entered inline")
@@ -144,9 +144,9 @@ final class SimpleCameraUITests: XCTestCase {
             throw XCTSkip("One-litre label fixture required")
         }
         let (app, initial) = try start(); analyze(app)
-        XCTAssertEqual(app.staticTexts["photoVolume"].label.filter(\.isNumber), "1000")
+        XCTAssertEqual(app.staticTexts["photoVolume"].label.replacingOccurrences(of: ",", with: "").filter(\.isNumber), "1000")
         XCTAssertTrue(app.staticTexts["photoVolume"].label.contains("mL"))
-        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.filter(\.isNumber), "1000")
+        XCTAssertEqual(app.staticTexts["photoLabelCapacity"].label.replacingOccurrences(of: ",", with: "").filter(\.isNumber), "1000")
         XCTAssertTrue(app.staticTexts["photoLabelCapacity"].label.hasPrefix("Printed size:"))
         XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label, "Confirm logs the whole drink.")
         XCTAssertTrue(app.buttons["editRecognitionEntry"].exists)

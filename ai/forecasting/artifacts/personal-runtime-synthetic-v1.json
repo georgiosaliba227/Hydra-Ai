@@ -1,0 +1,455 @@
+{
+  "evidence_origin": "synthetic_software_scenarios",
+  "limitations": [
+    "Research-only stationary personal duration regression; no independent measured longitudinal accuracy established.",
+    "Earlier within-person selection errors overlap and do not establish prospective improvement or clinical validity.",
+    "No calendar-time trend, population prior, learned weather or biometric adjustment, diagnosis or intake requirement.",
+    "Freshness and duration support are empirical engineering gates, not biological validity thresholds.",
+    "The range preserves measurement and historical errors; it has no nominal future coverage guarantee or sample-count contraction.",
+    "History remains caller-owned; the fit and its fingerprint exist in request memory only and must not be sent to Meta or logged.",
+    "All people, measurements, rates, variations, error bounds and condition changes are invented software inputs.",
+    "Pooled workout errors and within-person folds are dependent; standard errors here are selection heuristics, not significance tests.",
+    "Point inclusion is a marginal count across scored synthetic workouts, not participant simultaneous coverage or a validated future probability.",
+    "Selected-subset scores are descriptive and selection-conditioned; no tuning or promotion follows these outcomes."
+  ],
+  "model_version": "personal-runtime-rate-v1",
+  "protocol": {
+    "algorithm_frozen_before_scenarios": true,
+    "assumed_independent_mass_error_kg_per_endpoint": 0.01,
+    "base_rate_ml_per_hour": "300 + 20 * invented_person_index",
+    "condition_shift": "22 to 30 degrees C after six workouts; declared context change, no causal weather effect",
+    "duration_minutes": 60.0,
+    "gradual_rate_change_per_workout_ml_per_hour": 30.0,
+    "missing_errors": "every fourth workout, starting with the first",
+    "outlier_added_loss_at_fifth_workout_ml": 500.0,
+    "outlier_endpoint_error_kg": 0.2,
+    "people_per_scenario": 10,
+    "selection": "fixed alpha=1; >=6 qualified distinct sessions and >=3 earlier folds; mean paired gain > max(standard error, 1e-9)",
+    "spacing_days": 2,
+    "step_change_after_six_ml_per_hour": 200.0,
+    "true_between_workout_uniform_variation_ml": {
+      "default": 10.0,
+      "noisy": 150.0,
+      "unequal_duration": 30.0
+    },
+    "unequal_duration_minutes_cycle": [
+      30.0,
+      45.0,
+      60.0,
+      90.0
+    ],
+    "validation": "before each workout, predict using strictly earlier completed measurements; append outcome afterward",
+    "workouts_per_person": 12
+  },
+  "real_world_improvement": false,
+  "scenarios": {
+    "abrupt_change": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": 12.757633771536675,
+      "selected_candidate_predictions": 21,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": -106.8048990682841,
+          "empirical_point_inclusion_count": 19,
+          "empirical_point_inclusion_fraction": 0.9047619047619048,
+          "mae_ml": 107.30253519115747,
+          "n": 21,
+          "rmse_ml": 143.77571719934147
+        },
+        "runtime": {
+          "bias_ml": -174.1282358992067,
+          "empirical_point_inclusion_count": 19,
+          "empirical_point_inclusion_fraction": 0.9047619047619048,
+          "mae_ml": 174.1282358992067,
+          "n": 21,
+          "rmse_ml": 174.59639023323854
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 39,
+        "baseline_unavailable": 10,
+        "insufficient_comparable_history": 50,
+        "selected_by_earlier_error_comparison": 21
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 10,
+      "systems": {
+        "baseline": {
+          "bias_ml": -54.60830806785043,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 0.9090909090909091,
+          "mae_ml": 57.73131416164604,
+          "n": 110,
+          "rmse_ml": 102.6303039780383
+        },
+        "runtime": {
+          "bias_ml": -67.46094509920837,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 0.9090909090909091,
+          "mae_ml": 70.48894793318271,
+          "n": 110,
+          "rmse_ml": 111.38340898000753
+        }
+      }
+    },
+    "condition_shift": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 100,
+      "prediction_fraction": 0.8333333333333334,
+      "runtime_minus_baseline_mae_ml": 0.0,
+      "selected_candidate_predictions": 0,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": null,
+          "empirical_point_inclusion_count": 0,
+          "empirical_point_inclusion_fraction": null,
+          "mae_ml": null,
+          "n": 0,
+          "rmse_ml": null
+        },
+        "runtime": {
+          "bias_ml": null,
+          "empirical_point_inclusion_count": 0,
+          "empirical_point_inclusion_fraction": null,
+          "mae_ml": null,
+          "n": 0,
+          "rmse_ml": null
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_unavailable": 20,
+        "insufficient_comparable_history": 100
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 0,
+      "systems": {
+        "baseline": {
+          "bias_ml": 0.6314544390161739,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.95928887031006,
+          "n": 100,
+          "rmse_ml": 8.14767577475028
+        },
+        "runtime": {
+          "bias_ml": 0.6314544390161739,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.95928887031006,
+          "n": 100,
+          "rmse_ml": 8.14767577475028
+        }
+      }
+    },
+    "gradual_change": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": 0.5101470524432017,
+      "selected_candidate_predictions": 3,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": -86.49246226186676,
+          "empirical_point_inclusion_count": 2,
+          "empirical_point_inclusion_fraction": 0.6666666666666666,
+          "mae_ml": 86.49246226186676,
+          "n": 3,
+          "rmse_ml": 86.55677168877362
+        },
+        "runtime": {
+          "bias_ml": -105.19785418478399,
+          "empirical_point_inclusion_count": 2,
+          "empirical_point_inclusion_fraction": 0.6666666666666666,
+          "mae_ml": 105.19785418478399,
+          "n": 3,
+          "rmse_ml": 105.274677245315
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 57,
+        "baseline_unavailable": 10,
+        "insufficient_comparable_history": 50,
+        "selected_by_earlier_error_comparison": 3
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 3,
+      "systems": {
+        "baseline": {
+          "bias_ml": -76.38677337351217,
+          "empirical_point_inclusion_count": 49,
+          "empirical_point_inclusion_fraction": 0.44545454545454544,
+          "mae_ml": 76.38677337351217,
+          "n": 110,
+          "rmse_ml": 79.2302021765768
+        },
+        "runtime": {
+          "bias_ml": -76.89692042595537,
+          "empirical_point_inclusion_count": 49,
+          "empirical_point_inclusion_fraction": 0.44545454545454544,
+          "mae_ml": 76.89692042595537,
+          "n": 110,
+          "rmse_ml": 79.84580548528315
+        }
+      }
+    },
+    "missing_errors": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 100,
+      "prediction_fraction": 0.8333333333333334,
+      "runtime_minus_baseline_mae_ml": -0.17264049172687823,
+      "selected_candidate_predictions": 12,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": 5.279383813309138,
+          "empirical_point_inclusion_count": 12,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.906122697810791,
+          "n": 12,
+          "rmse_ml": 8.692868240492901
+        },
+        "runtime": {
+          "bias_ml": 3.4100927677456716,
+          "empirical_point_inclusion_count": 12,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 5.467451933420136,
+          "n": 12,
+          "rmse_ml": 6.919849119797174
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 28,
+        "baseline_unavailable": 20,
+        "insufficient_comparable_history": 60,
+        "selected_by_earlier_error_comparison": 12
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 0,
+      "systems": {
+        "baseline": {
+          "bias_ml": 1.503969176448651,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.220588048122819,
+          "n": 100,
+          "rmse_ml": 7.5214928561976295
+        },
+        "runtime": {
+          "bias_ml": 1.279654250981035,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.047947556395941,
+          "n": 100,
+          "rmse_ml": 7.297332198628104
+        }
+      }
+    },
+    "noisy": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": -1.5312060765979254,
+      "selected_candidate_predictions": 18,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": 15.436114520560118,
+          "empirical_point_inclusion_count": 18,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 81.52816143226363,
+          "n": 18,
+          "rmse_ml": 91.38467595456194
+        },
+        "runtime": {
+          "bias_ml": 14.384563909632638,
+          "empirical_point_inclusion_count": 18,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 72.17079096416523,
+          "n": 18,
+          "rmse_ml": 88.28332087177638
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 42,
+        "baseline_unavailable": 10,
+        "insufficient_comparable_history": 50,
+        "selected_by_earlier_error_comparison": 18
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 4,
+      "systems": {
+        "baseline": {
+          "bias_ml": 0.3355090090203948,
+          "empirical_point_inclusion_count": 87,
+          "empirical_point_inclusion_fraction": 0.7909090909090909,
+          "mae_ml": 83.64435456210539,
+          "n": 110,
+          "rmse_ml": 101.12904118708344
+        },
+        "runtime": {
+          "bias_ml": 0.16343709086862543,
+          "empirical_point_inclusion_count": 87,
+          "empirical_point_inclusion_fraction": 0.7909090909090909,
+          "mae_ml": 82.11314848550747,
+          "n": 110,
+          "rmse_ml": 100.67721915575662
+        }
+      }
+    },
+    "outlier": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": 0.0,
+      "selected_candidate_predictions": 0,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": null,
+          "empirical_point_inclusion_count": 0,
+          "empirical_point_inclusion_fraction": null,
+          "mae_ml": null,
+          "n": 0,
+          "rmse_ml": null
+        },
+        "runtime": {
+          "bias_ml": null,
+          "empirical_point_inclusion_count": 0,
+          "empirical_point_inclusion_fraction": null,
+          "mae_ml": null,
+          "n": 0,
+          "rmse_ml": null
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 60,
+        "baseline_unavailable": 10,
+        "insufficient_comparable_history": 50
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 0,
+      "systems": {
+        "baseline": {
+          "bias_ml": -45.284758247427646,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 0.9090909090909091,
+          "mae_ml": 50.42631463523023,
+          "n": 110,
+          "rmse_ml": 151.44353304350136
+        },
+        "runtime": {
+          "bias_ml": -45.284758247427646,
+          "empirical_point_inclusion_count": 100,
+          "empirical_point_inclusion_fraction": 0.9090909090909091,
+          "mae_ml": 50.42631463523023,
+          "n": 110,
+          "rmse_ml": 151.44353304350136
+        }
+      }
+    },
+    "stable": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": -0.11079273651918609,
+      "selected_candidate_predictions": 22,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": 0.7170097048825994,
+          "empirical_point_inclusion_count": 22,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 6.113109304394286,
+          "n": 22,
+          "rmse_ml": 7.376448653612436
+        },
+        "runtime": {
+          "bias_ml": 1.0167238913696353,
+          "empirical_point_inclusion_count": 22,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 5.559145621798354,
+          "n": 22,
+          "rmse_ml": 6.659791141812411
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 38,
+        "baseline_unavailable": 10,
+        "insufficient_comparable_history": 50,
+        "selected_by_earlier_error_comparison": 22
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 3,
+      "systems": {
+        "baseline": {
+          "bias_ml": -0.11737436858599143,
+          "empirical_point_inclusion_count": 110,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 5.983783284685671,
+          "n": 110,
+          "rmse_ml": 7.4191059574270115
+        },
+        "runtime": {
+          "bias_ml": -0.057431531288584255,
+          "empirical_point_inclusion_count": 110,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 5.872990548166485,
+          "n": 110,
+          "rmse_ml": 7.28225911858164
+        }
+      }
+    },
+    "unequal_duration": {
+      "attempted_predictions": 120,
+      "nominal_coverage": null,
+      "paired_scored_predictions": 110,
+      "prediction_fraction": 0.9166666666666666,
+      "runtime_minus_baseline_mae_ml": -0.25052357394911695,
+      "selected_candidate_predictions": 24,
+      "selected_prediction_subset": {
+        "baseline": {
+          "bias_ml": -1.078662650790258,
+          "empirical_point_inclusion_count": 24,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 16.022425556896593,
+          "n": 24,
+          "rmse_ml": 19.76802033426322
+        },
+        "runtime": {
+          "bias_ml": -2.892245614305248,
+          "empirical_point_inclusion_count": 24,
+          "empirical_point_inclusion_fraction": 1,
+          "mae_ml": 14.874192509629802,
+          "n": 24,
+          "rmse_ml": 17.32345414370811
+        }
+      },
+      "selection_reason_counts": {
+        "baseline_retained_after_validation": 26,
+        "baseline_unavailable": 10,
+        "insufficient_chronological_validation": 10,
+        "insufficient_comparable_history": 50,
+        "selected_by_earlier_error_comparison": 24
+      },
+      "synthetic_trajectories_with_worse_runtime_mae": 5,
+      "systems": {
+        "baseline": {
+          "bias_ml": 3.105804336972808,
+          "empirical_point_inclusion_count": 103,
+          "empirical_point_inclusion_fraction": 0.9363636363636364,
+          "mae_ml": 19.683974307465874,
+          "n": 110,
+          "rmse_ml": 24.496522150461438
+        },
+        "runtime": {
+          "bias_ml": 2.7101135085695374,
+          "empirical_point_inclusion_count": 103,
+          "empirical_point_inclusion_fraction": 0.9363636363636364,
+          "mae_ml": 19.433450733516757,
+          "n": 110,
+          "rmse_ml": 24.08934396145935
+        }
+      }
+    }
+  },
+  "seed": 20261103,
+  "version": "personal-runtime-synthetic-v1"
+}

@@ -1,5 +1,146 @@
 # Hydra AI blockers
 
+## Current — combined installation complete; personal Wonder still unverified
+
+The camera exclusive hold is released. The combined signed app is installed and
+opened normally, with a unified owner backend on the existing camera connection.
+Backend rows/runtime configuration/financial bytes were preserved; only the
+previously confirmed goal was adopted in the previously goal-free camera store.
+The owner confirms the Home US goal/score and trained camera mode appear. See the
+[combined evidence](COMBINED_EXPERIENCE_2026-11-03.md).
+
+Live Wonder reports ready at the read-only 00:18 UTC November 4 check. A fresh
+owner credit report renewed the observation, labeled owner-attested rather than
+operator-visible billing. Account identity, credential binding and pricing were
+checked separately; current payable/final gross/cross-ledger billing remain
+unverified. Existing holds/limits and accepted-risk references remain unchanged.
+The observation expires at 01:14:49 UTC November 4. Actual personal
+preview/consent/result/replay still needs an owner-assisted check. Real
+calibration measurements remain absent. Four optional
+offline dataset-tool tests were skipped, and an older-date camera picker UI
+round trip remains an explicit minor test gap.
+
+## Earlier — camera verification owned the installed app
+
+The camera chat restored its PR #75 build/backend on the same phone and requested
+exclusive physical testing. That merged camera Settings source lacks this
+hydration branch's Wonder-readiness controls. Hold hydration installs/relaunches,
+saved URL/token changes and local Simulator/UI runs until the camera check is
+complete. A combined reviewed build is required before another personal Wonder
+phone check; preserve both backend databases and the existing local profile
+scopes. Earlier successful hardware outcomes below apply to their recorded
+builds, not to the currently restored camera build.
+
+The owner's clarified **Not enough data for an estimate**, experimental switch
+**off**, is a supported zero-measurement cold start, not proof of a service or
+Swift decoding failure. Nonbillable v2/v3 probes and actual Swift response
+validation pass at that scope. The hydration implementation can still prepare
+the separate detailed Wonder analysis while reporting the missing forecast.
+Genuine measurements are still needed for personalization; simulated training
+records cannot fill that gap.
+
+No actual personal eight-section Wonder result/replay has been verified. The
+last genuine account observation expires at 6:35:49 p.m. EST on November 3; check
+runtime readiness and renew from fresh evidence if needed before a later send.
+Existing owner risk waivers, holds and limits remain unchanged. No provider
+request, phone change or camera-backend change was made in this investigation.
+
+## Latest remaining gaps after the US-unit installation
+
+The US/automatic-context update is installed and owner-assisted setup passes.
+The saved phone connection has a fresh automated physical pass; 217 native tests
+and six Simulator flows pass. These earlier hardware gaps are closed within that
+scope. Actual unattended background delivery and a populated own-record Meta flow
+are not established by those tests.
+
+The requested profile-guided form and reviewed adult beverage reference are
+implemented and installed; three actual Simulator flows pass. The owner also
+confirms the goal and populated Home score on the phone. Height/weight/supplements apply no numerical
+adjustments. Genuine manual calibration and independent personal accuracy evidence
+remain absent. Existing financial uncertainty is accepted under the recorded owner
+waiver, with holds/limits and other admission gates retained.
+
+The earlier stale-observation gate was cleared by a genuine authenticated billing
+and official-pricing renewal after the Mac became available; runtime readiness
+now reports ready. All prior financial history is preserved and only a fresh
+immutable authorization event was appended. Actual usage/finality and cross-ledger
+status remain unverified. The remaining personal preview/consent/result/replay
+check needs the owner's on-phone action; standing waivers were not requested again.
+
+## Earlier November 3 gaps — before the US-unit update
+
+- **Remaining iPhone checks:** the HealthKit-signed original bundle is installed.
+  One actual physical UI test passes for backend readiness, billing disclosure
+  and the goal-required Home state. The owner reports successful real workout
+  import and consented weather autofill. US units and first-use/automatic context
+  setup are newly requested; populated personal screens still need verification.
+  Four actual Simulator flows and 167 unit tests retain their separate scope.
+- **Real personal evidence:** the owner needs to collect measurements. Actual
+  Muse-guided simulation/training is complete and byte-reproduced, but synthetic
+  rows cannot fill personal history or validate real-person accuracy. The Home
+  score is an explicitly unvalidated 50/30/20 product rubric.
+- **Actual personal Meta flow:** the owner-local backend now reports ready and
+  both a real comprehensive synthetic response and real public-only simulation
+  plan exist. Own-record disclosure still needs exact preview/consent and a
+  recorded verification in the app; no raw HealthKit disclosure is introduced.
+- **Billing uncertainty is accepted, not resolved:** the owner explicitly waived
+  ongoing billing waits/unknown Amine status, keeping every hold and the same
+  $30 allocation. It no longer blocks the configured owner-risk path after all
+  other checks pass. Default verified mode retains its gates. Final invoices and
+  provider extras remain unverified; a failed/incomplete attempt still blocks.
+- **Integration/hosting:** stacked review branches are unmerged. No always-on
+  deployment is approved; local access depends on the Mac/LAN and current
+  observations. Readiness truthfully blocks after evidence expires.
+
+The newer owner-risk policy supersedes older operational blockers only within
+its explicit scope; historical reports below remain unchanged evidence.
+
+## November 3 operational update
+
+Valid HealthKit signing for the original app identifier is now locally verified;
+the updated app builds with its entitlement intact. The owner chose Simulator,
+so installation and real workout/permission/weather checks remain pending.
+
+The owner waived prior billing waits for one controlled synthetic Wonder test and
+accepted unverified extras for all requests without increasing spending limits.
+One real eight-section response validated and was saved; actual charges remain
+unverified and all historical financial records were preserved. The new native
+viewer is read-only. Ordinary ongoing personal dispatch remains separately
+configured/default-off; this one-use exception does not grant another send.
+See [actual test report](WONDER_OWNER_TEST_2026-11-03.md). Real personal calibration
+measurements and prospective accuracy evidence remain missing.
+
+## November 3 evidence gaps
+
+- **Independent personal accuracy:** a stationary model now fits earlier manual
+  measurements through v3 research routes, but real dated repeat-workout validation
+  is missing. Frozen synthetic abrupt shifts worsen MAE; keep the existing default
+  and an explicit experimental option. The temporal learner remains offline. More
+  records do not establish better accuracy or calibrated future coverage.
+- **Independent population evidence:** the three study targets are incompatible.
+  SpectroPhon's reused same-study holdout is not external validation; QDE loses to
+  its comparator; EPL retains its baseline and has only six test people. No
+  validated drinking requirement or body-hydration percentage follows.
+- **Physical HealthKit and final UI:** the connected iPhone passed 132 milestone
+  unit tests after a reproduced Date-comparison crash was corrected in a temporary
+  copy. Available signing lacks HealthKit for the separate bundle. Production
+  HealthKit permissions, physical UI and final v3 hardware behavior remain
+  unverified; the user requests Simulator for remaining tests. See the physical
+  report rather than treating the earlier connection failure as current.
+- **Live comprehensive Wonder evidence:** mock/checked-template tests do not
+  establish actual model usefulness, account authorization, pricing or project-wide
+  invoice finality. Comprehensive dispatch remains separately off by default. No
+  provider request or private financial operation was attempted.
+- **Human integration review:** v3/date compatibility integration, 145 native
+  tests and three actual Simulator flows pass, including a fitted forecast from
+  six saved synthetic records through local analysis, preview and deletion. Numerical/backend/native reviews
+  have no outstanding findings, and the integrated 1,284-test Python suite passes.
+  [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with Amine
+  requested as reviewer. PR #65 remains its dependency; human merge is required.
+
+Earlier dated account reports below are historical and may conflict; current user
+instructions and fresh private evidence govern future live operation.
+
 Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
 
 ## Top blocker: no way to lift an account freeze

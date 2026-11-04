@@ -84,14 +84,23 @@ def _group_residuals(rows, predictions):
     return sorted(max(values) for values in errors.values())
 
 
-def train_experiment(records: list[dict], *, provenance: list[str], seed: int = SEED) -> tuple[dict, dict]:
-    """Select on validation only; calibrate once, evaluate untouched test once."""
+def fit_candidates(training: list[dict], *, provenance: list[str], seed: int = SEED,
+                   audit_records: list[dict] | None = None) -> dict[str, dict]:
+    """Fit fixed candidates with preprocessing learned exclusively from training.
+
+    Optional audit rows affect dataset attribution and numerical export checks,
+    never fitted parameters. This shared fitter also preserves the frozen v1 run.
+    """
     import numpy as np
     import sklearn
     from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
     from sklearn.linear_model import Ridge
-    partitions = split_participants(records, seed)
-    training = partitions["train"]
+    records = audit_records if audit_records is not None else training
+    validate_records(records)
+    validate_records(training)
+    audit_by_id = {row["record_id"]: row for row in records}
+    if any(audit_by_id.get(row["record_id"]) != row for row in training):
+        raise ValueError("training_audit_mismatch")
     fills = [median([r[f] for r in training if r.get(f) is not None])
              if any(r.get(f) is not None for r in training) else 0.0 for f in FEATURES]
     x_raw = np.array([[r.get(f) if r.get(f) is not None else fills[i] for i, f in enumerate(FEATURES)] for r in training])
@@ -131,14 +140,18 @@ def train_experiment(records: list[dict], *, provenance: list[str], seed: int = 
         exported = [predict_artifact(skeleton | {"model":models[name]},r) for r in parity_rows]
         if not np.allclose(reference,exported,rtol=1e-10,atol=1e-8):
             raise ValueError("json_export_prediction_mismatch")
-    comparisons = {}
-    candidates = {}
-    for name, model in models.items():
-        artifact = skeleton | {"model": model}
-        candidates[name] = artifact
-        comparisons[name] = {"validation": metrics(partitions["validation"], [predict_artifact(artifact,r) for r in partitions["validation"]])}
+    return {name: skeleton | {"model": model} for name, model in models.items()}
+
+
+def train_experiment(records: list[dict], *, provenance: list[str], seed: int = SEED) -> tuple[dict, dict]:
+    """Select on validation only; calibrate once, evaluate untouched test once."""
+    partitions = split_participants(records, seed)
+    candidates = fit_candidates(partitions["train"], provenance=provenance, seed=seed, audit_records=records)
+    comparisons = {name: {"validation": metrics(partitions["validation"],
+        [predict_artifact(artifact, r) for r in partitions["validation"]])}
+        for name, artifact in candidates.items()}
     # Prefer the simpler candidate for an exact tie; no test or synthetic scores enter selection.
-    selected_name = min(models, key=lambda name: comparisons[name]["validation"]["mae_ml"])
+    selected_name = min(candidates, key=lambda name: comparisons[name]["validation"]["mae_ml"])
     artifact = deepcopy(candidates[selected_name])
     calibration = partitions["calibration"]
     scores = _group_residuals(calibration, [predict_artifact(artifact,r) for r in calibration])
@@ -164,7 +177,7 @@ def train_experiment(records: list[dict], *, provenance: list[str], seed: int = 
         calibration_curve.append({"nominal_coverage":level,"radius_ml":level_radius,
             "participant_test_coverage":None if level_radius is None else mean(s<=level_radius for s in group_scores)})
     report = {"study_id": records[0]["study_id"], "target_name": records[0]["target_name"], "synthetic": records[0]["synthetic"],
-              "seed": seed, "data_sha256": skeleton["dataset_sha256"], "selected_model": selected_name,
+              "seed": seed, "data_sha256": artifact["dataset_sha256"], "selected_model": selected_name,
               "selection_rule": "minimum validation MAE; test and calibration excluded from fitting and selection",
               "partitions": {key:{"records":len(rows), "participants": sorted({r["participant_id"] for r in rows}),
                                   "record_ids":[r["record_id"] for r in rows]} for key,rows in partitions.items()},

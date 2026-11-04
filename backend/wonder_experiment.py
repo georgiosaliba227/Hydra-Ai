@@ -31,6 +31,7 @@ from .wonder_hydration import (MODEL, input_bound, live_comparison_provenance, p
                                wonder_payload)
 from .wonder_trends import facts_from_payload, parse_explanation, trend_result, trends_payload
 from . import wonder_workout
+from . import wonder_analysis
 from ai.assistant import SUGGESTED
 
 # Reviewed additive DDL; installed only by tests until a separate migration is approved.
@@ -365,7 +366,14 @@ class WonderMetaTransport(OfficialMetaTransport):
         try:
             facts_from_payload(payload)  # Exactly a Hydra trend payload,
         except ValueError:
-            wonder_workout.facts_from_payload(payload)  # or a planned-workout payload; raises otherwise.
+            try:
+                wonder_workout.facts_from_payload(payload)
+            except ValueError:
+                try:
+                    wonder_analysis.facts_from_payload(payload)
+                except ValueError:
+                    from . import wonder_score
+                    wonder_score.facts_from_payload(payload)  # exact aggregate contract only
 
     def input_bound(self, payload: dict) -> int:
         self.validate_payload(payload)
@@ -528,3 +536,35 @@ class WonderHydrationGateway:
                                                        freeze_on_rejected_output=False)
         return wonder_workout.workout_result(facts, explanation, account=self.account, attempt_id=attempt,
                                              observations=observations, generated_at=stamp())
+
+    def explain_analysis(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
+        """Same own-aggregate standing case and financial admission as workout explanations."""
+        try:
+            facts = wonder_analysis.validate_facts(facts)
+            if facts["mode"] != "personal" or not (
+                    facts["calibration"]["total_samples"] or facts["intake"]["beverage_count"]
+                    or facts["trends"]["logged_days"] or facts["forecast"]["status"] == "estimated"):
+                raise ValueError("Personal observed evidence required")
+            payload = wonder_analysis.analysis_payload(facts)
+            case = self.ledger.register_workout_case(payload_sha256(payload), consent_reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
+        selection, attempt, observations = self._run(
+            payload, case.case_id, quote, case.input_approval_reference,
+            lambda reply: wonder_analysis.parse_selection(reply, facts), freeze_on_rejected_output=False)
+        return wonder_analysis.analysis_result(facts, selection, account=self.account, attempt_id=attempt,
+                                               observations=observations, generated_at=stamp())
+
+    def explain_score(self, facts: dict, quote: ExperimentQuote, consent_reference: str) -> dict:
+        """One exact Home research rubric; own-data consent and ordinary verified gates."""
+        from . import wonder_score
+        try:
+            facts = wonder_score.validate_facts(facts)
+            payload = wonder_score.score_payload(facts)
+            case = self.ledger.register_workout_case(payload_sha256(payload), consent_reference)
+        except Exception:
+            raise RecognitionUnavailable() from None
+        explanation, attempt, observations = self._run(payload, case.case_id, quote, case.input_approval_reference,
+            lambda reply: wonder_score.parse_explanation(reply, facts), freeze_on_rejected_output=False)
+        return wonder_score.score_result(facts, explanation, account=self.account, attempt_id=attempt,
+            observations=observations, generated_at=stamp())

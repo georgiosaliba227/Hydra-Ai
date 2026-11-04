@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WeeklyVolumeView: View {
+    @EnvironmentObject private var units: DisplayUnits
     let logs: [BeverageLog]
 
     private var days: [Date] {
@@ -19,9 +20,9 @@ struct WeeklyVolumeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Last 7 days").font(.headline)
+                Text("Last 7 days · \(units.system.symbol(for: .volume))").font(.headline)
                 Spacer()
-                Text("\(dailyVolumes.reduce(0, +).formatted()) mL total")
+                Text("\(units.volume(dailyVolumes.reduce(0, +))) total")
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -30,7 +31,7 @@ struct WeeklyVolumeView: View {
                 ForEach(days.indices, id: \.self) { index in
                     let isToday = index == days.count - 1
                     VStack(spacing: 6) {
-                        Text(dailyVolumes[index].formatted(.number.notation(.compactName)))
+                        Text(units.format(Double(dailyVolumes[index]), quantity: .volume, includeUnit: false))
                             .font(.caption2.monospacedDigit())
                             .fixedSize()
                         GeometryReader { geometry in
@@ -47,7 +48,7 @@ struct WeeklyVolumeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("\(days[index].formatted(date: .abbreviated, time: .omitted)), \(dailyVolumes[index]) milliliters logged")
+                    .accessibilityLabel("\(days[index].formatted(date: .abbreviated, time: .omitted)), \(units.volumeAccessibility(dailyVolumes[index])) logged")
                 }
             }
             Text("Bars compare logged days with each other, not with a daily target.")

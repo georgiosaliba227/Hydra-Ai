@@ -1,0 +1,161 @@
+{
+  "actual_muse_plan_pending": true,
+  "augmentation_seed": 20261104,
+  "augmented_records": 2240,
+  "base_partitions": {
+    "calibration": {
+      "rows": 172,
+      "source_anchor_groups": 15
+    },
+    "test": {
+      "rows": 184,
+      "source_anchor_groups": 15
+    },
+    "train": {
+      "rows": 448,
+      "source_anchor_groups": 33
+    },
+    "validation": {
+      "rows": 156,
+      "source_anchor_groups": 15
+    }
+  },
+  "base_records": 960,
+  "base_records_sha256": "e2bfd46d9609c2e24a149cfa8bf1b45272caa182e8e1befca647f7aa8c724694",
+  "base_seed": 20261103,
+  "bundle_files_sha256": {
+    "evaluation.json": "7b50eec5aca55ee6889ae641271e76b1c989f4387ba54c342526c58c34fb3e13",
+    "model.json": "991e20f0d754c5941f960e8bfe29dced814a4b7453447b3c8913d3eb6ce0d536",
+    "plan-provenance.json": "f488ff0f851a94d1b5f5dca040337d3f3cef8f856cbc8eb7cfb37ddcc72c61a7",
+    "records.json": "fdbfd5c1bb8ea22479b3a8b71f3c87a17d0a5e93593b7d2e1d75714c1446fc2a",
+    "split-manifest.json": "49e02a6f09492b059b0d2f3a70a4239fd5016f85ac47b7229509fdf59d7a0a88"
+  },
+  "control_model": "random_forest",
+  "control_test": {
+    "bias_ml": -35.81436138973554,
+    "interval_coverage": 0.8804347826086957,
+    "mae_ml": 92.18109623097787,
+    "n": 184,
+    "rmse_ml": 126.5615278598526
+  },
+  "frozen_holdout_hashes": {
+    "calibration": "7565c81cca3fc22504b02d38e6094b8afcdfed2221879c6f4c34834c36545eeb",
+    "test": "406a3699f9c38ff73f5d28554d81d6758fd6cbdbddce4e90832b3f0d014b1832",
+    "validation": "b4dec798bbb52ace55366a1b78988ccec8bdfa279191619263a5f200ae4df3b7"
+  },
+  "guided_test": {
+    "bias_ml": -4.850135324175961,
+    "interval_coverage": 0.967391304347826,
+    "mae_ml": 67.16115436236423,
+    "n": 184,
+    "rmse_ml": 87.61975663514438
+  },
+  "limitations": [
+    "Muse selects a simulation mixture; Hydra generates every numerical label under declared assumptions.",
+    "Study mass-loss proxy rates are reinterpreted as duration-linear simulated loss, not validated physiological truth.",
+    "Noise, missingness and contamination are software stress settings, not measured instrument accuracy or population distributions.",
+    "Exact duplicate training vectors are deterministically resampled and counted; simulated clones are not independent observations.",
+    "Anchor-group holdouts are simulated clones of real TRAIN anchors, not independent people or real measured validation.",
+    "Synthetic interval coverage and model gains cannot establish accuracy for a real person.",
+    "Weather, humidity, intensity, HR, HRV, caffeine and creatine have no numerical effect.",
+    "This artifact is offline research only, never a personal calibration history or drinking prescription."
+  ],
+  "manifest_sha256": "47d3736c089b43b14421973a524c0e0aac4349dcbfa16adcdba92950dd7f2dc9",
+  "muse_inference_used": false,
+  "numeric_labels_generated_by": "Hydra deterministic simulator, not Muse",
+  "original_artifacts_unchanged": true,
+  "personal_serving_promotion": false,
+  "plan": {
+    "training_weights": {
+      "base": 2,
+      "missing_covariates": 1,
+      "outlier": 1,
+      "wide_noise": 1
+    },
+    "version": "muse-synthetic-plan-v1"
+  },
+  "plan_origin": "offline_stub",
+  "plan_sha256": "774c0d4354d55a5116c24736f8cf03b0e9a721bb37d63843ce292fcaba7973a9",
+  "privileged_oracle": {
+    "available_to_unseen_real_user": false,
+    "latent_target": {
+      "bias_ml": 0.0,
+      "interval_coverage": null,
+      "mae_ml": 0.0,
+      "n": 184,
+      "rmse_ml": 0.0
+    },
+    "observed_noisy_target": {
+      "bias_ml": 1.15916764610137,
+      "interval_coverage": null,
+      "mae_ml": 19.457472215503437,
+      "n": 184,
+      "rmse_ml": 22.57851191095545
+    }
+  },
+  "real_world_improvement_established": false,
+  "reproduction": [
+    "python -m scripts.muse_simulated_training prepare --records /ABS/PUBLIC_NORMALIZED_RECORDS.json --output /ABS/NEW_PREPARED",
+    "python -m scripts.muse_simulated_training train --prepared /ABS/NEW_PREPARED --plan tests/fixtures/muse_training_plan/offline_stub.json --origin offline_stub --output /ABS/NEW_RESEARCH_OUTPUT"
+  ],
+  "runtime_use": "offline_research_only",
+  "selected_model": "gradient_boosting",
+  "source_attribution": {
+    "license": "CC-BY-4.0",
+    "normalized_study_id": "spectrophon-v1",
+    "url": "https://data.mendeley.com/public-files/datasets/jt22782wjh/files/a6427fc3-3419-482f-a91c-33e3df048ccf/file_downloaded"
+  },
+  "source_records_sha256": "404df884c6f4f5bc60b4301c7a962eff4d1212e0a2dbd866ab79f6bcc6511be4",
+  "source_rows": 200,
+  "source_study": "spectrophon-v1",
+  "source_train_sha256": "2572389bae7e0db66fddc00789f7bf520f51cd5a6e3684336f9f0b4c8e6f5434",
+  "split_seed": 20261103,
+  "stress_tests": {
+    "context_only_shift": {
+      "bias_ml": -4.850135324175961,
+      "interval_coverage": 0.967391304347826,
+      "mae_ml": 67.16115436236423,
+      "maximum_prediction_change_ml": 0.0,
+      "n": 184,
+      "rmse_ml": 87.61975663514438
+    },
+    "long_duration": {
+      "bias_ml": -418.0523778109443,
+      "interval_coverage": 0.17391304347826086,
+      "mae_ml": 420.70584175518246,
+      "n": 184,
+      "rmse_ml": 477.16921149112045
+    },
+    "missing_covariates": {
+      "bias_ml": -53.84519727174899,
+      "interval_coverage": 0.8315217391304348,
+      "mae_ml": 107.77308334255773,
+      "n": 184,
+      "rmse_ml": 154.19754343041765
+    },
+    "outlier": {
+      "bias_ml": -129.46664313868172,
+      "interval_coverage": 0.7282608695652174,
+      "mae_ml": 180.35490719502306,
+      "n": 184,
+      "rmse_ml": 271.1133323523537
+    },
+    "short_duration": {
+      "bias_ml": 115.50416958616573,
+      "interval_coverage": 1,
+      "mae_ml": 115.50416958616573,
+      "n": 184,
+      "rmse_ml": 120.64111559990495
+    },
+    "wide_noise": {
+      "bias_ml": -6.252627940632588,
+      "interval_coverage": 0.9239130434782609,
+      "mae_ml": 95.29476654546202,
+      "n": 184,
+      "rmse_ml": 120.80307423782355
+    }
+  },
+  "total_records": 3200,
+  "training_reproduced_byte_for_byte": true,
+  "version": "muse-offline-stub-engineering-verification-v1"
+}

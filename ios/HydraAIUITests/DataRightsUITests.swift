@@ -11,7 +11,7 @@ final class DataRightsUITests: XCTestCase {
         }
         let app = XCUIApplication()
         app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
-        app.launch()
+        app.launchHydra()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()
         app.tabBars.buttons["Today"].tap()
@@ -31,7 +31,7 @@ final class DataRightsUITests: XCTestCase {
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
         XCTAssertTrue(app.staticTexts["dataMessage"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Today"].tap()
-        let zero = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0"), object: total)
+        let zero = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "0 mL"), object: total)
         XCTAssertEqual(XCTWaiter.wait(for: [zero], timeout: 20), .completed, "Deleting all data empties today's total")
     }
 }

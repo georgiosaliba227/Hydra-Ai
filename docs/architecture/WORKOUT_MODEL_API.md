@@ -82,13 +82,22 @@ not insert measurements or beverages into the user's history.
 
 ## Meta interpretation
 
-Preserve the existing Muse Spark guarded explanation service and reviewed signal
-rendering. Numerical predictions and measurements remain authoritative; provider
-text cannot overwrite them or create goals. Development may exercise the existing
-mock explanation path with synthetic context only. Personal measurements must not
-be sent to Meta. No account, credential, permit, private ledger, or billable flag is
-modified by this feature. Actual model explanation quality remains unverified until
-a separately authorized live evaluation.
+Updated November 2 under the October 29 owner-aggregate policy: Muse Wonder 1.0 is
+the sole hydration explanation model. The existing workout explanation and the
+new comprehensive analysis use only the exact aggregated facts previewed and
+consented to by the owner. Raw manual calibration records stay on device or in
+transient processing at the owner's backend; raw HealthKit records stay on device.
+Public release still needs its separate health-disclosure review.
+
+Numerical predictions and measurements remain authoritative. Wonder may select
+supported findings and their emphasis; the comprehensive renderer supplies every
+factual clause, number and required caveat. Unsupported, diagnostic, prescriptive
+or invented numerical claims are rejected. See `WONDER_WORKOUT_API.md` and
+`WONDER_ANALYSIS_API.md`. Comprehensive dispatch has a separate switch, off by
+default, and uses the existing account, cost, one-in-flight and invoice-finality
+controls. This implementation does not alter account history, credentials,
+approvals or the private ledger. Mock and fake-transport tests do not establish
+actual explanation quality or authorize paid inference.
 
 ## Verification and scientific release boundary
 

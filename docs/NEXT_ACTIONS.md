@@ -1,5 +1,144 @@
 # Hydra AI next actions
 
+## Current order — verify the installed combined experience
+
+1. Review `codex/combined-camera-hydration`, containing the local camera/main
+   ancestry and complete hydration stack. Preserve human review and no automatic
+   merge. The combined report records 276 native, 1768 Python +58 subtests and
+   six distinct passing Simulator flows, with their limits.
+2. Preserve the owner-confirmed Home US goal/score and trained camera mode in
+   the combined app. Keep the saved camera URL/token;
+   both feature sets now share that backend. Do not use the older camera-only
+   installer over the combined milestone or silently migrate the other data store.
+3. Check readiness before a later request. The 00:18 UTC November 4 check is
+   ready after a fresh owner-attested credit report; that observation expires
+   at 01:14:49 UTC. It does not establish payable balance, gross charges or
+   invoice finality. Preserve all holds and accepted-risk references, and do
+   not repeat risk-approval questions.
+4. Verify the owner's exact aggregate preview, fresh
+   consent, one actual comprehensive response and saved replay. Numerical cold
+   start does not prevent this separate flow. No automatic request or invented
+   personal record is permitted.
+5. Collect genuine comparable manual workout measurements; retain the default
+   baseline and experimental-off setting. Always-on deployment and independent
+   personal scientific validation remain separate work.
+
+## Earlier order — before combined installation
+
+1. Respect the camera chat's exclusive phone check. Leave the installed app,
+   saved backend/token and camera service untouched; do not start local Hydra
+   Simulator/UI runs while its performance check is active.
+2. After that check finishes, integrate merged camera PR #75 (`27cc907`) with
+   the hydration stack through PR #77. Preserve camera inference, recognition
+   confirmation, drinks/corrections/contributed-photo storage, guided local
+   profiles, US/automatic context, Home score and Wonder safeguards. Shared
+   changed paths include `backend/app.py`, `BeverageStore`, HTTP beverage data,
+   Settings, workout UI and privacy/UI tests; this inventory is not a merge-
+   conflict finding. Do not replace one feature build with the other again.
+3. Review the combined diff, run the relevant Python/native checks and actual
+   Simulator flows once released, then install the signed combined original
+   bundle without uninstall/reset. Confirm which owner backend is selected
+   before interpreting its records or asking for another phone action. Do not
+   silently migrate private records between the two backend stores.
+4. Recheck live readiness using fresh genuine evidence as required. Preserve
+   all existing financial holds, limits, accepted-risk references and exact
+   personal preview/consent. Verify one real eight-section result and saved
+   replay. A valid `insufficient_data` numerical result does not itself require
+   disabling detailed Wonder analysis; do not invent a forecast to unlock it.
+5. Collect real comparable manual measurements for personalization. Keep the
+   experimental switch off by default. Experimental fitting needs at least six
+   qualified observations and may still retain the baseline. Synthetic Muse-
+   guided training remains separate from personal history.
+
+## Latest owner steering — profile-guided starting goal
+
+1. Review the completed US-unit/automatic-context branch stacked on PR #73. It is
+   installed on the phone; 217 native tests, six Simulator flows and the physical
+   saved-connection check pass. Owner-assisted automatic Health/weather setup
+   also passes. Preserve the existing PR dependencies and human merge.
+2. Review [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77), the
+   implemented guided starting-goal branch stacked on PR #76. The
+   protected local profile, explicit adult beverage reference and confirmation
+   have 254 native/1509 Python checks plus three passing Simulator flows. The
+   owner also confirms the goal and populated Home score on the phone. No height/weight/creatine multiplier is used.
+3. With the goal/Home score confirmed and live readiness renewed, verify a
+   previewed, consented comprehensive Wonder request on genuine intake records; keep all
+   existing holds and risk labels. Real manual calibration still needs collection.
+
+## Earlier November 3 handoff — before the US-unit update
+
+1. Review [PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
+   `codex/wonder-personal-risk-admission`, stacked on PR #72; preserve
+   PR #65/#71/#72 dependencies and human merge. Home research score, ongoing
+   owner-risk admission and actual Muse-guided research training are implemented
+   and verified. Camera branches remain separate.
+2. The owner resumed physical checks. The HealthKit-signed original app is now
+   installed; one actual physical UI test verifies owner-backend readiness,
+   billing disclosure and the goal-required Home state. The owner reports real
+   workout import and consented weather autofill working. Add the requested US
+   units and first-use setup/automatic context refresh, then verify the updated
+   populated Home/analysis flow. Keep owner-assisted outcomes separate from the
+   automated connection evidence in the scoped physical report.
+3. On the real profile, choose a personal beverage goal and log actual drinks.
+   Collect protocol-confirmed manual workout measurements with error bounds;
+   at least six qualified comparable records are needed for experimental fitting,
+   which may still retain the baseline. Never import simulated training rows as
+   actual history or interpret the product score as body hydration.
+4. The local owner backend is configured for personal Wonder under the explicitly
+   accepted uncertainty. Each new personal disclosure still requires exact in-app
+   aggregate preview and fresh Meta consent. Verify the actual personal-data flow
+   when records/phone are available; the controlled eight-section synthetic test
+   and public-only training plan are not that verification.
+5. Preserve all reservations and invoice-unknown labels. Recheck readiness and
+   renew genuine account/price observations if expired; reuse standing human
+   references without inventing new approvals or resetting counters. A failure or
+   missing usage/publication still requires review. Mac hosting works while awake
+   on the same LAN; an always-on deployment remains separately unapproved.
+
+See [actual Muse training](MUSE_GUIDED_TRAINING_2026-11-03.md) and the
+[personal policy](architecture/WONDER_PERSONAL_OWNER_POLICY.md). Older next steps
+below retain their dated evidence and do not override the newer explicit waiver.
+
+## November 3 operational follow-up
+
+1. Review `codex/wonder-owner-once`, stacked on PR #71. Preserve the explicit
+   owner waiver, ordinary gateway controls and the existing financial records.
+   Do not automatically merge or deploy.
+2. When the owner chooses a physical pass, install the already HealthKit-signed
+   combined app, connect its owner-authenticated local backend, and verify actual
+   HealthKit/workout import, permission prompts and weather on the phone.
+3. Use Settings → Recorded Wonder test to revisit the real synthetic eight-section
+   response without a new charge. Its usage-based estimate is not final billing.
+   Ongoing personal live use needs its own configured admission path; the
+   singleton operator test is consumed.
+4. Enter actual comparable manual workout measurements in the app when available.
+   Keep the default baseline and research labels; never substitute this test's
+   synthetic observations for personal calibration.
+
+## November 3 continuation
+
+1. Review [PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) with Amine, preserving PR #65 as its
+   dependency and requiring human merge. Native experimental mode, the Date
+   correction, 145 XCTest and three actual mock Simulator flows are verified,
+   including the selected fit from saved synthetic history through deletion.
+   Screens were inspected; camera branches remain separate.
+2. Collect consented, dated, protocol-confirmed repeat workouts with consumed fluid,
+   urine and independently supported error bounds for prospective personal-model
+   evaluation. Do not retune against the published synthetic failures or describe
+   historical-error envelopes as calibrated future coverage.
+3. Retain the current baseline default. Evaluate the stationary v3 model only as
+   explicit research; the calendar-time learner remains offline. Keep the three
+   real-study targets separate and study artifacts out of personal serving.
+4. When the developers have a suitable Xcode account/profile, verify the original
+   HealthKit entitlement and permission path on hardware. Physical milestone
+   storage tests passed in a separate bundle; final v3 and UI checks use Simulator
+   at the user's request. Do not ask the user to stay awake for further tests.
+5. After separately verified account identity, exact-payload disclosure, price,
+   budget authority and project-wide invoice finality, perform an explicitly
+   authorized one-use Wonder request and evaluate actual groundedness/usefulness.
+   No private state was audited or modified here; older assertions below cannot
+   substitute for current evidence.
+
 ## Next actions — Georgio's key on Amine's Mac, $20 (October 29, Amine)
 
 Owner override in AGENTS.md. Spending is recorded as Georgio's account.

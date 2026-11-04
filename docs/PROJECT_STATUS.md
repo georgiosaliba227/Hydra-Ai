@@ -1,5 +1,237 @@
 # Hydra AI project status
 
+## November 3 — combined app installed and opened
+
+The camera exclusive check finished. `codex/combined-camera-hydration` combines
+camera PR #75 with the hydration stack through PR #77. The complete HealthKit-
+signed original app is installed and launched normally. The owner confirms the
+Home US goal/score and trained camera mode both appear. One owner backend now
+serves both features on the saved camera port,
+preserving its token, data and pinned local model. Both previous databases remain;
+only the already confirmed goal was carried into the previously goal-free camera
+store after an explicit notice. No provider inference was made.
+
+276 native tests, 1768 Python tests +58 subtests (four optional offline-tool
+skips), six distinct actual synthetic Simulator flows and independent integration
+review establish the reported scope. Detailed Wonder works with a numerical
+cold start and saved replay in the fake-provider Simulator run. Actual personal
+Wonder still needs exact on-phone preview/consent and a real result/replay check.
+The read-only check at 00:18 UTC November 4 reports ready after a fresh,
+explicitly owner-attested credit report; billing finality remains unverified.
+All original holds/limits remain. GitHub Python 3.13/3.14 and iOS checks passed
+for `1de7d76`. See the
+[combined report](COMBINED_EXPERIENCE_2026-11-03.md), including test limits and
+the remaining historical-date UI check. Older installation/hold notices below
+retain their milestone scopes and are superseded by this update.
+
+## Earlier November 3 — camera build and cold-start finding
+
+The camera chat reports restoring its PR #75 build and backend on the same
+iPhone. PR #75 is merged on `main` as `27cc907`; that Settings source lacks the
+guided-goal and Wonder-readiness controls on this hydration branch. Earlier
+owner-assisted Health/weather, US-unit and goal/Home passes below remain valid
+for their recorded builds; they do not describe the currently restored camera
+build. The camera check currently has exclusive use of the phone: no hydration
+installation/relaunch, saved connection change or local Simulator/UI test until
+that check finishes. No phone or camera-backend changes were made in this
+investigation.
+
+The owner reports **Not enough data for an estimate** with **Experimental
+personal model off** and has not collected manual measurements. This is the
+expected personal cold start. Nonbillable v2/v3 zero-history probes return
+`insufficient_data`; the actual Swift response validation accepts those replies.
+Turning on experimental fitting does not supply missing observations. In this
+hydration branch, the separate detailed Wonder card remains available after a
+valid personal forecast response even when the numerical result abstains.
+
+Next, combine the camera and hydration branches with both data stores and
+privacy/financial policies preserved, after the camera check releases the
+device. Then verify the correct installed build/backend before asking for
+personal preview/consent again. The last owner-backend readiness check was ready;
+its account observation expires at 6:35:49 p.m. EST on November 3 and must be checked
+again before a request. No actual personal eight-section result or replay is
+verified. See the [current physical scope](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+
+## November 3 — guided starting goal implemented
+
+The requested on-device age/birthday, height, weight and supplement form is
+implemented in [PR #77](https://github.com/georgiosaliba227/Hydra-Ai/pull/77),
+`codex/guided-hydration-goal`, stacked on PR #76 with Amine requested as reviewer. Its reviewed
+adult beverage starting reference requires explicit confirmation; body and
+supplement context adds no invented multiplier. Profiles stay on the iPhone;
+only the confirmed goal integer reaches the backend. Custom goals remain.
+254 native tests, 1509 pytest +32 subtests, and three actual Simulator flows
+pass, including offline boundaries, populated Home score and profile restoration.
+The final HealthKit-signed app was installed for this milestone; the owner reports
+Goal confirmed and Home score appears. Runtime readiness was genuinely renewed
+for the separately previewed/consented personal Wonder flow. The newer current-
+build notice above supersedes this installation status. See [feature evidence](GUIDED_GOAL_2026-11-03.md).
+
+Actual own-record Wonder, genuine manual calibration and always-on hosting remain
+separate outstanding work. No paid call, ledger reset, merge or deployment was
+made in this feature.
+
+## November 3 — US units and automatic context installed
+
+`codex/us-units-daily-context` adds US fl oz/°F/lb defaults with metric preference,
+canonical-quantity preservation, optional first-use Health/weather setup and
+consented automatic context refresh. Current and planned-hour weather stay
+separate; Health remains on device. Background execution is best effort, and
+actual freshness stays visible. No automatic Meta request, invented measurement,
+goal multiplier or scientific-model change is introduced.
+
+Final verification: **217 XCTest, 1,509 pytest +32 subtests, six actual Simulator
+UI flows**, and independent task/whole-branch reviews pass. The full original app
+is installed with valid HealthKit signing. The owner reports both automatic
+sources update in US units. A **25.567-second physical saved-connection test**
+passes without injected credentials or Save connection; actual financial ledger
+bytes were unchanged. See the [feature report](US_UNITS_DAILY_CONTEXT_2026-11-03.md).
+
+The latest goal also requests profile-guided starting-goal calculation using
+birthday/age, height, weight and supplements. That follow-up is implemented in the newer milestone above;
+this installed milestone still has a user-confirmed custom goal. Actual own-record
+Wonder and genuine calibration measurements remain outstanding. No merge or
+always-on deployment occurred.
+
+## November 3 — Home score, personal Wonder and actual Muse-guided training
+
+[PR #73](https://github.com/georgiosaliba227/Hydra-Ai/pull/73),
+`codex/wonder-personal-risk-admission`, is open with Amine requested as reviewer.
+It adds the owner-selected experimental Home
+score: 50 points for current chosen-goal alignment, 30 for recorded seven-day
+consistency and 20 for valid manual-session support. The weights are visible
+product rules, not physiological inference. Missing/corrupt sources remain
+unavailable; no goal is invented. The exact aggregate preview, separate Meta
+consent, strict reviewed-wording selection, free replay and export/deletion share
+the existing Wonder authority. See [score contract](architecture/HYDRATION_SCORE.md).
+
+The owner explicitly extended the billing-wait waiver to ongoing Wonder. The
+additive opt-in policy preserves every old row, frozen flag, hold and cutoff;
+unknown final billing and Amine status remain unverified. Valid usage plus
+checked-output/publication linkage is required before another request; failures,
+in-flight attempts and duplicate sends still block. Genuine account/pricing and
+GitHub notification-delivery observations were recorded privately. The owner's
+local backend now reports **ready** under this policy, with all-charge verification
+explicitly false. The earlier default-off operational statements below are
+historical. Default verified admission is unchanged.
+
+One actual public-only Muse request selected simulation weights, then the frozen
+pipeline trained **2,752 simulated records**. Selected random-forest synthetic
+test MAE is **80.26 mL** versus control **92.18 mL**; all five output files were
+reproduced byte-for-byte without another request. This is not improved real-person
+accuracy and is excluded from personal serving/history. Provider token estimate:
+**$0.005300**; actual final charge remains null and the $0.25 reservation stays
+held. See [actual run](MUSE_GUIDED_TRAINING_2026-11-03.md).
+
+Fresh verification: **1,509 pytest tests +32 subtests**, **167 XCTest**, and
+**four actual Simulator UI flows** pass: blocked readiness/rich preview, Home
+score 38→34 with goal-change consent reset, manual logging/relaunch persistence,
+and activated ready status with unverified billing disclosed. Read-only UI runs
+left financial ledger bytes unchanged. Independent backend/financial/ML reviews
+are resolved. The updated original-bundle app builds with valid HealthKit signing.
+The owner subsequently resumed physical checks: the updated original app is
+installed and **one actual physical UI test passes**, confirming phone-to-Mac
+readiness, unverified-billing disclosure and Home's own-goal-required state.
+Financial ledger bytes were unchanged; no paid action was tapped. The owner then
+reported successful real Health workout import and consented weather autofill on
+the phone. These are owner-assisted outcomes; populated personal screens and the
+actual own-record Meta flow remain pending. The subsequent US-unit and automatic-
+context update is recorded above;
+see the [scoped physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md).
+No real personal calibration records exist, and the full actual
+personal-data Meta flow still needs its own in-app preview/consent and verification.
+No automatic merge or always-on deployment occurred.
+
+## November 3 operational continuation — live synthetic Wonder
+
+The owner chose Simulator and explicitly waived prior billing waits for the
+controlled test, then acknowledged unverified provider charges for all requests.
+`codex/wonder-owner-once` adds a singleton operator authorization in the existing
+ledger and a native **Settings → Recorded Wonder test** GET-only viewer. It does
+not reset financial history, unfreeze the account or enable ordinary ongoing
+personal dispatch. See [policy](architecture/WONDER_OWNER_ONCE.md) and
+[actual test report](WONDER_OWNER_TEST_2026-11-03.md).
+
+One real Muse Wonder response passed all eight sections on fixed synthetic data.
+The provider reported 601 input/296 output tokens; the usage-based estimate is
+$0.008324, with final billing and extras unverified. Prior financial history was
+verified unchanged; the new $0.25 token reservation remains held. No personal
+history, logs or HealthKit records were sent. The backend serves only the saved
+result while all live/billable flags remain false.
+
+The actual Simulator viewer opened all eight saved sections and loaded again;
+the financial ledger remained byte-for-byte unchanged across replay. Synthetic
+labels and unverified-final-invoice/extras labels were checked in the UI.
+
+Fresh verification: 1,327 pytest tests plus 32 subtests and 150 XCTest passed;
+independent review found no actionable issues. The complete updated app builds
+with valid HealthKit-enabled signing for the original identifier. Hardware
+installation, real workout/permission/weather checks and actual personal
+calibration remain pending. The earlier dated evidence below retains its scope.
+
+## November 3 continuation — review branch
+
+[Review PR #71](https://github.com/georgiosaliba227/Hydra-Ai/pull/71) is open with
+Amine requested as reviewer, stacked on PR #65. The branch and worktree remain
+available for review fixes; no merge or deployment occurred.
+
+`codex/hydration-intelligence-complete` starts from PR #65 at `c8e4a77`, preserving
+Amine's Apple Health, consented weather and Wonder integration. PR #65 remains a
+dependency; camera PRs #66–#70 are separate. No automatic merge, deployment,
+private-ledger operation or provider request occurred. Older dated account rows
+below are historical evidence, not a fresh financial audit.
+
+Implemented and Python-verified: local eight-section analysis, documented nullable
+composition, exact completed-workout accounting, comprehensive Wonder ranking of
+supported findings, replay/export/deletion and additive v3 personal research
+routes. All explanation numbers come from the corresponding numerical engine.
+Default-off comprehensive dispatch reuses the existing financial gateway and
+one-use, finality, shared-lock and exact-payload consent controls.
+
+Real-study experiments remain separate: 200 SpectroPhon records / 198 conservative
+groups, 80 cumulative QDE records / 10 people and 31 EPL records / 31 people.
+SpectroPhon ridge historical-holdout MAE is 71.41 mL versus refitted cohort 85.72.
+QDE boosting is worse than its comparator (315.09 versus 281.28 mL), and EPL retains
+its learned cohort baseline (355.70 mL test MAE). No study model becomes a personal
+physiological prior. See [grouped evaluation](FORECAST_GROUPED_EVALUATION.md) and
+[EPL evaluation](FORECAST_EPL_EVALUATION.md); reused holdouts and narrow targets
+prevent independent physiological-improvement claims.
+
+A stationary personal duration regression is fitted in request memory, with fixed
+regularization, strictly earlier validation, duration/cadence support gates and
+full measurement/error envelopes. Its frozen synthetic abrupt-shift MAE worsens
+57.73→70.49 mL; no retuning followed. V2 remains the app default. Native v3 is
+available as an explicit experimental option, not an accuracy upgrade. The
+calendar-time learner remains offline. See [runtime report](FORECAST_PERSONAL_RUNTIME.md)
+and [runtime contract](architecture/PERSONAL_RUNTIME_API.md).
+
+Final native verification: **145 XCTest and three actual mock-backend UI flows pass**
+on Simulator, including the default workflow, explicit experimental cold start,
+fresh detailed-preview consent, absent live controls and model-switch reset.
+The additional selected-fit flow loads six saved synthetic measurements with fresh
+consent, displays the actual backend fit **442 mL [280–700]**, verifies matching
+local analysis and rich preview, then deletes all six records through the app.
+Its external empty-profile fixture helper adds no production startup behavior.
+Protected opt-in connection-scoped manual history passed save/relaunch/restore/
+selective-delete UI. Comprehensive grounding checks cover 400 ranked selections,
+3,200 rendered sections and 384 rejected adversarial selections, with zero provider
+calls; these are software checks, not live model-quality scores.
+
+Fresh integrated Python verification: **1,284 tests and 32 subtests passed**.
+Independent numerical and API reviews have no outstanding findings. Physical
+milestone: **132 XCTest passed** on the iPhone after an isolated Date comparison
+crash was reproduced and corrected in a temporary copy. Its separate wildcard-
+signed bundle omitted HealthKit. The original app was preserved; physical UI,
+production HealthKit permissions and final v3 hardware checks are unverified.
+Remaining tests use Simulator at the user's request. See the
+[physical report](PHYSICAL_HYDRATION_CHECK_2026-11-03.md) and
+[review handoff](HYDRATION_INTELLIGENCE_REVIEW.md).
+
+Native runtime/date compatibility and independent reviews are complete; the
+verified branch is published for Amine. Live Wonder account/input/price/finality evidence
+has not been audited or changed; real explanation quality and independent personal
+prediction accuracy remain unverified.
+
 Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
 
 ## Current state — October 29 (Amine)

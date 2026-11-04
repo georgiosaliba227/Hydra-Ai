@@ -1,0 +1,75 @@
+{
+  "version": "wonder-analysis-preview-v2",
+  "facts": {
+    "version": "wonder-analysis-facts-v2",
+    "mode": "personal",
+    "research_only": true,
+    "forecast": {
+      "status": "insufficient_data",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null,
+      "interval_kind": "historical_error_envelope"
+    },
+    "intake": {
+      "beverage_count": 0,
+      "beverage_volume_ml": 0.0,
+      "water_ml": null,
+      "sodium_mg": null,
+      "potassium_mg": null,
+      "sodium_status": "unknown",
+      "potassium_status": "unknown",
+      "completeness": "unverified"
+    },
+    "activity": {
+      "activity": null,
+      "duration_minutes": null,
+      "intensity": null
+    },
+    "environment": {
+      "temperature_c": null,
+      "humidity_percent": null,
+      "context_only": true
+    },
+    "calibration": {
+      "total_samples": 0,
+      "comparable_samples": 0,
+      "recent_samples": 0
+    },
+    "trends": {
+      "window_days": 14,
+      "logged_days": 0,
+      "beverage_lower_ml": null,
+      "beverage_upper_ml": null
+    },
+    "accounting": {
+      "status": "unavailable",
+      "quantity": "logged_intake_minus_measured_exercise_loss",
+      "value_ml": null,
+      "lower_ml": null,
+      "upper_ml": null
+    },
+    "workout_comparison": null,
+    "trend_context": null,
+    "missing_inputs": [
+      "exercise",
+      "intake_completeness",
+      "documented_water_composition",
+      "complete_electrolyte_composition",
+      "environmental_context"
+    ]
+  },
+  "model": "muse-wonder-1.0",
+  "payload_sha256": "f7482da8fb1b5b3d08ab80fc2cfb26b3abe450bf5d7de7d4114ad4cc788f7cee",
+  "status": "available",
+  "explainable": true,
+  "reason": null,
+  "input_bound_tokens": 5920,
+  "max_output_tokens": 2048,
+  "worst_case_micro_usd": 64640,
+  "per_request_cap_micro_usd": 250000,
+  "live_available": false,
+  "dispatch_supported": false,
+  "verified_for_billing": false,
+  "cost_estimate_policy": "existing_reference_prices_not_a_verified_live_quote"
+}

@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct RecognitionConfirmationView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @Environment(\.dismiss) private var dismiss
     let candidate: RecognitionCandidate
@@ -12,6 +13,8 @@ struct RecognitionConfirmationView: View {
     @State private var draft: RecognitionEntryDraft
     @State private var editing: Bool
     @State private var needsSizeEntry: Bool
+    @State private var consumedAt = Date()
+    @State private var appliedPreferredUnits = false
     @State private var rememberCorrection = true
     @State private var shareTraining = false
     @State private var saving = false
@@ -44,10 +47,10 @@ struct RecognitionConfirmationView: View {
                             Text(draft.drinkType).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
-                    Text(draft.consumedMl.map { "\($0) mL" } ?? "Volume unclear")
+                    Text(draft.consumedMl.map { units.volume($0) } ?? "Volume unclear")
                         .font(editing ? .title2.bold() : .largeTitle.bold()).accessibilityIdentifier("photoVolume")
                     if let label = candidate.labelCapacityMl {
-                        Text("Printed size: \(label) mL")
+                        Text("Printed size: \(units.volume(label))")
                             .font(.subheadline.bold()).accessibilityIdentifier("photoLabelCapacity")
                     }
                     Text(draft.drankAll ? "Confirm logs the whole drink." : "Confirm logs your edited amount.")
@@ -62,7 +65,7 @@ struct RecognitionConfirmationView: View {
                             Text("Your previous correction: \(candidate.suggestedIdentity)").font(.caption).accessibilityIdentifier("personalCorrectionSuggestion")
                             Text("\(RecognitionPresentation(mode: mode).modelName) suggested: \(candidate.identity)").font(.caption)
                             if let liquid = candidate.personalLiquidText {
-                                Text(liquid).font(.caption).accessibilityIdentifier("personalLiquidCorrection")
+                                Text(units.text(liquid)).font(.caption).accessibilityIdentifier("personalLiquidCorrection")
                             }
                         }
                     }
@@ -80,6 +83,10 @@ struct RecognitionConfirmationView: View {
             }
             if editing || needsSizeEntry { volumeEditor }
             if editing {
+                Section("Consumed at") {
+                    DatePicker("Time", selection: $consumedAt, in: Date(timeIntervalSince1970: 946_684_800)...Date().addingTimeInterval(60))
+                        .accessibilityIdentifier("photoConsumedAt")
+                }
                 if draft.isCorrection, let context = feedbackContext, context.memoryAvailable || context.trainingAvailable {
                     Section {
                         DisclosureGroup("Correction options") {
@@ -99,20 +106,43 @@ struct RecognitionConfirmationView: View {
                     DisclosureGroup("Photo details") {
                         Text(RecognitionPresentation(mode: mode).suggestionTitle)
                         Text("\(RecognitionPresentation(mode: mode).modelName) confidence: \(candidate.confidence) (uncalibrated)")
-                        Text(candidate.suggestedCapacity.map { "Container size: \($0) mL" } ?? "Container size: unknown")
+                        Text(candidate.suggestedCapacity.map { "Container size: \(units.volume($0))" } ?? "Container size: unknown")
                             .accessibilityIdentifier("photoCapacity")
-                        Text(candidate.liquidEstimateText).font(.caption).foregroundStyle(.secondary)
+                        Text(units.text(candidate.liquidEstimateText)).font(.caption).foregroundStyle(.secondary)
                             .accessibilityIdentifier("photoEstimate")
-                        if let label = candidate.labelCapacityMl { Text("Label reads \(label) mL (unverified).") }
+                        if let label = candidate.labelCapacityMl { Text("Label size: \(units.volume(label)) (unverified).") }
                         ForEach(candidate.uncertaintyReasons, id: \.self) { Text($0).font(.footnote) }
                         if let label = candidate.visibleLabelText { Text("Unverified label text: \(label)").font(.footnote) }
                         Text("Container size, liquid present and amount consumed can differ. Nutrition comes only from a verified catalogue match; otherwise it stays unknown.").font(.footnote)
                     }
                 }
+                Section("Nutrition") {
+                    if draft.keepsProductMatch, candidate.productId != nil {
+                        if let nutrition = candidate.nutrition {
+                            Text("Serving basis: \(units.volume(nutrition.basisMl))")
+                            if let sodium = nutrition.sodiumMg { Text("Sodium: \(sodium.formatted()) mg per serving") }
+                            if let carbs = nutrition.carbohydrateG { Text("Carbohydrate: \(carbs.formatted()) g per serving") }
+                            ForEach(nutrition.provenance, id: \.self) { Text($0).font(.caption).textSelection(.enabled) }
+                        }
+                        Text("The server checks the confirmed US Original variant against its manufacturer-sourced catalogue. Other variants require correction. Water content remains unknown.").font(.footnote)
+                    } else {
+                        Text("No verified nutrition match. Volume can still be logged; water content and nutrients remain unknown.").font(.footnote)
+                    }
+                    Text("Changing identity or type removes the suggested product match.").font(.footnote)
+                }
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
         }
         .scrollDismissesKeyboard(.interactively)
+        .onAppear {
+            if !appliedPreferredUnits {
+                draft.setUnit(units.system == .us ? .usFlOz : .millilitres)
+                appliedPreferredUnits = true
+            }
+        }
+        .onChange(of: units.system) { _, system in
+            draft.setUnit(system == .us ? .usFlOz : .millilitres)
+        }
         .navigationTitle(editing ? "Edit drink" : "Your drink")
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
@@ -146,7 +176,7 @@ struct RecognitionConfirmationView: View {
             }.pickerStyle(.segmented).accessibilityIdentifier("photoVolumeUnit")
             HStack {
                 ForEach([250, 355, 500], id: \.self) { ml in
-                    Button("\(ml) mL") { focusedField = nil; draft.selectPreset(ml) }
+                    Button(units.volume(ml)) { focusedField = nil; draft.selectPreset(ml) }
                         .buttonStyle(.bordered).accessibilityIdentifier("volumePreset-\(ml)")
                 }
             }
@@ -159,7 +189,7 @@ struct RecognitionConfirmationView: View {
                         .accessibilityIdentifier("useWholeDrink")
                 }
                 if let capacity = draft.confirmedCapacityMl {
-                    Button("Use full \(capacity) mL container") { focusedField = nil; draft.useFullContainer() }
+                    Button("Use full \(units.volume(capacity)) container") { focusedField = nil; draft.useFullContainer() }
                         .accessibilityIdentifier("useFullContainer")
                 }
             }
@@ -182,7 +212,7 @@ struct RecognitionConfirmationView: View {
                         trainingPhotoBase64: share ? context.jpeg.base64EncodedString() : nil)
                 }
             }
-            try await store.add(category: draft.identity, consumedMl: amount, at: .now, source: "confirmed_recognition",
+            try await store.add(category: draft.identity, consumedMl: amount, at: consumedAt, source: "confirmed_recognition",
                 productId: draft.keepsProductMatch ? candidate.productId : nil, containerMl: draft.confirmedCapacityMl,
                 recognitionId: recognitionId, recognitionFeedback: feedback, consumptionAssumption: draft.assumption, beverageType: draft.drinkType)
             onSaved(); dismiss()

@@ -1,5 +1,6 @@
 """Local model boundary: manual calibration or a server-owned synthetic fixture only."""
 from datetime import datetime, timezone
+from collections.abc import Callable
 from typing import Annotated, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -38,16 +39,17 @@ class WorkoutForecastInput(Wire):
         return self
 
 
-def install_workout_forecast_routes(app) -> None:
-    @app.post("/v1/workout-forecasts")
+def install_workout_forecast_routes(app, *, path: str = "/v1/workout-forecasts",
+                                     personal_predictor: Callable[..., dict] | None = None) -> None:
+    @app.post(path)
     def workout_forecast(payload: WorkoutForecastInput):
         generated_at = datetime.now(timezone.utc)
         try:
-            result = predict_workout(
-                payload.exercise.engine() if payload.exercise is not None else None,
-                tuple(sample.engine() for sample in payload.samples),
-                generated_at=generated_at, mode=payload.mode,
-            )
+            exercise = payload.exercise.engine() if payload.exercise is not None else None
+            samples = tuple(sample.engine() for sample in payload.samples)
+            result = (personal_predictor(exercise, samples, generated_at=generated_at)
+                      if personal_predictor is not None and payload.mode == "personal" else
+                      predict_workout(exercise, samples, generated_at=generated_at, mode=payload.mode))
         except CalculationError:
             raise HTTPException(422, "invalid_request") from None
         # Never use the configured live service here. Real measurements never reach
@@ -66,7 +68,7 @@ def install_workout_forecast_routes(app) -> None:
             )
             explanation = MockHydrationIntelligence().explain(context)
         return jsonable_encoder(result | {
-            "generated_at": generated_at, "timezone": payload.timezone, "mode": payload.mode,
+            "generated_at": result.get("generated_at", generated_at), "timezone": payload.timezone, "mode": payload.mode,
             "mock_explanation": explanation,
             "explanation_policy": "Meta_may_explain_reviewed_results_only_no_numeric_recalculation",
         })

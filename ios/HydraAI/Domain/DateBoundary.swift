@@ -4,13 +4,9 @@ import Foundation
 /// Finite timestamp comparisons keep inclusive validation bounds unchanged.
 enum DateBoundary {
     static func onOrAfter(_ value: Date, _ boundary: Date) -> Bool {
-        let instant = value.timeIntervalSince1970
-        let limit = boundary.timeIntervalSince1970
-        return instant.isFinite && limit.isFinite && instant >= limit
+        DateOrdering.notBefore(value, boundary)
     }
     static func onOrBefore(_ value: Date, _ boundary: Date) -> Bool {
-        let instant = value.timeIntervalSince1970
-        let limit = boundary.timeIntervalSince1970
-        return instant.isFinite && limit.isFinite && instant <= limit
+        DateOrdering.notAfter(value, boundary)
     }
 }
