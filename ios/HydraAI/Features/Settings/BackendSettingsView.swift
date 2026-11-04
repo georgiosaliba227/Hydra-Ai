@@ -14,6 +14,7 @@ struct BackendSettingsView: View {
     @State private var url = ""
     @State private var token = ""
     @State private var offline = false
+    @State private var onDevice = false
     @State private var error: String?
     @State private var goalText = ""
     @State private var goalMessage: String?
@@ -30,9 +31,14 @@ struct BackendSettingsView: View {
                 } label: {
                     Label("Status", systemImage: statusSymbol)
                 }
-                Toggle("Offline demo (separate local data)", isOn: $offline)
-                    .accessibilityIdentifier("offlineMode")
-                if !offline {
+                Toggle("On this iPhone (works offline)", isOn: $onDevice)
+                    .accessibilityIdentifier("onDeviceMode")
+                    .onChange(of: onDevice) { _, enabled in if enabled { offline = false } }
+                if !onDevice {
+                    Toggle("Offline demo (separate local data)", isOn: $offline)
+                        .accessibilityIdentifier("offlineMode")
+                }
+                if !offline && !onDevice {
                     TextField("Backend URL", text: $url)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("backendURL")
@@ -42,7 +48,7 @@ struct BackendSettingsView: View {
                 }
                 Button("Save connection") {
                     do {
-                        try store.configure(.init(baseURL: url.trimmingCharacters(in: .whitespacesAndNewlines), token: token, offline: offline))
+                        try store.configure(.init(baseURL: url.trimmingCharacters(in: .whitespacesAndNewlines), token: token, offline: offline, onDevice: onDevice))
                         error = nil
                         Task { await store.refresh() }
                     } catch { self.error = error.localizedDescription }
@@ -52,10 +58,11 @@ struct BackendSettingsView: View {
             } header: {
                 Text("Connection").foregroundStyle(.primary)
             } footer: {
-                Text(offline ? "Offline demo records stay on this iPhone and are not uploaded."
+                Text(onDevice ? "Camera analysis and confirmed drinks stay on this iPhone. Your server settings and existing server history are preserved separately."
+                             : offline ? "Offline demo records stay on this iPhone and are not uploaded."
                              : "Use your Hydra backend access token, not a Meta API key. It's stored in the Keychain.")
             }
-            if !store.isOffline && store.isConfigured {
+            if (!store.isOffline || store.isOnDevice) && store.isConfigured {
                 Section {
                     HStack {
                         TextField("e.g. 2000", text: $goalText)
@@ -84,7 +91,7 @@ struct BackendSettingsView: View {
             } footer: {
                 Text("Optional. Reads today's steps on this iPhone; Health records aren't sent anywhere.")
             }
-            if !store.isOffline && store.isConfigured {
+            if (!store.isOffline || store.isOnDevice) && store.isConfigured {
                 Section {
                     Button("Export my data (JSON)") { Task { await exportData() } }
                         .accessibilityIdentifier("exportData")
@@ -95,11 +102,13 @@ struct BackendSettingsView: View {
                 } header: {
                     Text("Your data")
                 } footer: {
-                    Text("Export includes your drinks, goal, saved corrections and training photos you opted in to contribute. Deleting erases them from your backend and can't be undone.")
+                    Text(store.isOnDevice ? "Export includes this iPhone's drinks, goal and original camera suggestions. Deleting clears only these local records. Server and demo data stay separate."
+                         : "Export includes your drinks, goal, saved corrections and training photos you opted in to contribute. Deleting erases them from your backend and can't be undone.")
                 }
             }
             Section("Privacy & AI") {
                 DisclosureGroup("What's sent where") {
+                    Text("On this iPhone mode uses the bundled Meta category model and Apple label reading locally. It works without a server or internet. Confirmed entries stay in a separate local store, including the original suggestion and your corrected details. Photos are not retained or used for training.")
                     Text("Backend mode sends the drinks you confirm to your backend. Photos go to your backend only after you consent and tap Analyze; Meta mode needs a separate consent before a photo is sent to Meta. Apple Health records stay on this iPhone.")
                     Text("Camera checks the backend mode before analysis. Mock responses are synthetic. In Meta mode a photo goes to Meta only with separate consent and a server-approved budget permit. Suggestions always need your confirmation; zero retention is not promised.")
                     Text("Remembered corrections improve your own suggestions without retraining Muse. Training contribution is a separate, optional choice on an edited entry: your backend stages the latest 20 opted-in photos and corrections for future reviewed training. Nothing uploads a training dataset to Meta automatically.")
@@ -119,18 +128,20 @@ struct BackendSettingsView: View {
         .confirmationDialog("Delete all your Hydra data?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
             Button("Delete all my data", role: .destructive) { Task { await deleteAll() } }
         } message: {
-            Text("Your drinks, goal, correction memory and opted-in training photos are erased from the backend. This cannot be undone.")
+            Text(store.isOnDevice ? "This iPhone's local drinks, goal and original suggestions will be erased. This cannot be undone. Server and demo records stay separate."
+                 : "Your drinks, goal, correction memory and opted-in training photos are erased from the backend. This cannot be undone.")
         }
         .toolbar { ToolbarItemGroup(placement: .keyboard) {
             Spacer(); Button("Done") { goalFocused = false }
         } }
-        .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.isOffline }
+        .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.configuration.offline; onDevice = store.isOnDevice }
         .task {
             if let goal = try? await store.currentGoal() { goalText = String(goal) }
         }
     }
 
     private var statusText: String {
+        if store.isOnDevice { return "On this iPhone" }
         if store.isOffline { return "Offline demo" }
         if !store.isConfigured { return "Not connected" }
         if case .failed = store.state { return "Can't reach backend" }

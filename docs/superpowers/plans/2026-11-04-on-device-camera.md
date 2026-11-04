@@ -31,20 +31,20 @@
 Files: `ai/on_device/`, `scripts/train_on_device_beverage.py`, `tests/on_device/`, bundled model metadata under `ios/HydraAI/Resources/`.
 Interface: Core ML image input `image` RGB224×224; output `scores` Float32 `[1,12]`; fixed ordered drink-family labels in metadata. Image input scale1/255, internal ImageNet normalization; full-image square resize, no crop.
 
-- [ ] Write/run failing dataset/split and classification-selection tests.
-- [ ] Verify existing public image hashes; train head using train only, select on validation, evaluate test once; retain provenance and results.
-- [ ] Export Core ML, compare Python/Core ML scores, record package/source hashes and installable-size evidence.
-- [ ] Commit code, metadata/reports and reproducible export instructions; keep large build artifacts out of Git where appropriate.
+- [x] Write/run failing dataset/split and classification-selection tests.
+- [x] Verify existing public image hashes; train head using train only, select on validation, evaluate test once; retain provenance and results.
+- [x] Export Core ML, compare Python/Core ML scores, record package/source hashes and installable-size evidence.
+- [x] Commit code, metadata/reports and reproducible export instructions; keep large build artifacts out of Git where appropriate.
 
 ### Task 2: Local inference, conservative labels and real local persistence
 
 Files: `ios/HydraAI/Features/Camera/OnDevice*.swift`, `ios/HydraAI/Data/LocalBeverageService.swift`, `APIConfiguration.swift`, `BeverageStore.swift`, `Domain/BeverageLog.swift`, corresponding XCTest.
 Interfaces: `OnDeviceRecognizer.analyze(jpeg: Data) async throws -> RecognitionResult`; mode `on_device`, model `dinov2-small-beverage-v1`. Add optional on-device storage configuration with backward-compatible decoding; local logs retain original recognition metadata without photos or unrelated OCR.
 
-- [ ] Add/run failing tests for printed sizes, unavailable inference, local restart/idempotency/export/delete and provenance.
-- [ ] Implement bounded serialized inference and pure deterministic label parsing with explicit units.
-- [ ] Implement separate protected real local storage and destination binding, preserving legacy demo/backend paths.
-- [ ] Run focused XCTest; commit.
+- [x] Add/run failing tests for printed sizes, unavailable inference, local restart/idempotency/export/delete and provenance.
+- [x] Implement bounded serialized inference and pure deterministic label parsing with explicit units.
+- [x] Implement separate protected real local storage and destination binding, preserving legacy demo/backend paths.
+- [x] Run focused XCTest; commit.
 
 ### Task 3: Camera/review/settings integration and verification
 

@@ -25,6 +25,14 @@ final class OnDeviceCameraTests: XCTestCase {
         XCTAssertNil(candidate.containerMl)
     }
 
+    func testLearnedCategoriesKeepTheirTypeInReview() {
+        for category in ["Beer","Wine","Plant milk"] {
+            var candidate=RecognitionCandidate(identity:category,productId:nil,containerMl:nil,confidence:"low",uncertaintyReasons:["Verify"])
+            candidate.category=category
+            XCTAssertEqual(RecognitionEntryDraft(candidate:candidate).drinkType,category)
+        }
+    }
+
     func testUncalibratedScoresAndInvalidModelOutputStayUncertain() {
         var scores=Array(repeating:0.0,count:12); scores[10]=0.8
         let candidate=OnDeviceLabel.candidate(scores:scores,text:"DASANI WATER NET 500 mL")

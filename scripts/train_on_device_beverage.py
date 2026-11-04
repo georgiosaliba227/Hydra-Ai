@@ -12,9 +12,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from ai.on_device.contract import FAMILIES, split_rows, choose_regularization
+from ai.on_device.contract import FAMILIES, split_rows, choose_regularization, BASE_REVISION, validate_base_source
 
-BASE_REVISION = 'ed25f3a31f01632728cabb09d1542f84ab7b0056'
 MODEL_ID = 'dinov2-small-beverage-v1'
 
 
@@ -37,8 +36,7 @@ def main() -> None:
     import coremltools as ct
 
     source = json.loads((args.base / 'source.json').read_text())
-    if source['model'] != 'facebook/dinov2-small' or source['revision'] != BASE_REVISION:
-        raise ValueError('Wrong pinned public base')
+    validate_base_source(source)
     for file in source['files']:
         if digest(args.base / file['path']) != file['sha256']:
             raise ValueError('Base source hash mismatch')
@@ -73,6 +71,8 @@ def main() -> None:
                 embedding = backbone((batch - mean) / std).last_hidden_state[:, 0]
                 encoded.append(functional.normalize(embedding, dim=-1).cpu().numpy())
             features[split] = np.concatenate(encoded)
+            if not np.isfinite(features[split]).all():
+                raise ValueError('Nonfinite Meta features')
             targets[split] = np.array([FAMILIES.index(row['drink_family']) for row in subset])
             print('encoded', split, len(subset), flush=True)
 
@@ -93,6 +93,8 @@ def main() -> None:
                   for lam in (.001, .01, .1, 1., 10.)]
     selected = choose_regularization(validation)
     head = fit(selected)
+    if not np.isfinite(head).all():
+        raise ValueError('Nonfinite category head')
     np.savez(args.output/'head.npz', coefficients=head, **{key: value for key,value in features.items()})
 
     class PhoneModel(torch.nn.Module):
@@ -154,6 +156,8 @@ def main() -> None:
         with torch.inference_mode():
             expected = model(image_tensor(row).unsqueeze(0)).numpy()
         actual = package.predict({'image': resized})['scores']
+        if not np.isfinite(actual).all() or not np.isfinite(expected).all():
+            raise ValueError('Nonfinite Core ML parity scores')
         error = float(np.max(np.abs(actual - expected)))
         if error > .03 or actual.argmax() != expected.argmax():
             raise ValueError('Core ML numerical parity failed')

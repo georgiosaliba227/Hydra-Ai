@@ -1,6 +1,6 @@
 import pytest
 
-from ai.on_device.contract import FAMILIES, split_rows, choose_regularization
+from ai.on_device.contract import FAMILIES, split_rows, choose_regularization, BASE_FILES, BASE_REVISION, validate_base_source
 
 
 def row(identity, split, family='water', group=None):
@@ -33,3 +33,11 @@ def test_product_group_leakage_is_rejected():
 def test_selection_uses_only_validation_and_stable_tie_break():
     assert choose_regularization([(1.0,0.6),(.1,.8),(.01,.8)]) == .01
     with pytest.raises(ValueError): choose_regularization([])
+
+
+def test_source_manifest_cannot_rebind_pinned_meta_weights():
+    source={'model':'facebook/dinov2-small','revision':BASE_REVISION,
+            'files':[{'path':name,'sha256':sha} for name,sha in BASE_FILES.items()]}
+    validate_base_source(source)
+    source['files'][-1]['sha256']='0'*64
+    with pytest.raises(ValueError): validate_base_source(source)

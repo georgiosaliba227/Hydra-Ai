@@ -28,7 +28,7 @@ enum RecognitionVolumeUnit: String, CaseIterable, Identifiable {
 
 /// User confirmation state. Changing units never changes a financial permit.
 struct RecognitionEntryDraft {
-    static let drinkTypes = ["Water", "Coffee", "Tea", "Sports drink", "Energy drink", "Juice", "Soda", "Milk", "Other"]
+    static let drinkTypes = ["Water", "Coffee", "Tea", "Sports drink", "Energy drink", "Juice", "Soda", "Milk", "Plant milk", "Beer", "Wine", "Other"]
     let candidate: RecognitionCandidate
     var identity: String
     private(set) var drinkType: String

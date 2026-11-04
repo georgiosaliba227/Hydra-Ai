@@ -57,7 +57,7 @@ struct CameraCaptureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .accessibilityLabel("Selected beverage photo")
 
-                    if let preparedPhoto {
+                    if let preparedPhoto, presentation != .onDevice {
                         ShareLink(item: preparedPhoto.export, preview: SharePreview("Prepared beverage photo", image: Image(uiImage: capturedImage))) {
                             Label("Export prepared photo for approval", systemImage: "square.and.arrow.up")
                         }
@@ -78,7 +78,7 @@ struct CameraCaptureView: View {
                     }
                     .accessibilityIdentifier("mockScenario")
                     .disabled(isAnalyzing) }
-                    Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
+                    Toggle(presentation == .onDevice ? "Allow this photo to be analyzed on this iPhone" : "Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
                         .accessibilityIdentifier("photoConsent")
                         .disabled(isAnalyzing || isLoadingCapabilities)
                     if isLive {
@@ -95,6 +95,9 @@ struct CameraCaptureView: View {
                     if isAnalyzing && recognitionMode == "local_meta" {
                         Text("Your Mac is reading the label and running the trained model. Keep Hydra open; this can take up to 3 minutes.")
                             .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if isAnalyzing && presentation == .onDevice {
+                        Text("Reading the label and analyzing on this iPhone…").font(.footnote).foregroundStyle(.secondary)
                     }
                     if let result {
                         Text(RecognitionPresentation(mode: result.mode).resultTitle).font(.headline)
@@ -127,7 +130,9 @@ struct CameraCaptureView: View {
                     captureOptions
                 }
 
-                Text("Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Analysis does not save the photo. A separate training opt-in on confirmation lets your backend retain that photo and corrected details. Confirmed logs contain details you approve.")
+                Text(presentation == .onDevice
+                     ? "Analysis and confirmed drinks stay on this iPhone. No photo is sent to a server or saved for training. Printed size does not measure the liquid present. Confirm logs the whole drink under your stated assumption; edit anything unclear."
+                     : "Photos stay on device unless you choose Export or consent and tap Analyze. A resized copy without original metadata goes to your configured backend. In Meta mode, a separate consent is required before the backend sends it to Meta. Analysis does not save the photo. A separate training opt-in on confirmation lets your backend retain that photo and corrected details. Confirmed logs contain details you approve.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -232,17 +237,26 @@ struct CameraCaptureView: View {
     }
 
     @MainActor private func analyze() async {
-        guard let preparedPhoto, !store.isOffline else { return }
+        guard let preparedPhoto, !store.isOffline || store.isOnDevice else { return }
         let generation = store.configurationGeneration
         let configuration = store.configuration
         guard let ticket = cameraSession.beginAnalysis(generation: generation), let mode = ticket.mode else { return }
         let metaConsent = cameraSession.metaConsent
         do {
-            let service = try HTTPBeverageService(configuration: configuration)
-            let next = try await service.analyzePhoto(preparedPhoto.export.jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
+            let next: RecognitionResult
+            if mode == "on_device" {
+                guard configuration.onDevice else { throw ServiceError.configuration }
+                next = try await OnDeviceRecognizer.shared.analyze(jpeg: preparedPhoto.export.jpeg)
+            } else {
+                let service = try HTTPBeverageService(configuration: configuration)
+                next = try await service.analyzePhoto(preparedPhoto.export.jpeg, scenario: scenario, mode: mode, metaConsent: metaConsent)
+            }
             guard cameraSession.completeAnalysis(next, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             if let receipt = next.recognitionId {
-                guard store.registerRecognitionReceipt(receipt, generation: generation) else {
+                let registered = mode == "on_device"
+                    ? store.registerOnDeviceResult(next, generation: generation)
+                    : store.registerRecognitionReceipt(receipt, generation: generation)
+                guard registered else {
                     cameraSession.revokePhotoConsent()
                     return
                 }
@@ -253,7 +267,7 @@ struct CameraCaptureView: View {
         } catch {
             guard cameraSession.completeAnalysis(nil, ticket: ticket, currentGeneration: store.configurationGeneration) else { return }
             alertTitle = "Analysis unavailable"
-            alertMessage = mode == "meta_live" ? ServiceError.liveRecognitionUnverified.localizedDescription : "\(error.localizedDescription) Retry analysis or log manually. No beverage was created."
+            alertMessage = mode == "meta_live" ? ServiceError.liveRecognitionUnverified.localizedDescription : "\(error.localizedDescription) Log manually or choose another photo. No beverage was created."
         }
     }
 
@@ -263,6 +277,12 @@ struct CameraCaptureView: View {
         guard let ticket = cameraSession.beginCapabilities(generation: generation) else { return }
         selectedCandidate = nil
         memoryAvailable = false; trainingAvailable = false
+        if configuration.onDevice {
+            let mode = OnDeviceRecognizer.isAvailable ? "on_device" : nil
+            _ = cameraSession.completeCapabilities(mode, ticket: ticket, currentGeneration: store.configurationGeneration)
+            if mode == nil { alertTitle = "On-device model unavailable"; alertMessage = OnDeviceRecognitionError.modelUnavailable.localizedDescription }
+            return
+        }
         do {
             guard !configuration.offline else { throw ServiceError.configuration }
             let service = try HTTPBeverageService(configuration: configuration)
@@ -310,9 +330,17 @@ struct CameraCaptureView: View {
             }
             if ProcessInfo.processInfo.environment["HYDRA_TEST_PHOTO_FIXTURE"] == "1" {
                 Button("Use synthetic test photo") {
-                    selectPhoto(UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
-                        UIColor.blue.setFill(); context.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
-                    })
+                    if ProcessInfo.processInfo.environment["HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE"] == "1" {
+                        selectPhoto(UIGraphicsImageRenderer(size:CGSize(width:500,height:700)).image { context in
+                            UIColor.white.setFill();context.fill(CGRect(x:0,y:0,width:500,height:700))
+                            ("DASANI\nWATER\nNET 500 mL" as NSString).draw(in:CGRect(x:50,y:180,width:400,height:300),
+                                withAttributes:[.font:UIFont.boldSystemFont(ofSize:40),.foregroundColor:UIColor.black])
+                        })
+                    } else {
+                        selectPhoto(UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64)).image { context in
+                            UIColor.blue.setFill(); context.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
+                        })
+                    }
                 }.accessibilityIdentifier("syntheticPhoto")
             }
             #endif
