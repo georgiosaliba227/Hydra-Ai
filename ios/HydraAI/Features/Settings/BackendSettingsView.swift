@@ -54,7 +54,7 @@ struct BackendSettingsView: View {
                 .accessibilityIdentifier("saveConnection")
                 if let error { Text(error).foregroundStyle(.red) }
             } header: {
-                Text("Connection")
+                Text("Connection").foregroundStyle(.primary)
             } footer: {
                 Text(offline ? "Offline demo records stay on this iPhone and are not uploaded."
                              : "Use your Hydra backend access token, not a Meta API key. It's stored in the Keychain.")
