@@ -15,9 +15,8 @@ The signed build still needs to be installed on the phone first.
    If Camera says analysis is unavailable until the backend mode is verified,
    return here, save the local mode, then tap **Refresh analysis mode** in Camera.
 2. Open Camera and take or choose a drink photo. Show the printed size clearly.
-3. Enable **Allow this photo to be analyzed on this iPhone**, then tap
-   **Analyze on this iPhone**. No backend or Meta-upload consent is needed for
-   this mode because the photo stays on the phone.
+3. Tap **Analyze**. This requests local analysis directly; selecting a photo
+   does not start processing automatically. The photo stays on the phone.
 4. Review **Your drink**. Confirm means the whole drink was finished under the
    displayed assumption. Use Edit to correct the name/type/size or choose a
    different amount. In Edit, **Container size (optional)** can be corrected in

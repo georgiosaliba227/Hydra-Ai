@@ -151,7 +151,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Analyze with mock Meta response"
         case .metaLive: "Analyze with live Meta"
         case .localMeta: "Analyze with trained Meta"
-        case .onDevice: "Analyze on this iPhone"
+        case .onDevice: "Analyze"
         }
     }
 

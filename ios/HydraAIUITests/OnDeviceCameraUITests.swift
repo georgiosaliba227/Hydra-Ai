@@ -3,6 +3,28 @@ import UIKit
 
 /// Synthetic local progress and label pixels, real bundled inference, no backend/provider.
 final class OnDeviceCameraUITests: XCTestCase {
+    func testOnDeviceAnalyzeDoesNotRequireExtraPhotoToggle() throws {
+        #if !targetEnvironment(simulator)
+        throw XCTSkip("Simulator-only generated-photo test")
+        #endif
+        continueAfterFailure=false
+        let app=XCUIApplication()
+        app.launchEnvironment=["HYDRA_TEST_ON_DEVICE":"1","HYDRA_TEST_PHOTO_FIXTURE":"1","HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15));app.tabBars.buttons["Camera"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10));app.buttons["syntheticPhoto"].tap()
+        XCTAssertFalse(app.switches["photoConsent"].exists,"Tapping Analyze is the explicit request for local processing")
+        let analyze=app.buttons["analyzePhoto"]
+        for _ in 0..<4 where !analyze.isHittable {app.swipeUp()}
+        XCTAssertEqual(analyze.label,"Analyze")
+        XCTAssertTrue(analyze.isEnabled)
+        XCTAssertFalse(app.staticTexts["photoVolume"].exists,"Selecting a photo must not run analysis automatically")
+        analyze.tap()
+        XCTAssertTrue(app.staticTexts["photoVolume"].waitForExistence(timeout:60))
+        XCTAssertEqual(app.staticTexts["photoVolume"].label,"500 mL")
+        app.buttons["Cancel"].tap()
+    }
+
     func testGoalWaterFillsInsideAtHalfAndFullGoal() throws {
         #if !targetEnvironment(simulator)
         throw XCTSkip("Simulator-only synthetic progress check")
@@ -102,9 +124,9 @@ final class OnDeviceCameraUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15));app.tabBars.buttons["Camera"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10));app.buttons["syntheticPhoto"].tap()
-        let consent=app.switches["photoConsent"]
-        for _ in 0..<4 where !consent.isHittable {app.swipeUp()}
-        consent.switches.firstMatch.tap();app.buttons["analyzePhoto"].tap()
+        let analyze=app.buttons["analyzePhoto"]
+        for _ in 0..<4 where !analyze.isHittable {app.swipeUp()}
+        XCTAssertFalse(app.switches["photoConsent"].exists);analyze.tap()
         XCTAssertTrue(app.buttons["editRecognitionEntry"].waitForExistence(timeout:60));app.buttons["editRecognitionEntry"].tap()
         let capacity=app.textFields["photoContainerCapacity"]
         XCTAssertTrue(capacity.waitForExistence(timeout:10))
@@ -146,10 +168,10 @@ final class OnDeviceCameraUITests: XCTestCase {
         app.buttons["syntheticPhoto"].tap()
         XCTAssertFalse(app.buttons["mockScenario"].exists)
         XCTAssertFalse(app.switches["metaPhotoConsent"].exists)
-        let consent=app.switches["photoConsent"]
-        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
-        consent.switches.firstMatch.tap()
-        app.buttons["analyzePhoto"].tap()
+        let analyze=app.buttons["analyzePhoto"]
+        for _ in 0..<4 where !analyze.isHittable { app.swipeUp() }
+        XCTAssertFalse(app.switches["photoConsent"].exists)
+        analyze.tap()
         XCTAssertTrue(app.staticTexts["photoVolume"].waitForExistence(timeout:60))
         XCTAssertEqual(app.staticTexts["photoVolume"].label,"500 mL")
         XCTAssertEqual(app.staticTexts["consumptionAssumptionSummary"].label,"Confirm logs the whole drink.")

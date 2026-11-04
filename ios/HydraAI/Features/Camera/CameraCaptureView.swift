@@ -79,9 +79,11 @@ struct CameraCaptureView: View {
                     }
                     .accessibilityIdentifier("mockScenario")
                     .disabled(isAnalyzing) }
-                    Toggle(isOnDevice ? "Allow this photo to be analyzed on this iPhone" : "Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
-                        .accessibilityIdentifier("photoConsent")
-                        .disabled(isAnalyzing || isLoadingCapabilities)
+                    if !isOnDevice {
+                        Toggle("Allow this photo to be sent to my configured backend for this analysis", isOn: $cameraSession.consent)
+                            .accessibilityIdentifier("photoConsent")
+                            .disabled(isAnalyzing || isLoadingCapabilities)
+                    }
                     if isLive {
                         Toggle("I consent to sending this beverage photo to Meta for AI analysis", isOn: $cameraSession.metaConsent)
                             .accessibilityIdentifier("metaPhotoConsent").disabled(isAnalyzing || isLoadingCapabilities)
@@ -92,7 +94,7 @@ struct CameraCaptureView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("analyzePhoto")
-                    .disabled(!consent || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
+                    .disabled((!isOnDevice && !consent) || isAnalyzing || recognitionMode == nil || (isLive && !metaConsent))
                     if isAnalyzing && recognitionMode == "local_meta" {
                         Text("Your Mac is reading the label and running the trained model. Keep Hydra open; this can take up to 3 minutes.")
                             .font(.footnote).foregroundStyle(.secondary)
@@ -241,6 +243,10 @@ struct CameraCaptureView: View {
         guard let preparedPhoto, !store.isOffline || store.isOnDevice else { return }
         let generation = store.configurationGeneration
         let configuration = store.configuration
+        // The user's Analyze tap requests local processing; selecting a photo
+        // alone never grants consent or starts inference. Server modes keep
+        // their separate data-transfer consent controls.
+        if configuration.onDevice && recognitionMode == "on_device" { cameraSession.consent = true }
         guard let ticket = cameraSession.beginAnalysis(generation: generation), let mode = ticket.mode else { return }
         let metaConsent = cameraSession.metaConsent
         do {
