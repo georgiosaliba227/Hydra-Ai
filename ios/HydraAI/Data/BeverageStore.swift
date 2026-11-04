@@ -210,6 +210,10 @@ final class BeverageStore: ObservableObject {
         do { try goalProfiles.deleteAll() } catch { if localError == nil { localError = error } }
         if let localError { throw localError }
         let count = try await service.deleteAllData()
+        // The backend erased local camera receipts; invalidate displayed and
+        // delayed results before another pending confirmation can be created.
+        configurationGeneration = UUID()
+        currentRecognitionReceipts.removeAll()
         await refresh()
         return count
     }

@@ -174,8 +174,10 @@ struct CameraCaptureView: View {
     }
 
     private func present(_ candidate: RecognitionCandidate, editing: Bool) {
+        // Manual placeholders are user entries, not authentic model corrections.
+        let isModelCandidate = result?.candidates.contains(where: { $0.id == candidate.id }) == true
         selectedCandidate = CandidateSelection(candidate: candidate, editing: editing, mode: result?.mode ?? "mock",
-            recognitionId: result?.recognitionId, feedback: feedbackContext)
+            recognitionId: result?.recognitionId, feedback: isModelCandidate ? feedbackContext : nil)
     }
 
     private func candidateCard(_ candidate: RecognitionCandidate) -> some View {

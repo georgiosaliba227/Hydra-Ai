@@ -2,6 +2,42 @@ import XCTest
 
 /// Dedicated synthetic backend only; this case never enables a provider.
 final class CameraCorrectionsUITests: XCTestCase {
+    func testStandaloneLocalDetailsSaveWithoutAnInventedCorrectionReference() throws {
+        continueAfterFailure = false
+        let env = ProcessInfo.processInfo.environment
+        guard env["HYDRA_E2E_LOCAL_CAMERA_FIXTURE"] == "1",
+              let url = env["HYDRA_E2E_BACKEND_URL"], let token = env["HYDRA_E2E_API_TOKEN"] else {
+            throw XCTSkip("Requires a disposable local-camera fixture with no model process")
+        }
+        let app = XCUIApplication()
+        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": url, "HYDRA_TEST_API_TOKEN": token, "HYDRA_TEST_PHOTO_FIXTURE": "1"]
+        app.launchHydra()
+        XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Camera"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 10))
+        app.buttons["syntheticPhoto"].tap()
+        let consent = app.switches["photoConsent"]
+        for _ in 0..<4 where !consent.isHittable { app.swipeUp() }
+        consent.switches.firstMatch.tap()
+        app.buttons["analyzePhoto"].tap()
+        XCTAssertTrue(app.buttons["savePhotoBeverage"].waitForExistence(timeout: 15))
+        app.buttons["Cancel"].tap()
+        let details = app.buttons["Enter or correct beverage details"]
+        for _ in 0..<4 where !details.isHittable { app.swipeUp() }
+        details.tap()
+        replace(app.textFields["photoIdentity"], with: "My corrected tea")
+        app.segmentedControls["photoVolumeUnit"].buttons["mL"].tap()
+        replace(app.textFields["photoConsumed"], with: "240")
+        app.buttons["savePhotoBeverage"].tap()
+        XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout: 15), "Standalone details must save, rather than leave an unrepairable pending request")
+        app.tabBars.buttons["Today"].tap()
+        XCTAssertFalse(app.buttons["retryPending"].exists)
+        XCTAssertTrue(app.buttons["logBeverage"].isEnabled)
+        let total = app.descendants(matching: .any).matching(identifier: "dailyTotal").firstMatch
+        let saved = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in total.metricMillilitersValue == 240 }, object: total)
+        XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 15), .completed)
+    }
+
     func testEditConfirmAndPersonalMemoryWithSeparateTrainingOptIn() throws {
         continueAfterFailure = false
         let env = ProcessInfo.processInfo.environment
