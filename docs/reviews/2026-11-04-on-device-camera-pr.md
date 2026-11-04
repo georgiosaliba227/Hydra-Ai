@@ -55,6 +55,11 @@ verified by the owner after saving the on-device connection mode. Broad real-cam
 accuracy and general performance remain unverified. No hosted calls, financial-ledger changes, public
 deployment or merge are part of this PR.
 
+The signed water-fill update (`14d083c`) was subsequently installed in place on
+the same phone. Automatic opening was denied because the device was locked;
+the owner can open it normally after unlocking. Dashboard rendering is simulator-
+verified; the prior owner-observed offline camera result remains separately attributed.
+
 @aminealichaouche — please review the local persistence and recognition boundary.
 Setup: `docs/ON_DEVICE_CAMERA_SETUP.md`. Model evidence: `ai/on_device/README.md`.
 

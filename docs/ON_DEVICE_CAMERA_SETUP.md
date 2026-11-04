@@ -95,6 +95,12 @@ an entry and verified it remained after force-closing and reopening Hydra. This 
 owner-observed physical verification, separate from the automated generated-label
 test; it does not establish recognition accuracy across drinks.
 
+The later water-fill dashboard update was also installed in place over Wi-Fi.
+Its 50%/100% rendering and camera regressions passed on a fresh iOS 27.2 simulator.
+The phone was locked during automatic opening, so unlock it and open Hydra normally
+to see the update. Camera and storage code are unchanged from the owner-verified
+offline build.
+
 Development details and model source/metrics are in
 `docs/architecture/ON_DEVICE_CAMERA.md` and `ai/on_device/README.md`. Weights,
 license and model notice are bundled; no model download occurs at runtime.

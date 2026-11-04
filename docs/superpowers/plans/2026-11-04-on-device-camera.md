@@ -75,9 +75,15 @@ full. Preserve the outline, goal values, total, accessibility and record storage
 - [x] Observe the interior visual assertion fail before changing product code.
 - [x] Add the bounded interior fill and verify 50%/100% rendered pixels.
 - [x] Run relevant XCTest/UI checks and build/sign: 129 XCTest, three UI tests, full pytest 1,336/5 skipped; signed device build verified.
-- [ ] Install the water-fill update in place when the paired phone reconnects.
+- [x] Install the water-fill update in place when the paired phone reconnects; devicectl installation succeeded for the registered owner phone.
 
 The visual test waits on rendered pixels so the water animation can finish. A
 fresh disposable iPhone 17 Pro/iOS 27.2 simulator is used for final UI verification,
 with a known synthetic 500 mL record; no owner data or goal is changed. Out-of-range
 test setup fails explicitly instead of skipping the visual assertions.
+
+The signed `14d083c` update installed in place over Wi-Fi. Automatic app opening
+was denied only because the phone was locked; the owner can unlock and open Hydra
+normally. Water rendering was verified in the simulator; the physical offline
+camera/save/restart verification remains the owner's preceding check on `f7057a7`,
+with camera and storage code unchanged by this dashboard-only follow-up.
