@@ -173,8 +173,11 @@ struct CameraCaptureView: View {
     }
 
     private func present(_ candidate: RecognitionCandidate, editing: Bool) {
+        // Standalone details and no-match placeholders are user entry, not a
+        // correction to an authentic model candidate bound to this receipt.
+        let isModelCandidate = result?.candidates.contains(where: { $0.id == candidate.id }) == true
         selectedCandidate = CandidateSelection(candidate: candidate, editing: editing, mode: result?.mode ?? "mock",
-            recognitionId: result?.recognitionId, feedback: feedbackContext)
+            recognitionId: result?.recognitionId, feedback: isModelCandidate ? feedbackContext : nil)
     }
 
     private func candidateCard(_ candidate: RecognitionCandidate) -> some View {

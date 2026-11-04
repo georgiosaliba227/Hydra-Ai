@@ -64,7 +64,14 @@ The response is `{replayed, saved, result}`:
 
 The same data is never paid for twice. Saved trend results are included in
 `GET /v1/export` and removed by `DELETE /v1/data`; the ledger keeps only
-payload hashes and amounts. Errors:
+payload hashes and amounts.
+
+The one-in-flight lock covers facts, replay lookup and result persistence.
+Delete-all uses that same lock and returns 409 `wonder_busy` without deleting
+anything while an explanation is in progress, including its final save. This
+prevents a completed deletion from being followed by an older personal result.
+
+Errors:
 
 | Status | Code | Meaning |
 | --- | --- | --- |

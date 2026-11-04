@@ -162,6 +162,10 @@ final class BeverageStore: ObservableObject {
         isSaving = true
         defer { isSaving = false }
         let count = try await service.deleteAllData()
+        // Delete-all also erases local camera receipts on the backend. Revoke
+        // displayed and delayed results before they can become pending saves.
+        configurationGeneration = UUID()
+        currentRecognitionReceipts.removeAll()
         await refresh()
         return count
     }

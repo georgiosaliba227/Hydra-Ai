@@ -138,6 +138,24 @@ final class CameraSessionTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("pending.json").path))
     }
 
+    func testDeleteAllInvalidatesDisplayedAndDelayedCameraResultsBeforePendingSave() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = BeverageStore(service: CameraRecordingService(), pendingURL: directory.appendingPathComponent("pending.json"),
+            configuration: APIConfiguration(baseURL: "http://127.0.0.1:8123", token: String(repeating: "t", count: 32), offline: false))
+        let generation = store.configurationGeneration, receipt = UUID()
+        XCTAssertTrue(store.registerRecognitionReceipt(receipt, generation: generation))
+        _ = try await store.deleteAllData()
+        XCTAssertNotEqual(store.configurationGeneration, generation)
+        XCTAssertFalse(store.registerRecognitionReceipt(UUID(), generation: generation))
+        do {
+            try await store.add(category: "tea", consumedMl: 125, at: .now, source: "confirmed_recognition", recognitionId: receipt)
+            XCTFail("A displayed pre-deletion receipt must be rejected before creating pending state")
+        } catch ServiceError.liveRecognitionUnverified { }
+        XCTAssertNil(store.pending)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.appendingPathComponent("pending.json").path))
+    }
+
     func testCurrentReceiptAndManualLoggingStillWork() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -197,6 +215,7 @@ private actor CameraRecordingService: BeverageService {
     var keys: [UUID] = []
     init(failFirst: Bool = false) { self.failFirst = failFirst }
     func listBeverages() async throws -> [BeverageLog] { [] }
+    func deleteAllData() async throws -> Int { 0 }
     func dailySummary(date: String, timezone: String) async throws -> DailySummary {
         DailySummary(localDate: date, timezone: timezone, beverageTotalMl: 125, estimatedWaterMl: nil, forecastStatus: "insufficient_data")
     }

@@ -71,6 +71,15 @@ def install_wonder_workout_routes(app, *, error_response) -> None:
 
     @app.post("/v1/wonder/workout")
     def explain_workout(payload: WorkoutExplanationRequest, request: Request):
+        if not app.state.wonder_lock.acquire(blocking=False):
+            return error_response("wonder_busy", 409, request.scope["state"]["request_id"], retryable=True)
+        try:
+            return explain_workout_locked(payload, request)
+        finally:
+            app.state.wonder_lock.release()
+
+    def explain_workout_locked(payload: WorkoutExplanationRequest, request: Request):
+        # Serialize the facts snapshot through persistence with delete-all.
         request_id = request.scope["state"]["request_id"]
         view = preview(facts_for(payload))
         if not view["explainable"]:
@@ -82,24 +91,18 @@ def install_wonder_workout_routes(app, *, error_response) -> None:
         factory, config = app.state.wonder_trends_gateway, app.state.wonder_live_config
         if factory is None or config is None:
             return error_response("wonder_unavailable", 503, request_id)
-        # One Wonder request in flight per backend, shared with trends and synthetic runs.
-        if not app.state.wonder_lock.acquire(blocking=False):
-            return error_response("wonder_busy", 409, request_id, retryable=True)
+        gateway = factory()
         try:
-            gateway = factory()
-            try:
-                quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
-                result = gateway.explain_workout(view["facts"], quote,
-                                                 f"in-app-workout-consent:{request_id}:{payload.payload_sha256}")
-            except (RecognitionUnavailable, OSError, ValueError):
-                if gateway.last_attempt is None:
-                    return error_response("wonder_blocked", 409, request_id)
-                response = error_response("wonder_attempt_unresolved", 502, request_id)
-                # A billable request may have been sent: name the attempt so a developer can reconcile it.
-                return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
-                                    status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
-        finally:
-            app.state.wonder_lock.release()
+            quote = ExperimentQuote.model_validate_json(config.quote_path.read_text())
+            result = gateway.explain_workout(view["facts"], quote,
+                                             f"in-app-workout-consent:{request_id}:{payload.payload_sha256}")
+        except (RecognitionUnavailable, OSError, ValueError):
+            if gateway.last_attempt is None:
+                return error_response("wonder_blocked", 409, request_id)
+            response = error_response("wonder_attempt_unresolved", 502, request_id)
+            # A billable request may have been sent: name the attempt so a developer can reconcile it.
+            return JSONResponse({**json.loads(response.body), "attempt_id": gateway.last_attempt},
+                                status_code=502, headers={k: v for k, v in response.headers.items() if k != "content-length"})
         try:
             save_result(app.state.wonder_results_dir, result)
             stored = True

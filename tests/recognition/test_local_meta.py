@@ -218,3 +218,29 @@ def test_local_mode_rejects_hosted_billing_configuration(tmp_path,monkeypatch):
     monkeypatch.setenv('HYDRA_AI_MODE','local_meta')
     monkeypatch.setenv('META_BILLABLE_REQUESTS_ENABLED','true')
     with pytest.raises(ValueError): create_app(tmp_path/'test.sqlite3',TOKEN)
+
+
+def test_deleted_data_is_not_restored_by_a_late_local_camera_receipt(local_camera, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    import threading
+    client, _, _ = local_camera
+    entered, release = threading.Event(), threading.Event()
+    original = client.app.state.recognizer.analyze
+
+    def paused(payload):
+        entered.set()
+        assert release.wait(timeout=10)
+        return original(payload)
+
+    monkeypatch.setattr(client.app.state.recognizer, 'analyze', paused)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        pending = executor.submit(client.post, '/v1/recognitions', headers=AUTH, json=photo())
+        try:
+            assert entered.wait(timeout=10)
+            deleted = client.delete('/v1/data', params={'confirm':'delete-all-my-data'}, headers=AUTH)
+        finally:
+            release.set()
+        response = pending.result(timeout=10)
+    assert deleted.status_code == 200
+    assert response.status_code == 503
+    assert client.get('/v1/export', headers=AUTH).json()['local_recognition_receipts'] == []

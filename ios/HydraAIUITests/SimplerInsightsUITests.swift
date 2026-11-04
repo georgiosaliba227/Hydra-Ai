@@ -156,6 +156,24 @@ final class SimplerInsightsUITests: XCTestCase {
     }
 
     func testTrendsReviewIsExplicitAndMockOffersNoSend() throws {
+        // This case needs a log regardless of whether delete-all ran earlier.
+        let env = ProcessInfo.processInfo.environment
+        guard let backend = env["HYDRA_E2E_BACKEND_URL"], let base = URL(string: backend),
+              let token = env["HYDRA_E2E_API_TOKEN"] else { throw XCTSkip("Requires local synthetic-data backend") }
+        var request = URLRequest(url: base.appendingPathComponent("v1/beverages"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(UUID().uuidString, forHTTPHeaderField: "Idempotency-Key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["category": "water", "consumed_ml": 500,
+            "source": "manual", "timezone": "UTC", "consumed_at": ISO8601DateFormatter().string(from: .now)] as [String: Any])
+        let logged = expectation(description: "Independent synthetic trends fixture")
+        var status = 0
+        URLSession.shared.dataTask(with: request) { _, response, _ in
+            status = (response as? HTTPURLResponse)?.statusCode ?? 0; logged.fulfill()
+        }.resume()
+        wait(for: [logged], timeout: 10)
+        XCTAssertEqual(status, 201)
         let app = try launch()
         tap("insightsTrends", in: app)
         XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "trendsPreview").firstMatch.exists)
