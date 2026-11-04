@@ -28,6 +28,14 @@ For physical verification, enable airplane mode (including Wi-Fi off), repeat
 capture/analyze/review/save, then terminate/reopen the app and check the saved
 entry. This is a remaining physical-device check, not a claim already verified.
 
+Stop **Device Hub screen sharing** before testing the physical camera. Apple
+disables camera/microphone access during Device Hub interaction; both Hydra and
+the built-in Camera can show a black preview. Select the phone's **Stop Screen
+Sharing** action, then force-close/reopen the camera apps. Pairing/install over
+Wi-Fi can remain available without viewing the screen. During this handoff, the
+owner confirmed both previews worked once sharing stopped; inference/save/restart
+verification is still separate. See [Apple's Device Hub documentation](https://developer.apple.com/documentation/xcode/interacting-with-your-app-in-device-hub).
+
 ## What the prototype can support
 
 - Twelve category outputs: beer, coffee, energy drink, juice, milk, other,
