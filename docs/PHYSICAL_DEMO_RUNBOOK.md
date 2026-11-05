@@ -44,9 +44,8 @@ The orchestrator builds/signs/verifies the exact demo bundle, checks bundled
 model bytes/hashes/notices and remote Git blobs, installs it alongside Hydra,
 and completes new demo tests. Push **all source, setup and docs** to
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission)
-before filming. Record the exact commit and UTC verification time in
-[source verification](DEMO_SOURCE_VERIFICATION.md); both are pending in this
-draft. Do not cite `main`, claim a merge or claim a PR exists: previous PR
+before filming. The app code commit and verification evidence are in
+[source verification](DEMO_SOURCE_VERIFICATION.md). Do not cite `main`, claim a merge or claim a PR exists: previous PR
 creation failed with HTTP 403. A source change after freeze requires a new
 verified freeze before the final take.
 
@@ -121,3 +120,5 @@ playback, audio, captions and privacy. Keep the original beside the export,
 record the source commit and capture/export times, and deliver the actual
 video for owner review. A runbook/script alone does not complete the video.
 No external publishing, terms acceptance or paid calls are part of this handoff.
+
+Recording controls follow [Apple’s iPhone screen-recording guide](https://support.apple.com/en-lamr/guide/iphone/iph52f6e1987/27/ios/27). The recording is saved to Photos; microphone audio is optional.

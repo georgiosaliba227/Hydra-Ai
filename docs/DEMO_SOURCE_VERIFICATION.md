@@ -18,7 +18,7 @@ Documentation commits may follow without changing the app. The final branch HEAD
 
 ## Remaining physical and remote evidence
 
-Device installation, runtime provisioning and remote branch verification are in progress. Physical rehearsal and the actual recorded video have not yet been verified. Simulator tests are not final demo footage. Previous owner-confirmed offline analysis/persistence applies to the normal app, not this new demo installation.
+The signed separate demo app was successfully installed wirelessly on the physical iPhone 17 Pro (iOS 27.2), alongside the unchanged normal bundle. GitHub branch HEAD defb0535ba32b1f6a67898b7ca0603874e6fa490 was verified with git ls-remote at 2026-11-05T00:46:34.183Z before filming; its reachable model weight blob is 0a5aef886a0a1489d24ae801e0316e717f9104ba (43,281,240 bytes). This documentation-only follow-up is pushed and its new HEAD checked again before the final take. The demo launch succeeded using a fresh process-only runtime token and local-only camera mode. Phone UI/backend rehearsal and the actual recorded video have not yet been verified. Simulator tests are not final demo footage. Previous owner-confirmed offline analysis/persistence applies to the normal app, not this new demo installation.
 
 The owner records the physical iPhone with Mac sharing off. All account history/profile values in Hydra Demo are fictional; no real Health data is requested. Follow the [three-minute runbook](PHYSICAL_DEMO_RUNBOOK.md). Preserve the original recording before export; record actual duration and privacy review only after inspecting the received file.
 
