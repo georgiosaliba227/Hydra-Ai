@@ -82,13 +82,18 @@ struct DemoSeedPlan {
     private let service: LocalBeverageService
     private let profiles: GoalProfileStore
     private let markerURL: URL
+    private let trustedRoot: URL
+    private let inspectNode: ((URL) throws -> stat?)?
     // MainActor methods suspend at service calls. Prevent overlapping preparations
     // across seeder instances from observing a half-published state in this process.
     private static var activeMarkers: Set<String> = []
     private static let maximumBytes = 1024
 
-    init(service: LocalBeverageService, profiles: GoalProfileStore, markerURL: URL) {
+    init(service: LocalBeverageService, profiles: GoalProfileStore, markerURL: URL,
+         trustedRoot: URL = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).resolvingSymlinksInPath(),
+         inspectNode: ((URL) throws -> stat?)? = nil) {
         self.service = service; self.profiles = profiles; self.markerURL = markerURL.standardizedFileURL
+        self.trustedRoot = trustedRoot.standardizedFileURL; self.inspectNode = inspectNode
     }
 
     func prepare(bundleIdentifier: String?, now: Date, zone: TimeZone) async throws -> DemoSeedPlan {
@@ -155,9 +160,10 @@ struct DemoSeedPlan {
         return plan
     }
 
-    /// lstat catches dangling links. Reject links in every supplied path component,
-    /// including ancestors, rather than resolving a caller's path into another sandbox.
+    /// lstat catches dangling links. Inspect only the trusted container and its
+    /// descendants; physical iOS may deny metadata access to filesystem ancestors.
     private func attributes(_ url: URL) throws -> stat? {
+        if let inspectNode { return try inspectNode(url) }
         var node = stat()
         guard lstat(url.path, &node) == 0 else {
             if errno == ENOENT { return nil }
@@ -166,10 +172,17 @@ struct DemoSeedPlan {
         return node
     }
     private func checkPath() throws {
-        guard markerURL.isFileURL, markerURL.path.hasPrefix("/"), markerURL.lastPathComponent != "/" else { throw DemoAccountError.marker }
-        var current = URL(fileURLWithPath: "/", isDirectory: true)
-        for component in markerURL.deletingLastPathComponent().pathComponents {
-            if component != "/" { current.appendPathComponent(component, isDirectory: true) }
+        let rootComponents = trustedRoot.pathComponents, markerComponents = markerURL.pathComponents
+        // Check lexical containment before performing any filesystem operation.
+        // Component comparison rejects prefix siblings, '..' escapes, and the root itself.
+        guard trustedRoot.isFileURL, markerURL.isFileURL, trustedRoot.path.hasPrefix("/"),
+              rootComponents.count > 1, markerComponents.count > rootComponents.count,
+              Array(markerComponents.prefix(rootComponents.count)) == rootComponents else { throw DemoAccountError.marker }
+        guard let root = try attributes(trustedRoot),
+              root.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else { throw DemoAccountError.marker }
+        var current = trustedRoot
+        for component in markerComponents.dropFirst(rootComponents.count).dropLast() {
+            current.appendPathComponent(component, isDirectory: true)
             if let node = try attributes(current) {
                 guard node.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else { throw DemoAccountError.marker }
             }

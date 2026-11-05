@@ -1,4 +1,5 @@
 import XCTest
+import Darwin
 @testable import HydraAI
 
 final class DemoAccountTests: XCTestCase {
@@ -164,4 +165,56 @@ final class DemoAccountTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("marker.json")), markerBefore)
         XCTAssertTrue(plan.entries.contains { $0.request.consumedAt > earlier })
     }
+
+    @MainActor func testTrustedContainerNeverProbesDeniedFilesystemAncestors() async throws {
+        let root = try folder(), url = root.appendingPathComponent("marker.json")
+        let service = LocalBeverageService(fileURL: root.appendingPathComponent("local.json")), profiles = profiles(root)
+        try marker(root, state: "ready", anchor: now, zone: zone)
+        let before = try Data(contentsOf: url)
+        var probes: [URL] = []
+        let seeder = DemoAccountSeeder(service: service, profiles: profiles, markerURL: url, trustedRoot: root,
+            inspectNode: { candidate in
+                probes.append(candidate)
+                // Model the physical sandbox: container access works; examining
+                // a filesystem ancestor is denied even though the container is usable.
+                guard candidate.path == root.path || candidate.path.hasPrefix(root.path + "/") else {
+                    throw CocoaError(.fileReadNoPermission)
+                }
+                var node = stat()
+                if lstat(candidate.path, &node) == 0 { return node }
+                if errno == ENOENT { return nil }
+                throw CocoaError(.fileReadNoPermission)
+            })
+        _ = try await seeder.prepare(bundleIdentifier: DemoAccount.bundleIdentifier, now: now, zone: zone)
+        XCTAssertFalse(probes.isEmpty)
+        XCTAssertTrue(probes.allSatisfy { $0.path == root.path || $0.path.hasPrefix(root.path + "/") })
+        XCTAssertEqual(try Data(contentsOf: url), before)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("local.json").path))
+    }
+
+    @MainActor func testOutsideContainerAndPrefixSiblingAreRejectedBeforeAnyProbeOrMutation() async throws {
+        let root = try folder(), outside = try folder()
+        let service = LocalBeverageService(fileURL: root.appendingPathComponent("local.json")), profiles = profiles(root)
+        let sibling = URL(fileURLWithPath: root.path + "-sibling", isDirectory: true)
+        try FileManager.default.createDirectory(at: sibling, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: sibling) }
+        for url in [outside.appendingPathComponent("marker.json"), sibling.appendingPathComponent("marker.json"),
+                    root.appendingPathComponent("../escaped-marker.json"), root] {
+            var probes = 0
+            let seeder = DemoAccountSeeder(service: service, profiles: profiles, markerURL: url, trustedRoot: root,
+                inspectNode: { _ in probes += 1; throw CocoaError(.fileReadNoPermission) })
+            do { _ = try await seeder.prepare(bundleIdentifier: DemoAccount.bundleIdentifier, now: now, zone: zone); XCTFail("Outside marker accepted") }
+            catch DemoAccountError.marker { }
+            catch { XCTFail("Path was probed before containment was checked: \(error)") }
+            do { _ = try await seeder.reset(bundleIdentifier: DemoAccount.bundleIdentifier, now: now, zone: zone); XCTFail("Outside reset accepted") }
+            catch DemoAccountError.marker { }
+            catch { XCTFail("Reset probed outside the container: \(error)") }
+            XCTAssertEqual(probes, 0)
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("local.json").path))
+        XCTAssertNil(profiles.profile)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: outside.path), [])
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: sibling.path), [])
+    }
+
 }
