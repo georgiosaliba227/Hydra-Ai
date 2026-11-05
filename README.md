@@ -62,6 +62,9 @@ and next actions. Fresh checks passed: **1480 Python tests, 217 XCTest, 3
 starter tests, all 10 offline rehearsal groups, and signed model/blob
 verification**; 5 optional Python tests remain skipped. The final physical
 display confirmation and actual recording review remain pending.
+The source push is verified; PR creation is still blocked by the connected
+integration's HTTP 403 and the CLI identity's collaborator permissions.
+[Compare the complete submission source with main](https://github.com/georgiosaliba227/Hydra-Ai/compare/main...codex/preupload-review-20261104?expand=1).
 
 ## Evidence and model provenance
 

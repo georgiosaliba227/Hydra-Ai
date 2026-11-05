@@ -14,6 +14,14 @@ again. Raw local evidence is `/tmp/hydra-preupload-pytest-20261104.log`,
 `/tmp/hydra-preupload-native-20261104.xcresult`, and
 `/tmp/hydra-preupload-model-20261104.json`.
 
+The pre-upload documentation update was pushed as `94bbc97` and matched the
+remote branch on a fresh `git ls-remote` check. PR publication was attempted
+again: the connected GitHub integration returned HTTP 403, and the existing
+CLI identity returned `must be a collaborator`. No PR or reviewer notification
+was created, and no merge occurred. The prepared description is retained at
+`/tmp/hydra-preupload-pr-20261104.md`.
+[Review the complete source and open the PR](https://github.com/georgiosaliba227/Hydra-Ai/compare/main...codex/preupload-review-20261104?expand=1).
+
 Installed app code: [cf0088e4c5fca07d525c7a09a88b5ab179089322](https://github.com/georgiosaliba227/Hydra-Ai/commit/cf0088e4c5fca07d525c7a09a88b5ab179089322).
 Submission branch: [codex/physical-demo-submission](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
 The app commit was verified with git ls-remote at **2026-11-05T01:21:16.456Z**, before filming. Its reachable model weight blob is 0a5aef886a0a1489d24ae801e0316e717f9104ba (43,281,240 bytes). This final evidence-only follow-up is pushed and its new HEAD checked before the take. Main is not the feature source.
