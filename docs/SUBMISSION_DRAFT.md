@@ -75,7 +75,7 @@ repository retains its separate SQLite backend and guarded research paths.
 physical evidence includes bundled inference/OCR on a generated label and
 owner-observed offline analysis, confirmation and restart persistence. These
 checks verify implementation behavior, not scientific or clinical validity.
-**New Hydra Demo checks:** 1480 pytest passed/5 skipped/58 subtests, 211 native
+**New Hydra Demo checks:** 1480 pytest passed/5 skipped/58 subtests, 217 native
 XCTest and 1 demo isolation UI flow passed. The separate signed device build and
 bundled model verification passed. Physical rehearsal and final video remain pending. Record actual results in [source verification](DEMO_SOURCE_VERIFICATION.md).
 
@@ -104,7 +104,7 @@ preserve the original before trimming/captions/export on the Mac.
 
 Source branch:
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
-**App source commit: 6430bbc; actual video artifact remains pending.** Push and verify all code, setup,
+**App source commit: 3b9663b; actual video artifact remains pending.** Push and verify all code, setup,
 docs and actual model blobs before owner recording; record the commit and
 verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
 `main` is not the submission feature source. Earlier PR creation failed with
