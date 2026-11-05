@@ -50,7 +50,7 @@ recording status are tracked in the
 
 Submission source is the feature branch
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission),
-with app code commit **7e0e6b1** and source-freeze evidence in that handoff. All source, setup, docs and
+with app code commit **cf0088e** and source-freeze evidence in that handoff. All source, setup, docs and
 actual model blobs must be pushed and remotely verified **before** owner recording.
 Do not use `main` as feature evidence. Earlier PR creation returned HTTP 403;
 no successful PR or merge is claimed.
