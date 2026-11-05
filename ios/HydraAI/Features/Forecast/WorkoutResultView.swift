@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Main result keeps the meaning and uncertainty beside the number.
 struct WorkoutResultView: View {
+    @EnvironmentObject private var units: DisplayUnits
     let result: WorkoutForecast
 
     var body: some View {
@@ -13,11 +14,11 @@ struct WorkoutResultView: View {
                 }
                 if let value = result.valueMl, let lower = result.lowerMl, let upper = result.upperMl {
                     Text("Estimated sweat loss").font(.headline)
-                    Text("\(HydraFormat.milliliters(value)) mL")
+                    Text(units.volume(value))
                         .font(.system(.largeTitle, design: .rounded).bold()).foregroundStyle(Color.hydraTint)
-                        .accessibilityLabel("Estimated exercise sweat loss: \(HydraFormat.milliliters(value)) mL")
+                        .accessibilityLabel("Estimated exercise sweat loss: \(units.volume(value))")
                         .accessibilityIdentifier("workoutPrediction")
-                    Text("Range \(HydraFormat.milliliters(lower))–\(HydraFormat.milliliters(upper)) mL")
+                    Text("Range \(units.range(lower, upper))")
                         .font(.body.monospacedDigit())
                     Text(result.synthetic
                          ? "Range checked only on simulated data; it does not show accuracy for you."
@@ -57,12 +58,12 @@ struct WorkoutResultView: View {
                 }
                 ForEach(result.inputFactors.keys.sorted(), id: \.self) { key in
                     if let factor = result.inputFactors[key] {
-                        LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized, value: factor.display)
+                        LabeledContent(key.replacingOccurrences(of: "_", with: " ").capitalized, value: units.text(factor.display))
                     }
                 }
-                ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(source) }
+                ForEach(Array(result.provenance.enumerated()), id: \.offset) { _, source in Text(units.text(source)) }
                 ForEach(Array(result.limitations.enumerated()), id: \.offset) { _, text in
-                    Text(text.replacingOccurrences(of: "_", with: " "))
+                    Text(units.text(text.replacingOccurrences(of: "_", with: " ")))
                 }
             }
             if result.synthetic {
@@ -79,7 +80,7 @@ struct WorkoutResultView: View {
                     }
                     if let explanation = result.mockExplanation {
                         Text("Local explanation fixtures · mock only. No live Meta request was made.")
-                        ForEach(Array(explanation.explanations.enumerated()), id: \.offset) { _, text in Text(text) }
+                        ForEach(Array(explanation.explanations.enumerated()), id: \.offset) { _, text in Text(units.text(text)) }
                     }
                 }
             }
@@ -88,6 +89,7 @@ struct WorkoutResultView: View {
 }
 
 struct WorkoutInterpretationView: View {
+    @EnvironmentObject private var units: DisplayUnits
     let interpretation: HydrationContextComparison.Interpretation
     private let categories = ["factors", "missing_information", "contradictions", "uncertainty", "measurement_suggestions"]
     var body: some View {
@@ -96,7 +98,7 @@ struct WorkoutInterpretationView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(category.replacingOccurrences(of: "_", with: " ").capitalized).font(.headline)
                     ForEach(Array(texts.enumerated()), id: \.offset) { _, text in
-                        Text(text).fixedSize(horizontal: false, vertical: true)
+                        Text(units.text(text)).fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

@@ -2,6 +2,7 @@ import SwiftUI
 
 /// A separate review owns its default-off consent. Opening it never starts inference.
 struct TrendDataReview: View {
+    @EnvironmentObject private var units: DisplayUnits
     let preview: TrendPreview
     @ObservedObject var controller: WonderTrendsController
     let connected: Bool
@@ -47,7 +48,7 @@ struct TrendDataReview: View {
     private func week(_ label: String, _ week: TrendFacts.Week) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(label).font(.subheadline).foregroundStyle(.secondary)
-            Text("\(week.total_ml.formatted()) mL logged").font(.headline.monospacedDigit())
+            Text("\(units.volume(week.total_ml)) logged").font(.headline.monospacedDigit())
             Text("\(week.logged_days) of 7 days with logs").font(.subheadline)
         }
         .accessibilityElement(children: .combine)
@@ -91,27 +92,27 @@ struct TrendDataReview: View {
         return VStack(alignment: .leading, spacing: 12) {
             Text("Daily totals & drink counts").font(.headline)
             ForEach(facts.days, id: \.date) { day in
-                LabeledContent(day.date, value: "\(day.total_ml.formatted()) mL · \(day.drinks) drinks logged")
+                LabeledContent(day.date, value: "\(units.volume(day.total_ml)) · \(day.drinks) drinks logged")
             }
             Text("Days without logs are unknown, not zero intake.")
             Divider()
             LabeledContent("Window", value: "\(facts.window_days) days through \(facts.through_date)")
             LabeledContent("Timezone", value: facts.timezone)
-            LabeledContent("Last week's daily average logged", value: "\(facts.last_7_days.average_ml.formatted()) mL")
-            LabeledContent("Previous week's daily average logged", value: "\(facts.previous_7_days.average_ml.formatted()) mL")
+            LabeledContent("Last week's daily average logged", value: "\(units.volume(facts.last_7_days.average_ml))")
+            LabeledContent("Previous week's daily average logged", value: "\(units.volume(facts.previous_7_days.average_ml))")
             if let change = facts.change_pct { LabeledContent("Logged volume change", value: "\(change)%") }
-            if let goal = facts.goal_ml { LabeledContent("Your goal", value: "\(goal.formatted()) mL") }
+            if let goal = facts.goal_ml { LabeledContent("Your goal", value: "\(units.volume(goal))") }
             if let met = facts.goal_met_days_last_7 { LabeledContent("Days goal reached last week", value: met.formatted()) }
             Text("Every drink category").font(.headline)
             ForEach(facts.categories, id: \.category) { category in
-                LabeledContent(category.category.replacingOccurrences(of: "_", with: " ").capitalized, value: "\(category.total_ml.formatted()) mL · \(category.share_pct)%")
+                LabeledContent(category.category.replacingOccurrences(of: "_", with: " ").capitalized, value: "\(units.volume(category.total_ml)) · \(category.share_pct)%")
             }
-            LabeledContent("Other categories", value: "\(facts.other_categories_ml.formatted()) mL")
+            LabeledContent("Other categories", value: "\(units.volume(facts.other_categories_ml))")
             Text("Time of day").font(.headline)
-            LabeledContent("Morning", value: "\(facts.time_of_day_ml.morning_ml.formatted()) mL")
-            LabeledContent("Afternoon", value: "\(facts.time_of_day_ml.afternoon_ml.formatted()) mL")
-            LabeledContent("Evening", value: "\(facts.time_of_day_ml.evening_ml.formatted()) mL")
-            LabeledContent("Night", value: "\(facts.time_of_day_ml.night_ml.formatted()) mL")
+            LabeledContent("Morning", value: "\(units.volume(facts.time_of_day_ml.morning_ml))")
+            LabeledContent("Afternoon", value: "\(units.volume(facts.time_of_day_ml.afternoon_ml))")
+            LabeledContent("Evening", value: "\(units.volume(facts.time_of_day_ml.evening_ml))")
+            LabeledContent("Night", value: "\(units.volume(facts.time_of_day_ml.night_ml))")
             DisclosureGroup("Exact data payload") {
                 Text(payload).font(.caption.monospaced())
                     .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)

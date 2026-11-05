@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Reviewed hydration answers with evidence. Questions go only to the configured backend.
 struct AssistantView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = AssistantController()
     @State private var question = ""
@@ -156,7 +157,7 @@ struct AssistantView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(urgent ? Color.red : Color.hydraTint)
                         .accessibilityAddTraits(.isHeader)
-                    Text(item.text)
+                    Text(units.text(item.text))
                         .font(urgent ? Font.body.weight(.semibold) : Font.body)
                         .foregroundStyle(urgent ? .red : .primary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -192,10 +193,10 @@ struct AssistantView: View {
             if let context = answer.intake_context {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Your log today").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    Text("\(context.beverage_total_ml.formatted(.number.precision(.fractionLength(0)))) mL logged on \(context.local_date)")
+                    Text("\(units.volume(context.beverage_total_ml)) logged on \(context.local_date)")
                         .font(.headline)
                         .accessibilityIdentifier("assistantIntakeContext")
-                    Text(context.note).font(.footnote).foregroundStyle(.secondary)
+                    Text(units.text(context.note)).font(.footnote).foregroundStyle(.secondary)
                 }
                 .hydraCard()
             }
@@ -216,7 +217,7 @@ struct AssistantView: View {
             if !answer.limitations.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(Array(answer.limitations.enumerated()), id: \.offset) { _, limitation in
-                        Text(limitation)
+                        Text(units.text(limitation))
                     }
                 }
                 .font(.footnote)

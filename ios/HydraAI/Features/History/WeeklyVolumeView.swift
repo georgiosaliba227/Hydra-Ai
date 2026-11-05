@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WeeklyVolumeView: View {
+    @EnvironmentObject private var units: DisplayUnits
     let logs: [BeverageLog]
 
     private var days: [Date] {
@@ -21,7 +22,7 @@ struct WeeklyVolumeView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Last 7 days").font(.headline)
                 Spacer()
-                Text("\(dailyVolumes.reduce(0, +).formatted()) mL total")
+                Text("\(units.volume(dailyVolumes.reduce(0, +))) total")
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -30,7 +31,7 @@ struct WeeklyVolumeView: View {
                 ForEach(days.indices, id: \.self) { index in
                     let isToday = index == days.count - 1
                     VStack(spacing: 6) {
-                        Text(dailyVolumes[index].formatted(.number.notation(.compactName)))
+                        Text(units.format(Double(dailyVolumes[index]), quantity: .volume, includeUnit: false))
                             .font(.caption2.monospacedDigit())
                             .fixedSize()
                         GeometryReader { geometry in
@@ -47,7 +48,7 @@ struct WeeklyVolumeView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("\(days[index].formatted(date: .abbreviated, time: .omitted)), \(dailyVolumes[index]) milliliters logged")
+                    .accessibilityLabel("\(days[index].formatted(date: .abbreviated, time: .omitted)), \(units.volumeAccessibility(dailyVolumes[index])) logged")
                 }
             }
             Text("Logged volume only. Days without logs are unknown intake.")

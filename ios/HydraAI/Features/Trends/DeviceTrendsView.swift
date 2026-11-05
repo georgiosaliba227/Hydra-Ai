@@ -2,6 +2,7 @@ import SwiftUI
 
 /// The phone previews its own aggregates. Sending is a separate, explicit action.
 struct DeviceTrendsView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @State private var snapshot: DeviceTrendSnapshot?
     @State private var result: DeviceTrendSummary?
@@ -38,12 +39,12 @@ struct DeviceTrendsView: View {
                 if let result {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("From this iPhone's log", systemImage: "iphone").font(.caption.weight(.semibold)).foregroundStyle(Color.hydraTint)
-                        Text(result.summary).font(.title3.weight(.semibold)).accessibilityIdentifier("trendsSummary")
+                        Text(units.text(result.summary)).font(.title3.weight(.semibold)).accessibilityIdentifier("trendsSummary")
                     }.hydraCard()
                     ForEach(result.insights) { insight in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(insight.title).font(.headline)
-                            Text(insight.text).accessibilityIdentifier("trendsInsight-\(insight.id)")
+                            Text(units.text(insight.text)).accessibilityIdentifier("trendsInsight-\(insight.id)")
                         }.hydraCard()
                     }
                     Text("Calculated by Hydra from the summary you shared. No AI provider was called. The backend does not save this summary.")
@@ -66,24 +67,24 @@ struct DeviceTrendsView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Summary to share").font(.headline)
             Text("14 days through \(snapshot.through_date) · \(snapshot.timezone)").font(.subheadline)
-            Text("\(snapshot.days.reduce(0) { $0 + $1.total_ml }) mL logged")
+            Text("\(units.volume(snapshot.days.reduce(0) { $0 + $1.total_ml })) logged")
                 .font(.title3.weight(.semibold)).accessibilityIdentifier("deviceTrendsPreviewTotal")
-            if let goal = snapshot.goal_ml { Text("Current goal: \(goal) mL/day") }
+            if let goal = snapshot.goal_ml { Text("Current goal: \(units.volume(goal))/day") }
             Text("Includes daily totals, drink counts, drink types and totals by time of day. No drink names, photos, individual timestamps, profile or Apple Health data.")
                 .font(.footnote).foregroundStyle(.secondary)
             DisclosureGroup("See daily totals") {
                 ForEach(snapshot.days, id: \.date) { day in
-                    LabeledContent(day.date, value: "\(day.total_ml) mL · \(day.drinks) drinks")
+                    LabeledContent(day.date, value: "\(units.volume(day.total_ml)) · \(day.drinks) drinks")
                         .font(.footnote)
                 }
                 ForEach(snapshot.categories, id: \.category) { category in
                     LabeledContent(category.category.replacingOccurrences(of: "_", with: " ").capitalized,
-                                   value: "\(category.total_ml) mL").font(.footnote)
+                                   value: "\(units.volume(category.total_ml))").font(.footnote)
                 }
-                LabeledContent("Morning", value: "\(snapshot.time_of_day_ml.morning_ml) mL").font(.footnote)
-                LabeledContent("Afternoon", value: "\(snapshot.time_of_day_ml.afternoon_ml) mL").font(.footnote)
-                LabeledContent("Evening", value: "\(snapshot.time_of_day_ml.evening_ml) mL").font(.footnote)
-                LabeledContent("Night", value: "\(snapshot.time_of_day_ml.night_ml) mL").font(.footnote)
+                LabeledContent("Morning", value: units.volume(snapshot.time_of_day_ml.morning_ml)).font(.footnote)
+                LabeledContent("Afternoon", value: units.volume(snapshot.time_of_day_ml.afternoon_ml)).font(.footnote)
+                LabeledContent("Evening", value: units.volume(snapshot.time_of_day_ml.evening_ml)).font(.footnote)
+                LabeledContent("Night", value: units.volume(snapshot.time_of_day_ml.night_ml)).font(.footnote)
             }
         }.hydraCard()
     }
