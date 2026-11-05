@@ -104,7 +104,7 @@ preserve the original before trimming/captions/export on the Mac.
 
 Source branch:
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
-**App source commit: d09d093; actual video artifact remains pending.** Push and verify all code, setup,
+**App source commit: 7e0e6b1; actual video artifact remains pending.** Push and verify all code, setup,
 docs and actual model blobs before owner recording; record the commit and
 verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
 `main` is not the submission feature source. Earlier PR creation failed with
