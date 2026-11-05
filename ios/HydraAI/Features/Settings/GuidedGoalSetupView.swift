@@ -169,7 +169,7 @@ struct GuidedGoalSetupView: View {
                 CanonicalQuantityField("Custom beverage goal", value: $customGoal, quantity: .volume,
                                        accessibilityIdentifier: "guidedCustomGoal", isInputValid: $customInputValid)
                     .id(fieldReset)
-                Text("Choose a goal from 100 to 10,000 mL (\(units.volume(100)) to \(units.volume(10000))). No profile answers are required. " + (store.isOnDevice ? "Confirmation saves only this goal on this iPhone." : "Confirmation sends only this goal to your Hydra backend."))
+                Text("Choose a goal from \(units.volume(100)) to \(units.volume(10000)). No profile answers are required. " + (store.isOnDevice ? "Confirmation saves only this goal on this iPhone." : "Confirmation sends only this goal to your Hydra backend."))
                     .font(.footnote)
                 Button("Confirm custom goal") { confirmCustom() }
                     .disabled(busy || !customInputValid || CanonicalQuantityInput.wholeMilliliters(customGoal, range: 100...10_000) == nil || !canConfirm)

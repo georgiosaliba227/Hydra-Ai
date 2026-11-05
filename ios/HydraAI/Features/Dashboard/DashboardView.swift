@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     @State private var showingManualLog = false
 
     private var todaysLogs: [BeverageLog] {
@@ -67,7 +68,7 @@ struct DashboardView: View {
             .accessibilityIdentifier("connectionError")
         }
         if let pending = store.pending {
-            StatusBanner(text: "Waiting to confirm \(pending.request.consumedMl) mL \(pending.request.category). Nothing is lost; retry when you're back online.",
+            StatusBanner(text: "Waiting to confirm \(units.volume(pending.request.consumedMl)) \(pending.request.category). Nothing is lost; retry when you're back online.",
                          systemImage: "clock.badge.exclamationmark") {
                 Button("Retry pending beverage") {
                     Task { try? await store.retryPending() }
@@ -128,6 +129,7 @@ struct DashboardView: View {
 
 /// Today's logged total, with a ring only when the user has chosen a goal.
 private struct TodayProgressCard: View {
+    @EnvironmentObject private var units: DisplayUnits
     let volumeMl: Int
     let goal: DailySummary.Goal?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -172,19 +174,19 @@ private struct TodayProgressCard: View {
                     .animation(.snappy, value: validGoal.progressRatio)
             }
             VStack(spacing: 0) {
-                Text(volumeMl.formatted())
+                Text(units.system.number(Double(volumeMl), quantity: .volume))
                     .font(.system(size: numberSize, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                Text("mL").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                Text(units.system.symbol(for: .volume)).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
             }
             .padding(18)
         }
         .frame(width: ringSize, height: ringSize)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Logged today, \(volumeMl.formatted()) milliliters")
+        .accessibilityLabel("Logged today, \(units.volumeAccessibility(volumeMl))")
         .accessibilityValue(String(volumeMl))
         .accessibilityIdentifier("dailyTotal")
     }
@@ -198,7 +200,7 @@ private struct TodayProgressCard: View {
                     Text(validGoal.progressRatio >= 1 ? "Goal reached" : "\(percent)% of your goal")
                         .font(.title3.bold())
                         .foregroundStyle(Color.hydraTint)
-                    Text("\(volumeMl.formatted()) of \(validGoal.dailyBeverageGoalMl.formatted()) mL · your own goal")
+                    Text("\(units.system.number(Double(volumeMl), quantity: .volume)) of \(units.volume(validGoal.dailyBeverageGoalMl)) · your own goal")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -222,6 +224,7 @@ private struct TodayProgressCard: View {
 private struct QuickAddCard: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     @Binding var showingManualLog: Bool
     @State private var confirmation: String?
     @State private var errorMessage: String?
@@ -256,7 +259,7 @@ private struct QuickAddCard: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(preset.label).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
                                         .fixedSize()
-                                    Text("\(preset.volumeMl) mL").font(.footnote).foregroundStyle(.secondary)
+                                    Text(units.volume(preset.volumeMl)).font(.footnote).foregroundStyle(.secondary)
                                         .fixedSize()
                                 }
                                 .accessibilityHidden(true)
@@ -273,7 +276,7 @@ private struct QuickAddCard: View {
                         .buttonStyle(.plain)
                         .disabled(!store.canLog)
                         .opacity(store.canLog ? 1 : 0.5)
-                        .accessibilityLabel("Add \(preset.volumeMl) milliliters of \(preset.label.lowercased())")
+                        .accessibilityLabel("Add \(units.volumeAccessibility(preset.volumeMl)) of \(preset.label.lowercased())")
                         .accessibilityHint("Logs it now as a drink you've had")
                         .accessibilityIdentifier("quickAdd-\(preset.id)")
                     }
@@ -319,7 +322,7 @@ private struct QuickAddCard: View {
         do {
             try await store.add(category: preset.category, consumedMl: preset.volumeMl, at: .now)
             savedCount += 1
-            withAnimation { confirmation = "Added \(preset.volumeMl) mL \(preset.label.lowercased())" }
+            withAnimation { confirmation = "Added \(units.volume(preset.volumeMl)) \(preset.label.lowercased())" }
             UIAccessibility.post(notification: .announcement, argument: confirmation)
             hideTask?.cancel()
             hideTask = Task {

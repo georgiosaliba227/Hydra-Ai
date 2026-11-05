@@ -3,6 +3,7 @@ import SwiftUI
 /// Historical coverage belongs beside the drink history, away from today’s logging actions.
 struct IntakeHistoryCard: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle("Previous 7 days")
@@ -10,9 +11,9 @@ struct IntakeHistoryCard: View {
                 if let history = store.intakeHistory?.historicalLoggedIntake {
                     if let lower = history.beverageLowerMl, let upper = history.beverageUpperMl {
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(HydraFormat.milliliters(lower))–\(HydraFormat.milliliters(upper))")
+                            Text(units.range(lower, upper))
                                 .font(.title2.bold().monospacedDigit())
-                            Text("mL on days you logged").font(.subheadline).foregroundStyle(.secondary)
+                            Text("on days you logged").font(.subheadline).foregroundStyle(.secondary)
                         }
                         .accessibilityElement(children: .combine)
                     } else {

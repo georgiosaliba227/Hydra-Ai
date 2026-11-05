@@ -14,6 +14,9 @@ final class OnDeviceCameraUITests: XCTestCase {
             "HYDRA_TEST_PHOTO_FIXTURE":"1", "HYDRA_TEST_ON_DEVICE_LABEL_FIXTURE":"1", "HYDRA_TEST_UNIT_SYSTEM":"us",
             "HYDRA_TEST_GOAL_PROFILE_SUITE":"HydraUITests.Units.\(UUID().uuidString)"]
         app.launch()
+        let today = app.descendants(matching:.any).matching(identifier:"dailyTotal").firstMatch
+        XCTAssertTrue(today.waitForExistence(timeout:15))
+        XCTAssertTrue(today.label.contains("US fluid ounces"), today.label)
         XCTAssertTrue(app.tabBars.buttons["Camera"].waitForExistence(timeout:15)); app.tabBars.buttons["Camera"].tap()
         XCTAssertTrue(app.buttons["syntheticPhoto"].waitForExistence(timeout:10)); app.buttons["syntheticPhoto"].tap()
         let analyze = app.buttons["analyzePhoto"]
@@ -39,6 +42,8 @@ final class OnDeviceCameraUITests: XCTestCase {
         let message = app.descendants(matching:.any).matching(identifier:"goalMessage").firstMatch
         XCTAssertEqual(XCTWaiter.wait(for:[XCTNSPredicateExpectation(predicate:NSPredicate(format:"label == 'Goal saved.'"),object:message)],timeout:10),.completed)
         XCTAssertEqual(goal.value as? String,"101.4")
+        app.tabBars.buttons["Today"].tap()
+        XCTAssertTrue(app.descendants(matching:.any).matching(identifier:"goalProgress").firstMatch.label.contains("101.4 fl oz"))
         app.terminate(); app.launch(); app.tabBars.buttons["Today"].tap()
         XCTAssertTrue(total.waitForExistence(timeout:15)); XCTAssertEqual(total.value as? String,"500")
         app.tabBars.buttons["Settings"].tap(); XCTAssertTrue(goal.waitForExistence(timeout:10))
