@@ -2,7 +2,8 @@
 """Build the isolated Hydra Demo app. Never install, launch or provision a token.
 
 The app product remains HydraAI.app. Simulator builds use ad hoc signing for
-Keychain persistence. Use --dry-run to inspect the exact command;
+Keychain persistence. An explicit empty entitlements file excludes HealthKit;
+device builds with --team allow automatic provisioning updates. Use --dry-run to inspect the exact command;
 xcodebuild output goes to a build log, not an environment/credential dump.
 """
 from __future__ import annotations
@@ -25,14 +26,16 @@ def build_command(*, project_root: Path, derived_data: Path,
                '-scheme', 'HydraAI', '-configuration', 'Debug', '-destination', destination,
                '-derivedDataPath', str(Path(derived_data).resolve()),
                'PRODUCT_BUNDLE_IDENTIFIER=com.georgiosaliba.hydraai.demo',
-               'INFOPLIST_KEY_CFBundleDisplayName=Hydra Demo', 'CODE_SIGN_ENTITLEMENTS=',
+               'INFOPLIST_KEY_CFBundleDisplayName=Hydra Demo',
+               f'CODE_SIGN_ENTITLEMENTS={Path(project_root).resolve() / "ios/Configuration/Demo.entitlements"}',
+               'INFOPLIST_KEY_NSHealthShareUsageDescription=',
                'INFOPLIST_KEY_NSCameraUsageDescription=Photograph a drink for on-device analysis. Photos stay on this iPhone.',
                'INFOPLIST_KEY_NSPhotoLibraryUsageDescription=Select a drink photo for on-device analysis. Photos stay on this iPhone.',
                'INFOPLIST_KEY_NSLocalNetworkUsageDescription=Connect to your demo backend for requested summaries and questions. Photos, profile details and Apple Health records stay on this iPhone.']
     if simulator:
         command.extend(['CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_ALLOWED=YES', 'ONLY_ACTIVE_ARCH=YES'])
     elif team:
-        command.extend([f'DEVELOPMENT_TEAM={team}', 'CODE_SIGN_STYLE=Automatic'])
+        command.extend([f'DEVELOPMENT_TEAM={team}', 'CODE_SIGN_STYLE=Automatic', '-allowProvisioningUpdates'])
     command.append('build')
     return command
 

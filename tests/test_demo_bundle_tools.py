@@ -117,7 +117,9 @@ def test_build_command_is_app_only_and_isolated(tmp_path):
     assert command[command.index('-destination') + 1] == 'generic/platform=iOS'
     assert command[-1] == 'build'
     for value in ('PRODUCT_BUNDLE_IDENTIFIER=com.georgiosaliba.hydraai.demo',
-                  'INFOPLIST_KEY_CFBundleDisplayName=Hydra Demo', 'CODE_SIGN_ENTITLEMENTS=',
+                  'INFOPLIST_KEY_CFBundleDisplayName=Hydra Demo',
+                  f'CODE_SIGN_ENTITLEMENTS={ROOT / "ios/Configuration/Demo.entitlements"}',
+                  'INFOPLIST_KEY_NSHealthShareUsageDescription=', '-allowProvisioningUpdates',
                   'DEVELOPMENT_TEAM=TEAM123', 'CODE_SIGN_STYLE=Automatic',
                   'INFOPLIST_KEY_NSCameraUsageDescription=Photograph a drink for on-device analysis. Photos stay on this iPhone.',
                   'INFOPLIST_KEY_NSPhotoLibraryUsageDescription=Select a drink photo for on-device analysis. Photos stay on this iPhone.',
@@ -133,7 +135,8 @@ def test_simulator_command_uses_ad_hoc_signing_for_keychain(tmp_path):
     assert 'CODE_SIGN_IDENTITY=-' in command
     assert 'ONLY_ACTIVE_ARCH=YES' in command
     assert 'CODE_SIGNING_ALLOWED=NO' not in command
-    assert 'CODE_SIGN_ENTITLEMENTS=' in command
+    assert f'CODE_SIGN_ENTITLEMENTS={ROOT / "ios/Configuration/Demo.entitlements"}' in command
+    assert '-allowProvisioningUpdates' not in command
     assert not any(item.startswith('DEVELOPMENT_TEAM=') for item in command)
 
 
@@ -221,3 +224,8 @@ def test_rejects_malformed_user_metadata(bundle, invalid_user):
     path.write_text(json.dumps(metadata))
     with pytest.raises(ValueError):
         verify(bundle)
+
+
+def test_demo_entitlements_are_explicit_empty_dictionary():
+    with (ROOT / 'ios/Configuration/Demo.entitlements').open('rb') as stream:
+        assert plistlib.load(stream) == {}
