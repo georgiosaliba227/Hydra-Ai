@@ -126,10 +126,13 @@ def test_build_command_is_app_only_and_isolated(tmp_path):
     assert not any('PRODUCT_NAME=' in item or item in ('test', 'install') for item in command)
 
 
-def test_simulator_command_is_unsigned(tmp_path):
+def test_simulator_command_uses_ad_hoc_signing_for_keychain(tmp_path):
     command = load_script('build_iphone_demo').build_command(project_root=ROOT, derived_data=tmp_path, simulator=True)
     assert command[command.index('-destination') + 1] == 'generic/platform=iOS Simulator'
-    assert 'CODE_SIGNING_ALLOWED=NO' in command
+    assert 'CODE_SIGNING_ALLOWED=YES' in command
+    assert 'CODE_SIGN_IDENTITY=-' in command
+    assert 'ONLY_ACTIVE_ARCH=YES' in command
+    assert 'CODE_SIGNING_ALLOWED=NO' not in command
     assert 'CODE_SIGN_ENTITLEMENTS=' in command
     assert not any(item.startswith('DEVELOPMENT_TEAM=') for item in command)
 

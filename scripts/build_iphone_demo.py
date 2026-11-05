@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the isolated Hydra Demo app. Never install, launch or provision a token.
 
-The app product remains HydraAI.app. Use --dry-run to inspect the exact command;
+The app product remains HydraAI.app. Simulator builds use ad hoc signing for
+Keychain persistence. Use --dry-run to inspect the exact command;
 xcodebuild output goes to a build log, not an environment/credential dump.
 """
 from __future__ import annotations
@@ -29,7 +30,7 @@ def build_command(*, project_root: Path, derived_data: Path,
                'INFOPLIST_KEY_NSPhotoLibraryUsageDescription=Select a drink photo for on-device analysis. Photos stay on this iPhone.',
                'INFOPLIST_KEY_NSLocalNetworkUsageDescription=Connect to your demo backend for requested summaries and questions. Photos, profile details and Apple Health records stay on this iPhone.']
     if simulator:
-        command.append('CODE_SIGNING_ALLOWED=NO')
+        command.extend(['CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_ALLOWED=YES', 'ONLY_ACTIVE_ARCH=YES'])
     elif team:
         command.extend([f'DEVELOPMENT_TEAM={team}', 'CODE_SIGN_STYLE=Automatic'])
     command.append('build')
@@ -48,7 +49,7 @@ def main() -> int:
     parser.add_argument('--project-root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--derived-data', type=Path, required=True)
     parser.add_argument('--team', help='Apple development team ID for automatic signing')
-    parser.add_argument('--simulator', action='store_true', help='Unsigned generic simulator build')
+    parser.add_argument('--simulator', action='store_true', help='Ad hoc signed generic simulator build with Keychain support')
     parser.add_argument('--dry-run', action='store_true', help='Print command JSON without running Xcode')
     parser.add_argument('--log-file', type=Path, help='Default: DerivedData/hydra-demo-build.log')
     args = parser.parse_args()
