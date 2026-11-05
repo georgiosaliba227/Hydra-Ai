@@ -1,0 +1,26 @@
+0.0–8.0s
+Hydra runs on a real iPhone. This separate simulated profile tracks logged drinks against a goal the user chooses.
+
+8.0–20.0s
+History keeps confirmed entries and shows logged volume over time. These records are fictional. Days without logs mean unknown intake.
+
+20.0–36.4s
+Before viewing trends, I review the summary to share. It contains aggregate totals and categories, without drink photos or raw Health records. Hydra calculates these patterns. No AI provider is called.
+
+36.4–67.5s
+Workout planning stays separate from drink logging. This clearly labelled example uses simulated data to show a conditional sweat-loss range. It is not a daily drinking target or a personal measurement. The details expose assumptions, missing information, and uncertainty. Research mock comparisons and earlier recorded explanations remain labelled and separate from fresh inference.
+
+67.5–81.0s
+Ask Hydra provides reviewed answers with source links. Here, the app answers common questions about creatine and coffee. The evidence and wellness limits stay visible. These are reviewed explanations, not freshly generated model advice.
+
+81.0–86.0s
+This simulated demo excludes real Apple Health records and requests no Health access.
+
+86.0–96.5s
+Settings shows that the camera model is stored in the app. It also offers local export, deletion, and an optional backend connection.
+
+96.5–106.2s
+The app analyzes a real drink photo with bundled Meta DINOv2 and Apple label reading, entirely on this iPhone.
+
+106.2–114.3s
+Volume remains unclear. For this demo, I enter twenty US fluid ounces, then confirm the entry.

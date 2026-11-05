@@ -96,6 +96,9 @@ holds and cutoff policies remain unchanged; see [agent instructions](AGENTS.md),
 
 ## Submission status
 
+The final physical video is exported locally as **HydraDemo-submission.mp4**
+(1:54, about 51 MB), with narration and captions. See [video evidence](docs/DEMO_VIDEO_REVIEW_20261104.md) for actual scope and verification.
+
 The [submission draft](docs/SUBMISSION_DRAFT.md) describes current features and
 remaining checks. The event page's verified deadline is November 4, 2026,
 9 PM ET; signed-in portal fields, video limit, participant eligibility and

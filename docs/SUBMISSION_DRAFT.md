@@ -77,7 +77,7 @@ owner-observed offline analysis, confirmation and restart persistence. These
 checks verify implementation behavior, not scientific or clinical validity.
 **New Hydra Demo checks:** 1480 pytest passed/5 skipped/58 subtests, 217 native
 XCTest and 1 demo isolation UI flow passed. The separate signed device build and
-bundled model verification passed. Physical rehearsal and final video remain pending. Record actual results in [source verification](DEMO_SOURCE_VERIFICATION.md).
+bundled model verification passed. The owner supplied physical footage; the 1:54 narrated/captioned export passed decode, audio and layout checks. See [video review](DEMO_VIDEO_REVIEW_20261104.md) for the actual demonstrated scope.
 
 ## Separate historical experiments
 
@@ -104,7 +104,7 @@ preserve the original before trimming/captions/export on the Mac.
 
 Source branch:
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
-**App source commit: cf0088e; actual video artifact remains pending.** Push and verify all code, setup,
+**App source commit: cf0088e. Final local video: HydraDemo-submission.mp4, 1:54, about 51 MB.** Push and verify all code, setup,
 docs and actual model blobs before owner recording; record the commit and
 verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
 `main` is not the submission feature source. Earlier PR creation failed with
@@ -112,11 +112,13 @@ HTTP 403; no successful PR, reviewer notification or merge is claimed.
 
 ## Owner checks before submission
 
-- Replace pending evidence with the verified source commit and actual reviewed
-  video; confirm portal length/format/access requirements before export.
+- Upload the verified local video and enter its actual accessible URL; confirm
+  portal length/format/access requirements. No public video URL is claimed here.
 - Confirm both developers' eligibility/acceptance and the Startup representative's
   employment and authority under the rules.
 - Review third-party attribution and submission rights. Existing notices are
   evidence, not a completed legal audit or a new root license.
 - Retain synthetic-data disclosure, model uncertainty and wellness limits. Do
   not expose tokens, personal records or private ledger files.
+
+Final take scope supersedes the proposed three-minute shot list: the owner chose the existing 1:54 recording with local narration/captions. It shows the partial circle, History, Trends, simulated workout, Ask, privacy/settings, and camera analysis/Confirm; it omits airplane-mode proof, post-log full-circle/History-edit footage and guided-reference review. See [actual video evidence](DEMO_VIDEO_REVIEW_20261104.md).

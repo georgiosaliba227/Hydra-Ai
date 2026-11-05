@@ -1,0 +1,45 @@
+{
+  "artifact": "HydraDemo-submission.mp4",
+  "duration_seconds": 114.3,
+  "bytes": 50748831,
+  "sha256": "9116a462cc95ef1678292c29965d2cfbecfddcb0d39859b7a655a272f6da9e79",
+  "video": {
+    "index": 0,
+    "codec_name": "h264",
+    "codec_type": "video",
+    "width": 1080,
+    "height": 2528,
+    "avg_frame_rate": "30/1"
+  },
+  "audio": {
+    "index": 1,
+    "codec_name": "aac",
+    "codec_type": "audio",
+    "avg_frame_rate": "0/0"
+  },
+  "source_app_commit": "cf0088e4c5fca07d525c7a09a88b5ab179089322",
+  "prefilm_source_head": "e6c6ce91c730bd4a52d8f323a081d4947e629da9",
+  "prefilm_remote_verified_at": "2026-11-05T01:21:26.965Z",
+  "original_sha256": "9cfb386b3761d86573c7caea340909aa72280346d8325b7182adfb7f2420b817",
+  "original_duration_seconds": 114.3,
+  "caption_cues": 23,
+  "full_decode_passed": true,
+  "user_approved_current_take": true,
+  "user_selected_voiceover_and_captions": true,
+  "visual_qa_seconds": [
+    1,
+    25,
+    82.5,
+    110.5
+  ],
+  "original_review_interval_seconds": 2,
+  "not_shown": [
+    "airplane-mode proof",
+    "post-confirmation full goal circle",
+    "history edit",
+    "guided adult-reference review"
+  ],
+  "updated_at": "2026-11-05T01:49:09.617Z",
+  "audio_integrated_lufs": -16,
+  "audio_true_peak_dbfs": -3.7
+}
