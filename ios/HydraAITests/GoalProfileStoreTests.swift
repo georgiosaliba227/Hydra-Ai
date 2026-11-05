@@ -1,4 +1,5 @@
 import XCTest
+import Darwin
 @testable import HydraAI
 
 final class GoalProfileStoreTests: XCTestCase {
@@ -15,6 +16,79 @@ final class GoalProfileStoreTests: XCTestCase {
         let store = GoalProfileStore(directory: folder, scopeResolver: { _ in scope })
         store.configure(configuration, now: now)
         return store
+    }
+
+    @MainActor func testProfileDirectoryMustBeStrictlyInsideAppHome() {
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).resolvingSymlinksInPath()
+        let sibling = home.deletingLastPathComponent().appendingPathComponent(home.lastPathComponent + "-" + UUID().uuidString)
+        for directory in [home, sibling] {
+            let store = GoalProfileStore(directory: directory, scopeResolver: { _ in UUID() })
+            store.configure(configuration, now: now)
+            XCTAssertFalse(store.canSave, "The app home itself and sibling containers are not profile directories")
+            XCTAssertNotNil(store.errorMessage)
+        }
+    }
+
+    @MainActor func testProfileLifecycleDoesNotInspectDeniedContainerAncestors() throws {
+        let container = folder().resolvingSymlinksInPath(), scope = UUID()
+        try FileManager.default.createDirectory(at: container, withIntermediateDirectories: true)
+        let directory = container.appendingPathComponent("Library/Application Support/profiles", isDirectory: true)
+        let store = GoalProfileStore(directory: directory, trustedRoot: container, metadataReader: { url in
+            // Model a physical device: only descendants of the app container can be inspected.
+            guard url.pathComponents.starts(with: container.pathComponents),
+                  url.pathComponents.count > container.pathComponents.count else { throw POSIXError(.EACCES) }
+            var node = stat()
+            guard lstat(url.path, &node) == 0 else {
+                if errno == ENOENT { return nil }
+                throw POSIXError(.EACCES)
+            }
+            return node
+        }, scopeResolver: { _ in scope })
+        store.configure(configuration, now: now)
+        guard store.canSave else { return XCTFail("Protected profile storage must not inspect ancestors outside the container") }
+        try store.save(answer, consent: true, now: now)
+        try store.reload(now: now)
+        XCTAssertEqual(store.profile, answer)
+        XCTAssertEqual(try JSONDecoder().decode(GoalProfile.self, from: store.exportData(now: now)), answer)
+        try store.deleteCurrent()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file(directory, scope).path))
+        try store.save(answer, consent: true, now: now)
+        try store.deleteAll()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
+        XCTAssertTrue(store.canSave)
+    }
+
+    @MainActor func testOutsideTrustedRootRejectsReadsAndDeletionBeforeMetadataAccess() throws {
+        let container = folder().resolvingSymlinksInPath()
+        let sibling = URL(fileURLWithPath: container.path + "-outside", isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: sibling) }
+        for directory in [container, sibling] {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let evidence = directory.appendingPathComponent("keep.txt"), bytes = Data("preserve".utf8)
+            try bytes.write(to: evidence)
+            let store = GoalProfileStore(directory: directory, trustedRoot: container, metadataReader: { _ in
+                XCTFail("An invalid destination must be rejected before filesystem inspection")
+                return nil
+            }, scopeResolver: { _ in UUID() })
+            store.configure(configuration, now: now)
+            XCTAssertFalse(store.canSave)
+            XCTAssertThrowsError(try store.save(answer, consent: true, now: now))
+            XCTAssertThrowsError(try store.deleteCurrent())
+            XCTAssertThrowsError(try store.deleteAll())
+            XCTAssertEqual(try Data(contentsOf: evidence), bytes)
+        }
+    }
+
+    @MainActor func testDefaultDirectoryKeepsSymlinksBelowTrustedRootVisible() throws {
+        let container = folder().resolvingSymlinksInPath(), target = folder()
+        try FileManager.default.createDirectory(at: container, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: target, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: container.appendingPathComponent("Library"), withDestinationURL: target)
+        let store = GoalProfileStore(trustedRoot: container, scopeResolver: { _ in UUID() })
+        store.configure(configuration, now: now)
+        XCTAssertFalse(store.canSave)
+        XCTAssertThrowsError(try store.save(answer, consent: true, now: now))
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: target.path), [])
     }
 
     @MainActor func testExplicitConsentBeforeCreatingFilesAndConnectionRestoration() throws {

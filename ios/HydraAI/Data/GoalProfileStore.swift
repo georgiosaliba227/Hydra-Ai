@@ -20,6 +20,8 @@ enum GoalProfileStoreError: LocalizedError {
     var canSave: Bool { scope != nil && !blocked }
 
     private let directory: URL
+    private let trustedRoot: URL
+    private let metadataReader: ((URL) throws -> stat?)?
     private let scopeResolver: (APIConfiguration) throws -> UUID
     private var scope: UUID?
     private var blocked = false
@@ -34,10 +36,14 @@ enum GoalProfileStoreError: LocalizedError {
         let profile: GoalProfile
     }
 
-    init(directory: URL? = nil, scopeResolver: ((APIConfiguration) throws -> UUID)? = nil) {
-        // Resolve the system-provided container prefix only. Injected paths must retain symlinks for rejection.
-        self.directory = (directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .resolvingSymlinksInPath().appendingPathComponent("HydraAI/goal-profiles-v1", isDirectory: true)).standardizedFileURL
+    init(directory: URL? = nil, trustedRoot: URL? = nil, metadataReader: ((URL) throws -> stat?)? = nil,
+         scopeResolver: ((APIConfiguration) throws -> UUID)? = nil) {
+        // Trust the OS-provided container prefix. Never resolve symlinks below it, including Library.
+        let root = (trustedRoot ?? URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true))
+            .resolvingSymlinksInPath().standardizedFileURL
+        self.trustedRoot = root
+        self.directory = (directory ?? root.appendingPathComponent("Library/Application Support/HydraAI/goal-profiles-v1", isDirectory: true)).standardizedFileURL
+        self.metadataReader = metadataReader
         self.scopeResolver = scopeResolver ?? CalibrationConnectionScope.resolve
     }
 
@@ -113,6 +119,7 @@ enum GoalProfileStoreError: LocalizedError {
 
     /// lstat sees dangling symbolic links, unlike fileExists. Missing ancestors are allowed only for creation.
     private func attributes(_ url: URL) throws -> stat? {
+        if let metadataReader { return try metadataReader(url) }
         var value = stat()
         guard lstat(url.path, &value) == 0 else {
             if errno == ENOENT { return nil }
@@ -122,12 +129,18 @@ enum GoalProfileStoreError: LocalizedError {
     }
 
     private func checkDirectories(includeDirectory: Bool = true) throws {
-        guard directory.isFileURL, directory.path.hasPrefix("/") else { throw GoalProfileStoreError.unavailable }
+        guard directory.isFileURL, directory.path.hasPrefix("/"),
+              trustedRoot.isFileURL, trustedRoot.path.hasPrefix("/") else { throw GoalProfileStoreError.unavailable }
         let components = directory.pathComponents
-        let checked = includeDirectory ? components : Array(components.dropLast())
-        var current = URL(fileURLWithPath: "/", isDirectory: true)
+        let rootComponents = trustedRoot.pathComponents
+        guard components.count > rootComponents.count,
+              components.starts(with: rootComponents) else { throw GoalProfileStoreError.unavailable }
+        let relative = Array(components.dropFirst(rootComponents.count))
+        let checked = includeDirectory ? relative : Array(relative.dropLast())
+        // The OS owns the canonical container prefix. Its ancestors may be inaccessible on iPhone.
+        var current = trustedRoot
         for component in checked {
-            if component != "/" { current.appendPathComponent(component, isDirectory: true) }
+            current.appendPathComponent(component, isDirectory: true)
             if let node = try attributes(current) {
                 guard node.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else { throw GoalProfileStoreError.unavailable }
             }
