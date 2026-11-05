@@ -1,6 +1,37 @@
 # Hydra AI project status
 
-Updated October 29, 2026. Shared current status for Georgio and Amine; historical milestone reports remain evidence for their named commits, not current completion claims. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
+Updated November 4, 2026. Shared status for Georgio and Amine. See [next actions](NEXT_ACTIONS.md), [decisions](DECISION_LOG.md), and [blockers](BLOCKERS.md).
+
+## Current submission source — November 4
+
+The verified physical demo source is `codex/physical-demo-submission` at
+`e6c6ce9`, with installed application code `cf0088e`. It includes bundled Meta
+DINOv2/Core ML recognition, Apple Vision OCR, persistent local logging,
+Confirm/Edit, guided goals, optional stateless device insights, an isolated
+simulated demo account, and US/metric display fixes. `main` at `3ac7207` does
+not contain this complete application. Use the feature source for the upload,
+not a build or archive of `main`.
+
+The additive `codex/preupload-review-20261104` branch retains that exact app
+source and refreshes these handoff documents. Fresh verification of `e6c6ce9`:
+**1,480 Python tests passed, 5 optional skips, 58 subtests; 217 XCTest passed;
+3 preserved starter tests passed; all 10 offline rehearsal groups passed with
+zero network attempts.** The signed device bundle's model hashes, committed
+binary blobs and strict signature verification passed. One existing
+Starlette/httpx deprecation warning remains.
+
+The bounded review found the source mismatch above and no further material
+issue in the recent camera/deletion fixes reviewed. It is not a review of every
+historical branch. See [source verification](DEMO_SOURCE_VERIFICATION.md),
+[physical runbook](PHYSICAL_DEMO_RUNBOOK.md), and
+[submission draft](SUBMISSION_DRAFT.md). Final physical US-unit confirmation,
+the actual video review, signed-in portal requirements, and participant/Startup
+eligibility checks remain owner tasks. No new provider request, private-ledger
+change, deployment, submission or merge was performed for this review.
+
+The October reports below are historical. Their pauses, test counts, spending
+gates and provider status are not current authority; applicable paths follow
+the later account-owner instructions in [AGENTS.md](../AGENTS.md).
 
 ## Current state — October 29 (Amine)
 

@@ -2,6 +2,18 @@
 
 ## Source freeze
 
+Pre-upload recheck on **November 4, 2026, 8:49 PM ET**: fetched GitHub refs
+match `main` at `3ac7207` and the physical demo branch at `e6c6ce9`.
+The additive `codex/preupload-review-20261104` branch refreshes shared status,
+blockers and next actions while preserving the installed app source below.
+Fresh full Python verification: **1480 passed, 5 skipped, 58 subtests** in
+25.26 seconds. Fresh full native unit suite: **217 passed**, zero failures.
+Preserved starter tests: **3 passed**. Offline rehearsal: **10 groups passed,
+zero network attempts**. Strict signed bundle/model/blob verification passed
+again. Raw local evidence is `/tmp/hydra-preupload-pytest-20261104.log`,
+`/tmp/hydra-preupload-native-20261104.xcresult`, and
+`/tmp/hydra-preupload-model-20261104.json`.
+
 Installed app code: [cf0088e4c5fca07d525c7a09a88b5ab179089322](https://github.com/georgiosaliba227/Hydra-Ai/commit/cf0088e4c5fca07d525c7a09a88b5ab179089322).
 Submission branch: [codex/physical-demo-submission](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
 The app commit was verified with git ls-remote at **2026-11-05T01:21:16.456Z**, before filming. Its reachable model weight blob is 0a5aef886a0a1489d24ae801e0316e717f9104ba (43,281,240 bytes). This final evidence-only follow-up is pushed and its new HEAD checked before the take. Main is not the feature source.

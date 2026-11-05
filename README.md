@@ -55,6 +55,14 @@ actual model blobs must be pushed and remotely verified **before** owner recordi
 Do not use `main` as feature evidence. Earlier PR creation returned HTTP 403;
 no successful PR or merge is claimed.
 
+The [November 4 pre-upload review](docs/PROJECT_STATUS.md) is published on
+[`codex/preupload-review-20261104`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/preupload-review-20261104).
+It preserves the frozen demo application and refreshes shared status, blockers
+and next actions. Fresh checks passed: **1480 Python tests, 217 XCTest, 3
+starter tests, all 10 offline rehearsal groups, and signed model/blob
+verification**; 5 optional Python tests remain skipped. The final physical
+display confirmation and actual recording review remain pending.
+
 ## Evidence and model provenance
 
 The November 4, 2026 guided-insights baseline recorded **1457 pytest passed,
