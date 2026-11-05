@@ -4,7 +4,8 @@ Working copy for the Meta Global AI Developer Hackathon 2026, Startup track,
 updated November 4, 2026. The verified event-page deadline is **November 4,
 9 PM ET**. Signed-in portal fields, video duration/upload requirements and
 participant eligibility remain unverified; see [compliance status](HACKATHON_COMPLIANCE.md).
-The owner must review and submit; this document accepts no terms.
+The owner must review and submit; this document accepts no terms. The owner
+has set an earlier working deadline of **8:30 PM ET**.
 
 ## One line
 
@@ -74,8 +75,9 @@ repository retains its separate SQLite backend and guarded research paths.
 physical evidence includes bundled inference/OCR on a generated label and
 owner-observed offline analysis, confirmation and restart persistence. These
 checks verify implementation behavior, not scientific or clinical validity.
-**New Hydra Demo isolation/build checks, physical rehearsal and final video:
-pending.** Record actual results in [source verification](DEMO_SOURCE_VERIFICATION.md).
+**New Hydra Demo checks:** 1480 pytest passed/5 skipped/58 subtests, 211 native
+XCTest and 1 demo isolation UI flow passed. The separate signed device build and
+bundled model verification passed. Physical rehearsal and final video remain pending. Record actual results in [source verification](DEMO_SOURCE_VERIFICATION.md).
 
 ## Separate historical experiments
 
@@ -102,7 +104,7 @@ preserve the original before trimming/captions/export on the Mac.
 
 Source branch:
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
-**Exact final commit/video artifact: TBD.** Push and verify all code, setup,
+**App source commit: 6430bbc; actual video artifact remains pending.** Push and verify all code, setup,
 docs and actual model blobs before owner recording; record the commit and
 verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
 `main` is not the submission feature source. Earlier PR creation failed with

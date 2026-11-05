@@ -1,9 +1,10 @@
 # Physical iPhone demo runbook
 
 Target: approximately **3 minutes**, entirely recorded on the physical iPhone.
-This is a plan; final demo installation, rehearsal, source freeze and video
-review remain pending until evidenced in [source verification](DEMO_SOURCE_VERIFICATION.md).
-The event-page deadline is November 4, 2026, 9 PM ET. The signed-in portal's
+Signed build and isolation tests passed. Installation, rehearsal, source freeze
+and actual video review are tracked in [source verification](DEMO_SOURCE_VERIFICATION.md).
+The owner has set an **8:30 PM ET** submission target; the event-page deadline
+is November 4, 2026, 9 PM ET. The signed-in portal's
 video limit/format and eligibility checks still require owner review.
 
 ## Prepare and rehearse

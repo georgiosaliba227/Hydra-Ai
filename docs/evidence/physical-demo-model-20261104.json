@@ -1,0 +1,60 @@
+{
+  "bundle_identifier": "com.georgiosaliba.hydraai.demo",
+  "compiled_graph": {
+    "bytes": 170538,
+    "sha256": "293063cd6f32e9ed6933fa5c33ff2bc72218bf2af5f1a34905900179a37f9cf4"
+  },
+  "compiled_metadata": {
+    "bytes": 2758,
+    "sha256": "4ba93f961b24ff9b7dc6fa0bd764c7cd5a946be43c40547cd865cf895c23977f"
+  },
+  "compiled_weights": {
+    "bytes": 43281240,
+    "sha256": "372571e222751cdc766bf7de3aa36f0beee01fbb0d1c64db4079e8ab261ce20f"
+  },
+  "git_commit": "6430bbca836b4ee91a1deee2ae21cd0891f133a4",
+  "model_id": "dinov2-small-beverage-v1",
+  "notices": [
+    {
+      "bytes": 11359,
+      "git_blob": "5471dc10377b76db85a2feca7a99a7eef4980ba8",
+      "name": "DINOv2-LICENSE.txt",
+      "sha256": "600cc67cc4cb2f5ea317dcfc687ad1c74dc4bec8782bbe9db0afd83513b935b7"
+    },
+    {
+      "bytes": 1619,
+      "git_blob": "3a08577e8583f8b0152f47696aa27dc210a92e2a",
+      "name": "OnDeviceModel-NOTICE.txt",
+      "sha256": "2d0b6b0a5f68ac83bfbfbd0acafd78690dad2e187f196a0f2fc7204acc17c515"
+    }
+  ],
+  "ok": true,
+  "report": {
+    "bytes": 3521,
+    "git_blob": "a6de09fb3ea0a6b2d011d33460adc474ee3d8f04",
+    "path": "ai/on_device/reports/model-v1.json",
+    "sha256": "1aa734c049bdd7ba02f79dbd5818877701455eace59918e37bf37003ace7f057"
+  },
+  "signature": "verified_strict",
+  "source_files": [
+    {
+      "bytes": 144256,
+      "git_blob": "f37382c8816e2726d5fc28268d82b0b2098a68db",
+      "path": "ios/HydraAI/Resources/HydraBeverage.mlpackage/Data/com.apple.CoreML/model.mlmodel",
+      "sha256": "99f6d28552a13d67a2defe32bc00be7f263d21987b7392e125ec052b3f5a7571"
+    },
+    {
+      "bytes": 43281240,
+      "git_blob": "0a5aef886a0a1489d24ae801e0316e717f9104ba",
+      "path": "ios/HydraAI/Resources/HydraBeverage.mlpackage/Data/com.apple.CoreML/weights/weight.bin",
+      "sha256": "372571e222751cdc766bf7de3aa36f0beee01fbb0d1c64db4079e8ab261ce20f"
+    },
+    {
+      "bytes": 617,
+      "git_blob": "27acba9b4b03202bf69cc8a4a45eb73317ae3e94",
+      "path": "ios/HydraAI/Resources/HydraBeverage.mlpackage/Manifest.json",
+      "sha256": "23e36f8f42d2066e0e23cfea84b17f247b9fc5f32185ec873b45a155cb89eeb4"
+    }
+  ],
+  "verification_version": "hydra-bundled-model-v1"
+}

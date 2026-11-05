@@ -41,16 +41,16 @@ The [device insights contract](docs/architecture/DEVICE_INSIGHTS_API.md) defines
 the aggregate boundary; the [goal policy](docs/architecture/GUIDED_GOAL_POLICY.md)
 defines reference review and confirmation.
 
-The planned **Hydra Demo** bundle (`com.georgiosaliba.hydraai.demo`) has a separate
+The **Hydra Demo** bundle (`com.georgiosaliba.hydraai.demo`) has a separate
 sandbox and visible **DEMO · simulated data** label. It starts with fourteen days
 of fictional records, 2250 mL today and a confirmed 3000 mL demo goal. Explicit
-reset is for rehearsal; relaunch preserves changes. Demo isolation/build checks,
-installation and final physical recording remain pending until evidenced in the
+reset is for rehearsal; relaunch preserves changes. Demo isolation and signed-build checks passed; installation and final physical
+recording status are tracked in the
 [source verification handoff](docs/DEMO_SOURCE_VERIFICATION.md).
 
 Submission source is the feature branch
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission),
-with the exact final commit **TBD** in that handoff. All source, setup, docs and
+with app code commit **6430bbc** and source-freeze evidence in that handoff. All source, setup, docs and
 actual model blobs must be pushed and remotely verified **before** owner recording.
 Do not use `main` as feature evidence. Earlier PR creation returned HTTP 403;
 no successful PR or merge is claimed.
