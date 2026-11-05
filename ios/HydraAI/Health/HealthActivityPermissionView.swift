@@ -11,7 +11,7 @@ struct HealthActivityPermissionView: View {
     @State private var errorMessage: String?
 
     init() {
-        self.client = HealthKitActivityClient()
+        self.client = DemoAccount.isActive ? MockHealthActivityClient(isAvailable: false) : HealthKitActivityClient()
     }
 
     init(client: any HealthActivityClient) {
@@ -25,7 +25,10 @@ struct HealthActivityPermissionView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                if client.isAvailable {
+                if DemoAccount.isActive {
+                    Text("Real Apple Health records are excluded from this simulated demo account. No Health permission is requested.")
+                        .accessibilityIdentifier("demoHealthExcluded")
+                } else if client.isAvailable {
                     Button {
                         Task { await requestAndRead() }
                     } label: {
@@ -70,6 +73,7 @@ struct HealthActivityPermissionView: View {
     }
 
     private func requestAndRead() async {
+        guard !DemoAccount.isActive else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }

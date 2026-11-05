@@ -90,6 +90,36 @@ final class BeverageStore: ObservableObject {
               (0...1_000_000_000).contains(result.beverageTotalMl), result.beverageTotalMl.rounded() == result.beverageTotalMl else { throw ServiceError.invalidResponse }
         return Int(result.beverageTotalMl)
     }
+    /// Only the separately signed demo bundle can seed or reset its local sandbox.
+    func prepareDemoAccount(reset: Bool = false) async throws {
+        guard DemoAccount.isActive, isOnDevice, let local = service as? LocalBeverageService else {
+            throw DemoAccountError.wrongBundle
+        }
+        guard canLog else { throw DemoAccountError.busy }
+        let generation = configurationGeneration
+        isSaving = true
+        defer { isSaving = false }
+        let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath().appendingPathComponent("HydraAI", isDirectory: true)
+        #if DEBUG
+        let directory = Self.goalTestDirectory ?? folder
+        #else
+        let directory = folder
+        #endif
+        let seeder = DemoAccountSeeder(service: local, profiles: goalProfiles,
+            markerURL: directory.appendingPathComponent("demo-account-v1.json"))
+        if reset {
+            _ = try await seeder.reset(bundleIdentifier: Bundle.main.bundleIdentifier, now: .now, zone: .current)
+        } else {
+            _ = try await seeder.prepare(bundleIdentifier: Bundle.main.bundleIdentifier, now: .now, zone: .current)
+        }
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        configurationGeneration = UUID()
+        currentRecognitionReceipts.removeAll(); onDeviceResults.removeAll()
+        await refresh()
+    }
+
     var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving && !isSettingGoal }
     private var destination: String { Self.destination(for: configuration) }
     private static func destination(for config: APIConfiguration) -> String {

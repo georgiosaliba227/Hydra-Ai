@@ -31,6 +31,7 @@ struct BackendSettingsView: View {
 
     var body: some View {
         Form {
+            if DemoAccount.isActive { DemoSettingsSection() }
             Section {
                 LabeledContent {
                     Text(statusText).foregroundStyle(.secondary)
@@ -39,6 +40,7 @@ struct BackendSettingsView: View {
                 }
                 Toggle("On this iPhone (works offline)", isOn: $onDevice)
                     .accessibilityIdentifier("onDeviceMode")
+                    .disabled(DemoAccount.isActive)
                     .onChange(of: onDevice) { _, enabled in if enabled { offline = false } }
                 if !onDevice {
                     Toggle("Offline demo (separate local data)", isOn: $offline)
