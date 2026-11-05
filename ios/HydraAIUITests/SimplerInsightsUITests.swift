@@ -10,7 +10,7 @@ final class SimplerInsightsUITests: XCTestCase {
             throw XCTSkip("Requires local synthetic-data backend")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
         if largeText { app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Insights"].waitForExistence(timeout: 15))

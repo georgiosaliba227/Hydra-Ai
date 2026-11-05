@@ -113,13 +113,14 @@ struct PersonalRecognitionCorrection: Codable, Sendable {
 }
 
 enum RecognitionPresentation: Sendable, Equatable {
-    case unavailable, mock, metaLive, localMeta
+    case unavailable, mock, metaLive, localMeta, onDevice
 
     init(mode: String?) {
         switch mode {
         case "mock": self = .mock
         case "meta_live": self = .metaLive
         case "local_meta": self = .localMeta
+        case "on_device": self = .onDevice
         default: self = .unavailable
         }
     }
@@ -130,6 +131,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Take or choose a photo, try mock analysis, then confirm what you drank."
         case .metaLive: "Take or choose a photo for live Meta analysis, then confirm what you drank."
         case .localMeta: "Take or choose a photo for your trained Meta model on your Mac, then confirm what you drank."
+        case .onDevice: "Take or choose a beverage photo. Analyze it on this iPhone, then confirm what you drank."
         }
     }
 
@@ -139,6 +141,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Mock analysis: selected demo responses do not interpret this photo."
         case .metaLive: "Live Meta analysis sends this photo to Meta. Recognition is uncertain; verify every suggestion."
         case .localMeta: "Your trained Meta model processes this photo on your configured Mac. Check the drink name and exact printed size."
+        case .onDevice: "Your iPhone analyzes this photo using a compact Meta model and local label reading. Verify the experimental category and printed size."
         }
     }
 
@@ -148,6 +151,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Analyze with mock Meta response"
         case .metaLive: "Analyze with live Meta"
         case .localMeta: "Analyze with trained Meta"
+        case .onDevice: "Analyze"
         }
     }
 
@@ -157,6 +161,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Mock result — confirmation required"
         case .metaLive: "Live Meta result — confirmation required"
         case .localMeta: "Local trained Meta result — confirmation required"
+        case .onDevice: "On-device result — confirmation required"
         }
     }
 
@@ -166,6 +171,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Mock suggestion — verify every field"
         case .metaLive: "Live Meta suggestion — verify every field"
         case .localMeta: "Local trained Meta suggestion — verify every field"
+        case .onDevice: "On-device suggestion — verify every field"
         }
     }
 
@@ -175,6 +181,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         case .mock: "Demo"
         case .metaLive: "Muse"
         case .localMeta: "Trained Meta"
+        case .onDevice: "Meta on device"
         }
     }
 
@@ -182,6 +189,7 @@ enum RecognitionPresentation: Sendable, Equatable {
         switch mode {
         case "mock", "meta_live": model == "muse-spark-1.3"
         case "local_meta": model == "muse-glimmer-30b-beverage-lora-v1"
+        case "on_device": model == "dinov2-small-beverage-v1"
         default: false
         }
     }

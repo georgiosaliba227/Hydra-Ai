@@ -1,6 +1,31 @@
 # Hydra AI blockers
 
-Updated October 29, 2026. Record each blocker once; revisit only when new evidence arrives. Continue independent work from NEXT_ACTIONS.md.
+Updated November 4, 2026. Continue from [next actions](NEXT_ACTIONS.md).
+
+## Current submission checks
+
+- **Source integration:** [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82)
+  integrates the complete physical demo into `main`, preserving frozen source
+  `e6c6ce9` and installed app code `cf0088e`. Verify its merged status before
+  using `main`. See [source verification](DEMO_SOURCE_VERIFICATION.md).
+- **Owner evidence:** final physical US-unit confirmation and the actual
+  recording's content/duration/privacy review remain pending. Simulator checks
+  and prior phone confirmation do not establish a finished video.
+- **Portal and eligibility:** signed-in upload fields/access requirements,
+  both participants' acceptance, and Startup representative eligibility must
+  be checked by the owner. No submission is claimed.
+
+The fresh source checks passed: 1,480 Python tests, 217 XCTest, 3 starter tests,
+10 offline rehearsal groups and signed bundled-model verification. Five
+optional Python tests remain skipped. This offline demo cannot dispatch a
+hosted AI provider and does not depend on resolving historical billing.
+
+## Historical hosted-provider and research blockers
+
+The October reports below preserve earlier evidence, not a current private
+account audit. Their freezes and pauses must be read with later policy
+replacements in [AGENTS.md](../AGENTS.md). This review did not inspect or alter
+private financial state.
 
 ## Top blocker: no way to lift an account freeze
 

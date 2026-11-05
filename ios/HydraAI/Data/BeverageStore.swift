@@ -18,6 +18,16 @@ struct PendingBeverage: Codable {
     let destination: String
 }
 
+enum GoalMutationError: LocalizedError {
+    case busy, connectionChanged
+    var errorDescription: String? {
+        switch self {
+        case .busy: "Another save is in progress. Wait for it to finish before confirming a goal."
+        case .connectionChanged: "The connection changed. Review the goal for the selected destination."
+        }
+    }
+}
+
 @MainActor
 final class BeverageStore: ObservableObject {
     @Published private(set) var logs: [BeverageLog] = []
@@ -29,6 +39,8 @@ final class BeverageStore: ObservableObject {
     @Published private(set) var configuration: APIConfiguration
     @Published private(set) var configurationGeneration = UUID()
     @Published private(set) var isSaving = false
+    @Published private(set) var isSettingGoal = false
+    let goalProfiles: GoalProfileStore
 
     private var service: (any BeverageService)?
     private let pendingURL: URL
@@ -36,6 +48,8 @@ final class BeverageStore: ObservableObject {
     private var refreshVersion = 0
     private var historyTask: Task<Void, Never>?
     private var currentRecognitionReceipts: Set<UUID> = []
+    private var onDeviceResults: [UUID: OnDeviceRecognitionProvenance] = [:]
+    private var goalMutationID: UUID?
 
     private func invalidateHistory() {
         refreshVersion += 1
@@ -43,19 +57,105 @@ final class BeverageStore: ObservableObject {
         intakeHistory = nil; intakeHistoryState = .idle
     }
     var isConfigured: Bool { service != nil }
-    var isOffline: Bool { configuration.offline }
-    var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving }
-    private var destination: String { configuration.offline ? "offline" : configuration.baseURL }
+    var isOffline: Bool { configuration.offline || configuration.onDevice }
+    var isOnDevice: Bool { configuration.onDevice }
+    var hasInsightsConnection: Bool { configuration.backendInsightsConfiguration != nil }
+    func insightsService() throws -> HTTPBeverageService {
+        guard let connection = configuration.backendInsightsConfiguration else { throw ServiceError.configuration }
+        return try HTTPBeverageService(configuration: connection)
+    }
 
-    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load()) {
-        self.configuration = configuration
+    /// Read from the selected phone destination, never from server history.
+    func deviceTrendSnapshot(now: Date = .now, zone: TimeZone = .current) async throws -> DeviceTrendSnapshot {
+        guard isOnDevice, canLog, let service else { throw ServiceError.pending }
+        let generation = configurationGeneration, version = refreshVersion
+        let logs = try await service.listBeverages()
+        let goal = try await service.goalSettings().daily_beverage_goal_ml
+        try Task.checkCancellation()
+        guard generation == configurationGeneration, version == refreshVersion, canLog else { throw GoalMutationError.connectionChanged }
+        return try DeviceTrendSnapshot.make(logs: logs, goal: goal, now: now, zone: zone)
+    }
+
+    func deviceAssistantTotal(for request: AssistantRequest, generation: UUID) async throws -> Int? {
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        guard isOnDevice else { throw ServiceError.configuration }
+        guard request.context_scope == "today_logged_total" else { return nil }
+        guard canLog, let service else { throw ServiceError.pending }
+        guard let date = request.date, let timezone = request.timezone else { throw ServiceError.invalidResponse }
+        let version = refreshVersion
+        let result = try await service.dailySummary(date: date, timezone: timezone)
+        try Task.checkCancellation()
+        guard generation == configurationGeneration, version == refreshVersion, canLog else { throw GoalMutationError.connectionChanged }
+        guard result.localDate == date, result.timezone == timezone, result.beverageTotalMl.isFinite,
+              (0...1_000_000_000).contains(result.beverageTotalMl), result.beverageTotalMl.rounded() == result.beverageTotalMl else { throw ServiceError.invalidResponse }
+        return Int(result.beverageTotalMl)
+    }
+    /// Only the separately signed demo bundle can seed or reset its local sandbox.
+    func prepareDemoAccount(reset: Bool = false) async throws {
+        guard DemoAccount.isActive, isOnDevice, let local = service as? LocalBeverageService else {
+            throw DemoAccountError.wrongBundle
+        }
+        guard canLog else { throw DemoAccountError.busy }
+        let generation = configurationGeneration
+        isSaving = true
+        defer { isSaving = false }
         let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath().appendingPathComponent("HydraAI", isDirectory: true)
+        #if DEBUG
+        let directory = Self.goalTestDirectory ?? folder
+        #else
+        let directory = folder
+        #endif
+        let seeder = DemoAccountSeeder(service: local, profiles: goalProfiles,
+            markerURL: directory.appendingPathComponent("demo-account-v1.json"))
+        if reset {
+            _ = try await seeder.reset(bundleIdentifier: Bundle.main.bundleIdentifier, now: .now, zone: .current)
+        } else {
+            _ = try await seeder.prepare(bundleIdentifier: Bundle.main.bundleIdentifier, now: .now, zone: .current)
+        }
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        configurationGeneration = UUID()
+        currentRecognitionReceipts.removeAll(); onDeviceResults.removeAll()
+        await refresh()
+    }
+
+    var canLog: Bool { service != nil && pending == nil && !pendingReadError && !isSaving && !isSettingGoal }
+    private var destination: String { Self.destination(for: configuration) }
+    private static func destination(for config: APIConfiguration) -> String {
+        config.onDevice ? "on_device" : config.offline ? "offline" : config.baseURL
+    }
+    private static func makeService(for config: APIConfiguration) throws -> any BeverageService {
+        if config.onDevice {
+            #if DEBUG
+            if let directory = goalTestDirectory {
+                return LocalBeverageService(fileURL: directory.appendingPathComponent("beverages.json"))
+            }
+            #endif
+            return LocalBeverageService()
+        }
+        if config.offline { return MockBeverageService() }
+        return try HTTPBeverageService(configuration: config)
+    }
+
+    init(service: (any BeverageService)? = nil, pendingURL: URL? = nil, configuration: APIConfiguration = .load(),
+         goalProfiles: GoalProfileStore? = nil) {
+        self.configuration = configuration
+        self.goalProfiles = goalProfiles ?? Self.makeGoalProfiles()
+        self.goalProfiles.configure(configuration)
+        let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        #if DEBUG
+        self.pendingURL = pendingURL ?? Self.goalTestDirectory?.appendingPathComponent("pending.json") ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
+        #else
         self.pendingURL = pendingURL ?? folder.appendingPathComponent("HydraAI/pending-beverage-v1.json")
-        self.service = service ?? (configuration.offline ? MockBeverageService() : try? HTTPBeverageService(configuration: configuration))
+        #endif
+        self.service = service ?? (try? Self.makeService(for: configuration))
         if FileManager.default.fileExists(atPath: self.pendingURL.path) {
             do {
                 let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .iso8601
-                pending = try decoder.decode(PendingBeverage.self, from: Data(contentsOf: self.pendingURL))
+                let restored = try decoder.decode(PendingBeverage.self, from: Data(contentsOf: self.pendingURL))
+                if restored.destination == "on_device" { try OnDeviceProtectedFile.protectExisting(self.pendingURL) }
+                pending = restored
             } catch {
                 pendingReadError = true
                 state = .failed("The saved pending beverage could not be read. Logging is blocked to avoid duplicate entries; preserve the pending file for recovery.")
@@ -63,14 +163,34 @@ final class BeverageStore: ObservableObject {
         }
     }
 
+    private static func makeGoalProfiles() -> GoalProfileStore {
+        #if DEBUG
+        if let directory = goalTestDirectory {
+            return GoalProfileStore(directory: directory.appendingPathComponent("profiles", isDirectory: true))
+        }
+        #endif
+        return GoalProfileStore()
+    }
+
+    #if DEBUG
+    private static var goalTestDirectory: URL? {
+        guard let suite = ProcessInfo.processInfo.environment["HYDRA_TEST_GOAL_PROFILE_SUITE"],
+              suite.hasPrefix("HydraUITests."), let id = UUID(uuidString: String(suite.suffix(36))) else { return nil }
+        return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .resolvingSymlinksInPath().appendingPathComponent("HydraAI/goal-setup-tests-v1/\(id.uuidString)", isDirectory: true)
+    }
+    #endif
+
     func configure(_ config: APIConfiguration) throws {
-        if let pending, pending.destination != (config.offline ? "offline" : config.baseURL) { throw ServiceError.pending }
-        let next: any BeverageService = config.offline ? MockBeverageService() : try HTTPBeverageService(configuration: config)
+        if let pending, pending.destination != Self.destination(for: config) { throw ServiceError.pending }
+        let next = try Self.makeService(for: config)
         try config.save()
         invalidateHistory()
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
-        configuration = config; service = next; logs = []; summary = nil; state = .idle
+        onDeviceResults.removeAll()
+        configuration = config; goalProfiles.configure(config)
+        service = next; logs = []; summary = nil; state = .idle
     }
 
     func refresh() async {
@@ -112,8 +232,22 @@ final class BeverageStore: ObservableObject {
     /// A transient camera result may be confirmed only on its original backend
     /// configuration. Already-persisted pending mutations retain their retry path.
     func registerRecognitionReceipt(_ receipt: UUID, generation: UUID) -> Bool {
-        guard generation == configurationGeneration else { return false }
+        guard generation == configurationGeneration, !isOnDevice else { return false }
         currentRecognitionReceipts.insert(receipt)
+        return true
+    }
+
+    /// Only the active on-phone recognizer can register a local confirmation.
+    func registerOnDeviceResult(_ result: RecognitionResult, generation: UUID) -> Bool {
+        guard isOnDevice, generation == configurationGeneration,
+              result.version == "recognition-v1", result.mode == "on_device",
+              result.model == "dinov2-small-beverage-v1", result.requiresConfirmation,
+              result.candidates.count == 1, let receipt = result.recognitionId,
+              let candidate = result.candidates.first else { return false }
+        let provenance = OnDeviceRecognitionProvenance(modelID: result.model, originalCandidate: candidate, processedAt: .now)
+        guard (try? provenance.validate()) != nil else { return false }
+        currentRecognitionReceipts.insert(receipt)
+        onDeviceResults[receipt] = provenance
         return true
     }
 
@@ -122,13 +256,21 @@ final class BeverageStore: ObservableObject {
         if let recognitionId, !currentRecognitionReceipts.contains(recognitionId) {
             throw ServiceError.liveRecognitionUnverified
         }
-        let request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl, recognitionFeedback: recognitionFeedback, consumptionAssumption: consumptionAssumption, beverageType: beverageType)
-        try request.validate()
+        if isOnDevice && source == "confirmed_recognition" {
+            guard let recognitionId, onDeviceResults[recognitionId] != nil, recognitionFeedback == nil else { throw ServiceError.invalidResponse }
+        }
+        var request = CreateBeverageRequest(category: category.trimmingCharacters(in: .whitespacesAndNewlines), consumedMl: consumedMl, consumedAt: at, timezone: TimeZone.current.identifier, source: source, recognitionId: recognitionId, productId: productId, containerMl: containerMl, recognitionFeedback: recognitionFeedback, consumptionAssumption: consumptionAssumption, beverageType: beverageType)
+        request.onDeviceRecognition = isOnDevice ? recognitionId.flatMap { onDeviceResults[$0] } : nil
+        try request.validate(allowOnDevice: isOnDevice)
         let item = PendingBeverage(key: UUID(), request: request, destination: destination)
         do {
             let encoder = JSONEncoder(); encoder.dateEncodingStrategy = .iso8601
-            try FileManager.default.createDirectory(at: pendingURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try encoder.encode(item).write(to: pendingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            if isOnDevice {
+                try OnDeviceProtectedFile.write(encoder.encode(item), to: pendingURL)
+            } else {
+                try FileManager.default.createDirectory(at: pendingURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try encoder.encode(item).write(to: pendingURL, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+            }
         } catch { throw ServiceError.storage }
         pending = item
         try await retryPending()
@@ -152,34 +294,49 @@ final class BeverageStore: ObservableObject {
     }
 
     func exportData() async throws -> Data {
-        guard let service, !isOffline else { throw ServiceError.configuration }
+        guard let service, !configuration.offline else { throw ServiceError.configuration }
         return try await service.exportData()
     }
 
-    /// Erases every log and the goal on the backend; blocked while a creation is pending.
+    /// Erases the selected destination's records and local profile; other scopes stay separate.
     func deleteAllData() async throws -> Int {
-        guard canLog, let service, !isOffline else { throw ServiceError.pending }
+        guard canLog, let service, !configuration.offline else { throw ServiceError.pending }
         isSaving = true
         defer { isSaving = false }
+        try goalProfiles.deleteCurrent()
         let count = try await service.deleteAllData()
         // Delete-all also erases local camera receipts on the backend. Revoke
         // displayed and delayed results before they can become pending saves.
         configurationGeneration = UUID()
         currentRecognitionReceipts.removeAll()
+        onDeviceResults.removeAll()
         await refresh()
         return count
     }
 
     func currentGoal() async throws -> Int? {
         guard let service else { throw ServiceError.configuration }
-        return try await service.goalSettings().daily_beverage_goal_ml
+        let generation = configurationGeneration
+        let result = try await service.goalSettings().daily_beverage_goal_ml
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
+        return result
     }
 
     /// Saves a goal the user chose (nil clears it), then reloads today's progress.
     func setGoal(_ milliliters: Int?) async throws {
         guard let service else { throw ServiceError.configuration }
+        guard !isSettingGoal && !isSaving else { throw GoalMutationError.busy }
+        try Task.checkCancellation()
+        let generation = configurationGeneration, mutation = UUID()
+        isSettingGoal = true; goalMutationID = mutation
+        defer { if goalMutationID == mutation { goalMutationID = nil; isSettingGoal = false } }
         _ = try await service.updateGoal(milliliters)
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
         await refresh()
+        try Task.checkCancellation()
+        guard generation == configurationGeneration else { throw GoalMutationError.connectionChanged }
     }
 
     func delete(_ log: BeverageLog) async throws {
@@ -197,7 +354,8 @@ final class BeverageStore: ObservableObject {
 
     func retryPending() async throws {
         guard !isSaving, !pendingReadError, let service, let item = pending, item.destination == destination else { throw ServiceError.pending }
-        try item.request.validate()
+        try item.request.validate(allowOnDevice: isOnDevice)
+        if isOnDevice && item.request.source == "confirmed_recognition" && item.request.onDeviceRecognition == nil { throw ServiceError.invalidResponse }
         invalidateHistory()
         isSaving = true
         defer { isSaving = false }

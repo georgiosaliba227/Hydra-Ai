@@ -3,7 +3,7 @@ import SwiftUI
 /// One short description per destination; the feature explains itself when opened.
 struct InsightsView: View {
     @EnvironmentObject private var store: BeverageStore
-    private var connected: Bool { store.isConfigured && !store.isOffline }
+    private var connected: Bool { store.hasInsightsConnection }
 
     var body: some View {
         ScrollView {
@@ -20,7 +20,7 @@ struct InsightsView: View {
                 VStack(spacing: 0) {
                     NavigationLink { TrendsView() } label: {
                         FeatureRow(title: "Your trends", subtitle: "Patterns in your drink log",
-                                   systemImage: "chart.line.uptrend.xyaxis", badge: "Muse AI")
+                                   systemImage: "chart.line.uptrend.xyaxis", badge: store.isOnDevice ? nil : "Muse AI")
                     }
                     .accessibilityIdentifier("insightsTrends")
                     Divider()

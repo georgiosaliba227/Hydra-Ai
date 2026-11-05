@@ -62,7 +62,7 @@ final class CameraSession: ObservableObject {
             return nil
         }
         guard consent, !isAnalyzing, !isLoadingCapabilities, let mode,
-              ["mock", "meta_live", "local_meta"].contains(mode), mode != "meta_live" || metaConsent else { return nil }
+              ["mock", "meta_live", "local_meta", "on_device"].contains(mode), mode != "meta_live" || metaConsent else { return nil }
         let ticket = Ticket(generation: generation, mode: mode)
         analysisTicket = ticket; isAnalyzing = true; result = nil
         return ticket

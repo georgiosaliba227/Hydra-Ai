@@ -271,8 +271,8 @@ def benchmark_context() -> dict:
                         "Handwritten fixture labels are not physiological ground truth."]}
 
 
-def install_context_v2_routes(app) -> None:
-    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "")
+def install_context_v2_routes(app, *, allow_recorded: bool = True) -> None:
+    configured = os.getenv("HYDRA_WONDER_RESULTS_DIR", "") if allow_recorded else ""
     results_dir = Path(configured) if configured else None
     if results_dir is not None and not results_dir.is_absolute():
         raise ValueError("HYDRA_WONDER_RESULTS_DIR must be absolute")
@@ -281,6 +281,8 @@ def install_context_v2_routes(app) -> None:
     def comparison(payload: ComparisonInput):
         if payload.mode == "mock":
             return compare_context(payload.scenario, payload.candidate_model)
+        if not allow_recorded:
+            raise HTTPException(404, "not_found")
         from .wonder_results import load_recorded
         try:
             recorded = load_recorded(results_dir, payload.scenario) if results_dir else None

@@ -28,7 +28,7 @@ enum RecognitionVolumeUnit: String, CaseIterable, Identifiable {
 
 /// User confirmation state. Changing units never changes a financial permit.
 struct RecognitionEntryDraft {
-    static let drinkTypes = ["Water", "Coffee", "Tea", "Sports drink", "Energy drink", "Juice", "Soda", "Milk", "Other"]
+    static let drinkTypes = ["Water", "Coffee", "Tea", "Sports drink", "Energy drink", "Juice", "Soda", "Milk", "Plant milk", "Beer", "Wine", "Other"]
     let candidate: RecognitionCandidate
     var identity: String
     private(set) var drinkType: String
@@ -36,10 +36,16 @@ struct RecognitionEntryDraft {
     private(set) var unit: RecognitionVolumeUnit = .millilitres
     private(set) var drankAll = true
     private(set) var correctedLiquidMl: Int?
+    let allowsCapacityCorrection: Bool
+    private(set) var capacityText: String
+    private(set) var capacityUnit: RecognitionVolumeUnit = .millilitres
+    private(set) var capacityWasEdited = false
     private var fullContainer = false
 
-    init(candidate: RecognitionCandidate) {
+    init(candidate: RecognitionCandidate, allowsCapacityCorrection: Bool = false) {
         self.candidate = candidate
+        self.allowsCapacityCorrection = allowsCapacityCorrection
+        capacityText = candidate.suggestedCapacity.map(String.init) ?? ""
         identity = candidate.suggestedIdentity
         drinkType = Self.normalizedType(candidate.personalCorrection?.beverageType ?? candidate.category ?? candidate.identity)
         volumeText = candidate.wholeLiquidMl.map(String.init) ?? ""
@@ -53,12 +59,19 @@ struct RecognitionEntryDraft {
     var consumedMl: Int? { unit.millilitres(volumeText) }
     var assumption: String? { drankAll ? (fullContainer ? "full_container" : "entire_liquid") : nil }
     var confirmedCapacityMl: Int? {
+        if allowsCapacityCorrection { return capacityUnit.millilitres(capacityText) }
         guard let capacity = candidate.suggestedCapacity,
               max(consumedMl ?? 0, correctedLiquidMl ?? 0) <= capacity else { return nil }
         return capacity
     }
     var valid: Bool {
-        consumedMl != nil && !identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && identity.count <= 80
+        consumedMl != nil && !identity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && identity.count <= 80 && capacityIsValid
+    }
+    var capacityIsValid: Bool {
+        guard allowsCapacityCorrection else { return true }
+        if capacityText.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { return true }
+        guard let capacity=confirmedCapacityMl else { return false }
+        return consumedMl.map { $0<=capacity } ?? true
     }
     var isCorrection: Bool {
         identity.trimmingCharacters(in: .whitespacesAndNewlines) != candidate.identity ||
@@ -67,7 +80,24 @@ struct RecognitionEntryDraft {
     }
     var keepsProductMatch: Bool {
         identity.trimmingCharacters(in: .whitespacesAndNewlines) == candidate.identity &&
-        drinkType == Self.normalizedType(candidate.category ?? candidate.identity)
+        drinkType == Self.normalizedType(candidate.category ?? candidate.identity) &&
+        (!allowsCapacityCorrection || confirmedCapacityMl == candidate.containerMl)
+    }
+    mutating func setCapacity(_ text: String) {
+        guard allowsCapacityCorrection else { return }
+        capacityText=text; capacityWasEdited=true
+        if fullContainer {
+            unit = .millilitres
+            volumeText=confirmedCapacityMl.map(String.init) ?? ""
+            correctedLiquidMl=nil
+            // Replacing text passes through empty/partial values. Keep the
+            // full-container intent until the user edits the logged amount.
+        }
+    }
+    mutating func setCapacityUnit(_ next: RecognitionVolumeUnit) {
+        let capacity=confirmedCapacityMl
+        capacityUnit=next
+        if let capacity { capacityText=next.text(for:capacity) }
     }
     mutating func setVolume(_ text: String) {
         volumeText = text; fullContainer = false
@@ -88,6 +118,10 @@ struct RecognitionEntryDraft {
     }
     private mutating func applyWholeDrinkDefault() {
         volumeText = (correctedLiquidMl ?? candidate.wholeLiquidMl).map(String.init) ?? ""
+        if allowsCapacityCorrection && capacityWasEdited {
+            if confirmedCapacityMl != nil { useFullContainer() }
+            return
+        }
         guard correctedLiquidMl == nil, let label = candidate.labelCapacityMl,
               (1...5000).contains(label), candidate.suggestedCapacity == label else { return }
         // A readable label supports capacity, not measured fill. The review
@@ -102,7 +136,7 @@ struct RecognitionEntryDraft {
         }
     }
     mutating func useFullContainer() {
-        guard let capacity = candidate.suggestedCapacity else { return }
+        guard let capacity = allowsCapacityCorrection ? confirmedCapacityMl : candidate.suggestedCapacity else { return }
         drankAll = true; fullContainer = true; correctedLiquidMl = nil
         unit = .millilitres; volumeText = String(capacity)
     }

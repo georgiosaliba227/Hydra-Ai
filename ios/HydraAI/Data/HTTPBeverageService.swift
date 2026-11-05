@@ -283,6 +283,29 @@ actor HTTPBeverageService: BeverageService {
         return list.questions
     }
 
+    /// Capabilities only: does not send the user's log or dispatch a model.
+    func deviceInsightsCapabilities() async throws -> DeviceInsightsCapabilities {
+        let result: DeviceInsightsCapabilities = try await send("v1/device-insights/capabilities")
+        try result.validate()
+        return result
+    }
+
+    func deviceTrends(_ snapshot: DeviceTrendSnapshot) async throws -> DeviceTrendSummary {
+        let (data, status) = try await mutate("v1/device-insights/trends", method: "POST", body: try JSONEncoder().encode(snapshot))
+        guard status == 200 else { throw ServiceError.server(status) }
+        let summary = try JSONDecoder().decode(DeviceTrendSummary.self, from: data)
+        try summary.validate(for: snapshot)
+        return summary
+    }
+
+    func askDeviceAssistant(_ envelope: DeviceAssistantEnvelope) async throws -> AssistantAnswer {
+        let (data, status) = try await mutate("v1/device-insights/assistant", method: "POST", body: try JSONEncoder().encode(envelope))
+        guard status == 200 else { throw ServiceError.server(status) }
+        let answer = try JSONDecoder().decode(AssistantAnswer.self, from: data)
+        try envelope.validate(answer: answer)
+        return answer
+    }
+
     /// The question goes only to the configured backend, which answers with local reviewed rules.
     func askAssistant(_ request: AssistantRequest) async throws -> AssistantAnswer {
         try request.validate()
@@ -319,6 +342,7 @@ actor HTTPBeverageService: BeverageService {
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         if let body {
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -187,6 +187,23 @@ def build_facts(records: list[dict], goal_ml: int | None, timezone: str, through
     return validate_facts(facts)
 
 
+def build_aggregate_facts(days: list[dict], goal_ml: int | None, timezone: str, through: date,
+                          *, categories: list[dict], time_of_day_ml: dict[str, int]) -> dict:
+    """Validated phone aggregates to the same deterministic facts, without inventing events.
+
+    The device boundary enforces exact conservation and canonical categories before
+    this helper. Reuse the existing derivations and final fact consistency checks.
+    """
+    ordered = sorted(days, key=lambda day: day["date"])
+    total = sum(day["total_ml"] for day in ordered)
+    shown = [{**item, "share_pct": round(100 * item["total_ml"] / total) if total else 0}
+             for item in sorted(categories, key=lambda item: (-item["total_ml"], item["category"]))]
+    facts = {"version": FACTS_VERSION, "timezone": timezone, "through_date": through.isoformat(),
+             "window_days": WINDOW_DAYS, "days": ordered, "goal_ml": goal_ml, "categories": shown,
+             "other_categories_ml": 0, "time_of_day_ml": time_of_day_ml}
+    return validate_facts(facts | _derived(ordered, goal_ml, shown))
+
+
 def validate_facts(facts: dict) -> dict:
     """Strict shape plus internal consistency; never trusts a stored or embedded derivation."""
     try:

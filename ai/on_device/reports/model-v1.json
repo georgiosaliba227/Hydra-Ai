@@ -1,0 +1,152 @@
+{
+  "model_id": "dinov2-small-beverage-v1",
+  "base": {
+    "model": "facebook/dinov2-small",
+    "revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+    "files": [
+      {
+        "path": "config.json",
+        "sha256": "1809f83e3bdb1609a501a610ad4a742f4fd8ae44d72ca4aa0df52d1f2ac8628d",
+        "bytes": 547
+      },
+      {
+        "path": "preprocessor_config.json",
+        "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+        "bytes": 436
+      },
+      {
+        "path": "model.safetensors",
+        "sha256": "ae1e99fcefd534ed978cdeb8326f08030c96e28b7a81ffcbc98a857c84d14be1",
+        "bytes": 88249960
+      }
+    ]
+  },
+  "manifest_sha256": "913c2e6943ff09a0a3ba349d448c7678e43e67dc8e689ef54199cadaf9e26909",
+  "families": [
+    "beer",
+    "coffee",
+    "energy",
+    "juice",
+    "milk",
+    "other",
+    "plant_milk",
+    "soda",
+    "sports",
+    "tea",
+    "water",
+    "wine"
+  ],
+  "input": {
+    "name": "image",
+    "width": 224,
+    "height": 224,
+    "resize": "full_image_bilinear_square",
+    "color": "RGB",
+    "scale": 0.00392156862745098,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "output": {
+    "name": "scores",
+    "shape": [
+      1,
+      12
+    ],
+    "calibrated_probability": false,
+    "minimum_score": 0.35,
+    "minimum_margin": 0.1
+  },
+  "fit": {
+    "method": "class_balanced_ridge",
+    "selected_regularization": 0.1,
+    "validation_candidates": [
+      [
+        0.001,
+        0.48
+      ],
+      [
+        0.01,
+        0.52
+      ],
+      [
+        0.1,
+        0.64
+      ],
+      [
+        1.0,
+        0.6
+      ],
+      [
+        10.0,
+        0.36
+      ]
+    ],
+    "train_count": 150
+  },
+  "metrics": {
+    "train": {
+      "count": 150,
+      "category_top1_accuracy": 1.0,
+      "suggestion_coverage": 0.9933333333333333,
+      "accepted_category_accuracy": 1.0
+    },
+    "validation": {
+      "count": 25,
+      "category_top1_accuracy": 0.64,
+      "suggestion_coverage": 0.44,
+      "accepted_category_accuracy": 0.9090909090909091
+    },
+    "test": {
+      "count": 75,
+      "category_top1_accuracy": 0.6666666666666666,
+      "suggestion_coverage": 0.76,
+      "accepted_category_accuracy": 0.7192982456140351
+    }
+  },
+  "coreml_parity": [
+    {
+      "image_id": "off-3760030050013-2",
+      "max_absolute_score_error": 0.00697249174118042
+    },
+    {
+      "image_id": "off-0621433007741-2",
+      "max_absolute_score_error": 0.00238838791847229
+    },
+    {
+      "image_id": "off-0076850099013-1",
+      "max_absolute_score_error": 0.005598098039627075
+    }
+  ],
+  "package_files": [
+    {
+      "path": "Data/com.apple.CoreML/model.mlmodel",
+      "sha256": "99f6d28552a13d67a2defe32bc00be7f263d21987b7392e125ec052b3f5a7571",
+      "bytes": 144256
+    },
+    {
+      "path": "Data/com.apple.CoreML/weights/weight.bin",
+      "sha256": "372571e222751cdc766bf7de3aa36f0beee01fbb0d1c64db4079e8ab261ce20f",
+      "bytes": 43281240
+    },
+    {
+      "path": "Manifest.json",
+      "sha256": "23e36f8f42d2066e0e23cfea84b17f247b9fc5f32185ec873b45a155cb89eeb4",
+      "bytes": 617
+    }
+  ],
+  "package_bytes": 43426113,
+  "elapsed_seconds": 6.074990208027884,
+  "limitations": [
+    "Small packaged-beverage cohort; no validated open-world/non-beverage rejection.",
+    "Category evaluation only; does not measure brand, size, liquid fill or consumption accuracy.",
+    "Sparse classes and natural cups need additional data."
+  ]
+}

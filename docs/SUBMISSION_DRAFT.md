@@ -1,100 +1,124 @@
 # Hydra AI — submission draft
 
-Draft for the Meta Global AI Developer Hackathon 2026 (Startup track), due
-November 4, 9 PM ET. Items marked **[pending]** depend on steps in
-[NEXT_ACTIONS.md](NEXT_ACTIONS.md) and must be confirmed or removed before
-submitting. Portal fields and video length are still unverified
-([HACKATHON_COMPLIANCE.md](HACKATHON_COMPLIANCE.md)).
+Working copy for the Meta Global AI Developer Hackathon 2026, Startup track,
+updated November 4, 2026. The verified event-page deadline is **November 4,
+9 PM ET**. Signed-in portal fields, video duration/upload requirements and
+participant eligibility remain unverified; see [compliance status](HACKATHON_COMPLIANCE.md).
+The owner must review and submit; this document accepts no terms. The owner
+has set an earlier working deadline of **8:30 PM ET**.
 
 ## One line
 
-Hydra AI is an iPhone hydration assistant that keeps the numbers honest and
-uses Meta's Muse models to explain them: Muse Spark reads the drink in your
-photo, and Muse Wonder decides which evidence-backed explanations apply to you.
+Hydra AI turns a drink photo into an editable log on your iPhone, using bundled
+Meta DINOv2 and Apple label reading, with transparent goals and reviewed wellness
+explanations.
 
-## Problem
+## Problem and audience
 
-Hydration apps hand out a fixed "8 glasses" target, count coffee as
-dehydrating, and turn heart rate or a hot day into made-up adjustments. People
-end up with false precision and advice the evidence does not support.
+People who want to understand their drinking habits need convenient logging
+without false precision. A photo can help identify a beverage and printed size,
+but it cannot prove how much someone drank or measure their hydration. Hydra
+makes that uncertainty visible and keeps the user in control of the record.
 
-## What Hydra does
+## Current prototype
 
-- **Log what you actually drank.** Manual entry or a photo; the photo only
-  suggests a drink, and nothing is saved until you confirm the amount. Edit or
-  delete entries any time.
-- **Count every drink honestly.** All beverages contribute their full volume.
-  Water content and electrolytes appear only when a verified source provides
-  them. No caffeine penalty and no beverage multipliers.
-- **Your goal, not ours.** An optional daily goal you choose, with progress on
-  the Today screen. Hydra does not prescribe an amount.
-- **Workout sweat-loss range.** From comparable measured workouts, shown as a
-  range, never a drinking target.
-- **Ask Hydra.** Questions about coffee, creatine, sweat, milk and sports
-  drinks, heat, heart rate and daily needs get reviewed answers with sources.
-  Urgent symptoms always get "seek care" first.
+- Analyze a real photo offline using bundled Core ML and Apple Vision OCR.
+  Review the suggestion, edit name/type/container size/amount, then Confirm.
+  Unknown capacity stays unknown until supported or entered.
+- Save confirmed drinks in protected local storage, preserve the original model
+  suggestion separately, quick-add a drink and edit/delete History entries.
+- Show volume against a confirmed goal. Guided setup labels a published adult
+  starting reference and source; custom goals are available. Neither is a
+  measured personal requirement. Body/supplement inputs add no unsupported
+  adjustment.
+- Optionally connect to a stateless features backend while keeping photos and
+  drink records local. Trends previews fourteen-day aggregates before sending;
+  patterns are deterministic. Ask supplies reviewed answers/evidence, optionally
+  using today's total. Workout estimates are conditional ranges, with a
+  separately labelled simulated example.
+- Keep raw HealthKit records on the phone. The recording uses fictional data
+  and shows Apple Health privacy controls only; no real records are read.
 
-## How we use Meta AI (25%)
+The circle measures confirmed **beverage volume**, not water content or
+dehydration. Nutrition stays unknown without a verified source. All beverages
+can contribute fluid; no arbitrary caffeine penalty, hydration multiplier or
+creatine adjustment is applied.
 
-| Model | Job | Guardrails |
+## Meta AI contribution
+
+| Component | Actual role in this demo | Limits |
 | --- | --- | --- |
-| Muse Spark 1.3 Standard | Identify beverages in a consented photo | Candidates only; user confirms the amount; no nutrition guessing |
-| Muse Wonder 1.0 Standard | Choose which reviewed explanations apply to a workout scenario, and which reviewed answers fit a suggested question | Strict JSON schema of allowed IDs; server validates against the scenario; Wonder never writes advice or numbers |
+| Meta DINOv2 Small, frozen backbone + Hydra category head | Bundled FP16 Core ML inference on the iPhone; no runtime model download | Experimental categories, uncalibrated scores, user confirmation required |
+| Apple Vision OCR + deterministic parser | Local printed-size reading and explicit-unit validation | Capacity is not remaining liquid or consumption; ambiguous sizes remain unknown |
+| Deterministic accounting and reviewed content | Totals, confirmed-goal progress, Trends, Ask and workout calculations | No hosted generative AI invocation in this demo |
 
-Why this split: numbers come from deterministic, testable code, while the
-models do what they are good at, reading images and reasoning about which
-context matters. A malformed or ungrounded model reply is rejected, never
-repaired or shown.
+The phone model scored **50/75 (66.7%) category accuracy** on the existing
+product-separated held-out cohort. This small, mostly packaged-beverage set
+does not validate general non-beverage rejection, natural-glass accuracy,
+nutrition or medical performance. No personal photos or health records trained
+this model. The [notice](../ios/HydraAI/Resources/OnDeviceModel-NOTICE.txt) and
+[model documentation](../ai/on_device/README.md) record source revision,
+modifications, data attribution and upstream licensing. DINOv2's Apache-2.0
+license is included; no new project-wide license grant is made here.
 
-Evidence of real use: one Muse Spark camera request ran (HTTP 200, correctly
-read a synthetic "WATER 250 mL" image). **[pending]** One Muse Wonder
-explanation and one Wonder assistant selection, recorded and replayed in the
-app with token counts and cost.
+## Technical depth and verification
 
-## Technical depth (20%)
+SwiftUI/Swift, Core ML and Apple Vision run local capture/review/logging.
+`LocalBeverageService` preserves original suggestions and confirmed entries in
+protected storage. Optional owner-only FastAPI features are stateless and cannot
+dispatch providers or open the historical database/financial ledger. The wider
+repository retains its separate SQLite backend and guarded research paths.
 
-- SwiftUI client, FastAPI backend, SQLite, deterministic Python engine.
-- Every billable request passes one authoritative ledger: per-account $120
-  cutoff, $75/$100 checkpoints, a pre-approved exact payload per request, a
-  one-use dispatch ticket, settlement from provider usage and an account
-  freeze on anything unexpected. Wonder requests are bounded at about $0.03.
-- Offline research models on public exercise studies, reported honestly:
-  SpectroPhon test MAE 71.79 mL; on PhysioNet QDE our model (331.60 mL) did not
-  beat its baseline (314.22 mL). These are study-specific proxies, not daily
-  requirements.
-- About 790 automated Python tests, 64 XCTest and 6 end-to-end UI tests; CI on
-  every pull request.
+**Prior baseline, November 4, 2026:** 1457 pytest passed, 5 skipped, 58 subtests;
+202 native XCTest; 7 relevant simulator UI flows. See the
+[guided-insights review](REVIEW_IPHONE_GUIDED_INSIGHTS_20261104.md). Earlier
+physical evidence includes bundled inference/OCR on a generated label and
+owner-observed offline analysis, confirmation and restart persistence. These
+checks verify implementation behavior, not scientific or clinical validity.
+**New Hydra Demo checks:** 1480 pytest passed/5 skipped/58 subtests, 217 native
+XCTest and 1 demo isolation UI flow passed. The separate signed device build and
+bundled model verification passed. Physical rehearsal and final video remain pending. Record actual results in [source verification](DEMO_SOURCE_VERIFICATION.md).
 
-## Impact (30%)
+## Separate historical experiments
 
-Hydra's audience is everyday athletes and health-conscious people who want to
-understand their drinking habits without pseudo-science. It turns a log into
-explanations they can trust because every claim is sourced and every number is
-reproducible. It works offline for logging, keeps raw HealthKit data on the
-device, and never sends a free-text question to an AI provider.
+Hosted Muse Spark/Wonder integrations and recorded responses remain research
+paths. A separate Mac-only Muse Glimmer 30B adapter achieved 63/75 joint full
+identity/exact-capacity success on its frozen test set; that is **not** the
+phone category model's result. Forecast studies have their own proxy targets
+and limitations. These experiments do not establish app nutrition accuracy,
+physiological ground truth or a drinking requirement. This recording uses no
+new paid/provider request and does not present a recorded hosted answer as
+current inference.
 
-## Demo script (about 2 minutes)
+## Physical recording and source handoff
 
-Before recording, run `scripts/seed_demo.py` against the local backend for a
-synthetic week of drinks and a goal (see PROTOTYPE_SETUP.md), and say on camera
-that the history is demo data.
+Follow the [three-minute runbook](PHYSICAL_DEMO_RUNBOOK.md). The separate
+**Hydra Demo** bundle (`com.georgiosaliba.hydraai.demo`) visibly labels
+**DEMO · simulated data** and starts with fourteen fictional days, 2250 mL today
+and a 3000 mL confirmed demo goal. Demonstrate real offline camera capture,
+review/confirm a simulated 500 mL entry, quick-add 250 mL to fill the circle,
+edit History, reconnect for Trends/Ask/Workout and show privacy controls.
+The entire recording originates on the physical iPhone using its built-in
+screen recorder with Mac sharing off. The owner operates physical taps;
+preserve the original before trimming/captions/export on the Mac.
 
-1. **Today (10 s).** Show logged total and goal progress: "your own goal, not
-   a recommendation."
-2. **Log by photo (25 s).** Camera → suggested drink → confirm 330 mL → total
-   updates. Point out that nothing is logged without confirmation. This uses
-   mock recognition unless another live Spark request is approved **[pending]**.
-3. **Fix a mistake (10 s).** History → swipe → Edit to 250 mL; total updates.
-4. **Ask Hydra (25 s).** "Does coffee count?" → reviewed answer with source.
-   Then type "I fainted after my run" → "seek urgent care" first.
-5. **Muse Wonder (30 s).** Workout forecast → run the simulated workout →
-   "Muse Wonder · recorded live result": the explanations Wonder chose, with
-   tokens and cost. **[pending real recording]**
-6. **Close (15 s).** Numbers from tested code, explanations from Meta models,
-   every claim sourced.
+Source branch:
+[`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission).
+**App source commit: cf0088e; actual video artifact remains pending.** Push and verify all code, setup,
+docs and actual model blobs before owner recording; record the commit and
+verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
+The complete source is integrated through [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82),
+which records its actual merge status and commit. Use `main` after verifying
+that integration; use the pinned app commit to reproduce the installed build.
+Earlier PR permission failures were resolved using existing owner Git access.
 
-## Limitations to state
+## Owner checks before submission
 
-Wellness tool, not medical advice. Sweat-loss ranges come from limited study
-data and personal measurements, not clinical validation. Simulator-tested;
-**[pending]** physical-iPhone pass of the newest screens.
+- Replace pending evidence with the verified source commit and actual reviewed
+  video; confirm portal length/format/access requirements before export.
+- Confirm both developers' eligibility/acceptance and the Startup representative's
+  employment and authority under the rules.
+- Review third-party attribution and submission rights. Existing notices are
+  evidence, not a completed legal audit or a new root license.
+- Retain synthetic-data disclosure, model uncertainty and wellness limits. Do
+  not expose tokens, personal records or private ledger files.

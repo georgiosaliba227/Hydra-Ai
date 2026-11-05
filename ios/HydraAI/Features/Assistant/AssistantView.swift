@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Reviewed hydration answers with evidence. Questions go only to the configured backend.
 struct AssistantView: View {
+    @EnvironmentObject private var units: DisplayUnits
     @EnvironmentObject private var store: BeverageStore
     @StateObject private var controller = AssistantController()
     @State private var question = ""
@@ -11,7 +12,7 @@ struct AssistantView: View {
     @State private var task: Task<Void, Never>?
     @FocusState private var questionFocused: Bool
 
-    private var connected: Bool { store.isConfigured && !store.isOffline }
+    private var connected: Bool { store.hasInsightsConnection }
     private var trimmed: String { question.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
@@ -44,7 +45,7 @@ struct AssistantView: View {
         .background(Color.hydraBackground)
         .navigationTitle("Ask Hydra")
         .task(id: store.configurationGeneration) {
-            guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+            guard connected, let service = try? store.insightsService() else { return }
             await controller.loadQuestions(service: service)
         }
         .onChange(of: question) { _, _ in invalidate() }
@@ -90,6 +91,9 @@ struct AssistantView: View {
                 Toggle("Include today's logged total", isOn: $includeToday)
                     .disabled(recordedWonder)
                     .accessibilityIdentifier("assistantIncludeToday")
+                if store.isOnDevice {
+                    Text("Your question goes to your Hydra backend. Including today's total shares only the total from this iPhone's log.")
+                }
                 Toggle("Use Muse Wonder's recorded picks", isOn: $recordedWonder)
                     .accessibilityIdentifier("assistantRecordedWonder")
                 Text("Recorded picks replay reviewed answers selected earlier. No new Meta request is made.")
@@ -153,7 +157,7 @@ struct AssistantView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(urgent ? Color.red : Color.hydraTint)
                         .accessibilityAddTraits(.isHeader)
-                    Text(item.text)
+                    Text(units.text(item.text))
                         .font(urgent ? Font.body.weight(.semibold) : Font.body)
                         .foregroundStyle(urgent ? .red : .primary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -189,10 +193,10 @@ struct AssistantView: View {
             if let context = answer.intake_context {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Your log today").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    Text("\(context.beverage_total_ml.formatted(.number.precision(.fractionLength(0)))) mL logged on \(context.local_date)")
+                    Text("\(units.volume(context.beverage_total_ml)) logged on \(context.local_date)")
                         .font(.headline)
                         .accessibilityIdentifier("assistantIntakeContext")
-                    Text(context.note).font(.footnote).foregroundStyle(.secondary)
+                    Text(units.text(context.note)).font(.footnote).foregroundStyle(.secondary)
                 }
                 .hydraCard()
             }
@@ -213,7 +217,7 @@ struct AssistantView: View {
             if !answer.limitations.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(Array(answer.limitations.enumerated()), id: \.offset) { _, limitation in
-                        Text(limitation)
+                        Text(units.text(limitation))
                     }
                 }
                 .font(.footnote)
@@ -225,9 +229,23 @@ struct AssistantView: View {
     }
 
     private func ask(_ request: AssistantRequest) {
-        guard connected, let service = try? HTTPBeverageService(configuration: store.configuration) else { return }
+        guard connected, let service = try? store.insightsService() else { return }
         task?.cancel()
-        task = Task { await controller.ask(request, service: service) }
+        let connection = store.configurationGeneration
+        let local = store.isOnDevice && !request.wantsRecordedWonder
+        task = Task {
+            guard connection == store.configurationGeneration, !Task.isCancelled else { return }
+            if local {
+                await controller.ask(request, service: service, deviceSummary: {
+                    guard connection == store.configurationGeneration, !Task.isCancelled else { throw GoalMutationError.connectionChanged }
+                    let total = try await store.deviceAssistantTotal(for: request, generation: connection)
+                    guard connection == store.configurationGeneration, !Task.isCancelled else { throw GoalMutationError.connectionChanged }
+                    return total
+                })
+            } else {
+                await controller.ask(request, service: service)
+            }
+        }
     }
 
     private func invalidate() {

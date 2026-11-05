@@ -10,6 +10,13 @@ struct TrendsView: View {
     private var connected: Bool { store.isConfigured && !store.isOffline }
 
     var body: some View {
+        Group {
+            if store.isOnDevice { DeviceTrendsView() }
+            else { serverBody }
+        }
+    }
+
+    private var serverBody: some View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: HydraSpacing.section) {

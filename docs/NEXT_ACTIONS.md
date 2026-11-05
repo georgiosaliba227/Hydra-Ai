@@ -1,5 +1,30 @@
 # Hydra AI next actions
 
+## Submission handoff — November 4, 2026
+
+1. Use the complete reviewed source on `codex/preupload-review-20261104`,
+   based on the frozen `codex/physical-demo-submission` source `e6c6ce9`.
+   Installed app code is `cf0088e`. [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82)
+   integrates this complete source into `main`; verify its merged status
+   before uploading from `main`.
+2. Confirm the physical phone's final US-unit display and rehearse the
+   [physical runbook](PHYSICAL_DEMO_RUNBOOK.md). Keep the visible fictional-data
+   disclosure and preserve the separate normal app's records.
+3. Inspect the actual recording for content, duration and private information;
+   check the signed-in portal's fields and upload/access requirements.
+4. Complete participant acceptance and Startup representative eligibility
+   checks, review the [submission draft](SUBMISSION_DRAFT.md), then have the
+   owner upload and submit. No portal submission is claimed here.
+
+Fresh source checks: 1,480 pytest passed / 5 optional skips / 58 subtests,
+217 XCTest passed, 3 starter tests, 10 offline rehearsal groups, and signed
+model/blob verification. See [current status](PROJECT_STATUS.md) and
+[source evidence](DEMO_SOURCE_VERIFICATION.md).
+
+The earlier action lists below are historical records, not instructions to
+start a new hosted inference request. Later policies in [AGENTS.md](../AGENTS.md)
+control their respective paths. This offline demo needs no paid AI request.
+
 ## Next actions — Georgio's key on Amine's Mac, $20 (October 29, Amine)
 
 Owner override in AGENTS.md. Spending is recorded as Georgio's account.

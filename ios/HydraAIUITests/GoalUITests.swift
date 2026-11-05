@@ -10,7 +10,7 @@ final class GoalUITests: XCTestCase {
             throw XCTSkip("Requires opt-in local synthetic-data backend")
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ["HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
+        app.launchEnvironment = ["HYDRA_TEST_UNIT_SYSTEM": "metric", "HYDRA_TEST_SKIP_GOAL_SETUP": "1", "HYDRA_TEST_BACKEND_URL": backend, "HYDRA_TEST_API_TOKEN": token]
         app.launch()
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 15))
         app.tabBars.buttons["Settings"].tap(); app.buttons["saveConnection"].tap()

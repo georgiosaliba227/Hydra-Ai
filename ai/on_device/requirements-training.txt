@@ -1,0 +1,7 @@
+# Isolated development tools only; never backend requirements or app packages.
+torch==2.8.0
+transformers==4.57.3
+coremltools==9.0
+Pillow==12.0.0
+numpy==2.2.6
+safetensors==0.6.2

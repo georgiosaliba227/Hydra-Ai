@@ -1,0 +1,38 @@
+{
+  "version": "assistant-v1",
+  "question_id": "coffee_counts",
+  "topics": [
+    "coffee_caffeine"
+  ],
+  "escalation": false,
+  "answers": [
+    {
+      "topic": "coffee_caffeine",
+      "text": "Moderate coffee intake contributed fluid comparably to water in a study of habitual male coffee drinkers. Hydra counts the full volume of coffee and tea and applies no caffeine penalty. That study does not establish a safe caffeine amount for everyone.",
+      "evidence": [
+        {
+          "title": "Killer et al., 2014: coffee and fluid balance",
+          "url": "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0084154",
+          "kind": "research"
+        }
+      ]
+    }
+  ],
+  "intake_context": {
+    "local_date": "2026-11-01",
+    "timezone": "GMT",
+    "beverage_total_ml": 250,
+    "note": "Confirmed beverage volume from this iPhone's log, not a hydration measurement."
+  },
+  "provenance": {
+    "mode": "local_rules",
+    "provider": null,
+    "model": null,
+    "answer_origin": "reviewed_text"
+  },
+  "limitations": [
+    "Wellness information, not medical advice.",
+    "Answers are reviewed text selected by local rules; no AI model wrote them.",
+    "Logged volume is not a measurement of hydration status."
+  ]
+}

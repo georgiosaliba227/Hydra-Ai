@@ -1,19 +1,41 @@
 import Foundation
 import Security
 
-struct APIConfiguration {
+struct APIConfiguration: CustomStringConvertible, CustomDebugStringConvertible {
     var baseURL: String
     var token: String
-    var offline: Bool
+    var offline: Bool { didSet { if offline { onDevice = false } } }
+    var onDevice: Bool { didSet { if onDevice { offline = false } } }
+    var insightsEnabled: Bool
+    var description: String { "APIConfiguration(onDevice: \(onDevice), offline: \(offline), insightsEnabled: \(insightsEnabled))" }
+    var debugDescription: String { description }
 
-    static func load() -> APIConfiguration {
-        let defaults = UserDefaults.standard
-        var config = APIConfiguration(baseURL: defaults.string(forKey: "hydra.backendURL") ?? "http://127.0.0.1:8000", token: CredentialStore.read() ?? "", offline: defaults.bool(forKey: "hydra.offline"))
+    init(baseURL: String, token: String, offline: Bool, onDevice: Bool = false, insightsEnabled: Bool = false) {
+        self.baseURL = baseURL
+        self.token = token
+        self.offline = offline && !onDevice
+        self.onDevice = onDevice
+        self.insightsEnabled = insightsEnabled
+    }
+
+    /// Separate from the destination for photos and confirmed drinks.
+    var backendInsightsConfiguration: APIConfiguration? {
+        guard !offline, !onDevice || insightsEnabled, (try? validatedURL()) != nil else { return nil }
+        return APIConfiguration(baseURL: baseURL, token: token, offline: false)
+    }
+
+    static func load(defaults: UserDefaults = .standard) -> APIConfiguration {
+        let firstInstall = ["hydra.backendURL", "hydra.offline", "hydra.onDevice"].allSatisfy { defaults.object(forKey: $0) == nil }
+        var config = APIConfiguration(baseURL: defaults.string(forKey: "hydra.backendURL") ?? "http://127.0.0.1:8000", token: CredentialStore.read() ?? "", offline: defaults.bool(forKey: "hydra.offline"), onDevice: firstInstall || defaults.bool(forKey: "hydra.onDevice"), insightsEnabled: defaults.bool(forKey: "hydra.backendInsights"))
         #if DEBUG
         // Runtime-only simulator configuration; no credential is shipped in the app.
         let env = ProcessInfo.processInfo.environment
         if let url = env["HYDRA_TEST_BACKEND_URL"], let token = env["HYDRA_TEST_API_TOKEN"] {
             config = APIConfiguration(baseURL: url, token: token, offline: false)
+        }
+        // UI/inference tests opt in explicitly; production never changes mode automatically.
+        if env["HYDRA_TEST_ON_DEVICE"] == "1" {
+            config.onDevice = true
         }
         #endif
         return config
@@ -37,10 +59,12 @@ struct APIConfiguration {
     }
 
     func save() throws {
-        if !offline { _ = try validatedURL() }
+        if !offline && (!onDevice || insightsEnabled) { _ = try validatedURL() }
         try CredentialStore.write(token)
         UserDefaults.standard.set(baseURL, forKey: "hydra.backendURL")
         UserDefaults.standard.set(offline, forKey: "hydra.offline")
+        UserDefaults.standard.set(onDevice, forKey: "hydra.onDevice")
+        UserDefaults.standard.set(insightsEnabled, forKey: "hydra.backendInsights")
     }
 }
 

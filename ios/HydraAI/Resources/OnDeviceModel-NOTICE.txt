@@ -1,0 +1,29 @@
+Hydra on-device beverage prototype — dinov2-small-beverage-v1
+
+Backbone: Meta DINOv2 Small, facebook/dinov2-small
+Source revision: ed25f3a31f01632728cabb09d1542f84ab7b0056
+https://huggingface.co/facebook/dinov2-small
+https://github.com/facebookresearch/dinov2
+Copyright Meta Platforms, Inc. and affiliates; Hugging Face model implementation.
+Backbone licensed under Apache License 2.0. See DINOv2-LICENSE.txt.
+
+Modifications: Hydra froze the pretrained image backbone, precomputed its
+equivalent 224px position embeddings, trained a small category head, and
+converted the inference graph to a fixed-resolution FP16 Core ML model.
+This is a separate compact model, not the trained 30B Mac adapter.
+
+Training data: the project's existing reviewed 250-photo Open Food Facts
+cohort; only the 150-photo train split fits the head. Public image attribution,
+source URLs, hashes and licenses are recorded in the repository at:
+ai/beverage_training/manifests/beverage-250-20261102/manifest.jsonl
+Images are CC-BY-SA-3.0; source catalog metadata is ODbL-1.0.
+https://creativecommons.org/licenses/by-sa/3.0/
+https://opendatacommons.org/licenses/odbl/1-0/
+No training photos are bundled with the app. No personal camera or health
+records were used to train this model.
+
+Limits: experimental beverage-category suggestions, uncalibrated scores,
+small mostly packaged-beverage cohort and no validated open-world rejection.
+Printed-size reading is separate local Apple Vision OCR with deterministic
+unit validation. The model does not measure remaining liquid, actual
+consumption, nutritional composition or physiological hydration.
