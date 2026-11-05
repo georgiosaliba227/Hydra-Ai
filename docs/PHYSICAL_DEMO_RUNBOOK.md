@@ -46,9 +46,11 @@ model bytes/hashes/notices and remote Git blobs, installs it alongside Hydra,
 and completes new demo tests. Push **all source, setup and docs** to
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission)
 before filming. The app code commit and verification evidence are in
-[source verification](DEMO_SOURCE_VERIFICATION.md). Do not cite `main`, claim a merge or claim a PR exists: previous PR
-creation failed with HTTP 403. A source change after freeze requires a new
-verified freeze before the final take.
+[source verification](DEMO_SOURCE_VERIFICATION.md). Integration into `main` is
+tracked in [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82); verify
+its merged status before citing `main`. The installed app remains pinned to
+`cf0088e`. A change to app code after freeze requires a new verified freeze
+before the final take.
 
 The November 4 pre-demo baseline was 1457 pytest passed/5 skipped/58 subtests,
 202 native XCTest and 7 relevant simulator UI flows. It does not replace the

@@ -107,8 +107,10 @@ Source branch:
 **App source commit: cf0088e; actual video artifact remains pending.** Push and verify all code, setup,
 docs and actual model blobs before owner recording; record the commit and
 verification timestamp in [the handoff](DEMO_SOURCE_VERIFICATION.md).
-`main` is not the submission feature source. Earlier PR creation failed with
-HTTP 403; no successful PR, reviewer notification or merge is claimed.
+The complete source is integrated through [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82),
+which records its actual merge status and commit. Use `main` after verifying
+that integration; use the pinned app commit to reproduce the installed build.
+Earlier PR permission failures were resolved using existing owner Git access.
 
 ## Owner checks before submission
 

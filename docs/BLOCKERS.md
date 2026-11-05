@@ -4,10 +4,10 @@ Updated November 4, 2026. Continue from [next actions](NEXT_ACTIONS.md).
 
 ## Current submission checks
 
-- **Source selection:** `main` at `3ac7207` lacks the complete physical demo.
-  Use `codex/preupload-review-20261104`, which preserves the frozen
-  `codex/physical-demo-submission` source `e6c6ce9` and installed app code
-  `cf0088e`. See [source verification](DEMO_SOURCE_VERIFICATION.md).
+- **Source integration:** [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82)
+  integrates the complete physical demo into `main`, preserving frozen source
+  `e6c6ce9` and installed app code `cf0088e`. Verify its merged status before
+  using `main`. See [source verification](DEMO_SOURCE_VERIFICATION.md).
 - **Owner evidence:** final physical US-unit confirmation and the actual
   recording's content/duration/privacy review remain pending. Simulator checks
   and prior phone confirmation do not establish a finished video.

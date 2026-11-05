@@ -8,9 +8,10 @@ The verified physical demo source is `codex/physical-demo-submission` at
 `e6c6ce9`, with installed application code `cf0088e`. It includes bundled Meta
 DINOv2/Core ML recognition, Apple Vision OCR, persistent local logging,
 Confirm/Edit, guided goals, optional stateless device insights, an isolated
-simulated demo account, and US/metric display fixes. `main` at `3ac7207` does
-not contain this complete application. Use the feature source for the upload,
-not a build or archive of `main`.
+simulated demo account, and US/metric display fixes. The earlier `main` at
+`3ac7207` lacked this application. [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82)
+integrates the complete demo into `main`; its merge status and final commit
+are recorded on GitHub. The installed application remains pinned at `cf0088e`.
 
 The additive `codex/preupload-review-20261104` branch retains that exact app
 source and refreshes these handoff documents. Fresh verification of `e6c6ce9`:
@@ -27,7 +28,10 @@ historical branch. See [source verification](DEMO_SOURCE_VERIFICATION.md),
 [submission draft](SUBMISSION_DRAFT.md). Final physical US-unit confirmation,
 the actual video review, signed-in portal requirements, and participant/Startup
 eligibility checks remain owner tasks. No new provider request, private-ledger
-change, deployment, submission or merge was performed for this review.
+change, deployment or submission was performed for this review. The owner
+subsequently explicitly requested the `main` merge through PR #82. Fresh
+pre-merge checks again passed: 1,480 pytest / 5 skips / 58 subtests and
+217 XCTest; the integration follow-up changes documentation only.
 
 The October reports below are historical. Their pauses, test counts, spending
 gates and provider status are not current authority; applicable paths follow

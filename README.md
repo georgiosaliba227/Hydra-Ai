@@ -52,8 +52,9 @@ Submission source is the feature branch
 [`codex/physical-demo-submission`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/physical-demo-submission),
 with app code commit **cf0088e** and source-freeze evidence in that handoff. All source, setup, docs and
 actual model blobs must be pushed and remotely verified **before** owner recording.
-Do not use `main` as feature evidence. Earlier PR creation returned HTTP 403;
-no successful PR or merge is claimed.
+The complete source integration is tracked in [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82).
+For exact reproduction of the installed app, use the pinned application commit.
+The original feature freeze remains available on the branch above.
 
 The [November 4 pre-upload review](docs/PROJECT_STATUS.md) is published on
 [`codex/preupload-review-20261104`](https://github.com/georgiosaliba227/Hydra-Ai/tree/codex/preupload-review-20261104).
@@ -62,9 +63,9 @@ and next actions. Fresh checks passed: **1480 Python tests, 217 XCTest, 3
 starter tests, all 10 offline rehearsal groups, and signed model/blob
 verification**; 5 optional Python tests remain skipped. The final physical
 display confirmation and actual recording review remain pending.
-The source push is verified; PR creation is still blocked by the connected
-integration's HTTP 403 and the CLI identity's collaborator permissions.
-[Compare the complete submission source with main](https://github.com/georgiosaliba227/Hydra-Ai/compare/main...codex/preupload-review-20261104?expand=1).
+The source push is verified. Existing repository-owner Git authentication
+resolved the earlier PR permission blocker; [PR #82](https://github.com/georgiosaliba227/Hydra-Ai/pull/82)
+records integration into `main`, including its merge status and final commit.
 
 ## Evidence and model provenance
 
