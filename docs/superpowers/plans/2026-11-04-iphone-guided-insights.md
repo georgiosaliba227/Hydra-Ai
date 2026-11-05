@@ -19,7 +19,9 @@ running owner backend while preparing a reviewable nonbillable integration.
 
 - [x] Restored goal core and protected local profile scope; 41 focused and 170 native tests in isolated subtask.
 - [x] Research individualized goal methods, including 2026 evidence; no validated daily beverage target established. Owner then chose a clearly labelled, confirmed adult starting reference during further research.
-- [ ] Integrate confirmed interim reference into first use, Today and Settings.
+- [x] Integrate confirmed interim reference into first use, Today and Settings; first-use review, profile persistence, under-19 abstention/custom path and adopted-goal water progress verified in synthetic UI tests.
 - [x] One-button local analysis verified; expected checkbox regression RED, four real-model/progress UI tests GREEN.
-- [ ] Backend contract and feature routing verified with synthetic data.
-- [ ] Complete checks/review, signed install and truthful physical handoff.
+- [x] Backend contract and separate feature routing verified with synthetic phone data; Trends, contextual Ask, workout and restart flow passed. Owner features-only backend authenticated with no personal-data probe.
+- [x] Review and checks complete: 1457 pytest passed (5 optional skips, 58 subtests), 202 native XCTest passed, 7 relevant UI flows passed; strict signed/profile checks passed.
+- [x] Signed update installed successfully in place over Wi-Fi after owner unlocked both devices.
+- [ ] Finish phone connection and truthful physical handoff.
