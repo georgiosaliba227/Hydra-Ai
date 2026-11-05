@@ -20,11 +20,10 @@ struct BackendSettingsView: View {
     @State private var connectionMessage: String?
     @State private var checkingConnection = false
     @State private var error: String?
-    @State private var goalText = ""
+    @State private var goalValueMl: Double?
     @State private var goalMessage: String?
     @State private var goalEditRevision = UUID()
     @State private var loadingGoal = true
-    @FocusState private var goalFocused: Bool
     @State private var export: ExportDocument?
     @State private var confirmingDeleteAll = false
     @State private var dataMessage: String?
@@ -91,17 +90,11 @@ struct BackendSettingsView: View {
                         GuidedGoalSetupView(profileStore: store.goalProfiles)
                     } label: { Label("Guided goal setup", systemImage: "person.crop.circle.badge.checkmark") }
                         .accessibilityIdentifier("guidedGoalSetup")
-                    HStack {
-                        TextField("e.g. 2000", text: Binding(get: { goalText }, set: { goalText = $0; goalEditRevision = UUID() }))
-                            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
-                            .keyboardType(.numberPad)
-                            .focused($goalFocused)
-                            .accessibilityLabel("Daily goal in milliliters")
-                            .accessibilityIdentifier("goalField")
-                        Text("mL").foregroundStyle(.secondary).accessibilityHidden(true)
-                    }
-                    Button("Save goal") { goalFocused = false; Task { await saveGoal(Int(goalText)) } }
-                        .disabled(loadingGoal || store.isSettingGoal || (Int(goalText).map { !(100...10_000).contains($0) } ?? true))
+                    CanonicalQuantityField("Daily goal", value: Binding(get: { goalValueMl }, set: {
+                        goalValueMl = $0; goalEditRevision = UUID()
+                    }), quantity: .volume, accessibilityIdentifier: "goalField")
+                    Button("Save goal") { Task { await saveGoal(CanonicalQuantityInput.wholeMilliliters(goalValueMl, range: 100...10_000)) } }
+                        .disabled(loadingGoal || store.isSettingGoal || CanonicalQuantityInput.wholeMilliliters(goalValueMl, range: 100...10_000) == nil)
                         .accessibilityIdentifier("saveGoal")
                     Button("Clear goal", role: .destructive) { Task { await saveGoal(nil) } }
                         .disabled(loadingGoal || store.isSettingGoal)
@@ -163,17 +156,14 @@ struct BackendSettingsView: View {
             Text(store.isOnDevice ? "This iPhone's local drinks, goal, original suggestions and saved profile will be erased. This cannot be undone. Other connection profiles, server and demo records stay separate."
                  : "Your drinks, goal, correction memory and opted-in training photos are erased from the backend. This cannot be undone.")
         }
-        .toolbar { ToolbarItemGroup(placement: .keyboard) {
-            Spacer(); Button("Done") { goalFocused = false }
-        } }
         .onAppear { url = store.configuration.baseURL; token = store.configuration.token; offline = store.configuration.offline; onDevice = store.isOnDevice; insightsEnabled = store.configuration.insightsEnabled }
         .task(id: store.configurationGeneration) {
             let connection = store.configurationGeneration, revision = goalEditRevision
-            goalText = ""; goalMessage = nil; loadingGoal = true
+            goalValueMl = nil; goalMessage = nil; loadingGoal = true
             defer { if connection == store.configurationGeneration { loadingGoal = false } }
             let goal = try? await store.currentGoal()
             guard connection == store.configurationGeneration, revision == goalEditRevision, !Task.isCancelled else { return }
-            goalText = goal.map(String.init) ?? ""
+            goalValueMl = goal.map(Double.init)
         }
     }
 
@@ -197,7 +187,7 @@ struct BackendSettingsView: View {
         let revision = goalEditRevision
         do {
             try await store.setGoal(milliliters)
-            if revision == goalEditRevision { goalText = milliliters.map(String.init) ?? "" }
+            if revision == goalEditRevision { goalValueMl = milliliters.map(Double.init) }
             goalMessage = milliliters == nil ? "Goal cleared." : "Goal saved."
         } catch {
             goalMessage = "Could not save the goal. \(error.localizedDescription)"
@@ -229,7 +219,7 @@ struct BackendSettingsView: View {
     private func deleteAll() async {
         do {
             let count = try await store.deleteAllData()
-            goalText = ""
+            goalValueMl = nil
             dataMessage = "Deleted \(count) logged \(count == 1 ? "drink" : "drinks") and your goal."
         } catch {
             dataMessage = "Could not delete your data. \(error.localizedDescription)"

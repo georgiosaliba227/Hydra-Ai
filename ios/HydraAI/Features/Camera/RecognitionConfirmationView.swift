@@ -3,6 +3,7 @@ import UIKit
 
 struct RecognitionConfirmationView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     @Environment(\.dismiss) private var dismiss
     let candidate: RecognitionCandidate
     let mode: String
@@ -10,6 +11,7 @@ struct RecognitionConfirmationView: View {
     let feedbackContext: RecognitionFeedbackContext?
     let onSaved: () -> Void
     @State private var draft: RecognitionEntryDraft
+    @State private var initializedUnits = false
     @State private var editing: Bool
     @State private var needsSizeEntry: Bool
     @State private var rememberCorrection = true
@@ -44,14 +46,14 @@ struct RecognitionConfirmationView: View {
                             Text(draft.drinkType).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
-                    Text(draft.consumedMl.map { "\($0) mL" } ?? "Volume unclear")
+                    Text(draft.consumedMl.map { units.volume($0) } ?? "Volume unclear")
                         .font(editing ? .title2.bold() : .largeTitle.bold()).accessibilityIdentifier("photoVolume")
                     if let label = candidate.labelCapacityMl {
                         Text(draft.capacityWasEdited ? "Photo size suggestion: \(label) mL" : "Printed size: \(label) mL")
                             .font(.subheadline.bold()).accessibilityIdentifier("photoLabelCapacity")
                     }
                     if draft.capacityWasEdited {
-                        Text(draft.confirmedCapacityMl.map { "Edited container size: \($0) mL" } ?? "Container size: unknown")
+                        Text(draft.confirmedCapacityMl.map { "Edited container size: \(units.volume($0))" } ?? "Container size: unknown")
                             .font(.subheadline).accessibilityIdentifier("confirmedPhotoCapacity")
                     }
                     Text(draft.drankAll ? "Confirm logs the whole drink." : "Confirm logs your edited amount.")
@@ -66,7 +68,7 @@ struct RecognitionConfirmationView: View {
                             Text("Your previous correction: \(candidate.suggestedIdentity)").font(.caption).accessibilityIdentifier("personalCorrectionSuggestion")
                             Text("\(RecognitionPresentation(mode: mode).modelName) suggested: \(candidate.identity)").font(.caption)
                             if let liquid = candidate.personalLiquidText {
-                                Text(liquid).font(.caption).accessibilityIdentifier("personalLiquidCorrection")
+                                Text(units.text(liquid)).font(.caption).accessibilityIdentifier("personalLiquidCorrection")
                             }
                         }
                     }
@@ -104,9 +106,9 @@ struct RecognitionConfirmationView: View {
                     DisclosureGroup("Photo details") {
                         Text(RecognitionPresentation(mode: mode).suggestionTitle)
                         Text("\(RecognitionPresentation(mode: mode).modelName) confidence: \(candidate.confidence) (uncalibrated)")
-                        Text(candidate.suggestedCapacity.map { "Container size: \($0) mL" } ?? "Container size: unknown")
+                        Text(candidate.suggestedCapacity.map { "Container size: \(units.volume($0))" } ?? "Container size: unknown")
                             .accessibilityIdentifier("photoCapacity")
-                        Text(candidate.liquidEstimateText).font(.caption).foregroundStyle(.secondary)
+                        Text(units.text(candidate.liquidEstimateText)).font(.caption).foregroundStyle(.secondary)
                             .accessibilityIdentifier("photoEstimate")
                         if let label = candidate.labelCapacityMl { Text("Label reads \(label) mL (unverified).") }
                         ForEach(candidate.uncertaintyReasons, id: \.self) { Text($0).font(.footnote) }
@@ -140,15 +142,21 @@ struct RecognitionConfirmationView: View {
             ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(saving) }
         }
         .interactiveDismissDisabled(saving)
+        .onAppear {
+            guard !initializedUnits else { return }
+            let preferred: RecognitionVolumeUnit = units.system == .us ? .usFlOz : .millilitres
+            draft.setUnit(preferred); draft.setCapacityUnit(preferred)
+            initializedUnits = true
+        }
     }
     private var capacityEditor: some View {
         Section("Container size (optional)") {
-            TextField("Unknown",text:Binding(get:{draft.capacityText},set:{draft.setCapacity($0)}))
+            TextField("Unknown",text:Binding(get:{draft.capacityText},set:{ value in updateDraftPreservingUnit { $0.setCapacity(value) } }))
                 .keyboardType(.decimalPad).focused($focusedField,equals:.capacity).accessibilityIdentifier("photoContainerCapacity")
             Picker("Container unit",selection:Binding(get:{draft.capacityUnit},set:{draft.setCapacityUnit($0)})) {
                 ForEach(RecognitionVolumeUnit.allCases) { Text($0.rawValue).tag($0) }
             }.pickerStyle(.segmented).accessibilityIdentifier("photoCapacityUnit")
-            Button("Clear container size") { draft.setCapacity("") }
+            Button("Clear container size") { updateDraftPreservingUnit { $0.setCapacity("") } }
                 .accessibilityIdentifier("clearPhotoCapacity")
             Text("Correct the container's capacity, or clear it if unknown. The amount to log is separate; using the full container is an explicit assumption.")
                 .font(.footnote)
@@ -167,25 +175,30 @@ struct RecognitionConfirmationView: View {
             }.pickerStyle(.segmented).accessibilityIdentifier("photoVolumeUnit")
             HStack {
                 ForEach([250, 355, 500], id: \.self) { ml in
-                    Button("\(ml) mL") { focusedField = nil; draft.selectPreset(ml) }
+                    Button(units.volume(ml)) { focusedField = nil; updateDraftPreservingUnit { $0.selectPreset(ml) } }
                         .buttonStyle(.bordered).accessibilityIdentifier("volumePreset-\(ml)")
                 }
             }
             if editing {
                 if draft.drankAll {
-                    Button("Log a different amount") { focusedField = nil; draft.setDrankAll(false) }
+                    Button("Log a different amount") { focusedField = nil; updateDraftPreservingUnit { $0.setDrankAll(false) } }
                         .accessibilityIdentifier("logDifferentAmount")
                 } else {
-                    Button("Use whole drink") { focusedField = nil; draft.setDrankAll(true) }
+                    Button("Use whole drink") { focusedField = nil; updateDraftPreservingUnit { $0.setDrankAll(true) } }
                         .accessibilityIdentifier("useWholeDrink")
                 }
                 if let capacity = draft.confirmedCapacityMl {
-                    Button("Use full \(capacity) mL container") { focusedField = nil; draft.useFullContainer() }
+                    Button("Use full \(units.volume(capacity)) container") { focusedField = nil; updateDraftPreservingUnit { $0.useFullContainer() } }
                         .accessibilityIdentifier("useFullContainer")
                 }
             }
             Text("Other units round to the nearest mL.").font(.footnote)
         }
+    }
+    private func updateDraftPreservingUnit(_ edit: (inout RecognitionEntryDraft) -> Void) {
+        let selected = draft.unit
+        edit(&draft)
+        draft.setUnit(selected)
     }
     @MainActor private func save() async {
         guard draft.valid, let amount = draft.consumedMl, !saving else { return }

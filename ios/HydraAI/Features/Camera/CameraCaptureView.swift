@@ -6,6 +6,7 @@ import UIKit
 /// Consented analysis; durable photo storage additionally requires training opt-in.
 struct CameraCaptureView: View {
     @EnvironmentObject private var store: BeverageStore
+    @EnvironmentObject private var units: DisplayUnits
     let onLogManually: () -> Void
 
     @State private var photoItem: PhotosPickerItem?
@@ -193,8 +194,8 @@ struct CameraCaptureView: View {
             Text(candidate.suggestedIdentity).font(.headline)
             if let brand = candidate.brand { Text("Brand: \(brand)") }
             if let product = candidate.product { Text("Product: \(product)") }
-            Text(candidate.suggestedCapacity.map { "Container suggestion: \($0) mL" } ?? "Container capacity: unknown")
-            Text(candidate.liquidEstimateText).font(.subheadline)
+            Text(candidate.suggestedCapacity.map { "Container suggestion: \(units.volume($0))" } ?? "Container capacity: unknown")
+            Text(units.text(candidate.liquidEstimateText)).font(.subheadline)
             Text("\(RecognitionPresentation(mode: result?.mode).modelName) confidence: \(candidate.confidence) · verify the details").font(.footnote)
             if candidate.personalCorrection != nil {
                 Text("\(RecognitionPresentation(mode: result?.mode).modelName) suggested: \(candidate.identity)").font(.footnote)

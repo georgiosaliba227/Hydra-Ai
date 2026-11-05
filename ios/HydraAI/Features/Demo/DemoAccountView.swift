@@ -37,6 +37,10 @@ struct DemoAccountView: View {
         guard !ready else { return }
         message = nil
         do {
+            if !UserDefaults.standard.bool(forKey: "hydra.demo.usDisplayDefault.v1") {
+                UserDefaults.standard.set(DisplayUnitSystem.us.rawValue, forKey: DisplayUnits.preferenceKey)
+                UserDefaults.standard.set(true, forKey: "hydra.demo.usDisplayDefault.v1")
+            }
             try store.configuration.save()
             try await store.prepareDemoAccount()
             ready = true
