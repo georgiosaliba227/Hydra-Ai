@@ -52,7 +52,7 @@ struct DemoSeedPlan {
                 // Early-day rehearsals still show the full fictional baseline. Never
                 // schedule today's later drinks in the future; the entries remain labelled simulated.
                 let date = offset == 0 ? min(scheduled, anchor) : scheduled
-                guard date <= anchor else { throw DemoAccountError.invalidAnchor }
+                guard DateBoundary.onOrBefore(date, anchor) else { throw DemoAccountError.invalidAnchor }
                 entries.append(Entry(id: id, request: CreateBeverageRequest(category: categories[index],
                     consumedMl: volumes[index], consumedAt: date, timezone: zone.identifier, source: "manual")))
             }
@@ -139,7 +139,7 @@ struct DemoSeedPlan {
         if saved.state == .ready { return plan }
         // Do not shift a persisted anchor or submit even one future-dated request
         // after rollback. The exact requests can resume when the clock recovers.
-        guard now.timeIntervalSince1970.isFinite, plan.entries.allSatisfy({ $0.request.consumedAt <= now }) else { throw DemoAccountError.clockRollback }
+        guard now.timeIntervalSince1970.isFinite, plan.entries.allSatisfy({ DateBoundary.onOrBefore($0.request.consumedAt, now) }) else { throw DemoAccountError.clockRollback }
         guard profiles.canSave else { throw GoalProfileStoreError.unavailable }
         var initializing = saved
         if saved.state == .resetting {
