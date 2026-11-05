@@ -24,4 +24,4 @@ running owner backend while preparing a reviewable nonbillable integration.
 - [x] Backend contract and separate feature routing verified with synthetic phone data; Trends, contextual Ask, workout and restart flow passed. Owner features-only backend authenticated with no personal-data probe.
 - [x] Review and checks complete: 1457 pytest passed (5 optional skips, 58 subtests), 202 native XCTest passed, 7 relevant UI flows passed; strict signed/profile checks passed.
 - [x] Signed update installed successfully in place over Wi-Fi after owner unlocked both devices.
-- [ ] Finish phone connection and truthful physical handoff.
+- [x] Owner confirmed “Backend features connected” on the physical phone. Screen sharing stopped; owner chooses profile/source and confirms the goal in guided setup. Review handoff records the blocked GitHub PR permissions separately.

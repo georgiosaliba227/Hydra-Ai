@@ -103,3 +103,31 @@ offline build.
 Development details and model source/metrics are in
 `docs/architecture/ON_DEVICE_CAMERA.md` and `ai/on_device/README.md`. Weights,
 license and model notice are bundled; no model download occurs at runtime.
+
+## Guided goal and optional backend features update
+
+The November 4 update adds first-use goal review and entry points on Today and
+Settings. Review a labelled adult starting reference or choose a custom goal,
+then confirm it. The saved goal drives the water level. Height, weight and
+supplements remain optional local context with no new numerical adjustment.
+Individualized-goal research is documented separately; this reference is not a
+measured personal requirement.
+
+On-device photo processing now uses one **Analyze** button. Selecting a photo
+never starts inference by itself. Confirm/Edit and protected local records remain.
+
+To use backend features while keeping camera/logging local, keep **On this
+iPhone** enabled and separately enable **Connect backend features** in Settings.
+Use the owner's features backend at the Mac's current private LAN address, port
+8772, with the existing Hydra backend token. Save, then **Check backend features**.
+This check sends no drink data. Trends previews phone aggregates before a separate
+send action; Ask Hydra includes the phone's total only if selected. Profiles and
+raw HealthKit records stay on the phone. The features runtime is nonbillable and
+opens no database or financial ledger. Internet-hosted AI is not activated.
+
+The signed update from `4321f28` was installed in place over Wi-Fi and launched
+successfully. Automated verification passed 202 native tests, 1457 Python tests
+(five optional skips) and seven relevant synthetic UI flows. The owner confirmed the phone reports “Backend features connected.” Personal
+profile/source selection and goal confirmation remain the owner's choices in
+guided setup.
+Screen sharing must be stopped before using the physical camera.

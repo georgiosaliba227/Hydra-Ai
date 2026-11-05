@@ -46,9 +46,9 @@ history and financial processes were left separate.
 - Signed generic iPhone build passed strict signature, team/profile expiry and
   registered-phone checks. It is staged privately for in-place installation.
 - Owner LAN backend health and authenticated capability checks passed without
-  sending personal data. The signed update was installed in place successfully over Wi-Fi. Phone
-  backend connection and owner goal confirmation are still being verified; the
-  earlier owner-confirmed offline test applies to the prior build.
+  sending personal data. The signed update was installed in place successfully over Wi-Fi. The owner confirmed the phone reports “Backend features connected.” Personal
+  profile/source selection and goal confirmation remain the owner’s in-app
+  choices. The earlier physical offline test applies to the prior build.
 
 Evidence bundles/logs remain in private temporary directories
 `hydra-guided-connected-final-unit`, `hydra-guided-connected-e2e-final`,
