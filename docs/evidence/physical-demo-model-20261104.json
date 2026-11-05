@@ -12,7 +12,7 @@
     "bytes": 43281240,
     "sha256": "372571e222751cdc766bf7de3aa36f0beee01fbb0d1c64db4079e8ab261ce20f"
   },
-  "git_commit": "3b9663bcb24fbeeec23503905b2bfc719e735745",
+  "git_commit": "d09d09383faafcd25112569ad03745997a475629",
   "model_id": "dinov2-small-beverage-v1",
   "notices": [
     {
